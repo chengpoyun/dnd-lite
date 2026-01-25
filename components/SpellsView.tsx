@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 
 interface Spell {
@@ -32,19 +31,19 @@ export const SpellsView: React.FC = () => {
       {/* 法術位追蹤 */}
       <div className="grid grid-cols-2 gap-3">
         {Object.entries(spellSlots).map(([level, data]) => (
-          <div key={level} className="bg-slate-900/60 p-3 rounded-2xl border border-slate-800 flex flex-col items-center">
-            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">環階 {level}</span>
-            <div className="flex items-center gap-2">
+          <div key={level} className="bg-slate-900/60 p-4 rounded-2xl border border-slate-800 flex flex-col items-center">
+            <span className="text-[14px] font-black text-slate-500 uppercase tracking-widest mb-1.5">環階 {level}</span>
+            <div className="flex items-center gap-3">
               <button 
                 onClick={() => setSpellSlots(prev => ({ ...prev, [level]: { ...data, current: Math.max(0, data.current - 1) } }))}
-                className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-lg active:bg-indigo-900/40"
+                className="w-9 h-9 rounded-full bg-slate-800 flex items-center justify-center text-lg active:bg-indigo-900/40"
               >
                 -
               </button>
               <span className="text-xl font-mono font-black text-indigo-400">{data.current} / {data.max}</span>
               <button 
                 onClick={() => setSpellSlots(prev => ({ ...prev, [level]: { ...data, current: Math.min(data.max, data.current + 1) } }))}
-                className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-lg active:bg-indigo-900/40"
+                className="w-9 h-9 rounded-full bg-slate-800 flex items-center justify-center text-lg active:bg-indigo-900/40"
               >
                 +
               </button>
@@ -54,21 +53,21 @@ export const SpellsView: React.FC = () => {
       </div>
 
       {/* 法術列表 */}
-      <div className="space-y-4">
+      <div className="space-y-5">
         {[0, 1, 2].map(lvl => (
-          <div key={lvl} className="space-y-2">
-            <h3 className="text-xs font-black text-slate-500 uppercase tracking-tighter px-1">
+          <div key={lvl} className="space-y-2.5">
+            <h3 className="text-[14px] font-black text-slate-500 uppercase tracking-tighter px-1">
               {lvl === 0 ? '戲法 (Cantrips)' : `環階 ${lvl} 法術`}
             </h3>
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               {INITIAL_SPELLS.filter(s => s.level === lvl).map(spell => (
-                <div key={spell.id} className="bg-slate-800/40 border border-slate-700/50 p-3 rounded-xl flex items-center justify-between">
+                <div key={spell.id} className="bg-slate-800/40 border border-slate-700/50 p-4 rounded-xl flex items-center justify-between">
                   <div className="flex flex-col">
-                    <span className="text-[14px] font-bold text-slate-200">{spell.name}</span>
-                    <span className="text-[10px] text-slate-500">{spell.school} • {spell.castingTime} • {spell.range}</span>
+                    <span className="text-[15px] font-bold text-slate-200">{spell.name}</span>
+                    <span className="text-[14px] text-slate-500 mt-1">{spell.school} • {spell.castingTime} • {spell.range}</span>
                   </div>
                   {lvl > 0 && (
-                    <div className={`w-2 h-2 rounded-full ${spell.isPrepared ? 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]' : 'bg-slate-700'}`} />
+                    <div className={`w-3 h-3 rounded-full ${spell.isPrepared ? 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]' : 'bg-slate-700'}`} />
                   )}
                 </div>
               ))}

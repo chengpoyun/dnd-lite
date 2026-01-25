@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { CharacterStats } from '../types';
 import { evaluateValue } from '../utils/helpers';
@@ -208,37 +207,36 @@ export const CombatView: React.FC<CombatViewProps> = ({ stats, setStats }) => {
       {/* 頂部控制 */}
       <div className="flex justify-between items-center px-1">
         <div className="flex items-baseline gap-2">
-          <h2 className="text-sm font-fantasy text-amber-500/80 tracking-widest uppercase">戰鬥狀態</h2>
+          <h2 className="text-[14px] font-fantasy text-amber-500/80 tracking-widest uppercase">戰鬥狀態</h2>
           <div className="flex items-center gap-1 bg-slate-800/80 px-2 py-0.5 rounded-full border border-slate-700">
-            <span className="text-[10px] opacity-60">🕒</span>
-            <span className="text-[10px] font-mono font-bold text-slate-300">{formatCombatTime(combatSeconds)}</span>
+            <span className="text-[14px] opacity-60">🕒</span>
+            <span className="text-[14px] font-mono font-bold text-slate-300">{formatCombatTime(combatSeconds)}</span>
           </div>
         </div>
         <div className="flex gap-1.5">
-          <button onClick={() => setIsEditMode(!isEditMode)} className={`text-[10px] font-bold px-3 py-1 rounded-md border transition-all ${isEditMode ? 'bg-amber-500 text-slate-950 border-amber-400' : 'bg-slate-800 text-slate-400 border-slate-700'}`}>
+          <button onClick={() => setIsEditMode(!isEditMode)} className={`text-[14px] font-bold px-3 py-1 rounded-md border transition-all ${isEditMode ? 'bg-amber-500 text-slate-950 border-amber-400' : 'bg-slate-800 text-slate-400 border-slate-700'}`}>
             {isEditMode ? '完成' : '編輯'}
           </button>
-          <button onClick={() => setIsEndCombatConfirmOpen(true)} className="bg-slate-800/50 text-slate-400 text-[10px] font-bold px-2.5 py-1 rounded-md border border-slate-700 active:bg-red-900/20">結束戰鬥</button>
-          <button onClick={nextTurn} className="bg-indigo-600/80 text-white text-[10px] font-bold px-2.5 py-1 rounded-md shadow-sm active:scale-95">下一回合</button>
+          <button onClick={nextTurn} className="bg-indigo-600/80 text-white text-[14px] font-bold px-3 py-1.5 rounded-md shadow-sm active:scale-95">下一回合</button>
         </div>
       </div>
 
       {/* 數值摘要 */}
       <div className="grid grid-cols-4 gap-1">
         <div onClick={() => { setTempHPValue(stats.hp.current.toString()); setIsHPModalOpen(true); }} className="flex flex-col items-center justify-center bg-slate-800/60 p-1.5 rounded-xl border border-slate-700/50 active:bg-slate-700 cursor-pointer">
-          <span className="text-[8px] font-black text-emerald-400/80 uppercase mb-0.5 tracking-tighter">生命值</span>
-          <span className="text-[12px] font-fantasy text-white">{stats.hp.current}/{stats.hp.max}</span>
+          <span className="text-[14px] font-black text-emerald-400/80 uppercase mb-0.5 tracking-tighter">生命</span>
+          <span className="text-[14px] font-fantasy text-white leading-none">{stats.hp.current}/{stats.hp.max}</span>
         </div>
         <div onClick={() => { setTempACValue(stats.ac.toString()); setIsACModalOpen(true); }} className="flex flex-col items-center justify-center bg-slate-800/60 p-1.5 rounded-xl border border-slate-700/50 active:bg-slate-700 cursor-pointer">
-          <span className="text-[8px] font-black text-amber-500/80 uppercase mb-0.5 tracking-tighter">防禦(AC)</span>
+          <span className="text-[14px] font-black text-amber-500/80 uppercase mb-0.5 tracking-tighter">防禦</span>
           <span className="text-lg font-fantasy text-white leading-none">{stats.ac}</span>
         </div>
         <div className="flex flex-col items-center justify-center bg-slate-800/60 p-1.5 rounded-xl border border-slate-700/50">
-          <span className="text-[8px] font-black text-indigo-400/80 uppercase mb-0.5 tracking-tighter">先攻加值</span>
+          <span className="text-[14px] font-black text-indigo-400/80 uppercase mb-0.5 tracking-tighter">先攻</span>
           <span className="text-lg font-fantasy text-white leading-none">+{stats.initiative}</span>
         </div>
         <div className="flex flex-col items-center justify-center bg-slate-800/60 p-1.5 rounded-xl border border-slate-700/50">
-          <span className="text-[8px] font-black text-cyan-400/80 uppercase mb-0.5 tracking-tighter">移動速度</span>
+          <span className="text-[14px] font-black text-cyan-400/80 uppercase mb-0.5 tracking-tighter">速</span>
           <span className="text-lg font-fantasy text-white leading-none">{stats.speed}</span>
         </div>
       </div>
@@ -247,15 +245,15 @@ export const CombatView: React.FC<CombatViewProps> = ({ stats, setStats }) => {
       <div className="bg-slate-900/40 p-2 rounded-2xl border border-slate-800/50 space-y-2 shadow-inner">
         <div className="flex justify-between items-center px-1 border-b border-slate-800 pb-1.5">
           <div className="flex items-center gap-2">
-            <h3 className="text-[11px] font-black uppercase tracking-widest text-cyan-400">職業資源 (Resources)</h3>
+            <h3 className="text-[14px] font-black uppercase tracking-widest text-cyan-400">職業資源</h3>
             <button 
               onClick={() => { setActiveType('resource'); setIsAddModalOpen(true); }}
-              className="bg-slate-800 border border-slate-700 rounded-md w-6 h-6 flex items-center justify-center text-lg font-bold active:scale-90 text-cyan-400"
+              className="bg-slate-800 border border-slate-700 rounded-md w-7 h-7 flex items-center justify-center text-lg font-bold active:scale-90 text-cyan-400"
             >
               +
             </button>
           </div>
-          <span className="text-[9px] font-black text-slate-600 uppercase tracking-tighter">獨立計數</span>
+          <span className="text-[14px] font-black text-slate-600 uppercase tracking-tighter">獨立計數</span>
         </div>
         <div className="grid grid-cols-2 gap-2">
           {resources.map((res) => (
@@ -271,16 +269,16 @@ export const CombatView: React.FC<CombatViewProps> = ({ stats, setStats }) => {
               >
                 <span className="text-xl">{res.icon}</span>
                 <div className="flex-1 overflow-hidden">
-                  <div className="text-[11px] font-bold text-slate-300 truncate leading-none mb-1">{res.name}</div>
-                  <div className={`text-[13px] font-mono font-black ${res.current > 0 ? 'text-cyan-400' : 'text-slate-600'}`}>
-                    {res.current} <span className="text-[10px] text-slate-500 font-normal">/ {res.max}</span>
+                  <div className="text-[14px] font-bold text-slate-300 truncate leading-none mb-1.5">{res.name}</div>
+                  <div className={`text-[15px] font-mono font-black ${res.current > 0 ? 'text-cyan-400' : 'text-slate-600'}`}>
+                    {res.current} <span className="text-[14px] text-slate-500 font-normal">/ {res.max}</span>
                   </div>
                 </div>
               </button>
               {isEditMode && (
                 <button 
                   onClick={() => removeEntry('resource', res.id)}
-                  className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-600 text-white rounded-full flex items-center justify-center text-[10px] font-black border border-slate-900 shadow-lg z-10"
+                  className="absolute -top-1.5 -right-1.5 w-6 h-6 bg-red-600 text-white rounded-full flex items-center justify-center text-[14px] font-black border border-slate-900 shadow-lg z-10"
                 >
                   ✕
                 </button>
@@ -319,151 +317,6 @@ export const CombatView: React.FC<CombatViewProps> = ({ stats, setStats }) => {
         onRemove={(id) => removeEntry('bonus', id)}
         onUse={() => useType('bonus')}
       />
-
-      <ActionList 
-        title="反應 (Reaction)" 
-        type="reaction" 
-        items={customReactions} 
-        current={reactions} 
-        max={maxReactions} 
-        colorClass="text-rose-400" 
-        iconClass="text-rose-400"
-        onAdd={() => { setActiveType('reaction'); setIsAddModalOpen(true); }}
-        onSetMax={() => { setActiveType('reaction'); setTempMaxValue(maxReactions.toString()); setIsMaxEditModalOpen(true); }}
-        isEditMode={isEditMode}
-        onRemove={(id) => removeEntry('reaction', id)}
-        onUse={() => useType('reaction')}
-      />
-
-      {/* 彈窗 */}
-      {isHPModalOpen && (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center px-6">
-          <div className="absolute inset-0 bg-slate-950/85 backdrop-blur-sm" onClick={() => setIsHPModalOpen(false)} />
-          <div className="relative bg-slate-900 border border-slate-700 w-full max-w-xs rounded-3xl p-6 shadow-2xl animate-in fade-in zoom-in duration-150">
-            <div className="flex justify-between items-baseline mb-4 border-b border-slate-800 pb-2">
-              <h3 className="text-base font-fantasy text-emerald-500">修改生命值</h3>
-              <span className="text-[10px] font-bold text-slate-500">上限: {stats.hp.max}</span>
-            </div>
-            <div className="space-y-4">
-              <div className="relative">
-                <input type="text" value={tempHPValue} onChange={(e) => setTempHPValue(e.target.value)} className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-4 text-3xl font-mono text-center text-emerald-400 focus:outline-none" placeholder={stats.hp.current.toString()} autoFocus />
-                <div className="text-center mt-2">
-                  <span className="text-xs text-slate-500 uppercase font-black tracking-widest">預覽</span>
-                  <div className="flex items-center justify-center gap-3 text-lg font-bold">
-                    <span className="text-slate-400">{stats.hp.current}</span>
-                    <span className="text-slate-600">→</span>
-                    <span className="text-emerald-400 text-2xl">{evaluateValue(tempHPValue, stats.hp.current, stats.hp.max)}</span>
-                  </div>
-                </div>
-              </div>
-              <div className="flex gap-2 pt-2">
-                <button onClick={() => setIsHPModalOpen(false)} className="flex-1 px-4 py-3 bg-slate-800 text-slate-400 rounded-xl font-bold">取消</button>
-                <button onClick={handleSetHP} className="flex-1 px-4 py-3 bg-emerald-600 text-white rounded-xl font-bold">套用</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {isACModalOpen && (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center px-6">
-          <div className="absolute inset-0 bg-slate-950/85 backdrop-blur-sm" onClick={() => setIsACModalOpen(false)} />
-          <div className="relative bg-slate-900 border border-slate-700 w-full max-w-xs rounded-3xl p-6 shadow-2xl animate-in fade-in zoom-in duration-150">
-            <h3 className="text-base font-fantasy text-amber-500 mb-4 border-b border-slate-800 pb-2">修改防禦(AC)</h3>
-            <div className="space-y-4">
-              <div className="relative">
-                <input type="text" value={tempACValue} onChange={(e) => setTempACValue(e.target.value)} className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-4 text-3xl font-mono text-center text-white focus:outline-none" placeholder={stats.ac.toString()} autoFocus />
-                <div className="text-center mt-2">
-                  <span className="text-xs text-slate-500 uppercase font-black tracking-widest">預覽</span>
-                  <div className="flex items-center justify-center gap-3 text-lg font-bold">
-                    <span className="text-slate-400">{stats.ac}</span>
-                    <span className="text-slate-600">→</span>
-                    <span className="text-amber-500 text-2xl">{evaluateValue(tempACValue, stats.ac)}</span>
-                  </div>
-                </div>
-              </div>
-              <div className="flex gap-2">
-                <button onClick={() => setIsACModalOpen(false)} className="flex-1 px-4 py-3 bg-slate-800 text-slate-400 rounded-xl font-bold">取消</button>
-                <button onClick={handleSetAC} className="flex-1 px-4 py-3 bg-amber-600 text-white rounded-xl font-bold">儲存</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {isEndCombatConfirmOpen && (
-        <div className="fixed inset-0 z-[120] flex items-center justify-center px-6">
-          <div className="absolute inset-0 bg-slate-950/85 backdrop-blur-sm" onClick={() => setIsEndCombatConfirmOpen(false)} />
-          <div className="relative bg-slate-900 border border-slate-700 w-full max-w-xs rounded-2xl p-6 shadow-2xl animate-in fade-in zoom-in duration-150">
-            <h3 className="text-lg font-bold text-white mb-2">結束戰鬥？</h3>
-            <p className="text-sm text-slate-400 mb-6">這將會重置計時器與所有動作次數。</p>
-            <div className="flex gap-2">
-              <button onClick={() => setIsEndCombatConfirmOpen(false)} className="flex-1 px-4 py-3 bg-slate-800 text-slate-400 rounded-xl font-bold">取消</button>
-              <button onClick={confirmEndCombat} className="flex-1 px-4 py-3 bg-red-600 text-white rounded-xl font-bold">結束</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {isAddModalOpen && (
-        <div className="fixed inset-0 z-[120] flex items-center justify-center px-6">
-          <div className="absolute inset-0 bg-slate-950/85 backdrop-blur-sm" onClick={() => setIsAddModalOpen(false)} />
-          <div className="relative bg-slate-900 border border-slate-700 w-full max-w-xs rounded-2xl p-6 shadow-2xl animate-in fade-in zoom-in duration-150">
-            <h3 className="text-base font-fantasy text-amber-500 mb-4 border-b border-slate-800 pb-2">新增{activeType === 'resource' ? '資源' : '動作'}</h3>
-            <div className="space-y-4">
-              <div className="flex gap-2">
-                <input type="text" value={newEntryIcon} onChange={(e) => setNewEntryIcon(e.target.value)} className="w-14 bg-slate-800 border border-slate-700 rounded-xl p-3 text-center text-2xl" placeholder="✨" />
-                <input type="text" value={newEntryName} onChange={(e) => setNewEntryName(e.target.value)} className="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white" placeholder="名稱..." autoFocus />
-              </div>
-              <div className="flex gap-2 pt-2">
-                <button onClick={() => setIsAddModalOpen(false)} className="flex-1 px-4 py-3 bg-slate-800 text-slate-400 rounded-xl font-bold">取消</button>
-                <button onClick={handleSaveEntry} className="flex-1 px-4 py-3 bg-amber-600 text-white rounded-xl font-bold">新增</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {isMaxEditModalOpen && (
-        <div className="fixed inset-0 z-[120] flex items-center justify-center px-6">
-          <div className="absolute inset-0 bg-slate-950/85 backdrop-blur-sm" onClick={() => setIsMaxEditModalOpen(false)} />
-          <div className="relative bg-slate-900 border border-slate-700 w-full max-w-xs rounded-2xl p-6 shadow-2xl animate-in fade-in zoom-in duration-150">
-            <h3 className="text-base font-fantasy text-amber-500 mb-4 border-b border-slate-800 pb-2">設定可用次數</h3>
-            <div className="space-y-4">
-              <input type="number" inputMode="numeric" value={tempMaxValue} onChange={(e) => setTempMaxValue(e.target.value)} className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-4 text-3xl font-mono text-center text-white" autoFocus />
-              <div className="flex gap-2 pt-2">
-                <button onClick={() => setIsMaxEditModalOpen(false)} className="flex-1 px-4 py-3 bg-slate-800 text-slate-400 rounded-xl font-bold">取消</button>
-                <button onClick={handleSetMax} className="flex-1 px-4 py-3 bg-amber-600 text-white rounded-xl font-bold">儲存</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {isResourceEditModalOpen && (
-        <div className="fixed inset-0 z-[120] flex items-center justify-center px-6">
-          <div className="absolute inset-0 bg-slate-950/85 backdrop-blur-sm" onClick={() => setIsResourceEditModalOpen(false)} />
-          <div className="relative bg-slate-900 border border-slate-700 w-full max-w-xs rounded-2xl p-6 shadow-2xl animate-in fade-in zoom-in duration-150">
-            <h3 className="text-base font-fantasy text-cyan-400 mb-4 border-b border-slate-800 pb-2">編輯資源數值</h3>
-            <div className="space-y-6">
-              <div className="flex gap-4">
-                <div className="flex-1 text-center">
-                  <label className="text-[10px] text-slate-500 uppercase font-black block mb-1">當前</label>
-                  <input type="number" value={resTempCurrent} onChange={(e) => setResTempCurrent(parseInt(e.target.value) || 0)} className="w-full bg-slate-800 border border-slate-700 rounded-xl py-3 text-xl font-mono text-center text-white" />
-                </div>
-                <div className="flex-1 text-center">
-                  <label className="text-[10px] text-slate-500 uppercase font-black block mb-1">最大</label>
-                  <input type="number" value={resTempMax} onChange={(e) => setResTempMax(parseInt(e.target.value) || 0)} className="w-full bg-slate-800 border border-slate-700 rounded-xl py-3 text-xl font-mono text-center text-white" />
-                </div>
-              </div>
-              <div className="flex gap-2 pt-2">
-                <button onClick={() => setIsResourceEditModalOpen(false)} className="flex-1 px-4 py-3 bg-slate-800 text-slate-400 rounded-xl font-bold">取消</button>
-                <button onClick={handleSaveResourceEdit} className="flex-1 px-4 py-3 bg-cyan-600 text-white rounded-xl font-bold">儲存</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
@@ -486,15 +339,15 @@ interface ActionListProps {
 const ActionList: React.FC<ActionListProps> = ({ title, type, items, current, max, colorClass, iconClass, onAdd, onSetMax, isEditMode, onRemove, onUse }) => {
   const DEFAULT_MAP = { action: DEFAULT_ACTIONS, bonus: DEFAULT_BONUS_ACTIONS, reaction: DEFAULT_REACTIONS, resource: [] };
   return (
-    <div className="bg-slate-900/40 p-2 rounded-2xl border border-slate-800/50 space-y-2 shadow-inner">
+    <div className="bg-slate-900/40 p-2.5 rounded-2xl border border-slate-800/50 space-y-2.5 shadow-inner">
       <div className="flex justify-between items-center px-1 border-b border-slate-800 pb-1.5">
         <div className="flex items-center gap-2">
-          <h3 className={`text-[11px] font-black uppercase tracking-widest ${colorClass}`}>{title}</h3>
-          <button onClick={onAdd} className={`bg-slate-800 border border-slate-700 rounded-md w-6 h-6 flex items-center justify-center text-lg font-bold active:scale-90 ${iconClass}`}>+</button>
+          <h3 className={`text-[14px] font-black uppercase tracking-widest ${colorClass}`}>{title}</h3>
+          <button onClick={onAdd} className={`bg-slate-800 border border-slate-700 rounded-md w-7 h-7 flex items-center justify-center text-lg font-bold active:scale-90 ${iconClass}`}>+</button>
         </div>
-        <button onClick={onSetMax} className="flex items-center gap-1 bg-slate-800/80 px-2.5 py-1 rounded-lg border border-slate-700 active:bg-slate-700 transition-colors">
-          <span className="text-[9px] font-black text-slate-500 uppercase tracking-tighter mr-1">可用次數</span>
-          <span className={`text-sm font-mono font-bold ${current > 0 ? iconClass : 'text-slate-600'}`}>{current} <span className="text-[10px] text-slate-500 font-normal">/ {max}</span></span>
+        <button onClick={onSetMax} className="flex items-center gap-1 bg-slate-800/80 px-2.5 py-1.5 rounded-lg border border-slate-700 active:bg-slate-700 transition-colors">
+          <span className="text-[14px] font-black text-slate-500 uppercase tracking-tighter mr-1">可用次數</span>
+          <span className={`text-[15px] font-mono font-bold ${current > 0 ? iconClass : 'text-slate-600'}`}>{current} <span className="text-[14px] text-slate-500 font-normal">/ {max}</span></span>
         </button>
       </div>
       <div className="grid grid-cols-3 gap-1.5">
@@ -503,10 +356,10 @@ const ActionList: React.FC<ActionListProps> = ({ title, type, items, current, ma
           return (
             <div key={item.id} className="relative">
               <button onClick={onUse} disabled={!isEditMode && current <= 0} className={`w-full flex flex-col items-center justify-center p-2.5 rounded-xl border transition-all ${current > 0 || isEditMode ? 'bg-slate-800/40 border-slate-700/50 active:scale-95 active:bg-slate-700/80 shadow-sm' : 'bg-slate-950/30 border-slate-900/50 opacity-20 grayscale'}`}>
-                <span className="text-lg mb-0.5">{item.icon}</span>
-                <span className="text-[10px] font-bold text-slate-300 truncate w-full text-center px-1">{item.name}</span>
+                <span className="text-xl mb-0.5">{item.icon}</span>
+                <span className="text-[14px] font-bold text-slate-300 truncate w-full text-center px-1 tracking-tighter">{item.name}</span>
               </button>
-              {isEditMode && !isDefault && <button onClick={() => onRemove(item.id)} className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-600 text-white rounded-full flex items-center justify-center text-[10px] font-black border border-slate-900 shadow-lg active:scale-75 z-10">✕</button>}
+              {isEditMode && !isDefault && <button onClick={() => onRemove(item.id)} className="absolute -top-1.5 -right-1.5 w-6 h-6 bg-red-600 text-white rounded-full flex items-center justify-center text-[14px] font-black border border-slate-900 shadow-lg active:scale-75 z-10">✕</button>}
             </div>
           );
         })}

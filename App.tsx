@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { CharacterSheet } from './components/CharacterSheet';
 import { DiceRoller } from './components/DiceRoller';
@@ -105,23 +104,23 @@ const App: React.FC = () => {
         <div className="flex justify-around items-center h-16">
           <button onClick={() => setActiveTab(Tab.CHARACTER)} className={`flex flex-col items-center flex-1 transition-all duration-200 ${activeTab === Tab.CHARACTER ? 'text-amber-500 scale-110' : 'text-slate-500'}`}>
             <span className="text-xl">👤</span>
-            <span className="text-[10px] mt-0.5 font-black uppercase tracking-tighter">角色</span>
+            <span className="text-[14px] mt-0.5 font-black uppercase tracking-tighter">角色</span>
           </button>
           <button onClick={() => setActiveTab(Tab.COMBAT)} className={`flex flex-col items-center flex-1 transition-all duration-200 ${activeTab === Tab.COMBAT ? 'text-amber-500 scale-110' : 'text-slate-500'}`}>
             <span className="text-xl">⚔️</span>
-            <span className="text-[10px] mt-0.5 font-black uppercase tracking-tighter">戰鬥</span>
+            <span className="text-[14px] mt-0.5 font-black uppercase tracking-tighter">戰鬥</span>
           </button>
           <button onClick={() => setActiveTab(Tab.SPELLS)} className={`flex flex-col items-center flex-1 transition-all duration-200 ${activeTab === Tab.SPELLS ? 'text-amber-500 scale-110' : 'text-slate-500'}`}>
             <span className="text-xl">📖</span>
-            <span className="text-[10px] mt-0.5 font-black uppercase tracking-tighter">法術</span>
+            <span className="text-[14px] mt-0.5 font-black uppercase tracking-tighter">法術</span>
           </button>
           <button onClick={() => setActiveTab(Tab.ITEMS)} className={`flex flex-col items-center flex-1 transition-all duration-200 ${activeTab === Tab.ITEMS ? 'text-amber-500 scale-110' : 'text-slate-500'}`}>
             <span className="text-xl">🎒</span>
-            <span className="text-[10px] mt-0.5 font-black uppercase tracking-tighter">道具</span>
+            <span className="text-[14px] mt-0.5 font-black uppercase tracking-tighter">道具</span>
           </button>
           <button onClick={() => setActiveTab(Tab.DICE)} className={`flex flex-col items-center flex-1 transition-all duration-200 ${activeTab === Tab.DICE ? 'text-amber-500 scale-110' : 'text-slate-500'}`}>
             <span className="text-xl">🎲</span>
-            <span className="text-[10px] mt-0.5 font-black uppercase tracking-tighter">擲骰</span>
+            <span className="text-[14px] mt-0.5 font-black uppercase tracking-tighter">擲骰</span>
           </button>
         </div>
       </nav>
