@@ -4,6 +4,7 @@ import { DiceRoller } from './components/DiceRoller';
 import { CombatView } from './components/CombatView';
 import { SpellsView } from './components/SpellsView';
 import { InventoryView } from './components/InventoryView';
+import { SupabaseTest } from './components/SupabaseTest';
 import { CharacterStats } from './types';
 
 enum Tab {
@@ -98,6 +99,12 @@ const App: React.FC = () => {
   return (
     <div className="flex flex-col h-screen max-w-md mx-auto overflow-hidden bg-slate-950">
       <main className="flex-1 overflow-y-auto pb-16">
+        {/* Supabase 連接測試 - 只在開發模式顯示 */}
+        {import.meta.env.VITE_DEV_MODE === 'true' && (
+          <div className="p-3">
+            <SupabaseTest />
+          </div>
+        )}
         {renderContent()}
       </main>
 
