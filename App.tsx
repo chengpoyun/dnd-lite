@@ -28,7 +28,7 @@ const INITIAL_STATS: CharacterStats = {
   initiative: 0,
   speed: 30,
   abilityScores: { str: 16, dex: 10, con: 16, int: 8, wis: 12, cha: 10 },
-  proficiencies: ["運動", "威嚇", "歷史", "生存"],
+  proficiencies: { "運動": 1, "威嚇": 1, "歷史": 1, "生存": 1 },
   savingProficiencies: ["str", "con"],
   downtime: 14,
   renown: { used: 1200, total: 5000 },
@@ -51,7 +51,6 @@ const deepMerge = (initial: any, saved: any): any => {
     if (initial[key] && typeof initial[key] === 'object' && !Array.isArray(initial[key])) {
       result[key] = { ...initial[key], ...(saved[key] || {}) };
     }
-    // 確保數組也被正確保留
     if (Array.isArray(initial[key]) && Array.isArray(saved[key])) {
       result[key] = saved[key];
     }
@@ -67,6 +66,12 @@ const App: React.FC = () => {
       const savedString = localStorage.getItem(STORAGE_KEY);
       if (savedString) {
         const parsed = JSON.parse(savedString);
+        // 如果舊資料是 Array，轉換為 Record
+        if (Array.isArray(parsed.proficiencies)) {
+          const record: Record<string, number> = {};
+          parsed.proficiencies.forEach((skill: string) => { record[skill] = 1; });
+          parsed.proficiencies = record;
+        }
         return deepMerge(INITIAL_STATS, parsed);
       }
     } catch (e) {

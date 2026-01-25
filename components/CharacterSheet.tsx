@@ -49,12 +49,14 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({ stats, setStats 
     setActiveModal('skill_detail');
   };
 
-  const toggleSkillProficiency = (skillName: string) => {
+  const setSkillProficiency = (skillName: string, level: number) => {
     setStats(prev => {
-      const isProf = (prev.proficiencies || []).includes(skillName);
-      const newProfs = isProf 
-        ? prev.proficiencies.filter(s => s !== skillName)
-        : [...(prev.proficiencies || []), skillName];
+      const newProfs = { ...prev.proficiencies };
+      if (level === 0) {
+        delete newProfs[skillName];
+      } else {
+        newProfs[skillName] = level;
+      }
       return { ...prev, proficiencies: newProfs };
     });
     setActiveModal(null);
@@ -245,16 +247,19 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({ stats, setStats 
         </div>
         <div className="grid grid-cols-3 gap-1">
           {SKILLS_MAP.map((skill) => {
-            const isProf = (stats.proficiencies || []).includes(skill.name);
-            const bonus = isProf ? getModifier(stats.abilityScores[skill.base]) + profBonus : getModifier(stats.abilityScores[skill.base]);
+            const profLevel = stats.proficiencies[skill.name] || 0;
+            const bonus = getModifier(stats.abilityScores[skill.base]) + (profLevel * profBonus);
             return (
               <div 
                 key={skill.name} 
                 onClick={() => handleSkillClick(skill)}
-                className={`flex justify-between items-center px-1.5 py-1 rounded border transition-all active:scale-95 ${isProf ? 'bg-amber-500/10 border-amber-500/40 shadow-sm' : 'bg-slate-800/30 border-slate-800'}`}
+                className={`flex justify-between items-center px-1.5 py-1 rounded border transition-all active:scale-95 ${profLevel > 0 ? 'bg-amber-500/10 border-amber-500/40 shadow-sm' : 'bg-slate-800/30 border-slate-800'}`}
               >
-                <span className={`text-[12px] truncate ${isProf ? 'text-amber-400 font-bold' : 'text-slate-500'}`}>{skill.name}</span>
-                <span className={`text-[14px] font-mono font-black shrink-0 ${isProf ? 'text-white' : 'text-slate-600'}`}>{bonus >= 0 ? '+' : ''}{bonus}</span>
+                <div className="flex items-center gap-1 min-w-0">
+                   <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${profLevel === 1 ? 'bg-amber-500' : profLevel === 2 ? 'bg-amber-500 shadow-[0_0_5px_rgba(245,158,11,1)] ring-1 ring-amber-300' : 'bg-slate-700 opacity-30'}`} />
+                   <span className={`text-[12px] truncate ${profLevel > 0 ? 'text-amber-400 font-bold' : 'text-slate-500'}`}>{skill.name}</span>
+                </div>
+                <span className={`text-[14px] font-mono font-black shrink-0 ${profLevel > 0 ? 'text-white' : 'text-slate-600'}`}>{bonus >= 0 ? '+' : ''}{bonus}</span>
               </div>
             );
           })}
@@ -293,7 +298,6 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({ stats, setStats 
               <span className="text-amber-400">{stats.renown.total}</span>
             </span>
           </div>
-          {/* 自定義紀錄清單 */}
           {(stats.customRecords || []).map(record => (
             <div 
               key={record.id} 
@@ -310,7 +314,6 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({ stats, setStats 
         </div>
       </div>
 
-      {/* 各種彈窗 */}
       {activeModal === 'skill_detail' && selectedSkill && (
         <div className="fixed inset-0 z-[120] flex items-center justify-center px-6">
           <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-sm" onClick={() => setActiveModal(null)} />
@@ -319,11 +322,26 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({ stats, setStats 
               <h3 className="text-xl font-fantasy text-amber-500 mb-1">{selectedSkill.name}</h3>
               <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest">屬性：{STAT_LABELS[selectedSkill.base]}</p>
             </div>
-            <div className="space-y-2">
-              <button onClick={() => toggleSkillProficiency(selectedSkill.name)} className={`w-full py-4 rounded-xl font-black text-lg transition-all active:scale-95 ${stats.proficiencies.includes(selectedSkill.name) ? 'bg-slate-800 text-red-400 border border-red-900/30' : 'bg-amber-600 text-white'}`}>
-                {stats.proficiencies.includes(selectedSkill.name) ? '取消熟練' : '設定為熟練'}
+            <div className="space-y-3">
+              <button 
+                onClick={() => setSkillProficiency(selectedSkill.name, 1)} 
+                className={`w-full py-4 rounded-xl font-black text-lg transition-all active:scale-95 border ${stats.proficiencies[selectedSkill.name] === 1 ? 'bg-amber-600 border-amber-400 text-white' : 'bg-slate-800 text-slate-400 border-slate-700'}`}
+              >
+                設為熟練 (x1)
               </button>
-              <button onClick={() => setActiveModal(null)} className="w-full py-3 text-slate-500 font-bold text-sm">取消</button>
+              <button 
+                onClick={() => setSkillProficiency(selectedSkill.name, 2)} 
+                className={`w-full py-4 rounded-xl font-black text-lg transition-all active:scale-95 border ${stats.proficiencies[selectedSkill.name] === 2 ? 'bg-amber-600 border-amber-400 text-white shadow-[0_0_10px_rgba(245,158,11,0.3)]' : 'bg-slate-800 text-slate-400 border-slate-700'}`}
+              >
+                設為專家 (x2)
+              </button>
+              <button 
+                onClick={() => setSkillProficiency(selectedSkill.name, 0)} 
+                className="w-full py-4 rounded-xl font-bold text-base bg-slate-900 text-slate-500 border border-slate-800 active:scale-95"
+              >
+                清除狀態
+              </button>
+              <button onClick={() => setActiveModal(null)} className="w-full py-2 text-slate-600 font-bold text-xs uppercase tracking-widest">取消</button>
             </div>
           </div>
         </div>
@@ -494,7 +512,6 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({ stats, setStats 
         </div>
       )}
 
-      {/* 新增紀錄彈窗 */}
       {activeModal === 'add_record' && (
         <div className="fixed inset-0 z-[120] flex items-center justify-center px-6">
           <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-sm" onClick={() => setActiveModal(null)} />
@@ -522,7 +539,6 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({ stats, setStats 
         </div>
       )}
 
-      {/* 編輯紀錄彈窗 */}
       {activeModal === 'edit_record' && selectedRecord && (
         <div className="fixed inset-0 z-[120] flex items-center justify-center px-6">
           <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-sm" onClick={() => setActiveModal(null)} />

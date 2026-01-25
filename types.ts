@@ -39,7 +39,7 @@ export interface CharacterStats {
     wis: number;
     cha: number;
   };
-  proficiencies: string[]; 
+  proficiencies: Record<string, number>; 
   savingProficiencies: (keyof CharacterStats['abilityScores'])[];
   downtime: number;
   renown: {

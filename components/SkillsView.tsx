@@ -25,12 +25,16 @@ export const SkillsView: React.FC<SkillsViewProps> = ({ stats, setStats }) => {
   const getModifier = (score: number) => Math.floor((score - 10) / 2);
   const profBonus = Math.ceil(stats.level / 4) + 1;
 
+  // Fix: Handle proficiencies as a Record<string, number> instead of an array.
+  // Updated to correctly manage Record updates.
   const toggleSkill = (skillName: string) => {
     setStats(prev => {
-      const isProf = (prev.proficiencies || []).includes(skillName);
-      const newProfs = isProf 
-        ? prev.proficiencies.filter(s => s !== skillName)
-        : [...(prev.proficiencies || []), skillName];
+      const newProfs = { ...prev.proficiencies };
+      if (newProfs[skillName]) {
+        delete newProfs[skillName];
+      } else {
+        newProfs[skillName] = 1;
+      }
       return { ...prev, proficiencies: newProfs };
     });
     setSelectedSkill(null);
@@ -57,9 +61,11 @@ export const SkillsView: React.FC<SkillsViewProps> = ({ stats, setStats }) => {
             </h3>
             <div className="grid grid-cols-1 gap-1.5">
               {skills.map(skill => {
-                const isProf = (stats.proficiencies || []).includes(skill.name);
+                // Fix: Look up proficiency in the record object instead of using array methods.
+                const profLevel = stats.proficiencies[skill.name] || 0;
+                const isProf = profLevel > 0;
                 const baseMod = getModifier(stats.abilityScores[skill.base]);
-                const bonus = isProf ? baseMod + profBonus : baseMod;
+                const bonus = baseMod + (profLevel * profBonus);
 
                 return (
                   <button
@@ -117,29 +123,32 @@ export const SkillsView: React.FC<SkillsViewProps> = ({ stats, setStats }) => {
               </div>
               <div className="flex justify-between items-center border-t border-slate-800 pt-2 mb-2">
                 <span className="text-xs text-slate-400 font-bold">熟練獎勵</span>
-                <span className={`text-sm font-mono ${stats.proficiencies.includes(selectedSkill.name) ? 'text-amber-500' : 'text-slate-600'}`}>
-                  {stats.proficiencies.includes(selectedSkill.name) ? `+${profBonus}` : '+0'}
+                {/* Fix: Check Record for proficiency and correctly multiply by proficiency level (1 or 2). */}
+                <span className={`text-sm font-mono ${(stats.proficiencies[selectedSkill.name] || 0) > 0 ? 'text-amber-500' : 'text-slate-600'}`}>
+                  {(stats.proficiencies[selectedSkill.name] || 0) > 0 ? `+${(stats.proficiencies[selectedSkill.name] || 1) * profBonus}` : '+0'}
                 </span>
               </div>
               <div className="flex justify-between items-center border-t border-slate-700 pt-2">
                 <span className="text-sm text-amber-500 font-black">最終加值</span>
+                {/* Fix: Calculation logic for Record-based proficiency. */}
                 <span className="text-2xl font-mono font-black text-white">
-                  {((stats.proficiencies.includes(selectedSkill.name) ? profBonus : 0) + getModifier(stats.abilityScores[selectedSkill.base])) >= 0 ? '+' : ''}
-                  {(stats.proficiencies.includes(selectedSkill.name) ? profBonus : 0) + getModifier(stats.abilityScores[selectedSkill.base])}
+                  {(((stats.proficiencies[selectedSkill.name] || 0) * profBonus) + getModifier(stats.abilityScores[selectedSkill.base])) >= 0 ? '+' : ''}
+                  {((stats.proficiencies[selectedSkill.name] || 0) * profBonus) + getModifier(stats.abilityScores[selectedSkill.base])}
                 </span>
               </div>
             </div>
 
             <div className="space-y-2">
               <button 
+                // Fix: Check Record key existence for button state and label.
                 onClick={() => toggleSkill(selectedSkill.name)}
                 className={`w-full py-4 rounded-xl font-black text-lg transition-all active:scale-95 shadow-lg
-                  ${stats.proficiencies.includes(selectedSkill.name)
+                  ${(stats.proficiencies[selectedSkill.name] || 0) > 0
                     ? 'bg-slate-800 text-red-400 border border-red-900/30'
                     : 'bg-amber-600 text-white shadow-amber-900/20'
                   }`}
               >
-                {stats.proficiencies.includes(selectedSkill.name) ? '取消熟練' : '標記為熟練'}
+                {(stats.proficiencies[selectedSkill.name] || 0) > 0 ? '取消熟練' : '標記為熟練'}
               </button>
               <button 
                 onClick={() => setSelectedSkill(null)}
