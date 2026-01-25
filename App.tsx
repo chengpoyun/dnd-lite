@@ -58,7 +58,8 @@ const deepMerge = (initial: any, saved: any): any => {
 };
 
 const App: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<Tab>(Tab.CHARACTER);
+  // 修改預設分頁為 COMBAT
+  const [activeTab, setActiveTab] = useState<Tab>(Tab.COMBAT);
   
   const [stats, setStats] = useState<CharacterStats>(() => {
     try {
