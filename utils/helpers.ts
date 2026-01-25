@@ -1,10 +1,17 @@
 
+/**
+ * 計算屬性調整值 (Ability Modifier)
+ */
 export const getModifier = (score: number) => Math.floor((score - 10) / 2);
 
+/**
+ * 計算熟練獎勵 (Proficiency Bonus)
+ */
 export const getProfBonus = (level: number) => Math.ceil(level / 4) + 1;
 
 /**
  * 解析字串運算，支援 "+5", "-2", "10+5" 等格式
+ * 用於 HP、金幣、經驗值等數值的快速增減
  */
 export const evaluateValue = (input: string, current: number, max?: number): number => {
   const text = input.replace(/\s+/g, '');

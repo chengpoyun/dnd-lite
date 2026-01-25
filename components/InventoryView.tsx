@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { CharacterStats } from '../types';
+import { evaluateValue } from '../utils/helpers';
 
 interface InventoryViewProps {
   stats: CharacterStats;
@@ -40,23 +41,6 @@ export const InventoryView: React.FC<InventoryViewProps> = ({ stats, setStats })
 
   const currentWeight = items.reduce((acc, item) => acc + (item.weight * item.count), 0);
   const maxWeight = stats.abilityScores.str * 15;
-
-  const evaluateValue = (input: string, current: number, max?: number): number => {
-    const text = input.replace(/\s+/g, '');
-    if (!text) return current;
-    let tokens = text.startsWith('+') || text.startsWith('-') ? (current.toString() + text).split(/([\+\-])/) : text.split(/([\+\-])/);
-    const cleanTokens = tokens.filter(t => t !== '');
-    if (cleanTokens.length === 0) return current;
-    let result = parseInt(cleanTokens[0]) || 0;
-    for (let i = 1; i < cleanTokens.length; i += 2) {
-      const op = cleanTokens[i];
-      const val = parseInt(cleanTokens[i + 1]) || 0;
-      if (op === '+') result += val; else if (op === '-') result -= val;
-    }
-    result = Math.max(0, result);
-    if (max !== undefined) result = Math.min(max, result);
-    return result;
-  };
 
   const gpPreview = evaluateValue(tempGPValue, stats.currency.gp);
 

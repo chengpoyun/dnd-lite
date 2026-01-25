@@ -1,7 +1,5 @@
 {
-  "name": "DnD Lite",
-  "description": "專為行動裝置設計的 D&D 玩家輔助工具，包含擲骰子、角色數值追蹤，以及 AI 地下城主 (DM) 規則查詢與描述。",
-  "requestFramePermissions": [
-    "microphone"
-  ]
+  "name": "DnD 冒險者助手",
+  "description": "專為行動裝置設計的 D&D 玩家輔助工具，包含擲骰子、角色數值追蹤、資源管理與冒險紀錄。",
+  "requestFramePermissions": []
 }
