@@ -3,12 +3,19 @@ import type { CharacterStats } from '../types'
 
 // 角色資料服務
 export class CharacterService {
-  // 取得所有角色
+  // 取得當前用戶的所有角色
   static async getCharacters(): Promise<Character[]> {
     try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        console.warn('用戶未登入')
+        return []
+      }
+
       const { data, error } = await supabase
         .from('characters')
         .select('*')
+        .eq('user_id', user.id)
         .order('updated_at', { ascending: false })
       
       if (error) throw error
@@ -19,13 +26,20 @@ export class CharacterService {
     }
   }
 
-  // 取得特定角色
+  // 取得特定角色（僅限當前用戶）
   static async getCharacter(id: string): Promise<Character | null> {
     try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        console.warn('用戶未登入')
+        return null
+      }
+
       const { data, error } = await supabase
         .from('characters')
         .select('*')
         .eq('id', id)
+        .eq('user_id', user.id)
         .single()
       
       if (error) throw error
@@ -37,8 +51,20 @@ export class CharacterService {
   }
 
   // 建立新角色
-  static async createCharacter(character: Omit<Character, 'id' | 'created_at' | 'updated_at'>): Promise<Character | null> {
+  static async createCharacter(characterData: { name: string, stats: CharacterStats }): Promise<Character | null> {
     try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        console.warn('用戶未登入，無法建立角色')
+        return null
+      }
+
+      const character = {
+        user_id: user.id,
+        name: characterData.name,
+        stats: characterData.stats
+      }
+
       const { data, error } = await supabase
         .from('characters')
         .insert([character])
@@ -53,13 +79,20 @@ export class CharacterService {
     }
   }
 
-  // 更新角色
-  static async updateCharacter(id: string, updates: Partial<Character>): Promise<Character | null> {
+  // 更新角色（僅限當前用戶）
+  static async updateCharacter(id: string, updates: { name?: string, stats?: CharacterStats }): Promise<Character | null> {
     try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        console.warn('用戶未登入，無法更新角色')
+        return null
+      }
+
       const { data, error } = await supabase
         .from('characters')
         .update({ ...updates, updated_at: new Date().toISOString() })
         .eq('id', id)
+        .eq('user_id', user.id)
         .select()
         .single()
       
@@ -71,13 +104,20 @@ export class CharacterService {
     }
   }
 
-  // 刪除角色
+  // 刪除角色（僅限當前用戶）
   static async deleteCharacter(id: string): Promise<boolean> {
     try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        console.warn('用戶未登入，無法刪除角色')
+        return false
+      }
+
       const { error } = await supabase
         .from('characters')
         .delete()
         .eq('id', id)
+        .eq('user_id', user.id)
       
       if (error) throw error
       return true

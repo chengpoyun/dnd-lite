@@ -1,4 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { LoginPage } from './components/LoginPage';
+import { UserProfile } from './components/UserProfile';
+import { CharacterSelector } from './components/CharacterSelector';
 import { CharacterSheet } from './components/CharacterSheet';
 import { DiceRoller } from './components/DiceRoller';
 import { CombatView } from './components/CombatView';
@@ -6,6 +10,7 @@ import { SpellsView } from './components/SpellsView';
 import { InventoryView } from './components/InventoryView';
 import { CharacterStats } from './types';
 import { CharacterService, CacheService } from './services/database';
+import type { Character } from './lib/supabase';
 import { MigrationService } from './services/migration';
 
 enum Tab {
@@ -59,7 +64,8 @@ const deepMerge = (initial: any, saved: any): any => {
   return result;
 };
 
-const App: React.FC = () => {
+const AuthenticatedApp: React.FC = () => {
+  const { user } = useAuth();
   // 修改預設分頁為 CHARACTER
   const [activeTab, setActiveTab] = useState<Tab>(Tab.CHARACTER);
   
@@ -190,6 +196,30 @@ const App: React.FC = () => {
     saveCharacterData();
   }, [stats, currentCharacterId, isLoading]);
 
+  // 角色切換處理
+  const handleCharacterChange = (character: Character) => {
+    setCurrentCharacterId(character.id);
+    setStats(character.stats);
+    localStorage.setItem('current_character_id', character.id);
+    CacheService.cacheCharacter(character);
+  };
+
+  // 創建新角色處理
+  const handleCreateCharacter = async () => {
+    try {
+      const character = await CharacterService.createCharacter({
+        name: `新角色 ${new Date().getMonth() + 1}/${new Date().getDate()}`,
+        stats: INITIAL_STATS
+      });
+      
+      if (character) {
+        handleCharacterChange(character);
+      }
+    } catch (error) {
+      console.error('創建角色失敗:', error);
+    }
+  };
+
   const renderContent = () => {
     switch (activeTab) {
       case Tab.CHARACTER: return <CharacterSheet stats={stats} setStats={setStats} />;
@@ -203,6 +233,23 @@ const App: React.FC = () => {
 
   return (
     <div className="flex flex-col h-screen max-w-md mx-auto overflow-hidden bg-slate-950">
+      {/* 頂部用戶資訊 */}
+      <header className="bg-slate-900 border-b border-slate-800 px-4 py-2">
+        <div className="flex justify-between items-center mb-2">
+          <div className="flex items-center gap-2">
+            <span className="text-xl">🎲</span>
+            <span className="text-lg font-bold text-amber-400">D&D 助手</span>
+          </div>
+          <UserProfile />
+        </div>
+        {/* 角色選擇器 */}
+        <CharacterSelector
+          currentCharacterId={currentCharacterId}
+          onCharacterChange={handleCharacterChange}
+          onCreateCharacter={handleCreateCharacter}
+        />
+      </header>
+
       <main className="flex-1 overflow-y-auto pb-16">
         {/* 数据加载状态 */}
         {isLoading ? (
@@ -245,6 +292,40 @@ const App: React.FC = () => {
       </nav>
     </div>
   );
+};
+
+// 主 App 組件
+const App: React.FC = () => {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
+  );
+};
+
+// App 內容組件（需要在 AuthProvider 內部才能使用 useAuth）
+const AppContent: React.FC = () => {
+  const { user, isLoading: isAuthLoading } = useAuth();
+
+  if (isAuthLoading) {
+    // 認證狀態載入中
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <div className="animate-spin rounded-full h-8 w-8 border-2 border-amber-500 border-t-transparent"></div>
+          <span className="text-[14px] text-amber-500/80">載入中...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    // 用戶未登入，顯示登入頁面
+    return <LoginPage />;
+  }
+
+  // 用戶已登入，顯示主應用
+  return <AuthenticatedApp />;
 };
 
 export default App;
