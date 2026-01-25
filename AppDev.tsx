@@ -1,14 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { CharacterSheet } from './components/CharacterSheet';
 import { DiceRoller } from './components/DiceRoller';
-import { CombatView } from './components/CombatView';
 import { SpellsView } from './components/SpellsView';
 import { InventoryView } from './components/InventoryView';
 import { CharacterStats } from './types';
 
 enum Tab {
   CHARACTER = 'character',
-  COMBAT = 'combat',
   SPELLS = 'spells',
   ITEMS = 'items',
   DICE = 'dice'
@@ -72,7 +70,6 @@ const AppDev: React.FC = () => {
   const renderContent = () => {
     switch (activeTab) {
       case Tab.CHARACTER: return <CharacterSheet stats={stats} setStats={setStats} />;
-      case Tab.COMBAT: return <CombatView stats={stats} setStats={setStats} />;
       case Tab.SPELLS: return <SpellsView />;
       case Tab.ITEMS: return <InventoryView stats={stats} setStats={setStats} />;
       case Tab.DICE: return <DiceRoller />;
@@ -97,10 +94,6 @@ const AppDev: React.FC = () => {
           <button onClick={() => setActiveTab(Tab.CHARACTER)} className={`flex flex-col items-center flex-1 transition-all duration-200 ${activeTab === Tab.CHARACTER ? 'text-amber-500 scale-110' : 'text-slate-500'}`}>
             <span className="text-xl">👤</span>
             <span className="text-[14px] mt-0.5 font-black uppercase tracking-tighter">角色</span>
-          </button>
-          <button onClick={() => setActiveTab(Tab.COMBAT)} className={`flex flex-col items-center flex-1 transition-all duration-200 ${activeTab === Tab.COMBAT ? 'text-amber-500 scale-110' : 'text-slate-500'}`}>
-            <span className="text-xl">⚔️</span>
-            <span className="text-[14px] mt-0.5 font-black uppercase tracking-tighter">戰鬥</span>
           </button>
           <button onClick={() => setActiveTab(Tab.SPELLS)} className={`flex flex-col items-center flex-1 transition-all duration-200 ${activeTab === Tab.SPELLS ? 'text-amber-500 scale-110' : 'text-slate-500'}`}>
             <span className="text-xl">✨</span>
