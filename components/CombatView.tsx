@@ -15,31 +15,38 @@ const DEFAULT_ACTIONS: CombatItem[] = [
   { id: 'attack', name: '攻擊', icon: '⚔️', current: 1, max: 1, recovery: 'round' },
   { id: 'dash', name: '疾跑', icon: '🏃', current: 1, max: 1, recovery: 'round' },
   { id: 'disengage', name: '撤離', icon: '💨', current: 1, max: 1, recovery: 'round' },
+  { id: 'dodge', name: '閃避', icon: '🛡️', current: 1, max: 1, recovery: 'round' },
   { id: 'help', name: '幫助', icon: '🤝', current: 1, max: 1, recovery: 'round' },
   { id: 'hide', name: '躲藏', icon: '👤', current: 1, max: 1, recovery: 'round' },
-  { id: 'item_action', name: '道具', icon: '🎒', current: 1, max: 1, recovery: 'round' }
+  { id: 'search', name: '搜尋', icon: '🔍', current: 1, max: 1, recovery: 'round' },
+  { id: 'ready', name: '準備動作', icon: '⏳', current: 1, max: 1, recovery: 'round' },
+  { id: 'use_object', name: '使用物品', icon: '🎒', current: 1, max: 1, recovery: 'round' }
 ];
 
 const DEFAULT_BONUS_ACTIONS: CombatItem[] = [
-  { id: 'jump_bonus', name: '跳躍', icon: '🤸', current: 1, max: 1, recovery: 'round' },
-  { id: 'item_bonus', name: '道具', icon: '🎒', current: 1, max: 1, recovery: 'round' }
+  { id: 'offhand_attack', name: '副手攻擊', icon: '🗡️', current: 1, max: 1, recovery: 'round' },
+  { id: 'healing_potion', name: '藥水', icon: '🧪', current: 1, max: 1, recovery: 'round' }
 ];
 
 const DEFAULT_REACTIONS: CombatItem[] = [
   { id: 'opportunity', name: '藉機攻擊', icon: '❗', current: 1, max: 1, recovery: 'round' }
 ];
 
-const DEFAULT_RESOURCES: CombatItem[] = [
-  { id: 'psi_dice', name: '靈能骰', current: 4, max: 4, icon: '💎', recovery: 'long' },
-  { id: 'spell_slot_1', name: '一環法術', current: 2, max: 2, icon: '🪄', recovery: 'long' }
-];
+const DEFAULT_RESOURCES: CombatItem[] = [];
+
+// 預設項目ID列表 - 這些項目不能被刪除
+const DEFAULT_ITEM_IDS = {
+  action: ['attack', 'dash', 'disengage', 'dodge', 'help', 'hide', 'search', 'ready', 'use_object'],
+  bonus: ['offhand_attack', 'healing_potion'],
+  reaction: ['opportunity']
+};
 
 const STORAGE_KEYS = {
-  ACTIONS: 'dnd_actions_v5',
-  BONUS: 'dnd_bonus_v5',
-  REACTIONS: 'dnd_reactions_v5',
-  RESOURCES: 'dnd_resources_v5',
-  COMBAT_STATE: 'dnd_combat_state_v3'
+  ACTIONS: 'dnd_actions_v6',
+  BONUS: 'dnd_bonus_v7',
+  REACTIONS: 'dnd_reactions_v6',
+  RESOURCES: 'dnd_resources_v6',
+  COMBAT_STATE: 'dnd_combat_state_v4'
 };
 
 type ItemCategory = 'action' | 'bonus' | 'reaction' | 'resource';
@@ -53,6 +60,12 @@ export const CombatView: React.FC<CombatViewProps> = ({ stats, setStats }) => {
   const savedState = JSON.parse(localStorage.getItem(STORAGE_KEYS.COMBAT_STATE) || '{}');
 
   const [combatSeconds, setCombatSeconds] = useState(savedState.combatSeconds ?? 0);
+  
+  const [categoryUsages, setCategoryUsages] = useState({
+    action: { current: 1, max: 1 },
+    bonus: { current: 1, max: 1 },
+    reaction: { current: 1, max: 1 }
+  });
   
   const [actions, setActions] = useState<CombatItem[]>(() => 
     JSON.parse(localStorage.getItem(STORAGE_KEYS.ACTIONS) || 'null') || DEFAULT_ACTIONS
@@ -72,6 +85,8 @@ export const CombatView: React.FC<CombatViewProps> = ({ stats, setStats }) => {
   const [isACModalOpen, setIsACModalOpen] = useState(false);
   const [isEndCombatConfirmOpen, setIsEndCombatConfirmOpen] = useState(false);
   const [isItemEditModalOpen, setIsItemEditModalOpen] = useState(false);
+  const [isCategoryUsageModalOpen, setIsCategoryUsageModalOpen] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<'action' | 'bonus' | 'reaction' | null>(null);
   
   const [isRestOptionsOpen, setIsRestOptionsOpen] = useState(false);
   const [isShortRestDetailOpen, setIsShortRestDetailOpen] = useState(false);
@@ -83,6 +98,9 @@ export const CombatView: React.FC<CombatViewProps> = ({ stats, setStats }) => {
 
   const [tempHPValue, setTempHPValue] = useState('');
   const [tempACValue, setTempACValue] = useState('');
+  
+  const [tempCategoryCurrent, setTempCategoryCurrent] = useState(0);
+  const [tempCategoryMax, setTempCategoryMax] = useState(1);
   
   const [formName, setFormName] = useState('');
   const [formIcon, setFormIcon] = useState('✨');
@@ -115,10 +133,25 @@ export const CombatView: React.FC<CombatViewProps> = ({ stats, setStats }) => {
       return;
     }
 
-    if (item.current <= 0) return;
-
-    const setter = category === 'action' ? setActions : category === 'bonus' ? setBonusActions : category === 'reaction' ? setReactions : setResources;
-    setter(prev => prev.map(i => i.id === id ? { ...i, current: i.current - 1 } : i));
+    // 對於動作、附贈動作、反應，檢查分類使用次數和物品使用次數
+    if (category === 'action' || category === 'bonus' || category === 'reaction') {
+      if (categoryUsages[category].current <= 0 || item.current <= 0) return;
+      
+      // 減少分類使用次數
+      setCategoryUsages(prev => ({
+        ...prev,
+        [category]: { ...prev[category], current: prev[category].current - 1 }
+      }));
+      
+      // 減少物品使用次數
+      const setter = category === 'action' ? setActions : category === 'bonus' ? setBonusActions : setReactions;
+      setter(prev => prev.map(i => i.id === id ? { ...i, current: i.current - 1 } : i));
+    } else {
+      // 職業資源仍使用個別項目的使用次數
+      if (item.current <= 0) return;
+      const setter = setResources;
+      setter(prev => prev.map(i => i.id === id ? { ...i, current: i.current - 1 } : i));
+    }
   };
 
   const handleOpenAddModal = (category: ItemCategory) => {
@@ -130,6 +163,25 @@ export const CombatView: React.FC<CombatViewProps> = ({ stats, setStats }) => {
     setFormMax(1);
     setFormRecovery(category === 'resource' ? 'long' : 'round');
     setIsItemEditModalOpen(true);
+  };
+
+  const handleOpenCategoryUsageModal = (category: 'action' | 'bonus' | 'reaction') => {
+    setEditingCategory(category);
+    setTempCategoryCurrent(categoryUsages[category].current);
+    setTempCategoryMax(categoryUsages[category].max);
+    setIsCategoryUsageModalOpen(true);
+  };
+
+  const handleSaveCategoryUsage = () => {
+    if (!editingCategory) return;
+    setCategoryUsages(prev => ({
+      ...prev,
+      [editingCategory]: {
+        current: Math.min(tempCategoryCurrent, tempCategoryMax),
+        max: tempCategoryMax
+      }
+    }));
+    setIsCategoryUsageModalOpen(false);
   };
 
   const handleSaveItem = () => {
@@ -173,11 +225,21 @@ export const CombatView: React.FC<CombatViewProps> = ({ stats, setStats }) => {
   const nextTurn = () => {
     setCombatSeconds(prev => prev + 6);
     resetByRecovery(['round']);
+    setCategoryUsages(prev => ({
+      action: { ...prev.action, current: prev.action.max },
+      bonus: { ...prev.bonus, current: prev.bonus.max },
+      reaction: { ...prev.reaction, current: prev.reaction.max }
+    }));
   };
 
   const handleShortRest = () => {
     resetByRecovery(['round', 'short']);
     setCombatSeconds(0);
+    setCategoryUsages(prev => ({
+      action: { ...prev.action, current: prev.action.max },
+      bonus: { ...prev.bonus, current: prev.bonus.max },
+      reaction: { ...prev.reaction, current: prev.reaction.max }
+    }));
   };
 
   const handleLongRest = () => {
@@ -213,6 +275,11 @@ export const CombatView: React.FC<CombatViewProps> = ({ stats, setStats }) => {
   const confirmEndCombat = () => {
     setCombatSeconds(0);
     resetByRecovery(['round']);
+    setCategoryUsages(prev => ({
+      action: { ...prev.action, current: prev.action.max },
+      bonus: { ...prev.bonus, current: prev.bonus.max },
+      reaction: { ...prev.reaction, current: prev.reaction.max }
+    }));
     setIsEndCombatConfirmOpen(false);
   };
 
@@ -221,6 +288,14 @@ export const CombatView: React.FC<CombatViewProps> = ({ stats, setStats }) => {
     const secs = totalSeconds % 60;
     return mins > 0 ? `${mins}分 ${secs}秒` : `${secs}秒`;
   };
+
+  const hpRatio = stats.hp.current / (stats.hp.max || 1);
+  const getHPColorClasses = () => {
+    if (hpRatio <= 0.25) return { border: 'border-red-500/50', text: 'text-red-400', label: 'text-red-500/80' };
+    if (hpRatio <= 0.5) return { border: 'border-amber-500/50', text: 'text-amber-400', label: 'text-amber-500/80' };
+    return { border: 'border-emerald-500/50', text: 'text-emerald-400', label: 'text-emerald-500/80' };
+  };
+  const hpColors = getHPColorClasses();
 
   return (
     <div className="px-2 py-3 space-y-3 h-full overflow-y-auto pb-24 relative select-none bg-slate-950">
@@ -236,15 +311,15 @@ export const CombatView: React.FC<CombatViewProps> = ({ stats, setStats }) => {
         <div className="flex gap-2 items-center">
           <button 
             onClick={() => setIsEditMode(!isEditMode)} 
-            className={`h-8 text-[12px] font-black px-3 rounded-lg border transition-all ${isEditMode ? 'bg-amber-500 text-slate-950 border-amber-400' : 'bg-slate-800 text-slate-500 border-slate-700'}`}
+            className={`h-8 w-8 flex items-center justify-center rounded-lg border transition-all ${isEditMode ? 'bg-amber-500 text-slate-950 border-amber-400' : 'bg-slate-800 text-slate-500 border-slate-700'}`}
           >
-            {isEditMode ? '完成' : '編輯'}
+            <span className="text-sm">⚙️</span>
           </button>
           <button 
             onClick={() => setIsRestOptionsOpen(true)}
-            className="h-8 w-8 flex items-center justify-center bg-indigo-950/40 border border-indigo-500/30 rounded-lg active:bg-indigo-900/50 shadow-sm transition-colors"
+            className="h-8 w-8 flex items-center justify-center bg-slate-800 border border-slate-700 rounded-lg active:bg-slate-700 shadow-sm transition-colors"
           >
-            <span className="text-sm">⛺</span>
+            <span className="text-sm">🏕️</span>
           </button>
           <button 
             onClick={() => setIsEndCombatConfirmOpen(true)} 
@@ -263,9 +338,9 @@ export const CombatView: React.FC<CombatViewProps> = ({ stats, setStats }) => {
 
       {/* 核心數據摘要 */}
       <div className="grid grid-cols-4 gap-1.5">
-        <div onClick={() => { setTempHPValue(stats.hp.current.toString()); setIsHPModalOpen(true); }} className="flex flex-col items-center justify-center bg-slate-900 p-2 rounded-xl border border-emerald-900/30 active:bg-slate-800 transition-colors cursor-pointer shadow-sm">
-          <span className="text-[11px] font-black text-emerald-500/80 uppercase mb-1 tracking-tighter">生命值</span>
-          <span className="text-lg font-fantasy text-white leading-none">{stats.hp.current}</span>
+        <div onClick={() => { setTempHPValue(stats.hp.current.toString()); setIsHPModalOpen(true); }} className={`flex flex-col items-center justify-center bg-slate-900 p-2 rounded-xl border ${hpColors.border} active:bg-slate-800 transition-colors cursor-pointer shadow-sm`}>
+          <span className={`text-[11px] font-black uppercase mb-1 tracking-tighter ${hpColors.label}`}>生命值</span>
+          <span className={`text-[14px] font-fantasy leading-none ${hpColors.text}`}>{stats.hp.current}/{stats.hp.max}</span>
         </div>
         <div onClick={() => { setTempACValue(stats.ac.toString()); setIsACModalOpen(true); }} className="flex flex-col items-center justify-center bg-slate-900 p-2 rounded-xl border border-amber-900/30 active:bg-slate-800 transition-colors cursor-pointer shadow-sm">
           <span className="text-[11px] font-black text-amber-500/80 uppercase mb-1 tracking-tighter">防禦</span>
@@ -302,6 +377,9 @@ export const CombatView: React.FC<CombatViewProps> = ({ stats, setStats }) => {
         onAdd={() => handleOpenAddModal('action')}
         onUse={(id) => useItem('action', id)}
         onRemove={(id) => removeItem('action', id)}
+        categoryUsage={categoryUsages.action}
+        onEditCategoryUsage={() => handleOpenCategoryUsageModal('action')}
+        defaultItemIds={DEFAULT_ITEM_IDS.action}
       />
 
       <ActionList 
@@ -313,6 +391,9 @@ export const CombatView: React.FC<CombatViewProps> = ({ stats, setStats }) => {
         onAdd={() => handleOpenAddModal('bonus')}
         onUse={(id) => useItem('bonus', id)}
         onRemove={(id) => removeItem('bonus', id)}
+        categoryUsage={categoryUsages.bonus}
+        onEditCategoryUsage={() => handleOpenCategoryUsageModal('bonus')}
+        defaultItemIds={DEFAULT_ITEM_IDS.bonus}
       />
 
       <ActionList 
@@ -324,6 +405,9 @@ export const CombatView: React.FC<CombatViewProps> = ({ stats, setStats }) => {
         onAdd={() => handleOpenAddModal('reaction')}
         onUse={(id) => useItem('reaction', id)}
         onRemove={(id) => removeItem('reaction', id)}
+        categoryUsage={categoryUsages.reaction}
+        onEditCategoryUsage={() => handleOpenCategoryUsageModal('reaction')}
+        defaultItemIds={DEFAULT_ITEM_IDS.reaction}
       />
 
       {/* 統一的新增/編輯項目彈窗 */}
@@ -335,18 +419,18 @@ export const CombatView: React.FC<CombatViewProps> = ({ stats, setStats }) => {
               {editingItemId ? '編輯項目' : '新增項目'}
             </h3>
             <div className="space-y-4">
-              <div className="flex gap-2">
-                <input type="text" value={formIcon} onChange={(e) => setFormIcon(e.target.value)} placeholder="圖示" className="w-16 bg-slate-800 border border-slate-700 rounded-xl p-3 text-center text-xl outline-none text-white" />
-                <input type="text" value={formName} onChange={(e) => setFormName(e.target.value)} placeholder="名稱" className="flex-1 bg-slate-800 border border-slate-700 rounded-xl p-3 text-white outline-none" autoFocus />
+              <div className="grid grid-cols-[64px_1fr_1fr] gap-3">
+                <input type="text" value={formIcon} onChange={(e) => setFormIcon(e.target.value)} placeholder="圖示" className="bg-slate-800 border border-slate-700 rounded-xl p-3 text-center text-xl outline-none text-white" />
+                <input type="text" value={formName} onChange={(e) => setFormName(e.target.value)} placeholder="名稱" className="bg-slate-800 border border-slate-700 rounded-xl p-3 text-white outline-none col-span-2" autoFocus />
               </div>
               
               <div className="grid grid-cols-2 gap-3">
-                <div className="text-center">
-                  <span className="text-[10px] text-slate-500 font-black block mb-1 uppercase tracking-widest">目前</span>
+                <div>
+                  <span className="text-[10px] text-slate-500 font-black block mb-1 uppercase tracking-widest text-center">剩餘次數</span>
                   <input type="number" value={formCurrent} onChange={(e) => setFormCurrent(parseInt(e.target.value) || 0)} className="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-xl font-mono text-center text-white outline-none" />
                 </div>
-                <div className="text-center">
-                  <span className="text-[10px] text-slate-500 font-black block mb-1 uppercase tracking-widest">最大</span>
+                <div>
+                  <span className="text-[10px] text-slate-500 font-black block mb-1 uppercase tracking-widest text-center">最大</span>
                   <input type="number" value={formMax} onChange={(e) => setFormMax(parseInt(e.target.value) || 0)} className="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-xl font-mono text-center text-white outline-none" />
                 </div>
               </div>
@@ -363,6 +447,44 @@ export const CombatView: React.FC<CombatViewProps> = ({ stats, setStats }) => {
               <div className="flex gap-2 pt-2">
                 <button onClick={() => setIsItemEditModalOpen(false)} className="flex-1 py-3 bg-slate-800 text-slate-400 rounded-xl font-bold">取消</button>
                 <button onClick={handleSaveItem} className="flex-1 py-3 bg-indigo-600 text-white rounded-xl font-bold">儲存</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 分類使用次數編輯彈窗 */}
+      {isCategoryUsageModalOpen && editingCategory && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center px-6">
+          <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-sm" onClick={() => setIsCategoryUsageModalOpen(false)} />
+          <div className="relative bg-slate-900 border border-slate-700 w-full max-w-xs rounded-3xl p-6 shadow-2xl space-y-6 animate-in zoom-in duration-150">
+            <h3 className="text-lg font-fantasy text-amber-500 border-b border-slate-800 pb-2">
+              {editingCategory === 'action' ? '動作使用次數' : editingCategory === 'bonus' ? '附贈動作使用次數' : '反應使用次數'}
+            </h3>
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <span className="text-[10px] text-slate-500 font-black block mb-1 uppercase tracking-widest text-center">剩餘次數</span>
+                  <input 
+                    type="number" 
+                    value={tempCategoryCurrent} 
+                    onChange={(e) => setTempCategoryCurrent(Math.max(0, parseInt(e.target.value) || 0))} 
+                    className="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-xl font-mono text-center text-white outline-none" 
+                  />
+                </div>
+                <div>
+                  <span className="text-[10px] text-slate-500 font-black block mb-1 uppercase tracking-widest text-center">每回合最大</span>
+                  <input 
+                    type="number" 
+                    value={tempCategoryMax} 
+                    onChange={(e) => setTempCategoryMax(Math.max(1, parseInt(e.target.value) || 1))} 
+                    className="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-xl font-mono text-center text-white outline-none" 
+                  />
+                </div>
+              </div>
+              <div className="flex gap-2 pt-2">
+                <button onClick={() => setIsCategoryUsageModalOpen(false)} className="flex-1 py-3 bg-slate-800 text-slate-400 rounded-xl font-bold">取消</button>
+                <button onClick={handleSaveCategoryUsage} className="flex-1 py-3 bg-amber-600 text-white rounded-xl font-bold">儲存</button>
               </div>
             </div>
           </div>
@@ -491,9 +613,14 @@ interface ActionListProps {
   onRemove: (id: string) => void;
   onUse: (id: string) => void;
   isTwoCol?: boolean;
+  categoryUsage?: { current: number; max: number };
+  onEditCategoryUsage?: () => void;
+  defaultItemIds?: string[];
 }
 
-const ActionList: React.FC<ActionListProps> = ({ title, category, items, colorClass, onAdd, isEditMode, onRemove, onUse, isTwoCol = false }) => {
+const ActionList: React.FC<ActionListProps> = ({ title, category, items, colorClass, onAdd, isEditMode, onRemove, onUse, isTwoCol = false, categoryUsage, onEditCategoryUsage, defaultItemIds = [] }) => {
+  const isCategoryDisabled = categoryUsage && categoryUsage.current <= 0;
+  
   return (
     <div className="bg-slate-900/60 p-3 rounded-2xl border border-slate-800/80 space-y-2 shadow-inner">
       <div className="flex justify-between items-center border-b border-slate-800 pb-1.5 px-1">
@@ -501,7 +628,20 @@ const ActionList: React.FC<ActionListProps> = ({ title, category, items, colorCl
           {title}
           <button onClick={onAdd} className="w-4 h-4 rounded bg-slate-800 flex items-center justify-center text-[10px] opacity-50 active:scale-90 active:bg-slate-700 transition-all">+</button>
         </h3>
-        <span className="text-[10px] font-bold text-slate-700 uppercase tracking-tighter">點擊消耗</span>
+        {categoryUsage && onEditCategoryUsage ? (
+          <button 
+            onClick={onEditCategoryUsage}
+            className={`text-[12px] font-mono font-black px-2 py-1 rounded border active:scale-95 transition-all ${
+              isCategoryDisabled 
+                ? 'text-slate-600 border-slate-800 bg-slate-950' 
+                : `${colorClass.replace('text-', 'text-')} border-slate-700 bg-slate-800/50`
+            }`}
+          >
+            {categoryUsage.current}/{categoryUsage.max}
+          </button>
+        ) : (
+          <span className="text-[10px] font-bold text-slate-700 uppercase tracking-tighter">點擊消耗</span>
+        )}
       </div>
       <div className={`grid ${isTwoCol ? 'grid-cols-2' : 'grid-cols-4'} gap-1.5`}>
         {items.map((item) => {
@@ -513,11 +653,12 @@ const ActionList: React.FC<ActionListProps> = ({ title, category, items, colorCl
             <div key={item.id} className="relative">
               <button
                 onClick={() => onUse(item.id)}
-                className={`w-full flex ${isTwoCol ? 'items-center gap-2 py-2.5 px-3' : 'flex-col items-center justify-center py-2 px-0.5'} rounded-xl border transition-all text-left group
-                  ${item.current > 0 || isEditMode
+                className={`w-full flex ${isTwoCol ? 'items-center gap-2 py-2.5 px-3 h-[60px]' : 'flex-col items-center justify-center py-3 px-0.5 h-[112px]'} rounded-xl border transition-all text-left group
+                  ${(item.current > 0 || isEditMode) && !isCategoryDisabled
                     ? 'bg-slate-800/40 border-slate-700/50 active:scale-95 active:bg-slate-700/50 shadow-sm' 
                     : 'bg-slate-950 border-slate-900/50 opacity-20'
                   }`}
+                disabled={isCategoryDisabled && !isEditMode}
               >
                 {isTwoCol ? (
                   <>
@@ -527,7 +668,7 @@ const ActionList: React.FC<ActionListProps> = ({ title, category, items, colorCl
                     <div className="flex-1 min-w-0">
                       <div className="text-[10px] font-black text-slate-500 truncate leading-none mb-1 uppercase tracking-tighter">{item.name}</div>
                       <div className="flex items-baseline gap-1">
-                        <span className={`text-2xl font-mono font-black leading-none ${item.current > 0 ? colorClass : 'text-slate-600'}`}>
+                        <span className={`text-2xl font-mono font-black leading-none ${item.current > 0 && !isCategoryDisabled ? colorClass : 'text-slate-600'}`}>
                           {item.current}
                         </span>
                         <span className="text-xs text-slate-700 font-bold">/ {item.max}</span>
@@ -541,14 +682,14 @@ const ActionList: React.FC<ActionListProps> = ({ title, category, items, colorCl
                     <span className="text-[10px] font-bold text-slate-400 truncate w-full text-center px-0.5 tracking-tighter leading-tight">{item.name}</span>
                     {showCounter && (
                       <div className="flex items-center gap-0.5 mt-0.5 opacity-80">
-                         <span className={`text-[11px] font-mono font-black ${item.current > 0 ? colorClass : 'text-slate-600'}`}>{item.current}/{item.max}</span>
+                         <span className={`text-[11px] font-mono font-black ${item.current > 0 && !isCategoryDisabled ? colorClass : 'text-slate-600'}`}>{item.current}/{item.max}</span>
                          {recoveryLabel && <span className="text-[8px] text-slate-600 font-black border border-slate-800 px-0.5 rounded-sm">{recoveryLabel}</span>}
                       </div>
                     )}
                   </>
                 )}
               </button>
-              {isEditMode && (
+              {isEditMode && !defaultItemIds.includes(item.id) && (
                 <button 
                   onClick={(e) => { e.stopPropagation(); onRemove(item.id); }}
                   className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-rose-600 text-white rounded-full flex items-center justify-center text-[10px] font-black border border-slate-950 shadow-lg z-10 active:scale-75 transition-transform"

@@ -22,3 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Assistant notes (not tracked by git)
+.assistant-notes.md

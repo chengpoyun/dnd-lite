@@ -20,6 +20,22 @@
         .safe-bottom {
             padding-bottom: env(safe-area-inset-bottom);
         }
+        
+        /* Hide scrollbar for webkit browsers */
+        ::-webkit-scrollbar {
+            width: 0px;
+            background: transparent;
+        }
+        
+        /* Hide scrollbar for Firefox */
+        * {
+            scrollbar-width: none;
+        }
+        
+        /* Ensure scrolling still works */
+        .overflow-y-auto {
+            -ms-overflow-style: none;
+        }
     </style>
 <script type="importmap">
 {
