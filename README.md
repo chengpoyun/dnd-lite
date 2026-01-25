@@ -1,20 +1,104 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# DnD Lite - D&D 5E 角色助手
 
-# Run and deploy your AI Studio app
+一個輕量級的 D&D 5E 數位角色表和戰鬥追蹤工具。
 
-This contains everything you need to run your app locally.
+## ✨ 功能特色
 
-View your app in AI Studio: https://ai.studio/apps/drive/1jkoCXNjHzOxyRyheTUwi5-Ku0S9ftdjD
+- 📊 **角色數據管理** - 能力值、生命值、防禦等
+- ⚔️ **戰鬥系統** - D&D 5E 規則的動作經濟追蹤
+- 🎲 **骰子系統** - 內建各種骰子功能
+- 💾 **雲端同步** - 使用 Supabase 進行資料同步
+- 📱 **響應式設計** - 支援手機和桌面使用
 
-## Run Locally
+## 🚀 快速開始
 
-**Prerequisites:**  Node.js
+### 前置需求
+- Node.js 20 或更高版本
+- Supabase 帳號
 
+### 安裝步驟
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+1. **克隆專案**
+```bash
+git clone https://github.com/chengpoyun/dnd-lite.git
+cd dnd-lite
+```
+
+2. **安裝依賴**
+```bash
+npm install
+```
+
+3. **設定 Supabase**
+   - 前往 [Supabase](https://supabase.com) 建立新專案
+   - 複製專案的 URL 和 anon key
+   - 執行 `database/schema.sql` 中的 SQL 來建立資料表
+
+4. **環境變數設定**
+```bash
+cp .env.example .env
+```
+編輯 `.env` 檔案，填入您的 Supabase 設定：
+```env
+VITE_SUPABASE_URL=your_supabase_project_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
+
+5. **啟動開發伺服器**
+```bash
+npm run dev
+```
+
+## 📊 資料庫結構
+
+專案使用 PostgreSQL (Supabase) 儲存資料：
+
+- `characters` - 角色基本資料和屬性
+- `combat_items` - 自定義戰鬥動作和道具
+
+詳見 `database/schema.sql` 檔案。
+
+## 🔄 資料遷移
+
+如果您之前使用過本地版本，系統會自動提示您將舊資料遷移到雲端。
+
+## 🛠 技術棧
+
+- **前端**: React 19 + TypeScript
+- **樣式**: Tailwind CSS
+- **建置工具**: Vite
+- **資料庫**: Supabase (PostgreSQL)
+- **部署**: GitHub Pages
+
+## 📝 開發
+
+### 專案結構
+```
+src/
+├── components/     # React 元件
+├── services/       # 資料服務層
+├── lib/           # 工具函式和設定
+├── types.ts       # TypeScript 類型定義
+└── ...
+
+database/
+└── schema.sql     # 資料庫結構
+
+.env.example       # 環境變數範本
+```
+
+### 可用指令
+
+```bash
+npm run dev        # 啟動開發伺服器
+npm run build      # 建置生產版本
+npm run preview    # 預覽生產版本
+```
+
+## 🤝 貢獻
+
+歡迎提交 Issues 和 Pull Requests！
+
+## 📄 授權
+
+MIT License
