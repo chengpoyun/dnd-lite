@@ -4,7 +4,6 @@ import { DiceRoller } from './components/DiceRoller';
 import { CombatView } from './components/CombatView';
 import { SpellsView } from './components/SpellsView';
 import { InventoryView } from './components/InventoryView';
-import { SupabaseTest } from './components/SupabaseTest';
 import { CharacterStats } from './types';
 import { CharacterService, CacheService } from './services/database';
 import { MigrationService } from './services/migration';
@@ -215,8 +214,6 @@ const App: React.FC = () => {
           </div>
         ) : (
           <>
-            {/* Supabase 連接測試 - 只在開發模式顯示 */}
-            <SupabaseTest />
             {renderContent()}
           </>
         )}
