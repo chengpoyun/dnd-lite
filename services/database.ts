@@ -1,4 +1,4 @@
-import { supabase, type Character, type CombatItem } from './supabase'
+import { supabase, type Character, type CombatItem } from '../lib/supabase'
 import type { CharacterStats } from '../types'
 
 // 角色資料服務

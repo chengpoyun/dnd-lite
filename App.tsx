@@ -6,6 +6,8 @@ import { SpellsView } from './components/SpellsView';
 import { InventoryView } from './components/InventoryView';
 import { SupabaseTest } from './components/SupabaseTest';
 import { CharacterStats } from './types';
+import { CharacterService, CacheService } from './services/database';
+import { MigrationService } from './services/migration';
 
 enum Tab {
   CHARACTER = 'character',
@@ -62,28 +64,132 @@ const App: React.FC = () => {
   // 修改預設分頁為 CHARACTER
   const [activeTab, setActiveTab] = useState<Tab>(Tab.CHARACTER);
   
-  const [stats, setStats] = useState<CharacterStats>(() => {
-    try {
-      const savedString = localStorage.getItem(STORAGE_KEY);
-      if (savedString) {
-        const parsed = JSON.parse(savedString);
-        // 如果舊資料是 Array，轉換為 Record
-        if (Array.isArray(parsed.proficiencies)) {
-          const record: Record<string, number> = {};
-          parsed.proficiencies.forEach((skill: string) => { record[skill] = 1; });
-          parsed.proficiencies = record;
-        }
-        return deepMerge(INITIAL_STATS, parsed);
-      }
-    } catch (e) {
-      console.error("Critical: Character data loading failed", e);
-    }
-    return INITIAL_STATS;
-  });
+  // 角色数据库管理
+  const [currentCharacterId, setCurrentCharacterId] = useState<string | null>(null);
+  const [stats, setStats] = useState<CharacterStats>(INITIAL_STATS);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isMigrated, setIsMigrated] = useState(false);
 
+  // 初始化数据
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(stats));
-  }, [stats]);
+    const initializeData = async () => {
+      try {
+        setIsLoading(true);
+        
+        // 检查是否需要迁移数据
+        if (MigrationService.needsMigration() && !isMigrated) {
+          console.log('检测到需要迁移的角色数据...');
+          const migratedId = await MigrationService.migrateCharacterData('我的角色');
+          if (migratedId) {
+            setCurrentCharacterId(migratedId);
+            localStorage.setItem('current_character_id', migratedId);
+            setIsMigrated(true);
+          }
+        }
+        
+        // 尝试从缓存或 localStorage 获取当前角色 ID
+        let characterId = currentCharacterId;
+        if (!characterId) {
+          characterId = localStorage.getItem('current_character_id');
+        }
+        
+        if (characterId) {
+          // 从数据库加载角色数据
+          let character = CacheService.getCachedCharacter(characterId);
+          if (!character) {
+            character = await CharacterService.getCharacter(characterId);
+            if (character) {
+              CacheService.cacheCharacter(character);
+            }
+          }
+          
+          if (character) {
+            setStats(character.stats);
+            setCurrentCharacterId(character.id);
+          } else {
+            // 角色不存在，创建新角色
+            await createNewCharacter();
+          }
+        } else {
+          // 没有角色 ID，创建新角色
+          await createNewCharacter();
+        }
+        
+      } catch (error) {
+        console.error('数据初始化失败:', error);
+        // Fallback 到 localStorage
+        await loadFromLegacyStorage();
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    const createNewCharacter = async () => {
+      try {
+        const character = await CharacterService.createCharacter({
+          name: '我的角色',
+          stats: INITIAL_STATS
+        });
+        
+        if (character) {
+          setStats(character.stats);
+          setCurrentCharacterId(character.id);
+          localStorage.setItem('current_character_id', character.id);
+          CacheService.cacheCharacter(character);
+        }
+      } catch (error) {
+        console.error('创建新角色失败:', error);
+        await loadFromLegacyStorage();
+      }
+    };
+
+    const loadFromLegacyStorage = async () => {
+      try {
+        const savedString = localStorage.getItem(STORAGE_KEY);
+        if (savedString) {
+          const parsed = JSON.parse(savedString);
+          // 如果舊資料是 Array，轉換為 Record
+          if (Array.isArray(parsed.proficiencies)) {
+            const record: Record<string, number> = {};
+            parsed.proficiencies.forEach((skill: string) => { record[skill] = 1; });
+            parsed.proficiencies = record;
+          }
+          setStats(deepMerge(INITIAL_STATS, parsed));
+        }
+      } catch (e) {
+        console.error("Critical: Character data loading failed", e);
+        setStats(INITIAL_STATS);
+      }
+    };
+
+    initializeData();
+  }, [currentCharacterId, isMigrated]);
+
+  // 保存角色数据到数据库
+  useEffect(() => {
+    const saveCharacterData = async () => {
+      if (currentCharacterId && !isLoading) {
+        try {
+          const updatedCharacter = await CharacterService.updateCharacter(currentCharacterId, {
+            stats: stats
+          });
+          
+          if (updatedCharacter) {
+            CacheService.cacheCharacter(updatedCharacter);
+          }
+        } catch (error) {
+          console.error('保存角色数据失败:', error);
+          // Fallback 到 localStorage
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(stats));
+        }
+      } else if (!currentCharacterId && !isLoading) {
+        // 如果没有角色 ID，保存到 localStorage 作为备份
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(stats));
+      }
+    };
+
+    saveCharacterData();
+  }, [stats, currentCharacterId, isLoading]);
 
   const renderContent = () => {
     switch (activeTab) {
@@ -99,11 +205,21 @@ const App: React.FC = () => {
   return (
     <div className="flex flex-col h-screen max-w-md mx-auto overflow-hidden bg-slate-950">
       <main className="flex-1 overflow-y-auto pb-16">
-        {/* Supabase 連接測試 - 只在開發模式顯示 */}
-        {import.meta.env.VITE_DEV_MODE === 'true' && (
-          <SupabaseTest />
+        {/* 数据加载状态 */}
+        {isLoading ? (
+          <div className="flex justify-center items-center h-64">
+            <div className="flex flex-col items-center gap-3">
+              <div className="animate-spin rounded-full h-8 w-8 border-2 border-amber-500 border-t-transparent"></div>
+              <span className="text-[14px] text-amber-500/80">正在加载角色数据...</span>
+            </div>
+          </div>
+        ) : (
+          <>
+            {/* Supabase 連接測試 - 只在開發模式顯示 */}
+            <SupabaseTest />
+            {renderContent()}
+          </>
         )}
-        {renderContent()}
       </main>
 
       <nav className="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-slate-900/95 backdrop-blur-md border-t border-slate-800 safe-bottom shadow-2xl z-50">

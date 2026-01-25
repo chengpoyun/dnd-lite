@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { CharacterStats } from '../types';
 import { evaluateValue, getModifier } from '../utils/helpers';
+import { CombatItemService } from '../services/database';
+import { MigrationService } from '../services/migration';
+import type { CombatItem as DatabaseCombatItem } from '../lib/supabase';
 
 interface CombatItem {
   id: string;
@@ -9,6 +12,10 @@ interface CombatItem {
   current: number;
   max: number;
   recovery: 'round' | 'short' | 'long';
+  character_id?: string;
+  category?: string;
+  item_id?: string;
+  created_at?: string;
 }
 
 const DEFAULT_ACTIONS: CombatItem[] = [
@@ -57,8 +64,19 @@ interface CombatViewProps {
 }
 
 export const CombatView: React.FC<CombatViewProps> = ({ stats, setStats }) => {
-  const savedState = JSON.parse(localStorage.getItem(STORAGE_KEYS.COMBAT_STATE) || '{}');
+  // 角色 ID 管理 - 这里暂时使用固定值，后续可以从角色选择中获取
+  const [characterId] = useState(() => {
+    // 尝试从 localStorage 获取当前角色 ID，如果没有则生成一个默认的
+    const savedCharacterId = localStorage.getItem('current_character_id');
+    if (savedCharacterId) return savedCharacterId;
+    
+    // 生成默认角色 ID
+    const defaultId = 'default-character-' + Date.now();
+    localStorage.setItem('current_character_id', defaultId);
+    return defaultId;
+  });
 
+  const savedState = JSON.parse(localStorage.getItem(STORAGE_KEYS.COMBAT_STATE) || '{}');
   const [combatSeconds, setCombatSeconds] = useState(savedState.combatSeconds ?? 0);
   
   const [categoryUsages, setCategoryUsages] = useState({
@@ -67,18 +85,15 @@ export const CombatView: React.FC<CombatViewProps> = ({ stats, setStats }) => {
     reaction: { current: 1, max: 1 }
   });
   
-  const [actions, setActions] = useState<CombatItem[]>(() => 
-    JSON.parse(localStorage.getItem(STORAGE_KEYS.ACTIONS) || 'null') || DEFAULT_ACTIONS
-  );
-  const [bonusActions, setBonusActions] = useState<CombatItem[]>(() => 
-    JSON.parse(localStorage.getItem(STORAGE_KEYS.BONUS) || 'null') || DEFAULT_BONUS_ACTIONS
-  );
-  const [reactions, setReactions] = useState<CombatItem[]>(() => 
-    JSON.parse(localStorage.getItem(STORAGE_KEYS.REACTIONS) || 'null') || DEFAULT_REACTIONS
-  );
-  const [resources, setResources] = useState<CombatItem[]>(() => 
-    JSON.parse(localStorage.getItem(STORAGE_KEYS.RESOURCES) || 'null') || DEFAULT_RESOURCES
-  );
+  // 状态管理 - 从数据库加载
+  const [actions, setActions] = useState<CombatItem[]>(DEFAULT_ACTIONS);
+  const [bonusActions, setBonusActions] = useState<CombatItem[]>(DEFAULT_BONUS_ACTIONS);
+  const [reactions, setReactions] = useState<CombatItem[]>(DEFAULT_REACTIONS);
+  const [resources, setResources] = useState<CombatItem[]>(DEFAULT_RESOURCES);
+  
+  // 数据加载状态
+  const [isLoading, setIsLoading] = useState(true);
+  const [isMigrated, setIsMigrated] = useState(false);
   
   const [isEditMode, setIsEditMode] = useState(false);
   const [isHPModalOpen, setIsHPModalOpen] = useState(false);
@@ -108,15 +123,104 @@ export const CombatView: React.FC<CombatViewProps> = ({ stats, setStats }) => {
   const [formMax, setFormMax] = useState(1);
   const [formRecovery, setFormRecovery] = useState<'round' | 'short' | 'long'>('round');
 
+  // 数据库初始化和迁移
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.ACTIONS, JSON.stringify(actions));
-    localStorage.setItem(STORAGE_KEYS.BONUS, JSON.stringify(bonusActions));
-    localStorage.setItem(STORAGE_KEYS.REACTIONS, JSON.stringify(reactions));
-    localStorage.setItem(STORAGE_KEYS.RESOURCES, JSON.stringify(resources));
-    localStorage.setItem(STORAGE_KEYS.COMBAT_STATE, JSON.stringify({ combatSeconds }));
-  }, [actions, bonusActions, reactions, resources, combatSeconds]);
+    const initializeData = async () => {
+      try {
+        setIsLoading(true);
+        
+        // 检查是否需要迁移数据
+        const hasLocalData = localStorage.getItem(STORAGE_KEYS.ACTIONS) || 
+                            localStorage.getItem(STORAGE_KEYS.BONUS) ||
+                            localStorage.getItem(STORAGE_KEYS.REACTIONS) ||
+                            localStorage.getItem(STORAGE_KEYS.RESOURCES);
+        
+        if (hasLocalData && !isMigrated) {
+          console.log('检测到本地数据，开始迁移到数据库...');
+          const migrationResult = await MigrationService.migrateCombatItems(characterId);
+          console.log('数据迁移完成');
+          setIsMigrated(true);
+        }
+        
+        // 从数据库加载数据
+        const combatItems = await CombatItemService.getCombatItems(characterId);
+        
+        // 将数据库中的数据按类别分组
+        const actionItems = combatItems.filter(item => item.category === 'action');
+        const bonusItems = combatItems.filter(item => item.category === 'bonus');
+        const reactionItems = combatItems.filter(item => item.category === 'reaction');
+        const resourceItems = combatItems.filter(item => item.category === 'resource');
+        
+        // 如果数据库中没有数据，使用默认数据并保存到数据库
+        if (combatItems.length === 0) {
+          console.log('数据库中没有数据，使用默认数据');
+          await initializeDefaultItems();
+        } else {
+          // 转换数据库格式到组件格式
+          setActions(actionItems.map(convertDbItemToLocal));
+          setBonusActions(bonusItems.map(convertDbItemToLocal));
+          setReactions(reactionItems.map(convertDbItemToLocal));
+          setResources(resourceItems.map(convertDbItemToLocal));
+        }
+        
+      } catch (error) {
+        console.error('数据初始化失败:', error);
+        // fallback 到默认数据
+        setActions(DEFAULT_ACTIONS);
+        setBonusActions(DEFAULT_BONUS_ACTIONS);
+        setReactions(DEFAULT_REACTIONS);
+        setResources(DEFAULT_RESOURCES);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  const useItem = (category: ItemCategory, id: string) => {
+    initializeData();
+  }, [characterId, isMigrated]);
+
+  // 将数据库项目转换为本地格式
+  const convertDbItemToLocal = (dbItem: DatabaseCombatItem): CombatItem => ({
+    id: dbItem.id, // 使用数据库 ID 作为主键
+    name: dbItem.name,
+    icon: dbItem.icon,
+    current: dbItem.current_uses,
+    max: dbItem.max_uses,
+    recovery: dbItem.recovery as 'round' | 'short' | 'long',
+    character_id: dbItem.character_id,
+    category: dbItem.category,
+    item_id: dbItem.id, // 保存数据库 ID 作为 item_id
+    created_at: dbItem.created_at
+  });
+
+  // 初始化默认项目到数据库
+  const initializeDefaultItems = async () => {
+    const defaultItems = [
+      ...DEFAULT_ACTIONS.map(item => ({ ...item, category: 'action' })),
+      ...DEFAULT_BONUS_ACTIONS.map(item => ({ ...item, category: 'bonus' })),
+      ...DEFAULT_REACTIONS.map(item => ({ ...item, category: 'reaction' })),
+      ...DEFAULT_RESOURCES.map(item => ({ ...item, category: 'resource' }))
+    ];
+
+    for (const item of defaultItems) {
+      await CombatItemService.createCombatItem({
+        character_id: characterId,
+        category: item.category,
+        name: item.name,
+        icon: item.icon,
+        current_uses: item.current,
+        max_uses: item.max,
+        recovery: item.recovery,
+        is_default: true
+      });
+    }
+  };
+
+  // 保存状态到本地 localStorage (保留原有的战斗状态同步)
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.COMBAT_STATE, JSON.stringify({ combatSeconds }));
+  }, [combatSeconds]);
+
+  const useItem = async (category: ItemCategory, id: string) => {
     const list = category === 'action' ? actions : category === 'bonus' ? bonusActions : category === 'reaction' ? reactions : resources;
     const item = list.find(i => i.id === id);
     if (!item) return;
@@ -143,14 +247,46 @@ export const CombatView: React.FC<CombatViewProps> = ({ stats, setStats }) => {
         [category]: { ...prev[category], current: prev[category].current - 1 }
       }));
       
-      // 減少物品使用次數
+      // 減少物品使用次數并同步到数据库
+      const newCurrent = item.current - 1;
       const setter = category === 'action' ? setActions : category === 'bonus' ? setBonusActions : setReactions;
-      setter(prev => prev.map(i => i.id === id ? { ...i, current: i.current - 1 } : i));
+      setter(prev => prev.map(i => i.id === id ? { ...i, current: newCurrent } : i));
+      
+      // 更新数据库
+      await updateItemInDatabase(id, category, newCurrent);
     } else {
       // 職業資源仍使用個別項目的使用次數
       if (item.current <= 0) return;
-      const setter = setResources;
-      setter(prev => prev.map(i => i.id === id ? { ...i, current: i.current - 1 } : i));
+      const newCurrent = item.current - 1;
+      setResources(prev => prev.map(i => i.id === id ? { ...i, current: newCurrent } : i));
+      
+      // 更新数据库
+      await updateItemInDatabase(id, category, newCurrent);
+    }
+  };
+
+  // 更新数据库中的项目使用次数
+  const updateItemInDatabase = async (itemId: string, category: string, newCurrent: number, additionalFields?: { name?: string, icon?: string, max_uses?: number, recovery?: string }) => {
+    try {
+      const combatItems = await CombatItemService.getCombatItems(characterId);
+      const dbItem = combatItems.find(item => item.id === itemId);
+      
+      if (dbItem) {
+        const updateData: any = {
+          current_uses: newCurrent
+        };
+        
+        if (additionalFields) {
+          if (additionalFields.name) updateData.name = additionalFields.name;
+          if (additionalFields.icon) updateData.icon = additionalFields.icon;
+          if (additionalFields.max_uses !== undefined) updateData.max_uses = additionalFields.max_uses;
+          if (additionalFields.recovery) updateData.recovery = additionalFields.recovery;
+        }
+        
+        await CombatItemService.updateCombatItem(dbItem.id, updateData);
+      }
+    } catch (error) {
+      console.error('更新数据库项目失败:', error);
     }
   };
 
@@ -184,18 +320,30 @@ export const CombatView: React.FC<CombatViewProps> = ({ stats, setStats }) => {
     setIsCategoryUsageModalOpen(false);
   };
 
-  const handleSaveItem = () => {
+  const handleSaveItem = async () => {
     if (!formName.trim()) return;
 
     const setter = activeCategory === 'action' ? setActions : activeCategory === 'bonus' ? setBonusActions : activeCategory === 'reaction' ? setReactions : setResources;
 
     if (editingItemId) {
+      // 编辑现有项目
+      const updatedItem = { name: formName, icon: formIcon, current: formCurrent, max: formMax, recovery: formRecovery };
       setter(prev => prev.map(item => 
-        item.id === editingItemId ? { ...item, name: formName, icon: formIcon, current: formCurrent, max: formMax, recovery: formRecovery } : item
+        item.id === editingItemId ? { ...item, ...updatedItem } : item
       ));
+      
+      // 更新数据库
+      await updateItemInDatabase(editingItemId, activeCategory, formCurrent, {
+        name: formName,
+        icon: formIcon,
+        max_uses: formMax,
+        recovery: formRecovery
+      });
     } else {
+      // 创建新项目
+      const newItemId = `item-${Date.now()}`;
       const newItem: CombatItem = {
-        id: `item-${Date.now()}`,
+        id: newItemId,
         name: formName,
         icon: formIcon,
         current: formMax,
@@ -203,23 +351,72 @@ export const CombatView: React.FC<CombatViewProps> = ({ stats, setStats }) => {
         recovery: formRecovery
       };
       setter(prev => [...prev, newItem]);
+      
+      // 保存到数据库
+      await CombatItemService.createCombatItem({
+        character_id: characterId,
+        category: activeCategory,
+        name: formName,
+        icon: formIcon,
+        current_uses: formMax,
+        max_uses: formMax,
+        recovery: formRecovery,
+        is_default: false
+      });
     }
     setIsItemEditModalOpen(false);
   };
 
-  const removeItem = (category: ItemCategory, id: string) => {
+  const removeItem = async (category: ItemCategory, id: string) => {
     const setter = category === 'action' ? setActions : category === 'bonus' ? setBonusActions : category === 'reaction' ? setReactions : setResources;
     setter(prev => prev.filter(item => item.id !== id));
+    
+    // 从数据库删除
+    try {
+      const combatItems = await CombatItemService.getCombatItems(characterId);
+      const dbItem = combatItems.find(item => item.id === id && item.category === category);
+      
+      if (dbItem) {
+        await CombatItemService.deleteCombatItem(dbItem.id);
+      }
+    } catch (error) {
+      console.error('从数据库删除项目失败:', error);
+    }
   };
 
-  const resetByRecovery = (periods: ('round' | 'short' | 'long')[]) => {
+  const resetByRecovery = async (periods: ('round' | 'short' | 'long')[]) => {
     const update = (list: CombatItem[]) => list.map(item => 
       periods.includes(item.recovery) ? { ...item, current: item.max } : item
     );
-    setActions(update);
-    setBonusActions(update);
-    setReactions(update);
-    setResources(update);
+    
+    const updatedActions = update(actions);
+    const updatedBonusActions = update(bonusActions);
+    const updatedReactions = update(reactions);
+    const updatedResources = update(resources);
+    
+    setActions(updatedActions);
+    setBonusActions(updatedBonusActions);
+    setReactions(updatedReactions);
+    setResources(updatedResources);
+    
+    // 同步到数据库
+    try {
+      const allUpdatedItems = [...updatedActions, ...updatedBonusActions, ...updatedReactions, ...updatedResources];
+      const combatItems = await CombatItemService.getCombatItems(characterId);
+      
+      for (const localItem of allUpdatedItems) {
+        if (periods.includes(localItem.recovery)) {
+          const dbItem = combatItems.find(item => item.id === localItem.id);
+          if (dbItem && dbItem.current_uses !== localItem.max) {
+            await CombatItemService.updateCombatItem(dbItem.id, {
+              current_uses: localItem.max
+            });
+          }
+        }
+      }
+    } catch (error) {
+      console.error('同步重置数据到数据库失败:', error);
+    }
   };
 
   const nextTurn = () => {
@@ -296,6 +493,20 @@ export const CombatView: React.FC<CombatViewProps> = ({ stats, setStats }) => {
     return { border: 'border-emerald-500/50', text: 'text-emerald-400', label: 'text-emerald-500/80' };
   };
   const hpColors = getHPColorClasses();
+
+  // 如果正在加载，显示加载状态
+  if (isLoading) {
+    return (
+      <div className="px-2 py-3 space-y-3 h-full overflow-y-auto pb-24 relative select-none bg-slate-950">
+        <div className="flex justify-center items-center h-64">
+          <div className="flex flex-col items-center gap-3">
+            <div className="animate-spin rounded-full h-8 w-8 border-2 border-amber-500 border-t-transparent"></div>
+            <span className="text-[14px] text-amber-500/80">正在加载战斗数据...</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="px-2 py-3 space-y-3 h-full overflow-y-auto pb-24 relative select-none bg-slate-950">
