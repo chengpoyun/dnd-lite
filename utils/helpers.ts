@@ -36,3 +36,81 @@ export const evaluateValue = (input: string, current: number, max?: number): num
   if (max !== undefined) result = Math.min(max, result);
   return result;
 };
+
+/**
+ * 通用數值設定函數 - 允許空字串輸入，在驗證時轉換為有效數字
+ * 參考角色頁面屬性值的處理方式
+ * @param value 字串輸入值
+ * @param minValue 最小有效值，預設為1
+ * @param allowZero 是否允許0作為有效值，預設為false
+ * @returns 解析結果 { isValid: boolean, numericValue: number }
+ */
+export const setNormalValue = (value: string, minValue: number = 1, allowZero: boolean = false): { isValid: boolean, numericValue: number } => {
+  const numericValue = parseInt(value);
+  
+  if (isNaN(numericValue)) {
+    return { isValid: false, numericValue: 0 };
+  }
+  
+  const effectiveMin = allowZero ? 0 : minValue;
+  const isValid = numericValue >= effectiveMin;
+  
+  return { isValid, numericValue: isValid ? numericValue : 0 };
+};
+
+/**
+ * 統一數值處理函數 - 整合純數值驗證和運算表達式兩種模式
+ * @param value 輸入值（純數字或運算表達式）
+ * @param currentValue 當前數值（運算模式時需要）
+ * @param options 配置選項
+ * @returns 處理結果
+ */
+export const handleValueInput = (
+  value: string, 
+  currentValue?: number,
+  options: {
+    mode?: 'validate' | 'calculate';
+    minValue?: number;
+    maxValue?: number;
+    allowZero?: boolean;
+  } = {}
+): { isValid: boolean, numericValue: number, isCalculation: boolean } => {
+  const { 
+    mode = 'auto',
+    minValue = 1, 
+    maxValue, 
+    allowZero = false 
+  } = options;
+
+  // 自動檢測是否為運算表達式
+  const isCalculationInput = value.includes('+') || value.includes('-') || 
+                           (value.startsWith('+') || value.startsWith('-'));
+  
+  // 決定處理模式
+  const actualMode = mode === 'auto' ? 
+    (isCalculationInput ? 'calculate' : 'validate') : mode;
+
+  if (actualMode === 'calculate' && currentValue !== undefined) {
+    // 使用 evaluateValue 處理運算表達式
+    const result = evaluateValue(value, currentValue, maxValue);
+    const effectiveMin = allowZero ? 0 : minValue;
+    const isValid = result >= effectiveMin && (maxValue === undefined || result <= maxValue);
+    
+    return { 
+      isValid, 
+      numericValue: result, 
+      isCalculation: true 
+    };
+  } else {
+    // 使用 setNormalValue 處理純數值
+    const result = setNormalValue(value, minValue, allowZero);
+    const finalValue = maxValue !== undefined ? 
+      Math.min(result.numericValue, maxValue) : result.numericValue;
+    
+    return { 
+      isValid: result.isValid && (maxValue === undefined || finalValue <= maxValue), 
+      numericValue: finalValue, 
+      isCalculation: false 
+    };
+  }
+};

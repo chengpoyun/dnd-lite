@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { CharacterStats } from '../types';
-import { evaluateValue } from '../utils/helpers';
+import { evaluateValue, handleValueInput } from '../utils/helpers';
 
 interface InventoryViewProps {
   stats: CharacterStats;
@@ -41,7 +41,12 @@ export const InventoryView: React.FC<InventoryViewProps> = ({ stats, setStats })
   const currentWeight = items.reduce((acc, item) => acc + (item.weight * item.count), 0);
   const maxWeight = stats.abilityScores.str * 15;
 
-  const gpPreview = evaluateValue(tempGPValue, stats.currency.gp);
+  const gpResult = handleValueInput(tempGPValue, stats.currency.gp, {
+    mode: 'calculate',
+    minValue: 0,
+    allowZero: true
+  });
+  const gpPreview = gpResult.isValid ? gpResult.numericValue : stats.currency.gp;
 
   const saveCurrency = () => {
     setStats(prev => ({ ...prev, currency: { ...prev.currency, gp: gpPreview } }));

@@ -12,7 +12,7 @@ import { HybridDataManager } from './services/hybridDataManager';
 import { AuthService } from './services/auth';
 import { AnonymousService } from './services/anonymous';
 import { DatabaseInitService } from './services/databaseInit';
-import type { Character } from './lib/supabase';
+import type { Character, CharacterAbilityScores, CharacterCurrentStats, CharacterCurrency, CharacterUpdateData } from './lib/supabase';
 
 enum Tab {
   CHARACTER = 'character',
@@ -294,7 +294,7 @@ const AuthenticatedApp: React.FC = () => {
       if (currentCharacter && appState === 'main') {
         try {
           // 更新完整的角色數據
-          const characterUpdates = {
+          const characterUpdates: CharacterUpdateData = {
             character: {
               ...currentCharacter,
               name: stats.name || '未命名角色',
@@ -305,7 +305,6 @@ const AuthenticatedApp: React.FC = () => {
               updated_at: new Date().toISOString()
             },
             currentStats: {
-              id: '', // 將由資料庫自動生成
               character_id: currentCharacter.id,
               current_hp: stats.hp.current || 1,
               max_hp: stats.hp.max || 1,
@@ -323,9 +322,8 @@ const AuthenticatedApp: React.FC = () => {
                 customRecords: stats.customRecords || [],
                 attacks: stats.attacks || []
               }
-            },
+            } as Partial<CharacterCurrentStats>,
             abilityScores: {
-              id: '', // 將由資料庫自動生成
               character_id: currentCharacter.id,
               strength: stats.abilityScores.str || 10,
               dexterity: stats.abilityScores.dex || 10,
@@ -333,16 +331,15 @@ const AuthenticatedApp: React.FC = () => {
               intelligence: stats.abilityScores.int || 10,
               wisdom: stats.abilityScores.wis || 10,
               charisma: stats.abilityScores.cha || 10
-            },
+            } as Partial<CharacterAbilityScores>,
             currency: {
-              id: '', // 將由資料庫自動生成  
               character_id: currentCharacter.id,
               gp: stats.currency.gp || 0, // 使用統一的 gp 欄位
               copper: stats.currency.cp || 0,
               silver: stats.currency.sp || 0,
               electrum: stats.currency.ep || 0,
               platinum: stats.currency.pp || 0
-            }
+            } as Partial<CharacterCurrency>
           };
 
           console.log('💾 準備保存到 DB:', {

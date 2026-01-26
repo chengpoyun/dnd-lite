@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { CharacterStats, CustomRecord } from '../types';
-import { getModifier, getProfBonus, evaluateValue } from '../utils/helpers';
+import { getModifier, getProfBonus, evaluateValue, handleValueInput } from '../utils/helpers';
 import { PageContainer, Card, Button, Title, Subtitle, Input, BackButton } from './ui';
 import { STYLES, combineStyles } from '../styles/common';
 
@@ -108,11 +108,41 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({ stats, setStats 
     setActiveModal('edit_record');
   };
 
-  const gpPreview = evaluateValue(tempGPValue, stats.currency.gp);
-  const expPreview = evaluateValue(tempExpValue, stats.exp);
-  const downtimePreview = evaluateValue(tempDowntimeValue, stats.downtime);
-  const renownUsedPreview = evaluateValue(tempRenownUsedValue, stats.renown.used);
-  const renownTotalPreview = evaluateValue(tempRenownTotalValue, stats.renown.total);
+  // 預覽計算 - 使用統一的數值處理函數
+  const gpResult = handleValueInput(tempGPValue, stats.currency.gp, {
+    mode: 'calculate',
+    minValue: 0,
+    allowZero: true
+  });
+  const gpPreview = gpResult.isValid ? gpResult.numericValue : stats.currency.gp;
+  
+  const expResult = handleValueInput(tempExpValue, stats.exp, {
+    mode: 'calculate',
+    minValue: 0,
+    allowZero: true
+  });
+  const expPreview = expResult.isValid ? expResult.numericValue : stats.exp;
+  
+  const downtimeResult = handleValueInput(tempDowntimeValue, stats.downtime, {
+    mode: 'calculate',
+    minValue: 0,
+    allowZero: true
+  });
+  const downtimePreview = downtimeResult.isValid ? downtimeResult.numericValue : stats.downtime;
+  
+  const renownUsedResult = handleValueInput(tempRenownUsedValue, stats.renown.used, {
+    mode: 'calculate',
+    minValue: 0,
+    allowZero: true
+  });
+  const renownUsedPreview = renownUsedResult.isValid ? renownUsedResult.numericValue : stats.renown.used;
+  
+  const renownTotalResult = handleValueInput(tempRenownTotalValue, stats.renown.total, {
+    mode: 'calculate',
+    minValue: 0,
+    allowZero: true
+  });
+  const renownTotalPreview = renownTotalResult.isValid ? renownTotalResult.numericValue : stats.renown.total;
 
   const saveInfo = () => { 
     // 驗證等級不為空
@@ -128,18 +158,23 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({ stats, setStats 
   const saveAbilities = () => { 
     // 驗證所有能力值不為空
     const abilities: any = {};
-    let hasEmptyValue = false;
+    let hasInvalidValue = false;
     
     for (const key in editAbilities) {
-      const value = parseInt(editAbilities[key]);
-      if (!value || value < 1) {
-        hasEmptyValue = true;
+      const result = handleValueInput(editAbilities[key], undefined, {
+        minValue: 1,
+        maxValue: 30,
+        allowZero: false
+      });
+      
+      if (!result.isValid) {
+        hasInvalidValue = true;
         break;
       }
-      abilities[key] = value;
+      abilities[key] = result.numericValue;
     }
     
-    if (hasEmptyValue) {
+    if (hasInvalidValue) {
       setActiveModal(null);
       return;
     }
@@ -472,7 +507,8 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({ stats, setStats 
             <h3 className="text-base font-fantasy text-amber-500 mb-4 border-b border-slate-800 pb-2">編輯屬性</h3>
             <div className="grid grid-cols-2 gap-2">
               {ABILITY_KEYS.map(key => {
-                const abilityValue = parseInt(editAbilities[key]) || 0;
+                const result = handleValueInput(editAbilities[key], undefined, { allowZero: true });
+                const abilityValue = result.isValid ? result.numericValue : 0;
                 const modifier = getModifier(abilityValue);
                 const isProf = editSavingProfs.includes(key);
                 return (

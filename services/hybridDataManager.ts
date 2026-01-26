@@ -1,7 +1,7 @@
 import { DetailedCharacterService } from './detailedCharacter'
 import { ConflictResolver } from './conflictResolver'
 import { CombatItemService } from './database'
-import type { FullCharacterData, Character, CharacterCombatAction } from '../lib/supabase'
+import type { FullCharacterData, Character, CharacterCombatAction, CharacterUpdateData } from '../lib/supabase'
 
 /**
  * 混合資料管理器
@@ -111,7 +111,7 @@ export class HybridDataManager {
   /**
    * 更新角色資料（同時寫入 localStorage + DB）
    */
-  static async updateCharacter(characterId: string, updates: Partial<FullCharacterData>): Promise<boolean> {
+  static async updateCharacter(characterId: string, updates: CharacterUpdateData): Promise<boolean> {
     try {
       // 1. 立即寫入 localStorage（用戶體驗優先）
       const currentData = this.getLocalCharacter(characterId)
@@ -249,12 +249,13 @@ export class HybridDataManager {
   
   // ===== 資料合併和同步 =====
   
-  private static mergeCharacterData(current: FullCharacterData, updates: Partial<FullCharacterData>): FullCharacterData {
+  private static mergeCharacterData(current: FullCharacterData, updates: CharacterUpdateData): FullCharacterData {
     return {
       character: { ...current.character, ...updates.character },
       abilityScores: { ...current.abilityScores, ...updates.abilityScores },
       savingThrows: updates.savingThrows || current.savingThrows,
-      skillProficiencies: updates.skillProficiencies || current.skillProficiencies,
+      skillProficiencies: Array.isArray(updates.skillProficiencies) ? 
+        updates.skillProficiencies : current.skillProficiencies,
       currentStats: { ...current.currentStats, ...updates.currentStats },
       currency: { ...current.currency, ...updates.currency },
       items: updates.items || current.items,
@@ -317,7 +318,7 @@ export class HybridDataManager {
     }
   }
 
-  private static async syncUpdatesToDatabase(characterId: string, updates: Partial<FullCharacterData>) {
+  private static async syncUpdatesToDatabase(characterId: string, updates: CharacterUpdateData) {
     const promises: Promise<any>[] = []
     
     // 更新角色基本信息
@@ -347,10 +348,10 @@ export class HybridDataManager {
     }
 
     // 更新技能熟練度
-    if (updates.skillProficiencies) {
+    if (updates.skillProficiencies && typeof updates.skillProficiencies === 'object') {
       // 批次更新所有技能熟練度
       for (const [skillName, level] of Object.entries(updates.skillProficiencies)) {
-        if (level > 0) {
+        if (typeof level === 'number' && level > 0) {
           promises.push(
             DetailedCharacterService.updateSkillProficiency(characterId, skillName, level)
           )

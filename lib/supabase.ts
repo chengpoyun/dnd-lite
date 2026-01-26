@@ -177,5 +177,19 @@ export interface FullCharacterData {
   combatActions: CharacterCombatAction[]
 }
 
+// 更新專用類型：用於部分更新角色資料
+export interface CharacterUpdateData {
+  character?: Partial<Character>
+  abilityScores?: Partial<CharacterAbilityScores>
+  savingThrows?: CharacterSavingThrow[]
+  skillProficiencies?: Record<string, number> | CharacterSkillProficiency[]
+  currentStats?: Partial<CharacterCurrentStats>
+  currency?: Partial<CharacterCurrency>
+  items?: CharacterItem[]
+  spells?: CharacterSpell[]
+  spellSlots?: CharacterSpellSlot[]
+  combatActions?: CharacterCombatAction[]
+}
+
 // 從現有類型導入（向後相容）
 import type { CharacterStats } from '../types'

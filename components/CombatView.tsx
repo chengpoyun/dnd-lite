@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { CharacterStats } from '../types';
-import { evaluateValue, getModifier } from '../utils/helpers';
+import { evaluateValue, getModifier, setNormalValue, handleValueInput } from '../utils/helpers';
 import { HybridDataManager } from '../services/hybridDataManager';
 import { MigrationService } from '../services/migration';
 import { PageContainer, Card, Button, Title, Subtitle, Input } from './ui';
@@ -140,13 +140,13 @@ export const CombatView: React.FC<CombatViewProps> = ({ stats, setStats, charact
   const [tempHPValue, setTempHPValue] = useState('');
   const [tempACValue, setTempACValue] = useState('');
   
-  const [tempCategoryCurrent, setTempCategoryCurrent] = useState(0);
-  const [tempCategoryMax, setTempCategoryMax] = useState(1);
+  const [tempCategoryCurrent, setTempCategoryCurrent] = useState('0');
+  const [tempCategoryMax, setTempCategoryMax] = useState('1');
   
   const [formName, setFormName] = useState('');
   const [formIcon, setFormIcon] = useState('✨');
-  const [formCurrent, setFormCurrent] = useState(1);
-  const [formMax, setFormMax] = useState(1);
+  const [formCurrent, setFormCurrent] = useState('1');
+  const [formMax, setFormMax] = useState('1');
   const [formRecovery, setFormRecovery] = useState<'round' | 'short' | 'long'>('round');
 
   // 数据库初始化和迁移
@@ -363,8 +363,8 @@ export const CombatView: React.FC<CombatViewProps> = ({ stats, setStats, charact
       setActiveCategory(category);
       setFormName(item.name);
       setFormIcon(item.icon);
-      setFormCurrent(item.current);
-      setFormMax(item.max);
+      setFormCurrent(item.current.toString());
+      setFormMax(item.max.toString());
       setFormRecovery(item.recovery);
       setIsItemEditModalOpen(true);
       return;
@@ -428,26 +428,42 @@ export const CombatView: React.FC<CombatViewProps> = ({ stats, setStats, charact
     setActiveCategory(category);
     setFormName('');
     setFormIcon('✨');
-    setFormCurrent(1);
-    setFormMax(1);
+    setFormCurrent('1');
+    setFormMax('1');
     setFormRecovery(category === 'resource' ? 'long' : 'round');
     setIsItemEditModalOpen(true);
   };
 
   const handleOpenCategoryUsageModal = (category: 'action' | 'bonus' | 'reaction') => {
     setEditingCategory(category);
-    setTempCategoryCurrent(categoryUsages[category].current);
-    setTempCategoryMax(categoryUsages[category].max);
+    setTempCategoryCurrent(categoryUsages[category].current.toString());
+    setTempCategoryMax(categoryUsages[category].max.toString());
     setIsCategoryUsageModalOpen(true);
   };
 
   const handleSaveCategoryUsage = () => {
     if (!editingCategory) return;
+    
+    const currentResult = handleValueInput(tempCategoryCurrent, undefined, {
+      minValue: 0,
+      allowZero: true
+    });
+    
+    const maxResult = handleValueInput(tempCategoryMax, undefined, {
+      minValue: 1,
+      allowZero: false
+    });
+    
+    if (!currentResult.isValid || !maxResult.isValid) {
+      setIsCategoryUsageModalOpen(false);
+      return;
+    }
+    
     setCategoryUsages(prev => ({
       ...prev,
       [editingCategory]: {
-        current: Math.min(tempCategoryCurrent, tempCategoryMax),
-        max: tempCategoryMax
+        current: Math.min(currentResult.numericValue, maxResult.numericValue),
+        max: maxResult.numericValue
       }
     }));
     setIsCategoryUsageModalOpen(false);
@@ -456,20 +472,32 @@ export const CombatView: React.FC<CombatViewProps> = ({ stats, setStats, charact
   const handleSaveItem = async () => {
     if (!formName.trim()) return;
 
+    // 使用通用數值處理函數
+    const currentResult = setNormalValue(formCurrent, 0, true); // 允許0作為剩餘次數
+    const maxResult = setNormalValue(formMax, 1, false); // 最大值不能為0
+    
+    if (!currentResult.isValid || !maxResult.isValid) {
+      setIsItemEditModalOpen(false);
+      return;
+    }
+
+    const currentValue = currentResult.numericValue;
+    const maxValue = maxResult.numericValue;
+
     const setter = activeCategory === 'action' ? setActions : activeCategory === 'bonus' ? setBonusActions : activeCategory === 'reaction' ? setReactions : setResources;
 
     if (editingItemId) {
       // 编辑现有项目
-      const updatedItem = { name: formName, icon: formIcon, current: formCurrent, max: formMax, recovery: formRecovery };
+      const updatedItem = { name: formName, icon: formIcon, current: currentValue, max: maxValue, recovery: formRecovery };
       setter(prev => prev.map(item => 
         item.id === editingItemId ? { ...item, ...updatedItem } : item
       ));
       
       // 更新数据库
-      await updateItemInDatabase(editingItemId, activeCategory, formCurrent, {
+      await updateItemInDatabase(editingItemId, activeCategory, currentValue, {
         name: formName,
         icon: formIcon,
-        max_uses: formMax,
+        max_uses: maxValue,
         recovery: formRecovery
       });
     } else {
@@ -479,8 +507,8 @@ export const CombatView: React.FC<CombatViewProps> = ({ stats, setStats, charact
         id: newItemId,
         name: formName,
         icon: formIcon,
-        current: formMax,
-        max: formMax,
+        current: maxValue,
+        max: maxValue,
         recovery: formRecovery
       };
       setter(prev => [...prev, newItem]);
@@ -491,8 +519,8 @@ export const CombatView: React.FC<CombatViewProps> = ({ stats, setStats, charact
         category: mapCategoryToDb(activeCategory),
         name: formName,
         icon: formIcon,
-        current_uses: formMax,
-        max_uses: formMax,
+        current_uses: maxValue,
+        max_uses: maxValue,
         recovery_type: mapRecoveryToDb(formRecovery),
         is_default: false
       });
@@ -806,11 +834,11 @@ export const CombatView: React.FC<CombatViewProps> = ({ stats, setStats, charact
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <span className="text-[10px] text-slate-500 font-black block mb-1 uppercase tracking-widest text-center">剩餘次數</span>
-                  <input type="number" value={formCurrent} onChange={(e) => setFormCurrent(parseInt(e.target.value) || 0)} className="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-xl font-mono text-center text-white outline-none" />
+                  <input type="text" value={formCurrent} onChange={(e) => setFormCurrent(e.target.value)} className="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-xl font-mono text-center text-white outline-none" />
                 </div>
                 <div>
                   <span className="text-[10px] text-slate-500 font-black block mb-1 uppercase tracking-widest text-center">最大</span>
-                  <input type="number" value={formMax} onChange={(e) => setFormMax(parseInt(e.target.value) || 0)} className="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-xl font-mono text-center text-white outline-none" />
+                  <input type="text" value={formMax} onChange={(e) => setFormMax(e.target.value)} className="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-xl font-mono text-center text-white outline-none" />
                 </div>
               </div>
 
@@ -845,18 +873,18 @@ export const CombatView: React.FC<CombatViewProps> = ({ stats, setStats, charact
                 <div>
                   <span className="text-[10px] text-slate-500 font-black block mb-1 uppercase tracking-widest text-center">剩餘次數</span>
                   <input 
-                    type="number" 
+                    type="text" 
                     value={tempCategoryCurrent} 
-                    onChange={(e) => setTempCategoryCurrent(Math.max(0, parseInt(e.target.value) || 0))} 
+                    onChange={(e) => setTempCategoryCurrent(e.target.value)} 
                     className="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-xl font-mono text-center text-white outline-none" 
                   />
                 </div>
                 <div>
                   <span className="text-[10px] text-slate-500 font-black block mb-1 uppercase tracking-widest text-center">每回合最大</span>
                   <input 
-                    type="number" 
+                    type="text" 
                     value={tempCategoryMax} 
-                    onChange={(e) => setTempCategoryMax(Math.max(1, parseInt(e.target.value) || 1))} 
+                    onChange={(e) => setTempCategoryMax(e.target.value)} 
                     className="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-xl font-mono text-center text-white outline-none" 
                   />
                 </div>
@@ -959,7 +987,18 @@ export const CombatView: React.FC<CombatViewProps> = ({ stats, setStats, charact
             <input type="text" value={tempHPValue} onChange={(e) => setTempHPValue(e.target.value)} className="w-full bg-slate-800 border border-slate-700 rounded-2xl p-4 text-3xl font-mono text-center text-white outline-none mb-4" placeholder={stats.hp.current.toString()} autoFocus />
             <div className="flex gap-2">
               <button onClick={() => setIsHPModalOpen(false)} className="flex-1 py-3 bg-slate-800 text-slate-400 rounded-xl font-bold">取消</button>
-              <button onClick={() => { const finalHP = evaluateValue(tempHPValue, stats.hp.current, stats.hp.max); setStats(prev => ({ ...prev, hp: { ...prev.hp, current: finalHP } })); setIsHPModalOpen(false); setTempHPValue(''); }} className="flex-1 py-3 bg-emerald-600 text-white rounded-xl font-bold">套用</button>
+              <button onClick={() => { 
+                const result = handleValueInput(tempHPValue, stats.hp.current, {
+                  mode: 'calculate',
+                  minValue: 0,
+                  maxValue: stats.hp.max,
+                  allowZero: true
+                });
+                if (result.isValid) {
+                  setStats(prev => ({ ...prev, hp: { ...prev.hp, current: result.numericValue } }));
+                }
+                setIsHPModalOpen(false); setTempHPValue(''); 
+              }} className="flex-1 py-3 bg-emerald-600 text-white rounded-xl font-bold">套用</button>
             </div>
           </div>
         </div>
@@ -973,7 +1012,17 @@ export const CombatView: React.FC<CombatViewProps> = ({ stats, setStats, charact
             <input type="text" value={tempACValue} onChange={(e) => setTempACValue(e.target.value)} className="w-full bg-slate-800 border border-slate-700 rounded-2xl p-4 text-3xl font-mono text-center text-white outline-none mb-4" placeholder={stats.ac.toString()} autoFocus />
             <div className="flex gap-2">
               <button onClick={() => setIsACModalOpen(false)} className="flex-1 py-3 bg-slate-800 text-slate-400 rounded-xl font-bold">取消</button>
-              <button onClick={() => { const finalAC = evaluateValue(tempACValue, stats.ac); setStats(prev => ({ ...prev, ac: finalAC })); setIsACModalOpen(false); setTempACValue(''); }} className="flex-1 py-3 bg-amber-600 text-white rounded-xl font-bold">套用</button>
+              <button onClick={() => { 
+                const result = handleValueInput(tempACValue, stats.ac, {
+                  mode: 'calculate',
+                  minValue: 1,
+                  allowZero: false
+                });
+                if (result.isValid) {
+                  setStats(prev => ({ ...prev, ac: result.numericValue }));
+                }
+                setIsACModalOpen(false); setTempACValue(''); 
+              }} className="flex-1 py-3 bg-amber-600 text-white rounded-xl font-bold">套用</button>
             </div>
           </div>
         </div>
