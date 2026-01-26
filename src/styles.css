@@ -11,3 +11,9 @@
     font-family: 'Cinzel', serif;
   }
 }
+
+@layer utilities {
+  .p-6 {
+    padding: 0 !important;
+  }
+}

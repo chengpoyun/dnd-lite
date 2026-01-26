@@ -224,30 +224,6 @@ const AuthenticatedApp: React.FC = () => {
   if (appState === 'main' && currentCharacter) {
     return (
       <div className="min-h-screen bg-slate-950 text-slate-100">
-        {/* 標題欄 */}
-        <header className="bg-slate-900 border-b border-slate-800 px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <button
-                onClick={handleBackToCharacterSelect}
-                className="text-slate-400 hover:text-slate-200 transition-colors"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-              </button>
-              <h1 className="text-xl font-bold text-amber-400">{currentCharacter.name}</h1>
-              <span className="text-slate-400 text-sm">
-                {currentCharacter.character_class || (currentCharacter as any).class || '戰士'} 等級 {currentCharacter.level}
-              </span>
-            </div>
-            
-            <div className="text-slate-400 text-sm">
-              {userMode === 'anonymous' ? '匿名模式' : '已登入'}
-            </div>
-          </div>
-        </header>
-
         {/* 分頁導航 */}
         <nav className="bg-slate-900/50 border-b border-slate-800">
           <div className="flex overflow-x-auto">
@@ -271,6 +247,15 @@ const AuthenticatedApp: React.FC = () => {
                 {tab.label}
               </button>
             ))}
+            
+            {/* 角色切換按鈕 */}
+            <button
+              onClick={handleBackToCharacterSelect}
+              className="flex items-center gap-2 px-6 py-4 text-sm font-medium text-slate-400 hover:text-slate-200 transition-colors whitespace-nowrap ml-auto"
+            >
+              <span className="text-base">🔄</span>
+              切換角色
+            </button>
           </div>
         </nav>
 

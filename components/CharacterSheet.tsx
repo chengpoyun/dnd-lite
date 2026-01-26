@@ -175,38 +175,38 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({ stats, setStats 
   const hpColorClass = hpRatio <= 0.25 ? 'border-red-500 bg-red-950/40 text-red-400' : hpRatio <= 0.5 ? 'border-amber-500 bg-amber-950/40 text-amber-400' : 'border-emerald-500 bg-emerald-950/40 text-emerald-400';
 
   return (
-    <div className="px-2 py-1 space-y-2 max-h-full overflow-y-auto pb-24 select-none">
+    <div className="py-1 space-y-2 max-h-full overflow-y-auto pb-20 select-none">
       <div className="bg-slate-900/60 p-2 rounded-lg border border-slate-800 shadow-md">
         <div className="flex justify-between items-center mb-1">
-          <div className="flex items-center gap-2 overflow-hidden flex-1">
+          <div className="flex items-center gap-3 overflow-hidden flex-1">
             <label className="relative cursor-pointer group shrink-0">
-              <div className="w-14 h-14 rounded-full bg-slate-800 border-2 border-slate-700 flex items-center justify-center text-xl overflow-hidden shadow-inner">
+              <div className="w-16 h-16 rounded-full bg-slate-800 border-2 border-slate-700 flex items-center justify-center text-2xl overflow-hidden shadow-inner">
                 {stats.avatarUrl ? <img src={stats.avatarUrl} alt="Avatar" className="w-full h-full object-cover" /> : <span>👤</span>}
                 <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                  <span className="text-[14px] text-white font-bold">上傳</span>
+                  <span className="text-sm text-white font-bold">上傳</span>
                 </div>
               </div>
               <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
             </label>
             <button onClick={openInfoModal} className="flex-1 min-w-0 text-left active:opacity-70">
-              <h1 className="text-xl font-fantasy text-white leading-tight truncate">{stats.name}</h1>
-              <div className="flex items-center gap-1 mt-0.5">
-                <span className="text-[14px] text-slate-500 font-black uppercase">LV {stats.level}</span>
-                <span className="text-[14px] text-slate-400 font-bold uppercase truncate">{stats.class}</span>
+              <h1 className="text-2xl font-fantasy text-white leading-tight truncate">{stats.name}</h1>
+              <div className="flex items-center gap-2 mt-1">
+                <span className="text-lg text-slate-300 font-black uppercase">LV {stats.level}</span>
+                <span className="text-lg text-slate-400 font-bold uppercase truncate">{stats.class}</span>
               </div>
             </button>
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            <div className={`w-12 h-12 rounded-full border-2 flex flex-col items-center justify-center shadow-lg shrink-0 transition-colors ${hpColorClass}`}>
-              <span className="text-[14px] opacity-60 font-black leading-none uppercase">HP</span>
-              <span className="text-[16px] font-black leading-none">{stats.hp.current}</span>
+            <div className={`w-14 h-14 rounded-full border-2 flex flex-col items-center justify-center shadow-lg shrink-0 transition-colors ${hpColorClass}`}>
+              <span className="text-xs opacity-60 font-black leading-none uppercase">HP</span>
+              <span className="text-lg font-black leading-none">{stats.hp.current}</span>
             </div>
-            <button onClick={openCurrencyModal} className="bg-slate-800/80 px-2 py-1.5 rounded-lg border border-slate-700 active:bg-slate-700 transition-colors">
-              <div className="flex gap-1 items-center justify-end text-[16px] font-mono font-black text-amber-500">
+            <button onClick={openCurrencyModal} className="bg-slate-800/80 px-2 py-1 rounded-lg border border-slate-700 active:bg-slate-700 transition-colors">
+              <div className="flex gap-1 items-center justify-end text-base font-mono font-black text-amber-500">
                 <span>{stats.currency.gp}</span>
-                <span className="text-[14px] opacity-60 font-black tracking-widest">GP</span>
+                <span className="text-sm opacity-60 font-black tracking-widest">GP</span>
               </div>
-              <div className="text-[14px] text-slate-500 font-black mt-0.5 leading-none flex items-center justify-end uppercase">
+              <div className="text-sm text-slate-500 font-black mt-0.5 leading-none flex items-center justify-end uppercase">
                 <span className="mr-1">Exp</span>
                 <span className="font-mono text-slate-400">{stats.exp}</span>
               </div>
@@ -224,16 +224,16 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({ stats, setStats 
           return (
             <div key={key} className="bg-slate-800 p-2 rounded-lg border border-slate-700 flex items-center gap-2 active:bg-slate-700 shadow-sm transition-colors">
               <div className="w-12 flex flex-col items-center justify-center border-r border-slate-700/50 pr-2 shrink-0">
-                <span className="text-[15px] font-black text-slate-300 leading-tight text-center">{STAT_LABELS[key]}</span>
+                <span className="text-base font-black text-slate-300 leading-tight text-center">{STAT_LABELS[key]}</span>
               </div>
               <div className="flex-1 flex flex-col justify-center">
-                <div className="flex items-center gap-1 leading-none mb-0.5">
-                  <span className="text-[18px] font-fantasy text-amber-400 font-bold">{score}</span>
-                  <span className="text-[16px] font-bold text-slate-400">({mod >= 0 ? '+' : ''}{mod})</span>
+                <div className="flex items-center gap-1.5 leading-none mb-0.5">
+                  <span className="text-lg font-fantasy text-amber-400 font-bold">{score}</span>
+                  <span className="text-base font-bold text-slate-400">({mod >= 0 ? '+' : ''}{mod})</span>
                 </div>
                 <div className={`flex items-center gap-1.5 rounded px-1 -ml-1 ${isSaveProf ? 'bg-amber-500/10' : ''}`}>
-                  <span className="text-[14px] text-slate-500 uppercase font-black tracking-tighter">豁免</span>
-                  <span className={`text-[16px] font-bold ${isSaveProf ? 'text-amber-500' : 'text-slate-500'}`}>{saveBonus >= 0 ? '+' : ''}{saveBonus}</span>
+                  <span className="text-xs text-slate-500 uppercase font-black tracking-tighter">豁免</span>
+                  <span className={`text-base font-bold ${isSaveProf ? 'text-amber-500' : 'text-slate-500'}`}>{saveBonus >= 0 ? '+' : ''}{saveBonus}</span>
                 </div>
               </div>
             </div>
@@ -242,11 +242,11 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({ stats, setStats 
       </div>
 
       <div className="bg-slate-900/60 rounded-lg border border-slate-800 p-2 shadow-inner">
-        <div className="flex justify-between items-center mb-1.5 px-1">
-          <h3 className="text-[14px] font-black text-slate-500 uppercase tracking-tighter">技能調整</h3>
-          <span className="text-[14px] text-amber-500 font-bold uppercase tracking-tighter">熟練 +{profBonus}</span>
+        <div className="flex justify-between items-center mb-2">
+          <h3 className="text-base font-black text-slate-400 uppercase tracking-tighter">技能調整</h3>
+          <span className="text-lg text-amber-500 font-bold uppercase tracking-tighter">熟練 +{profBonus}</span>
         </div>
-        <div className="grid grid-cols-3 gap-1">
+        <div className="grid grid-cols-3 gap-1.5">
           {SKILLS_MAP.map((skill) => {
             const profLevel = stats.proficiencies[skill.name] || 0;
             const bonus = getModifier(stats.abilityScores[skill.base]) + (profLevel * profBonus);
@@ -255,46 +255,46 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({ stats, setStats 
                 variant="ghost"
                 size="sm"
                 onClick={() => handleSkillClick(skill)}
-                className={`flex items-center justify-between py-1.5 px-1 rounded border transition-all h-9 ${profLevel > 0 ? 'bg-amber-500/10 border-amber-500/40 shadow-sm' : 'bg-slate-800/30 border-slate-800'}`}
+                className={`flex items-center justify-between py-1 px-1.5 rounded border transition-all h-9 ${profLevel > 0 ? 'bg-amber-500/10 border-amber-500/40 shadow-sm' : 'bg-slate-800/30 border-slate-800'}`}
               >
                 <div className="flex items-center gap-1 min-w-0 flex-1">
                    <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${profLevel === 1 ? 'bg-amber-500' : profLevel === 2 ? 'bg-amber-500 shadow-[0_0_5px_rgba(245,158,11,1)] ring-1 ring-amber-300' : 'bg-slate-700 opacity-30'}`} />
-                   <span className={`text-[14px] font-bold leading-none truncate tracking-tighter ${profLevel > 0 ? 'text-amber-400' : 'text-slate-500'}`}>{skill.name}</span>
+                   <span className={`text-sm font-bold leading-none truncate tracking-tighter ${profLevel > 0 ? 'text-amber-400' : 'text-slate-500'}`}>{skill.name}</span>
                 </div>
-                <span className={`text-[15px] font-mono font-black leading-none shrink-0 pl-0.5 ${profLevel > 0 ? 'text-white' : 'text-slate-600'}`}>{bonus >= 0 ? '+' : ''}{bonus}</span>
+                <span className={`text-sm font-mono font-black leading-none shrink-0 pl-1 ${profLevel > 0 ? 'text-white' : 'text-slate-600'}`}>{bonus >= 0 ? '+' : ''}{bonus}</span>
               </Button>
             );
           })}
         </div>
       </div>
 
-      <div className="bg-slate-900/40 rounded-lg border border-slate-800 p-2.5 space-y-2.5 shadow-inner">
-        <div className="flex justify-between items-center px-1 border-b border-slate-800 pb-1.5">
-          <h3 className="text-[14px] font-black text-slate-500 uppercase tracking-tighter">冒險紀錄</h3>
+      <div className="bg-slate-900/40 rounded-lg border border-slate-800 p-2 space-y-2 shadow-inner">
+        <div className="flex justify-between items-center border-b border-slate-800 pb-1.5">
+          <h3 className="text-base font-black text-slate-400 uppercase tracking-tighter">冒險紀錄</h3>
           <Button
             variant="secondary"
             size="sm"
             onClick={openAddRecordModal}
-            className="w-7 h-7 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-amber-500 font-bold"
+            className="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-amber-500 font-bold text-lg"
           >
             +
           </Button>
         </div>
         <div className="flex flex-col gap-2">
-          <div onClick={openDowntimeModal} className="flex items-center justify-between bg-slate-800/50 p-2.5 rounded border border-slate-700/50 active:bg-slate-700 transition-colors cursor-pointer">
+          <div onClick={openDowntimeModal} className="flex items-center justify-between bg-slate-800/50 p-2 rounded border border-slate-700/50 active:bg-slate-700 transition-colors cursor-pointer">
             <div className="flex flex-col">
-              <span className="text-[15px] font-bold text-slate-300">修整期</span>
+              <span className="text-base font-bold text-slate-300">修整期</span>
             </div>
-            <span className="text-[18px] text-white font-mono font-black">{stats.downtime} <span className="text-[14px] text-slate-500 font-normal">天</span></span>
+            <span className="text-lg text-white font-mono font-black">{stats.downtime} <span className="text-sm text-slate-500 font-normal">天</span></span>
           </div>
-          <div onClick={openRenownModal} className="flex items-center justify-between bg-slate-800/50 p-2.5 rounded border border-slate-700/50 active:bg-slate-700 transition-colors cursor-pointer">
+          <div onClick={openRenownModal} className="flex items-center justify-between bg-slate-800/50 p-2 rounded border border-slate-700/50 active:bg-slate-700 transition-colors cursor-pointer">
             <div className="flex flex-col">
               <div className="flex items-center gap-2">
-                <span className="text-[15px] font-bold text-slate-300">名聲</span>
-                <span className="text-[14px] text-slate-500 uppercase tracking-tighter">(使用 / 累計)</span>
+                <span className="text-base font-bold text-slate-300">名聲</span>
+                <span className="text-xs text-slate-500 uppercase tracking-tighter">(使用 / 累計)</span>
               </div>
             </div>
-            <span className="text-[18px] font-mono font-black">
+            <span className="text-lg font-mono font-black">
               <span className={stats.renown.used > stats.renown.total ? 'text-rose-400' : 'text-emerald-400'}>
                 {stats.renown.used}
               </span>
@@ -306,13 +306,13 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({ stats, setStats 
             <div 
               key={record.id} 
               onClick={() => openEditRecordModal(record)}
-              className="flex items-center justify-between bg-slate-800/50 p-2.5 rounded border border-slate-700/50 active:bg-slate-700 transition-colors cursor-pointer"
+              className="flex items-center justify-between bg-slate-800/50 p-2 rounded border border-slate-700/50 active:bg-slate-700 transition-colors cursor-pointer"
             >
               <div className="flex flex-col min-w-0 flex-1 mr-2">
-                <span className="text-[15px] font-bold text-slate-300 truncate">{record.name}</span>
-                {record.note && <span className="text-[14px] text-slate-500 truncate leading-tight">{record.note}</span>}
+                <span className="text-base font-bold text-slate-300 truncate">{record.name}</span>
+                {record.note && <span className="text-sm text-slate-500 truncate leading-tight">{record.note}</span>}
               </div>
-              <span className="text-[18px] text-amber-500 font-mono font-black shrink-0">{record.value}</span>
+              <span className="text-lg text-amber-500 font-mono font-black shrink-0">{record.value}</span>
             </div>
           ))}
         </div>
@@ -321,7 +321,7 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({ stats, setStats 
       {activeModal === 'skill_detail' && selectedSkill && (
         <div className="fixed inset-0 z-[120] flex items-center justify-center px-6">
           <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-sm" onClick={() => setActiveModal(null)} />
-          <div className="relative bg-slate-900 border border-slate-700 w-full max-w-xs rounded-2xl p-6 shadow-2xl animate-in fade-in zoom-in duration-150">
+          <div className="relative bg-slate-900 border border-slate-700 w-full max-w-xs rounded-2xl p-3 shadow-2xl animate-in fade-in zoom-in duration-150">
             <div className="text-center mb-6">
               <h3 className="text-xl font-fantasy text-amber-500 mb-1">{selectedSkill.name}</h3>
               <p className="text-[15px] text-slate-500 font-black uppercase tracking-widest">屬性：{STAT_LABELS[selectedSkill.base]}</p>
@@ -354,7 +354,7 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({ stats, setStats 
       {activeModal === 'abilities' && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center px-6">
           <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-sm" onClick={() => setActiveModal(null)} />
-          <div className="relative bg-slate-900 border border-slate-700 w-full max-w-sm rounded-2xl p-4 shadow-2xl animate-in fade-in zoom-in duration-150 overflow-y-auto max-h-[90vh]">
+          <div className="relative bg-slate-900 border border-slate-700 w-full max-w-sm rounded-2xl p-3 shadow-2xl animate-in fade-in zoom-in duration-150 overflow-y-auto max-h-[90vh]">
             <h3 className="text-base font-fantasy text-amber-500 mb-4 border-b border-slate-800 pb-2">編輯屬性</h3>
             <div className="grid grid-cols-2 gap-2">
               {ABILITY_KEYS.map(key => {
@@ -385,11 +385,11 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({ stats, setStats 
         </div>
       )}
 
-      {activeModal === 'info' && (
+      {activeModal === 'abilities' && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center px-6">
           <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-sm" onClick={() => setActiveModal(null)} />
-          <div className="relative bg-slate-900 border border-slate-700 w-full max-w-xs rounded-2xl p-6 shadow-2xl">
-            <h3 className="text-base font-fantasy text-amber-500 mb-6 border-b border-slate-800 pb-2">編輯角色資訊</h3>
+          <div className="relative bg-slate-900 border border-slate-700 w-full max-w-xs rounded-2xl p-3 shadow-2xl">
+            <h3 className="text-base font-fantasy text-amber-500 mb-4 border-b border-slate-800 pb-2">編輯屬性</h3>
             <div className="space-y-4">
               <div className="space-y-1">
                 <label className="text-[14px] font-black text-slate-500 uppercase ml-1">名稱</label>
@@ -417,7 +417,7 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({ stats, setStats 
       {activeModal === 'currency' && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center px-6">
           <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-sm" onClick={() => setActiveModal(null)} />
-          <div className="relative bg-slate-900 border border-slate-700 w-full max-w-xs rounded-2xl p-6 shadow-2xl">
+          <div className="relative bg-slate-900 border border-slate-700 w-full max-w-xs rounded-2xl p-3 shadow-2xl">
             <h3 className="text-base font-fantasy text-amber-500 mb-6 border-b border-slate-800 pb-2">修改資金與經驗</h3>
             <div className="space-y-8">
               <div className="space-y-4">
@@ -456,8 +456,8 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({ stats, setStats 
       {activeModal === 'downtime' && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center px-6">
           <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-sm" onClick={() => setActiveModal(null)} />
-          <div className="relative bg-slate-900 border border-slate-700 w-full max-w-xs rounded-2xl p-6 shadow-2xl animate-in fade-in zoom-in duration-150">
-            <h3 className="text-base font-fantasy text-amber-500 mb-6 border-b border-slate-800 pb-2">修改修整期天數</h3>
+          <div className="relative bg-slate-900 border border-slate-700 w-full max-w-xs rounded-2xl p-3 shadow-2xl animate-in fade-in zoom-in duration-150">
+            <h3 className="text-base font-fantasy text-amber-500 mb-6 border-b border-slate-800 pb-2">修整期</h3>
             <div className="space-y-6">
               <div className="text-center">
                 <input type="text" value={tempDowntimeValue} onChange={(e) => setTempDowntimeValue(e.target.value)} className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-4 text-4xl font-mono text-center text-white focus:outline-none" placeholder={stats.downtime.toString()} autoFocus />
@@ -482,8 +482,8 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({ stats, setStats 
       {activeModal === 'renown' && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center px-6">
           <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-sm" onClick={() => setActiveModal(null)} />
-          <div className="relative bg-slate-900 border border-slate-700 w-full max-w-xs rounded-2xl p-6 shadow-2xl animate-in fade-in zoom-in duration-150">
-            <h3 className="text-base font-fantasy text-amber-500 mb-6 border-b border-slate-800 pb-2">編輯名聲紀錄</h3>
+          <div className="relative bg-slate-900 border border-slate-700 w-full max-w-xs rounded-2xl p-3 shadow-2xl animate-in fade-in zoom-in duration-150">
+            <h3 className="text-base font-fantasy text-amber-500 mb-6 border-b border-slate-800 pb-2">名聲</h3>
             <div className="space-y-6">
               <div className="space-y-4">
                 <div className="space-y-1">
@@ -517,10 +517,10 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({ stats, setStats 
       )}
 
       {activeModal === 'add_record' && (
-        <div className="fixed inset-0 z-[120] flex items-center justify-center px-6">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center px-6">
           <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-sm" onClick={() => setActiveModal(null)} />
-          <div className="relative bg-slate-900 border border-slate-700 w-full max-w-xs rounded-2xl p-6 shadow-2xl animate-in fade-in zoom-in duration-150">
-            <h3 className="text-base font-fantasy text-amber-500 mb-6 border-b border-slate-800 pb-2">新增冒險紀錄</h3>
+          <div className="relative bg-slate-900 border border-slate-700 w-full max-w-xs rounded-2xl p-3 shadow-2xl animate-in fade-in zoom-in duration-150">
+            <h3 className="text-base font-fantasy text-amber-500 mb-6 border-b border-slate-800 pb-2">新增紀錄</h3>
             <div className="space-y-4">
               <div className="space-y-1">
                 <label className="text-[14px] font-black text-slate-500 uppercase ml-1">名稱</label>
@@ -546,7 +546,7 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({ stats, setStats 
       {activeModal === 'edit_record' && selectedRecord && (
         <div className="fixed inset-0 z-[120] flex items-center justify-center px-6">
           <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-sm" onClick={() => setActiveModal(null)} />
-          <div className="relative bg-slate-900 border border-slate-700 w-full max-w-xs rounded-2xl p-6 shadow-2xl animate-in fade-in zoom-in duration-150">
+          <div className="relative bg-slate-900 border border-slate-700 w-full max-w-xs rounded-2xl p-3 shadow-2xl animate-in fade-in zoom-in duration-150">
             <h3 className="text-base font-fantasy text-amber-500 mb-6 border-b border-slate-800 pb-2">編輯紀錄</h3>
             <div className="space-y-4">
               <div className="space-y-1">
