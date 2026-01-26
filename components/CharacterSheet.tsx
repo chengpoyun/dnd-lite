@@ -53,6 +53,7 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({ stats, setStats 
   };
 
   const setSkillProficiency = (skillName: string, level: number) => {
+    console.log(`🎯 設定技能熟練度: ${skillName} = ${level}`)
     setStats(prev => {
       const newProfs = { ...prev.proficiencies };
       if (level === 0) {
@@ -60,6 +61,7 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({ stats, setStats 
       } else {
         newProfs[skillName] = level;
       }
+      console.log('📝 更新後的技能熟練度:', newProfs)
       return { ...prev, proficiencies: newProfs };
     });
     setActiveModal(null);

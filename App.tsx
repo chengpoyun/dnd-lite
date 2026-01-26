@@ -184,9 +184,16 @@ const AuthenticatedApp: React.FC = () => {
             cp: characterData.currency?.copper || INITIAL_STATS.currency.cp,
             sp: characterData.currency?.silver || INITIAL_STATS.currency.sp,
             ep: characterData.currency?.electrum || INITIAL_STATS.currency.ep,
-            gp: characterData.currency?.gold || INITIAL_STATS.currency.gp,
+            gp: characterData.currency?.gp || INITIAL_STATS.currency.gp,
             pp: characterData.currency?.platinum || INITIAL_STATS.currency.pp
-          }
+          },
+          // 載入技能熟練度
+          proficiencies: characterData.skillProficiencies?.reduce((acc, skill) => {
+            acc[skill.skill_name] = skill.proficiency_level
+            return acc
+          }, {} as Record<string, number>) || INITIAL_STATS.proficiencies,
+          // 載入豁免骰熟練度
+          savingProficiencies: characterData.savingThrows?.filter(st => st.is_proficient).map(st => st.ability as keyof typeof INITIAL_STATS.abilityScores) || INITIAL_STATS.savingProficiencies
         }
         setStats(extractedStats)
       }
@@ -218,7 +225,7 @@ const AuthenticatedApp: React.FC = () => {
               current_hit_dice: stats.hitDice.current || 0,
               total_hit_dice: stats.hitDice.total || stats.level || 1, // 使用角色等級作為預設值
               armor_class: stats.ac || 10,
-              initiative_bonus: stats.proficiencyBonus || 0, // 使用熟練加值作為先攻加值
+              initiative_bonus: stats.initiative || 0, // 使用角色的先攻修正
               speed: stats.speed || 30,
               hit_die_type: stats.hitDice.die || 'd8' // 使用實際的骰子類型
             },
@@ -236,8 +243,16 @@ const AuthenticatedApp: React.FC = () => {
               silver: stats.currency.sp || 0,
               electrum: stats.currency.ep || 0,
               platinum: stats.currency.pp || 0
-            }
+            },
+            // 添加技能熟練度同步
+            skillProficiencies: stats.proficiencies || {},
+            savingThrows: stats.savingProficiencies || []
           };
+
+          console.log('💾 準備保存技能熟練度到 DB:', {
+            skillProficiencies: stats.proficiencies || {},
+            savingThrows: stats.savingProficiencies || []
+          });
 
           // 使用 HybridDataManager 保存數據
           await HybridDataManager.updateCharacter(currentCharacter.id, characterUpdates);

@@ -1,4 +1,4 @@
-import { CharacterService, CombatItemService, CacheService } from './database'
+import { CombatItemService, CacheService } from './database'
 import { DetailedCharacterService } from './detailedCharacter'
 import { supabase } from '../lib/supabase'
 import type { CharacterStats, CombatItem as LocalCombatItem } from '../types'
@@ -62,7 +62,8 @@ export class MigrationService {
 
       for (const oldCharacter of oldCharacters || []) {
         try {
-          await this.migrateCharacterToDetailedStructure(oldCharacter.id, oldCharacter.stats as CharacterStats)
+          // 由於 stats 欄位已被移除，使用預設值進行遷移
+          await this.migrateCharacterToDetailedStructure(oldCharacter.id, null)
           success++
         } catch (error) {
           console.error(`遷移角色 ${oldCharacter.id} 失敗:`, error)
@@ -78,16 +79,35 @@ export class MigrationService {
   }
 
   // 遷移單個角色到詳細結構
-  static async migrateCharacterToDetailedStructure(characterId: string, stats: CharacterStats): Promise<boolean> {
+  static async migrateCharacterToDetailedStructure(characterId: string, stats: CharacterStats | null): Promise<boolean> {
     try {
+      // 如果沒有 stats 資料，使用預設值
+      const defaultStats = {
+        name: "角色",
+        class: "戰士", 
+        level: 1,
+        exp: 0,
+        hp: { current: 10, max: 10, temp: 0 },
+        hitDice: { current: 1, total: 1, die: "d8" },
+        ac: 10,
+        initiative: 0,
+        speed: 30,
+        abilityScores: { str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10 },
+        proficiencies: {},
+        savingThrows: {},
+        currency: { cp: 0, sp: 0, ep: 0, gp: 0, pp: 0 }
+      }
+      
+      const characterStats = stats || defaultStats
+
       // 更新角色基本資料
       await supabase
         .from('characters')
         .update({
-          name: stats.name,
-          class: stats.class,
-          level: stats.level,
-          experience: stats.exp
+          name: characterStats.name,
+          character_class: characterStats.class,
+          level: characterStats.level,
+          experience: characterStats.exp
         })
         .eq('id', characterId)
 
@@ -96,17 +116,17 @@ export class MigrationService {
         .from('character_ability_scores')
         .upsert({
           character_id: characterId,
-          strength: stats.abilityScores.str,
-          dexterity: stats.abilityScores.dex,
-          constitution: stats.abilityScores.con,
-          intelligence: stats.abilityScores.int,
-          wisdom: stats.abilityScores.wis,
-          charisma: stats.abilityScores.cha
+          strength: characterStats.abilityScores.str,
+          dexterity: characterStats.abilityScores.dex,
+          constitution: characterStats.abilityScores.con,
+          intelligence: characterStats.abilityScores.int,
+          wisdom: characterStats.abilityScores.wis,
+          charisma: characterStats.abilityScores.cha
         })
 
       // 創建豁免骰資料
-      if (stats.savingThrows) {
-        const savingThrows = Object.entries(stats.savingThrows).map(([ability, isProficient]) => ({
+      if (characterStats.savingThrows) {
+        const savingThrows = Object.entries(characterStats.savingThrows).map(([ability, isProficient]) => ({
           character_id: characterId,
           ability,
           is_proficient: isProficient
@@ -118,8 +138,8 @@ export class MigrationService {
       }
 
       // 創建技能熟練度
-      if (stats.proficiencies) {
-        const skills = Object.entries(stats.proficiencies).map(([skillName, level]) => ({
+      if (characterStats.proficiencies) {
+        const skills = Object.entries(characterStats.proficiencies).map(([skillName, level]) => ({
           character_id: characterId,
           skill_name: skillName,
           proficiency_level: level
@@ -135,28 +155,28 @@ export class MigrationService {
         .from('character_current_stats')
         .upsert({
           character_id: characterId,
-          current_hp: stats.hp.current,
-          max_hp: stats.hp.max,
-          temporary_hp: stats.hp.temp,
-          current_hit_dice: stats.hitDice.current,
-          total_hit_dice: stats.hitDice.total,
-          hit_die_type: stats.hitDice.die,
-          armor_class: stats.ac,
-          initiative_bonus: stats.initiative,
-          speed: stats.speed
+          current_hp: characterStats.hp.current,
+          max_hp: characterStats.hp.max,
+          temporary_hp: characterStats.hp.temp,
+          current_hit_dice: characterStats.hitDice.current,
+          total_hit_dice: characterStats.hitDice.total,
+          hit_die_type: characterStats.hitDice.die,
+          armor_class: characterStats.ac,
+          initiative_bonus: characterStats.initiative,
+          speed: characterStats.speed
         })
 
       // 創建貨幣
-      if (stats.currency) {
+      if (characterStats.currency) {
         await supabase
           .from('character_currency')
           .upsert({
             character_id: characterId,
-            copper: stats.currency.cp,
-            silver: stats.currency.sp,
-            electrum: stats.currency.ep,
-            gp: stats.currency.gp,
-            platinum: stats.currency.pp
+            copper: characterStats.currency.cp,
+            silver: characterStats.currency.sp,
+            electrum: characterStats.currency.ep,
+            gp: characterStats.currency.gp,
+            platinum: characterStats.currency.pp
           })
       }
 

@@ -62,7 +62,7 @@ export const CharacterSelector: React.FC<CharacterSelectorProps> = ({
                 {currentCharacter.name}
               </div>
               <div className="text-xs text-slate-400 truncate">
-                Lv.{currentCharacter.level} {currentCharacter.class}
+                Lv.{currentCharacter.level} {currentCharacter.character_class}
                 {!user && <span className="ml-1 text-amber-400">(匿名)</span>}
               </div>
             </>
@@ -130,7 +130,7 @@ export const CharacterSelector: React.FC<CharacterSelectorProps> = ({
                           {character.is_anonymous && <span className="ml-1 text-amber-400 text-xs">(匿名)</span>}
                         </div>
                         <div className="text-xs text-slate-400 truncate">
-                          Lv.{character.level} {character.class}
+                          Lv.{character.level} {character.character_class}
                         </div>
                       </div>
                     </div>

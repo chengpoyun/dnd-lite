@@ -343,6 +343,25 @@ export class HybridDataManager {
         DetailedCharacterService.updateCurrency(characterId, updates.currency)
       )
     }
+
+    // 更新技能熟練度
+    if (updates.skillProficiencies) {
+      // 批次更新所有技能熟練度
+      for (const [skillName, level] of Object.entries(updates.skillProficiencies)) {
+        if (level > 0) {
+          promises.push(
+            DetailedCharacterService.updateSkillProficiency(characterId, skillName, level)
+          )
+        }
+      }
+    }
+
+    // 更新豁免骰熟練度
+    if (updates.savingThrows) {
+      promises.push(
+        DetailedCharacterService.updateSavingThrowProficiencies(characterId, updates.savingThrows)
+      )
+    }
     
     // 等待所有同步完成
     await Promise.all(promises)

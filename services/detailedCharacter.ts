@@ -1,6 +1,5 @@
 import { supabase } from '../lib/supabase'
 import { AnonymousService } from './anonymous'
-import { DatabaseInitService } from './databaseInit'
 import type { 
   Character, 
   CharacterAbilityScores, 
@@ -149,12 +148,8 @@ export class DetailedCharacterService {
         experience: 0
       }
       
-      // 根據資料庫結構選擇正確的欄位名稱
-      if (DatabaseInitService.usesOldSchema()) {
-        insertData.class = characterData.class
-      } else {
-        insertData.character_class = characterData.class
-      }
+      // 使用新的資料庫結構
+      insertData.character_class = characterData.class
 
       if (context.isAuthenticated) {
         insertData.user_id = context.userId
@@ -283,29 +278,41 @@ export class DetailedCharacterService {
     }
   }
 
-  // 更新角色基本信息
-  static async updateCharacterBasicInfo(characterId: string, updates: Partial<Character>): Promise<boolean> {
+  // 更新角色基本信息 - 接受前端 CharacterStats 格式並映射到資料庫欄位
+  static async updateCharacterBasicInfo(characterId: string, updates: Partial<Character> | { name?: string; class?: string; level?: number; experience?: number; avatar_url?: string }): Promise<boolean> {
     try {
-      // 只允許更新特定欄位，排除系統欄位
-      const allowedFields: (keyof Character)[] = ['name', 'character_class', 'level', 'experience', 'avatar_url'];
-      const filteredUpdates: Partial<Character> = {};
+      // 建立映射後的更新物件
+      const dbUpdates: Partial<Character> = {}
       
-      allowedFields.forEach(field => {
-        if (field in updates) {
-          (filteredUpdates as any)[field] = updates[field];
-        }
-      });
+      if ('name' in updates && updates.name !== undefined) {
+        dbUpdates.name = updates.name
+      }
+      if ('class' in updates && updates.class !== undefined) {
+        dbUpdates.character_class = updates.class  // 前端的 class 映射到資料庫的 character_class
+      }
+      if ('character_class' in updates && updates.character_class !== undefined) {
+        dbUpdates.character_class = updates.character_class  // 直接的資料庫欄位
+      }
+      if ('level' in updates && updates.level !== undefined) {
+        dbUpdates.level = updates.level
+      }
+      if ('experience' in updates && updates.experience !== undefined) {
+        dbUpdates.experience = updates.experience
+      }
+      if ('avatar_url' in updates && updates.avatar_url !== undefined) {
+        dbUpdates.avatar_url = updates.avatar_url
+      }
       
-      if (Object.keys(filteredUpdates).length === 0) {
-        console.warn('沒有需要更新的欄位');
-        return false;
+      if (Object.keys(dbUpdates).length === 0) {
+        console.warn('沒有需要更新的欄位')
+        return false
       }
       
       const { error } = await supabase
         .from('characters')
-        .update({ 
-          ...filteredUpdates, 
-          updated_at: new Date().toISOString() 
+        .update({
+          ...dbUpdates,
+          updated_at: new Date().toISOString()
         })
         .eq('id', characterId);
 
@@ -344,19 +351,81 @@ export class DetailedCharacterService {
 
   // 更新技能熟練度
   static async updateSkillProficiency(characterId: string, skillName: string, level: number): Promise<boolean> {
+    console.log(`🔄 更新技能熟練度到 DB: ${skillName} = ${level} (角色: ${characterId})`)
     try {
-      const { error } = await supabase
-        .from('character_skill_proficiencies')
-        .upsert({
-          character_id: characterId,
-          skill_name: skillName,
-          proficiency_level: level,
-          updated_at: new Date().toISOString()
-        })
+      if (level === 0) {
+        // 如果熟練度為 0，刪除記錄
+        console.log(`🗑️ 刪除技能記錄: ${skillName}`)
+        const { error } = await supabase
+          .from('character_skill_proficiencies')
+          .delete()
+          .eq('character_id', characterId)
+          .eq('skill_name', skillName)
+        
+        if (error) {
+          console.error('❌ 刪除技能記錄失敗:', error)
+          return false
+        }
+        console.log(`✅ 技能記錄已刪除: ${skillName}`)
+        return true
+      } else {
+        // 否則更新或插入記錄
+        console.log(`💾 插入/更新技能記錄: ${skillName} = ${level}`)
+        const { error } = await supabase
+          .from('character_skill_proficiencies')
+          .upsert({
+            character_id: characterId,
+            skill_name: skillName,
+            proficiency_level: level,
+            updated_at: new Date().toISOString()
+          }, {
+            onConflict: 'character_id,skill_name'
+          })
 
-      return !error
+        if (error) {
+          console.error('❌ 更新技能熟練度失敗:', error)
+          return false
+        }
+        console.log(`✅ 技能熟練度更新成功: ${skillName} = ${level}`)
+        return true
+      }
     } catch (error) {
-      console.error('更新技能熟練度失敗:', error)
+      console.error('❌ 更新技能熟練度失敗:', error)
+      return false
+    }
+  }
+
+  // 更新豁免骰熟練度
+  static async updateSavingThrowProficiencies(characterId: string, proficiencies: string[]): Promise<boolean> {
+    try {
+      // 先刪除所有現有的豁免骰熟練度
+      await supabase
+        .from('character_saving_throws')
+        .delete()
+        .eq('character_id', characterId)
+
+      // 然後插入新的熟練度
+      if (proficiencies.length > 0) {
+        const inserts = proficiencies.map(ability => ({
+          character_id: characterId,
+          ability,
+          is_proficient: true,
+          updated_at: new Date().toISOString()
+        }))
+
+        const { error } = await supabase
+          .from('character_saving_throws')
+          .insert(inserts)
+
+        if (error) {
+          console.error('更新豁免骰熟練度失敗:', error)
+          return false
+        }
+      }
+
+      return true
+    } catch (error) {
+      console.error('更新豁免骰熟練度失敗:', error)
       return false
     }
   }

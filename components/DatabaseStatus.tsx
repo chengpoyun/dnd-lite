@@ -54,7 +54,7 @@ export const DatabaseStatus: React.FC = () => {
           .insert([{
             user_id: user.id,
             name: '測試角色',
-            class: '戰士',
+            character_class: '戰士',
             level: 1,
             experience: 0
           }])

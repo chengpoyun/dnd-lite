@@ -28,53 +28,21 @@ export class DatabaseInitService {
    */
   private static async ensureCharactersTable(): Promise<void> {
     try {
-      // 嘗試查詢表結構（包括 avatar_url 欄位）
+      // 檢查新的資料庫結構
       const { error } = await supabase
         .from('characters')
         .select('id, name, character_class, level, avatar_url')
         .limit(0)
       
       if (error) {
-        console.log('Characters 表可能不存在或結構不正確，嘗試創建...')
+        console.error('Characters 表不存在或結構不正確:', error)
         throw error
       }
       
       console.log('Characters 表結構正確')
     } catch (error) {
-      console.log('嘗試使用舊的表結構...')
-      
-      try {
-        // 嘗試舊的欄位名稱
-        const { error: oldError } = await supabase
-          .from('characters')
-          .select('id, name, class, level')
-          .limit(0)
-        
-        if (oldError) {
-          throw oldError
-        }
-        
-        console.log('檢測到舊的表結構，使用 class 欄位')
-        // 這裡我們可以記錄使用舊結構的標記
-        localStorage.setItem('dnd_use_old_schema', 'true')
-      } catch (finalError) {
-        console.error('無法存取 characters 表:', finalError)
-        throw finalError
-      }
+      console.error('無法存取 characters 表:', error)
+      throw error
     }
-  }
-  
-  /**
-   * 檢查是否使用舊的表結構
-   */
-  static usesOldSchema(): boolean {
-    return localStorage.getItem('dnd_use_old_schema') === 'true'
-  }
-  
-  /**
-   * 清除舊結構標記
-   */
-  static clearOldSchemaFlag(): void {
-    localStorage.removeItem('dnd_use_old_schema')
   }
 }
