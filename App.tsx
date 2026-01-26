@@ -222,17 +222,38 @@ const AuthenticatedApp: React.FC = () => {
             // 預設值
             return INITIAL_STATS.proficiencies
           })(),
-          // 載入豁免骰熟練度 - 添加安全檢查
+          // 載入豁免骰熟練度 - 添加安全檢查和詳細除錯
           savingProficiencies: (() => {
             try {
+              console.log('🎯 豁免骰載入除錯:', {
+                savingThrowsData: characterData.savingThrows,
+                isArray: Array.isArray(characterData.savingThrows),
+                length: characterData.savingThrows?.length
+              })
+              
               if (Array.isArray(characterData.savingThrows)) {
-                return characterData.savingThrows
+                const proficientSaves = characterData.savingThrows
                   .filter(st => st && st.is_proficient)
-                  .map(st => st.ability as keyof typeof INITIAL_STATS.abilityScores)
+                  .map(st => {
+                    // 將完整的資料庫名稱映射回前端使用的縮寫
+                    const abilityMap = {
+                      strength: 'str',
+                      dexterity: 'dex', 
+                      constitution: 'con',
+                      intelligence: 'int',
+                      wisdom: 'wis',
+                      charisma: 'cha'
+                    } as any
+                    return abilityMap[st.ability] || st.ability
+                  }) as (keyof typeof INITIAL_STATS.abilityScores)[]
+                  
+                console.log('🎯 過濾後的豁免熟練度:', proficientSaves)
+                return proficientSaves
               }
             } catch (savingError) {
               console.warn('🔧 豁免骰處理異常，使用預設值:', savingError)
             }
+            console.log('🎯 使用預設豁免熟練度')
             return INITIAL_STATS.savingProficiencies
           })(),
           // 載入額外資料（修整期、名聲等）
@@ -318,12 +339,29 @@ const AuthenticatedApp: React.FC = () => {
             },
             // 添加技能熟練度同步
             skillProficiencies: stats.proficiencies || {},
-            savingThrows: stats.savingProficiencies || []
+            // 正確格式化豁免熟練度為資料庫格式，映射縮寫到完整名稱
+            savingThrows: (stats.savingProficiencies || []).map(ability => ({
+              character_id: currentCharacter.id,
+              ability: ({
+                str: 'strength',
+                dex: 'dexterity', 
+                con: 'constitution',
+                int: 'intelligence',
+                wis: 'wisdom',
+                cha: 'charisma'
+              } as any)[ability] || ability,
+              is_proficient: true
+            }))
           };
 
-          console.log('💾 準備保存技能熟練度到 DB:', {
+          console.log('💾 準備保存到 DB:', {
             skillProficiencies: stats.proficiencies || {},
-            savingThrows: stats.savingProficiencies || []
+            savingProficiencies: stats.savingProficiencies || [],
+            formattedSavingThrows: (stats.savingProficiencies || []).map(ability => ({
+              character_id: currentCharacter.id,
+              ability,
+              is_proficient: true
+            }))
           });
 
           // 使用 HybridDataManager 保存數據

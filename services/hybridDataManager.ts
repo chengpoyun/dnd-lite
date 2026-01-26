@@ -358,9 +358,16 @@ export class HybridDataManager {
 
     // 更新豁免骰熟練度
     if (updates.savingThrows) {
-      promises.push(
-        DetailedCharacterService.updateSavingThrowProficiencies(characterId, updates.savingThrows)
-      )
+      // 如果是對象數組，提取 ability 欄位；如果是字符串數組，直接使用
+      const abilityNames = Array.isArray(updates.savingThrows) 
+        ? updates.savingThrows.map(st => typeof st === 'string' ? st : st.ability).filter(Boolean)
+        : []
+      
+      if (abilityNames.length > 0) {
+        promises.push(
+          DetailedCharacterService.updateSavingThrowProficiencies(characterId, abilityNames)
+        )
+      }
     }
     
     // 等待所有同步完成
