@@ -234,7 +234,19 @@ const AuthenticatedApp: React.FC = () => {
               console.warn('🔧 豁免骰處理異常，使用預設值:', savingError)
             }
             return INITIAL_STATS.savingProficiencies
-          })()
+          })(),
+          // 載入額外資料（修整期、名聲等）
+          downtime: characterData.currentStats?.extra_data?.downtime || INITIAL_STATS.downtime,
+          renown: characterData.currentStats?.extra_data?.renown || INITIAL_STATS.renown,
+          prestige: characterData.currentStats?.extra_data?.prestige || INITIAL_STATS.prestige,
+          customRecords: characterData.currentStats?.extra_data?.customRecords || INITIAL_STATS.customRecords,
+          attacks: characterData.currentStats?.extra_data?.attacks || INITIAL_STATS.attacks,
+          // 載入生命骰資料
+          hitDice: {
+            current: characterData.currentStats?.current_hit_dice || INITIAL_STATS.hitDice.current,
+            total: characterData.currentStats?.total_hit_dice || stats.level || INITIAL_STATS.hitDice.total,
+            die: characterData.currentStats?.hit_die_type || INITIAL_STATS.hitDice.die
+          }
         }
         setStats(extractedStats)
         console.log('✅ 角色數據載入成功')
@@ -280,7 +292,14 @@ const AuthenticatedApp: React.FC = () => {
               armor_class: stats.ac || 10,
               initiative_bonus: stats.initiative || 0, // 使用角色的先攻修正
               speed: stats.speed || 30,
-              hit_die_type: stats.hitDice.die || 'd8' // 使用實際的骰子類型
+              hit_die_type: stats.hitDice.die || 'd8', // 使用實際的骰子類型
+              extra_data: {
+                downtime: stats.downtime || 0,
+                renown: stats.renown || { used: 0, total: 0 },
+                prestige: stats.prestige || { org: '', level: 0, rankName: '' },
+                customRecords: stats.customRecords || [],
+                attacks: stats.attacks || []
+              }
             },
             abilityScores: {
               strength: stats.abilityScores.str || 10,

@@ -62,6 +62,13 @@ export interface CharacterCurrentStats {
   armor_class: number
   initiative_bonus: number
   speed: number
+  extra_data?: {
+    downtime?: number
+    renown?: { used: number; total: number }
+    prestige?: { org: string; level: number; rankName: string }
+    customRecords?: Array<{ id: string; name: string; value: string; note?: string }>
+    attacks?: Array<{ name: string; bonus: number; damage: string; type: string }>
+  }
   updated_at?: string
 }
 
