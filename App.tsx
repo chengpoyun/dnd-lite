@@ -155,6 +155,15 @@ const AuthenticatedApp: React.FC = () => {
 
     try {
       const characterData = await HybridDataManager.getCharacter(currentCharacter.id)
+      
+      // 添加除錯資訊
+      console.log('📊 角色數據載入:', {
+        hasCharacterData: !!characterData,
+        skillProficienciesType: Array.isArray(characterData?.skillProficiencies) ? 'array' : typeof characterData?.skillProficiencies,
+        skillProficienciesLength: Array.isArray(characterData?.skillProficiencies) ? characterData.skillProficiencies.length : 'not-array',
+        savingThrowsType: Array.isArray(characterData?.savingThrows) ? 'array' : typeof characterData?.savingThrows
+      })
+      
       if (characterData && characterData.character) {
         // 從完整角色數據中提取 CharacterStats
         const extractedStats = {
@@ -187,18 +196,62 @@ const AuthenticatedApp: React.FC = () => {
             gp: characterData.currency?.gp || INITIAL_STATS.currency.gp,
             pp: characterData.currency?.platinum || INITIAL_STATS.currency.pp
           },
-          // 載入技能熟練度
-          proficiencies: characterData.skillProficiencies?.reduce((acc, skill) => {
-            acc[skill.skill_name] = skill.proficiency_level
-            return acc
-          }, {} as Record<string, number>) || INITIAL_STATS.proficiencies,
-          // 載入豁免骰熟練度
-          savingProficiencies: characterData.savingThrows?.filter(st => st.is_proficient).map(st => st.ability as keyof typeof INITIAL_STATS.abilityScores) || INITIAL_STATS.savingProficiencies
+          // 載入技能熟練度 - 處理不同的數據格式
+          proficiencies: (() => {
+            const skillProfs = characterData.skillProficiencies
+            
+            try {
+              // 檢查是否為數組格式（新格式）
+              if (Array.isArray(skillProfs)) {
+                return skillProfs.reduce((acc, skill) => {
+                  if (skill && typeof skill === 'object' && skill.skill_name) {
+                    acc[skill.skill_name] = skill.proficiency_level || 1
+                  }
+                  return acc
+                }, {} as Record<string, number>)
+              }
+              
+              // 檢查是否已經是物件格式（舊格式/直接格式）
+              if (skillProfs && typeof skillProfs === 'object' && !Array.isArray(skillProfs)) {
+                return skillProfs as Record<string, number>
+              }
+            } catch (skillError) {
+              console.warn('🔧 技能熟練度處理異常，使用預設值:', skillError)
+            }
+            
+            // 預設值
+            return INITIAL_STATS.proficiencies
+          })(),
+          // 載入豁免骰熟練度 - 添加安全檢查
+          savingProficiencies: (() => {
+            try {
+              if (Array.isArray(characterData.savingThrows)) {
+                return characterData.savingThrows
+                  .filter(st => st && st.is_proficient)
+                  .map(st => st.ability as keyof typeof INITIAL_STATS.abilityScores)
+              }
+            } catch (savingError) {
+              console.warn('🔧 豁免骰處理異常，使用預設值:', savingError)
+            }
+            return INITIAL_STATS.savingProficiencies
+          })()
         }
         setStats(extractedStats)
+        console.log('✅ 角色數據載入成功')
+      } else {
+        console.warn('⚠️ 角色數據不完整，使用預設值')
+        setStats(INITIAL_STATS)
       }
     } catch (error) {
-      console.error('載入角色數據失敗:', error)
+      console.error('❌ 載入角色數據失敗:', error)
+      console.error('錯誤詳情:', {
+        characterId: currentCharacter?.id,
+        characterName: currentCharacter?.name,
+        errorMessage: error.message,
+        errorStack: error.stack
+      })
+      // 設置預設值以防止應用崩潰
+      setStats(INITIAL_STATS)
     }
   }
 
