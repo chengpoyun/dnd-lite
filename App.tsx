@@ -159,16 +159,42 @@ const AuthenticatedApp: React.FC = () => {
     const saveCharacterData = async () => {
       if (currentCharacter && appState === 'main') {
         try {
-          // 只更新角色的基本信息和頭像
+          // 更新完整的角色數據
           const characterUpdates = {
             character: {
               ...currentCharacter,
-              name: stats.name,
-              character_class: stats.class,
-              level: stats.level,
-              experience: stats.exp,
+              name: stats.name || '未命名角色',
+              character_class: stats.class || '戰士',
+              level: stats.level || 1,
+              experience: stats.exp || 0,
               avatar_url: stats.avatarUrl,
               updated_at: new Date().toISOString()
+            },
+            currentStats: {
+              current_hp: stats.hp.current || 1,
+              max_hp: stats.hp.max || 1,
+              temporary_hp: stats.hp.temp || 0,
+              current_hit_dice: stats.hitDice.current || 0,
+              total_hit_dice: stats.hitDice.total || stats.level || 1, // 使用角色等級作為預設值
+              armor_class: stats.ac || 10,
+              initiative_bonus: stats.proficiencyBonus || 0, // 使用熟練加值作為先攻加值
+              speed: stats.speed || 30,
+              hit_die_type: stats.hitDice.die || 'd8' // 使用實際的骰子類型
+            },
+            abilityScores: {
+              strength: stats.abilityScores.str || 10,
+              dexterity: stats.abilityScores.dex || 10,
+              constitution: stats.abilityScores.con || 10,
+              intelligence: stats.abilityScores.int || 10,
+              wisdom: stats.abilityScores.wis || 10,
+              charisma: stats.abilityScores.cha || 10
+            },
+            currency: {
+              gp: stats.currency.gp || 0, // 使用統一的 gp 欄位
+              copper: stats.currency.cp || 0,
+              silver: stats.currency.sp || 0,
+              electrum: stats.currency.ep || 0,
+              platinum: stats.currency.pp || 0
             }
           };
 

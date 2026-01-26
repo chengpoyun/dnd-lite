@@ -66,7 +66,7 @@ export class ConflictResolver {
     
     // 檢查貨幣
     if (local.currency && db.currency) {
-      if (local.currency.gold !== db.currency.gold ||
+      if (local.currency.gp !== db.currency.gp ||
           local.currency.silver !== db.currency.silver ||
           local.currency.copper !== db.currency.copper) {
         return true
@@ -142,7 +142,7 @@ export class ConflictResolver {
                 <p><strong>護甲等級:</strong> ${localData.currentStats.armor_class}</p>
               ` : ''}
               ${localData.currency ? `
-                <p><strong>金幣:</strong> ${localData.currency.gold}</p>
+                <p><strong>金幣:</strong> ${localData.currency.gp}</p>
               ` : ''}
             </div>
           </div>
@@ -160,7 +160,7 @@ export class ConflictResolver {
                 <p><strong>護甲等級:</strong> ${dbData.currentStats.armor_class}</p>
               ` : ''}
               ${dbData.currency ? `
-                <p><strong>金幣:</strong> ${dbData.currency.gold}</p>
+                <p><strong>金幣:</strong> ${dbData.currency.gp}</p>
               ` : ''}
             </div>
           </div>
@@ -260,8 +260,8 @@ export class ConflictResolver {
     }
     
     if (localData.currency && dbData.currency) {
-      if (localData.currency.gold !== dbData.currency.gold) {
-        differences.push(`金幣: 本地(${localData.currency.gold}) vs 雲端(${dbData.currency.gold})`)
+      if (localData.currency.gp !== dbData.currency.gp) {
+        differences.push(`金幣: 本地(${localData.currency.gp}) vs 雲端(${dbData.currency.gp})`)
       }
     }
     

@@ -246,10 +246,16 @@ export class DetailedCharacterService {
     try {
       const { error } = await supabase
         .from('character_ability_scores')
-        .upsert({ character_id: characterId, ...scores, updated_at: new Date().toISOString() })
-        .eq('character_id', characterId)
+        .upsert(
+          { character_id: characterId, ...scores, updated_at: new Date().toISOString() },
+          { onConflict: 'character_id' }
+        )
 
-      return !error
+      if (error) {
+        console.error('更新能力值失敗:', error)
+        return false
+      }
+      return true
     } catch (error) {
       console.error('更新能力值失敗:', error)
       return false
@@ -261,10 +267,16 @@ export class DetailedCharacterService {
     try {
       const { error } = await supabase
         .from('character_current_stats')
-        .upsert({ character_id: characterId, ...stats, updated_at: new Date().toISOString() })
-        .eq('character_id', characterId)
+        .upsert(
+          { character_id: characterId, ...stats, updated_at: new Date().toISOString() },
+          { onConflict: 'character_id' }
+        )
 
-      return !error
+      if (error) {
+        console.error('更新當前狀態失敗:', error)
+        return false
+      }
+      return true
     } catch (error) {
       console.error('更新當前狀態失敗:', error)
       return false
@@ -314,10 +326,16 @@ export class DetailedCharacterService {
     try {
       const { error } = await supabase
         .from('character_currency')
-        .upsert({ character_id: characterId, ...currency, updated_at: new Date().toISOString() })
-        .eq('character_id', characterId)
+        .upsert(
+          { character_id: characterId, ...currency, updated_at: new Date().toISOString() },
+          { onConflict: 'character_id' }
+        )
 
-      return !error
+      if (error) {
+        console.error('更新貨幣失敗:', error)
+        return false
+      }
+      return true
     } catch (error) {
       console.error('更新貨幣失敗:', error)
       return false
@@ -442,7 +460,7 @@ export class DetailedCharacterService {
         cp: fullData.currency.copper,
         sp: fullData.currency.silver,
         ep: fullData.currency.electrum,
-        gp: fullData.currency.gold,
+        gp: fullData.currency.gp,
         pp: fullData.currency.platinum
       },
       customRecords: []
@@ -513,7 +531,7 @@ export class DetailedCharacterService {
         copper: currency?.cp || 0,
         silver: currency?.sp || 0,
         electrum: currency?.ep || 0,
-        gold: currency?.gp || 150,
+        gp: currency?.gp || 150,
         platinum: currency?.pp || 0
       }])
       .select()

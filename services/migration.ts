@@ -155,7 +155,7 @@ export class MigrationService {
             copper: stats.currency.cp,
             silver: stats.currency.sp,
             electrum: stats.currency.ep,
-            gold: stats.currency.gp,
+            gp: stats.currency.gp,
             platinum: stats.currency.pp
           })
       }

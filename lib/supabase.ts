@@ -71,7 +71,7 @@ export interface CharacterCurrency {
   copper: number
   silver: number
   electrum: number
-  gold: number
+  gp: number
   platinum: number
   updated_at?: string
 }

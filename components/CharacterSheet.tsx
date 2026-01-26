@@ -32,8 +32,10 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({ stats, setStats 
   const [selectedSkill, setSelectedSkill] = useState<{ name: string; base: keyof CharacterStats['abilityScores'] } | null>(null);
   const [selectedRecord, setSelectedRecord] = useState<CustomRecord | null>(null);
   
-  const [editInfo, setEditInfo] = useState({ name: stats.name, class: stats.class, level: stats.level });
-  const [editAbilities, setEditAbilities] = useState({ ...stats.abilityScores });
+  const [editInfo, setEditInfo] = useState({ name: stats.name, class: stats.class, level: stats.level.toString() });
+  const [editAbilities, setEditAbilities] = useState(
+    Object.fromEntries(Object.entries(stats.abilityScores).map(([k, v]) => [k, v.toString()]))
+  );
   const [editSavingProfs, setEditSavingProfs] = useState<(keyof CharacterStats['abilityScores'])[]>([]);
   const [tempGPValue, setTempGPValue] = useState('');
   const [tempExpValue, setTempExpValue] = useState('');
@@ -64,12 +66,14 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({ stats, setStats 
   };
 
   const openInfoModal = () => {
-    setEditInfo({ name: stats.name, class: stats.class, level: stats.level });
+    setEditInfo({ name: stats.name, class: stats.class, level: stats.level.toString() });
     setActiveModal('info');
   };
 
   const openAbilitiesModal = () => {
-    setEditAbilities({ ...stats.abilityScores });
+    setEditAbilities(
+      Object.fromEntries(Object.entries(stats.abilityScores).map(([k, v]) => [k, v.toString()]))
+    );
     setEditSavingProfs([...(stats.savingProficiencies || [])]);
     setActiveModal('abilities');
   };
@@ -108,11 +112,48 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({ stats, setStats 
   const renownUsedPreview = evaluateValue(tempRenownUsedValue, stats.renown.used);
   const renownTotalPreview = evaluateValue(tempRenownTotalValue, stats.renown.total);
 
-  const saveInfo = () => { setStats(prev => ({ ...prev, ...editInfo })); setActiveModal(null); };
-  const saveAbilities = () => { setStats(prev => ({ ...prev, abilityScores: { ...editAbilities }, savingProficiencies: [...editSavingProfs] })); setActiveModal(null); };
+  const saveInfo = () => { 
+    // 驗證等級不為空
+    const level = parseInt(editInfo.level);
+    if (!level || level < 1) {
+      setActiveModal(null);
+      return;
+    }
+    setStats(prev => ({ ...prev, name: editInfo.name, class: editInfo.class, level })); 
+    setActiveModal(null); 
+  };
+  
+  const saveAbilities = () => { 
+    // 驗證所有能力值不為空
+    const abilities: any = {};
+    let hasEmptyValue = false;
+    
+    for (const key in editAbilities) {
+      const value = parseInt(editAbilities[key]);
+      if (!value || value < 1) {
+        hasEmptyValue = true;
+        break;
+      }
+      abilities[key] = value;
+    }
+    
+    if (hasEmptyValue) {
+      setActiveModal(null);
+      return;
+    }
+    
+    setStats(prev => ({ ...prev, abilityScores: abilities, savingProficiencies: [...editSavingProfs] })); 
+    setActiveModal(null); 
+  };
   const toggleSavingProf = (key: keyof CharacterStats['abilityScores']) => { setEditSavingProfs(prev => prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]); };
   
   const saveCurrencyAndExp = () => { 
+    // 驗證金幣和經驗值不為空或無效
+    if (isNaN(gpPreview) || isNaN(expPreview) || gpPreview < 0 || expPreview < 0) {
+      setActiveModal(null);
+      return;
+    }
+    
     setStats(prev => ({ 
       ...prev, 
       currency: { ...prev.currency, gp: gpPreview }, 
@@ -429,7 +470,8 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({ stats, setStats 
             <h3 className="text-base font-fantasy text-amber-500 mb-4 border-b border-slate-800 pb-2">編輯屬性</h3>
             <div className="grid grid-cols-2 gap-2">
               {ABILITY_KEYS.map(key => {
-                const modifier = getModifier(editAbilities[key]);
+                const abilityValue = parseInt(editAbilities[key]) || 0;
+                const modifier = getModifier(abilityValue);
                 const isProf = editSavingProfs.includes(key);
                 return (
                   <div key={key} className="bg-slate-800/60 border border-slate-700 rounded-xl p-2.5 flex flex-col gap-2 shadow-inner">
@@ -438,7 +480,7 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({ stats, setStats 
                       <button onClick={() => toggleSavingProf(key)} className={`w-5 h-5 rounded-full border flex items-center justify-center transition-all ${isProf ? 'bg-amber-500 border-amber-400 text-slate-950' : 'bg-slate-900 border-slate-700 text-transparent'}`}><span className="text-[10px] font-black">✓</span></button>
                     </div>
                     <div className="flex items-center gap-2">
-                      <input type="number" value={editAbilities[key]} onChange={(e) => setEditAbilities({ ...editAbilities, [key]: parseInt(e.target.value) || 10 })} className="w-full bg-slate-700/50 border border-slate-600 rounded-lg py-1 text-white text-center font-mono text-xl outline-none" />
+                      <input type="text" value={editAbilities[key]} onChange={(e) => setEditAbilities({ ...editAbilities, [key]: e.target.value })} className="w-full bg-slate-700/50 border border-slate-600 rounded-lg py-1 text-white text-center font-mono text-xl outline-none" />
                       <div className="flex flex-col items-center shrink-0 w-8">
                         <span className="text-[14px] text-slate-600 font-bold uppercase leading-none mb-0.5">MOD</span>
                         <span className="text-sm font-bold text-amber-500/80 leading-none">{modifier >= 0 ? '+' : ''}{modifier}</span>
@@ -456,7 +498,7 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({ stats, setStats 
         </div>
       )}
 
-      {activeModal === 'abilities' && (
+      {activeModal === 'info' && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center px-6">
           <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-sm" onClick={() => setActiveModal(null)} />
           <div className="relative bg-slate-900 border border-slate-700 w-full max-w-xs rounded-2xl p-3 shadow-2xl">
@@ -469,7 +511,7 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({ stats, setStats 
               <div className="flex gap-3">
                 <div className="w-20 space-y-1">
                   <label className="text-[14px] font-black text-slate-500 uppercase ml-1">等級</label>
-                  <input type="number" value={editInfo.level} onChange={(e) => setEditInfo({ ...editInfo, level: parseInt(e.target.value) || 1 })} className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-3 text-white outline-none text-center" />
+                  <input type="text" value={editInfo.level} onChange={(e) => setEditInfo({ ...editInfo, level: e.target.value })} className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-3 text-white outline-none text-center" />
                 </div>
                 <div className="flex-1 space-y-1">
                   <label className="text-[14px] font-black text-slate-500 uppercase ml-1">職業</label>
