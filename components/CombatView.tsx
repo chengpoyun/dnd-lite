@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { CharacterStats } from '../types';
 import { evaluateValue, getModifier } from '../utils/helpers';
-import { CombatItemService } from '../services/database';
+import { HybridDataManager } from '../services/hybridDataManager';
 import { MigrationService } from '../services/migration';
 import { PageContainer, Card, Button, Title, Subtitle, Input } from './ui';
 import { STYLES } from '../styles/common';
@@ -69,20 +69,36 @@ type ItemCategory = 'action' | 'bonus' | 'reaction' | 'resource';
 interface CombatViewProps {
   stats: CharacterStats;
   setStats: React.Dispatch<React.SetStateAction<CharacterStats>>;
+  characterId?: string; // 從 App.tsx 傳入的角色 ID
 }
 
-export const CombatView: React.FC<CombatViewProps> = ({ stats, setStats }) => {
-  // 角色 ID 管理 - 这里暂时使用固定值，后续可以从角色选择中获取
+export const CombatView: React.FC<CombatViewProps> = ({ stats, setStats, characterId: propCharacterId }) => {
+  // 角色 ID 管理 - 優先使用從 props 傳入的 ID，否則從 localStorage 獲取
   const [characterId] = useState(() => {
-    // 尝试从 localStorage 获取当前角色 ID，如果没有则生成一个默认的
+    if (propCharacterId) {
+      localStorage.setItem('current_character_id', propCharacterId);
+      return propCharacterId;
+    }
+    
+    // 嘗試從 localStorage 獲取當前角色 ID
     const savedCharacterId = localStorage.getItem('current_character_id');
     if (savedCharacterId) return savedCharacterId;
     
-    // 生成默认角色 ID
-    const defaultId = 'default-character-' + Date.now();
-    localStorage.setItem('current_character_id', defaultId);
-    return defaultId;
+    // 如果都沒有，返回 null，讓組件顯示需要選擇角色的提示
+    return null;
   });
+
+  // 如果沒有角色ID，顯示錯誤訊息
+  if (!characterId) {
+    return (
+      <div className="p-6 text-center">
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+          <h3 className="text-lg font-medium text-yellow-800 mb-2">無法載入戰鬥頁面</h3>
+          <p className="text-yellow-700">請先選擇或創建角色才能使用戰鬥功能。</p>
+        </div>
+      </div>
+    );
+  }
 
   const savedState = JSON.parse(localStorage.getItem(STORAGE_KEYS.COMBAT_STATE) || '{}');
   const [combatSeconds, setCombatSeconds] = useState(savedState.combatSeconds ?? 0);
@@ -102,6 +118,8 @@ export const CombatView: React.FC<CombatViewProps> = ({ stats, setStats }) => {
   // 数据加载状态
   const [isLoading, setIsLoading] = useState(true);
   const [isMigrated, setIsMigrated] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const migrationRef = useRef(false); // 防止重複遷移
   
   const [isEditMode, setIsEditMode] = useState(false);
   const [isHPModalOpen, setIsHPModalOpen] = useState(false);
@@ -136,39 +154,65 @@ export const CombatView: React.FC<CombatViewProps> = ({ stats, setStats }) => {
     const initializeData = async () => {
       try {
         setIsLoading(true);
+        setError(null); // 清除之前的錯誤
         
-        // 检查是否需要迁移数据
+        // 检查是否需要迁移数据（防止重複遷移）
+        const migrationKey = `combat_migrated_${characterId}`;
+        const alreadyMigrated = localStorage.getItem(migrationKey) === 'true';
+        
         const hasLocalData = localStorage.getItem(STORAGE_KEYS.ACTIONS) || 
                             localStorage.getItem(STORAGE_KEYS.BONUS) ||
                             localStorage.getItem(STORAGE_KEYS.REACTIONS) ||
                             localStorage.getItem(STORAGE_KEYS.RESOURCES);
         
-        if (hasLocalData && !isMigrated) {
+        if (hasLocalData && !alreadyMigrated && !migrationRef.current) {
           console.log('检测到本地数据，开始迁移到数据库...');
-          const migrationResult = await MigrationService.migrateCombatItems(characterId);
-          console.log('数据迁移完成');
-          setIsMigrated(true);
+          migrationRef.current = true; // 設置標記防止重複執行
+          
+          try {
+            await MigrationService.migrateCombatItems(characterId);
+            localStorage.setItem(migrationKey, 'true'); // 標記已完成遷移
+            console.log('数据迁移完成');
+            setIsMigrated(true);
+          } catch (migrationError) {
+            console.error('遷移失敗:', migrationError);
+            migrationRef.current = false; // 失敗時重置標記以允許重試
+            // 遷移失敗不應該阻止載入默認數據
+            setError(`資料遷移失敗：${migrationError instanceof Error ? migrationError.message : '未知錯誤'}`);
+          }
         }
         
         // 从数据库加载数据
-        const combatItems = await CombatItemService.getCombatItems(characterId);
-        
-        // 將資料庫中的數據按類別分組
-        const actionItems = combatItems.filter(item => item.category === 'action');
-        const bonusItems = combatItems.filter(item => item.category === 'bonus_action');
-        const reactionItems = combatItems.filter(item => item.category === 'reaction');
-        const resourceItems = combatItems.filter(item => item.category === 'resource');
-        
-        // 如果数据库中没有数据，使用默认数据并保存到数据库
-        if (combatItems.length === 0) {
-          console.log('数据库中没有数据，使用默认数据');
-          await initializeDefaultItems();
-        } else {
-          // 转换数据库格式到组件格式
-          setActions(actionItems.map(convertDbItemToLocal));
-          setBonusActions(bonusItems.map(convertDbItemToLocal));
-          setReactions(reactionItems.map(convertDbItemToLocal));
-          setResources(resourceItems.map(convertDbItemToLocal));
+        try {
+          const combatItems = await HybridDataManager.getCombatItems(characterId);
+          
+          // 將資料庫中的數據按類別分組
+          const actionItems = combatItems.filter(item => item.category === 'action');
+          const bonusItems = combatItems.filter(item => item.category === 'bonus_action');
+          const reactionItems = combatItems.filter(item => item.category === 'reaction');
+          const resourceItems = combatItems.filter(item => item.category === 'resource');
+          
+          // 如果数据库中没有数据，使用默认数据并保存到数据库
+          if (combatItems.length === 0) {
+            console.log('数据库中没有数据，使用默认数据');
+            await initializeDefaultItems();
+          } else {
+            // 转换数据库格式到组件格式
+            setActions(actionItems.map(convertDbItemToLocal));
+            setBonusActions(bonusItems.map(convertDbItemToLocal));
+            setReactions(reactionItems.map(convertDbItemToLocal));
+            setResources(resourceItems.map(convertDbItemToLocal));
+          }
+        } catch (dbError) {
+          console.error('資料庫載入失敗:', dbError);
+          setError(`資料載入失敗：${dbError instanceof Error ? dbError.message : '未知錯誤'}`);
+          
+          // fallback 到默認資料
+          console.log('使用預設戰鬥資料');
+          setActions(DEFAULT_ACTIONS);
+          setBonusActions(DEFAULT_BONUS_ACTIONS);
+          setReactions(DEFAULT_REACTIONS);
+          setResources(DEFAULT_RESOURCES);
         }
         
       } catch (error) {
@@ -184,7 +228,7 @@ export const CombatView: React.FC<CombatViewProps> = ({ stats, setStats }) => {
     };
 
     initializeData();
-  }, [characterId, isMigrated]);
+  }, [characterId]); // 只依賴characterId，遷移狀態由內部邏輯控制
 
   // 分類映射 - 前端到資料庫
   const mapCategoryToDb = (category: ItemCategory): string => {
@@ -251,24 +295,56 @@ export const CombatView: React.FC<CombatViewProps> = ({ stats, setStats }) => {
 
   // 初始化默认项目到数据库
   const initializeDefaultItems = async () => {
-    const defaultItems = [
-      ...DEFAULT_ACTIONS.map(item => ({ ...item, category: 'action' })),
-      ...DEFAULT_BONUS_ACTIONS.map(item => ({ ...item, category: 'bonus_action' })),
-      ...DEFAULT_REACTIONS.map(item => ({ ...item, category: 'reaction' })),
-      ...DEFAULT_RESOURCES.map(item => ({ ...item, category: 'resource' }))
-    ];
+    try {
+      console.log('初始化預設戰鬥項目，角色ID:', characterId);
+      
+      const defaultItems = [
+        ...DEFAULT_ACTIONS.map(item => ({ ...item, category: 'action' })),
+        ...DEFAULT_BONUS_ACTIONS.map(item => ({ ...item, category: 'bonus_action' })),
+        ...DEFAULT_REACTIONS.map(item => ({ ...item, category: 'reaction' })),
+        ...DEFAULT_RESOURCES.map(item => ({ ...item, category: 'resource' }))
+      ];
 
-    for (const item of defaultItems) {
-      await CombatItemService.createCombatItem({
-        character_id: characterId,
-        category: item.category,
-        name: item.name,
-        icon: item.icon,
-        current_uses: item.current,
-        max_uses: item.max,
-        recovery_type: mapRecoveryToDb(item.recovery),
-        is_default: true
-      });
+      const createdItems = [];
+      for (const item of defaultItems) {
+        try {
+          const newItem = await HybridDataManager.createCombatItem({
+            character_id: characterId,
+            category: item.category,
+            name: item.name,
+            icon: item.icon,
+            current_uses: item.current,
+            max_uses: item.max,
+            recovery_type: mapRecoveryToDb(item.recovery),
+            is_default: true
+          });
+          
+          if (newItem) {
+            createdItems.push(newItem);
+            console.log(`成功創建預設項目: ${item.name}`);
+          }
+        } catch (itemError) {
+          console.error(`創建項目 "${item.name}" 失敗:`, itemError);
+          // 繼續創建其他項目，不因一個失敗而停止
+        }
+      }
+      
+      console.log(`成功創建 ${createdItems.length}/${defaultItems.length} 個預設項目`);
+      
+      // 使用成功創建的項目更新狀態
+      const actionItems = createdItems.filter(item => item.category === 'action');
+      const bonusItems = createdItems.filter(item => item.category === 'bonus_action');
+      const reactionItems = createdItems.filter(item => item.category === 'reaction');
+      const resourceItems = createdItems.filter(item => item.category === 'resource');
+      
+      setActions(actionItems.map(convertDbItemToLocal));
+      setBonusActions(bonusItems.map(convertDbItemToLocal));
+      setReactions(reactionItems.map(convertDbItemToLocal));
+      setResources(resourceItems.map(convertDbItemToLocal));
+      
+    } catch (error) {
+      console.error('初始化預設項目失敗:', error);
+      throw error; // 重新拋出錯誤以便上層處理
     }
   };
 
@@ -325,7 +401,7 @@ export const CombatView: React.FC<CombatViewProps> = ({ stats, setStats }) => {
   // 更新数据库中的项目使用次数
   const updateItemInDatabase = async (itemId: string, category: string, newCurrent: number, additionalFields?: { name?: string, icon?: string, max_uses?: number, recovery?: string }) => {
     try {
-      const combatItems = await CombatItemService.getCombatItems(characterId);
+      const combatItems = await HybridDataManager.getCombatItems(characterId);
       const dbItem = combatItems.find(item => item.id === itemId);
       
       if (dbItem) {
@@ -340,7 +416,7 @@ export const CombatView: React.FC<CombatViewProps> = ({ stats, setStats }) => {
           if (additionalFields.recovery) updateData.recovery_type = mapRecoveryToDb(additionalFields.recovery);
         }
         
-        await CombatItemService.updateCombatItem(dbItem.id, updateData);
+        await HybridDataManager.updateCombatItem(dbItem.id, updateData);
       }
     } catch (error) {
       console.error('更新数据库项目失败:', error);
@@ -410,7 +486,7 @@ export const CombatView: React.FC<CombatViewProps> = ({ stats, setStats }) => {
       setter(prev => [...prev, newItem]);
       
       // 保存到数据库
-      await CombatItemService.createCombatItem({
+      await HybridDataManager.createCombatItem({
         character_id: characterId,
         category: mapCategoryToDb(activeCategory),
         name: formName,
@@ -430,11 +506,11 @@ export const CombatView: React.FC<CombatViewProps> = ({ stats, setStats }) => {
     
     // 从数据库删除
     try {
-      const combatItems = await CombatItemService.getCombatItems(characterId);
+      const combatItems = await HybridDataManager.getCombatItems(characterId);
       const dbItem = combatItems.find(item => item.id === id && item.category === category);
       
       if (dbItem) {
-        await CombatItemService.deleteCombatItem(dbItem.id);
+        await HybridDataManager.deleteCombatItem(characterId, dbItem.id);
       }
     } catch (error) {
       console.error('从数据库删除项目失败:', error);
@@ -459,13 +535,13 @@ export const CombatView: React.FC<CombatViewProps> = ({ stats, setStats }) => {
     // 同步到数据库
     try {
       const allUpdatedItems = [...updatedActions, ...updatedBonusActions, ...updatedReactions, ...updatedResources];
-      const combatItems = await CombatItemService.getCombatItems(characterId);
+      const combatItems = await HybridDataManager.getCombatItems(characterId);
       
       for (const localItem of allUpdatedItems) {
         if (periods.includes(localItem.recovery)) {
           const dbItem = combatItems.find(item => item.id === localItem.id);
           if (dbItem && dbItem.current_uses !== localItem.max) {
-            await CombatItemService.updateCombatItem(dbItem.id, {
+            await HybridDataManager.updateCombatItem(dbItem.id, {
               current_uses: localItem.max
             });
           }
@@ -559,6 +635,41 @@ export const CombatView: React.FC<CombatViewProps> = ({ stats, setStats }) => {
           <div className="flex flex-col items-center gap-3">
             <div className="animate-spin rounded-full h-8 w-8 border-2 border-amber-500 border-t-transparent"></div>
             <span className="text-[14px] text-amber-500/80">正在加载战斗数据...</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // 錯誤狀態顯示
+  if (error) {
+    return (
+      <div className="p-6">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+          <div className="flex items-start gap-3">
+            <span className="text-red-500 text-xl">⚠️</span>
+            <div>
+              <h3 className="text-lg font-medium text-red-800 mb-2">戰鬥數據載入錯誤</h3>
+              <p className="text-red-700 text-sm mb-3">{error}</p>
+              <div className="flex gap-2">
+                <button 
+                  onClick={() => {
+                    setError(null);
+                    // 重新載入數據
+                    window.location.reload();
+                  }}
+                  className="px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700 transition-colors"
+                >
+                  重新載入
+                </button>
+                <button 
+                  onClick={() => setError(null)}
+                  className="px-3 py-1 bg-gray-600 text-white text-sm rounded hover:bg-gray-700 transition-colors"
+                >
+                  忽略錯誤
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>

@@ -1,6 +1,7 @@
 import { DetailedCharacterService } from './detailedCharacter'
 import { ConflictResolver } from './conflictResolver'
-import type { FullCharacterData, Character } from '../lib/supabase'
+import { CombatItemService } from './database'
+import type { FullCharacterData, Character, CharacterCombatAction } from '../lib/supabase'
 
 /**
  * 混合資料管理器
@@ -10,6 +11,7 @@ import type { FullCharacterData, Character } from '../lib/supabase'
 export class HybridDataManager {
   private static readonly STORAGE_PREFIX = 'dnd_'
   private static readonly CHARACTER_IDS_KEY = 'dnd_character_ids'
+  private static readonly COMBAT_ITEMS_PREFIX = 'dnd_combat_'
   
   // ===== 讀取操作 =====
   
@@ -404,6 +406,206 @@ export class HybridDataManager {
       totalCharacters: characters.length,
       characterIds,
       storageKeys: Object.keys(localStorage).filter(key => key.startsWith(this.STORAGE_PREFIX))
+    }
+  }
+
+  // ===== 戰鬥項目管理 =====
+  
+  /**
+   * 獲取角色的戰鬥項目列表（優化版：合併預設項目和角色專屬項目）
+   */
+  static async getCombatItems(characterId: string): Promise<CharacterCombatAction[]> {
+    try {
+      // 1. 先從 localStorage 讀取角色專屬項目
+      const localItems = this.getLocalCombatItems(characterId)
+      
+      // 2. 獲取預設項目（這些不需要存儲在本地，總是從DB獲取最新版本）
+      // 但為了用戶體驗，我們異步獲取並合併
+      try {
+        const allItems = await CombatItemService.getCombatItems(characterId)
+        
+        // 更新本地存儲（只存儲非預設項目）
+        const customItems = allItems.filter(item => !item.id.startsWith('default_'))
+        if (customItems.length > 0) {
+          this.setLocalCombatItems(characterId, customItems)
+        }
+        
+        return allItems
+      } catch (dbError) {
+        console.warn('DB 戰鬥項目讀取失敗，使用本地數據:', dbError)
+        // 如果DB失敗，只返回本地的自定義項目
+        return localItems
+      }
+    } catch (error) {
+      console.error('讀取戰鬥項目失敗:', error)
+      return []
+    }
+  }
+  
+  /**
+   * 創建戰鬥項目（完全自定義）
+   */
+  static async createCombatItem(item: Omit<CharacterCombatAction, 'id' | 'created_at'>): Promise<CharacterCombatAction> {
+    try {
+      // 1. 生成本地項目數據（標記為自定義）
+      const localItem: CharacterCombatAction = {
+        ...item,
+        id: `local_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        created_at: new Date().toISOString(),
+        is_custom: true, // 標記為完全自定義項目
+        is_default: false
+      }
+      
+      // 2. 立即保存到 localStorage
+      this.addLocalCombatItem(item.character_id, localItem)
+      console.log(`自定義戰鬥項目已保存到本地: ${localItem.name}`)
+      
+      // 3. 異步同步到 DB（不阻塞）
+      this.syncCombatItemToDB(localItem).catch(error => {
+        console.warn('戰鬥項目 DB 同步失敗（忽略）:', error)
+      })
+      
+      return localItem
+    } catch (error) {
+      console.error('創建戰鬥項目失敗:', error)
+      throw error
+    }
+  }
+  
+  /**
+   * 更新戰鬥項目
+   */
+  static async updateCombatItem(itemId: string, updates: Partial<CharacterCombatAction>): Promise<boolean> {
+    try {
+      // 1. 查找並更新本地數據
+      const updated = this.updateLocalCombatItem(itemId, updates)
+      if (!updated) {
+        throw new Error('本地戰鬥項目不存在')
+      }
+      
+      // 2. 異步同步到 DB
+      this.syncCombatItemToDB(updated).catch(error => {
+        console.warn('戰鬥項目更新 DB 同步失敗（忽略）:', error)
+      })
+      
+      return true
+    } catch (error) {
+      console.error('更新戰鬥項目失敗:', error)
+      return false
+    }
+  }
+  
+  /**
+   * 刪除戰鬥項目
+   */
+  static async deleteCombatItem(characterId: string, itemId: string): Promise<boolean> {
+    try {
+      // 1. 從本地刪除
+      this.removeLocalCombatItem(characterId, itemId)
+      console.log(`戰鬥項目已從本地刪除: ${itemId}`)
+      
+      // 2. 異步從 DB 刪除
+      CombatItemService.deleteCombatItem(itemId).catch(error => {
+        console.warn('戰鬥項目 DB 刪除失敗（忽略）:', error)
+      })
+      
+      return true
+    } catch (error) {
+      console.error('刪除戰鬥項目失敗:', error)
+      return false
+    }
+  }
+  
+  // ===== 本地戰鬥項目存儲操作 =====
+  
+  private static getLocalCombatItems(characterId: string): CharacterCombatAction[] {
+    try {
+      const key = `${this.COMBAT_ITEMS_PREFIX}${characterId}`
+      const stored = localStorage.getItem(key)
+      return stored ? JSON.parse(stored) : []
+    } catch (error) {
+      console.error('讀取本地戰鬥項目失敗:', error)
+      return []
+    }
+  }
+  
+  private static setLocalCombatItems(characterId: string, items: CharacterCombatAction[]): void {
+    try {
+      const key = `${this.COMBAT_ITEMS_PREFIX}${characterId}`
+      localStorage.setItem(key, JSON.stringify(items))
+    } catch (error) {
+      console.error('保存本地戰鬥項目失敗:', error)
+    }
+  }
+  
+  private static addLocalCombatItem(characterId: string, item: CharacterCombatAction): void {
+    const items = this.getLocalCombatItems(characterId)
+    items.push(item)
+    this.setLocalCombatItems(characterId, items)
+  }
+  
+  private static updateLocalCombatItem(itemId: string, updates: Partial<CharacterCombatAction>): CharacterCombatAction | null {
+    // 查找所有角色的戰鬥項目來找到要更新的項目
+    const keys = Object.keys(localStorage).filter(key => key.startsWith(this.COMBAT_ITEMS_PREFIX))
+    
+    for (const key of keys) {
+      try {
+        const items: CharacterCombatAction[] = JSON.parse(localStorage.getItem(key) || '[]')
+        const itemIndex = items.findIndex(item => item.id === itemId)
+        
+        if (itemIndex !== -1) {
+          const updatedItem = { ...items[itemIndex], ...updates }
+          items[itemIndex] = updatedItem
+          localStorage.setItem(key, JSON.stringify(items))
+          return updatedItem
+        }
+      } catch (error) {
+        console.error('更新本地戰鬥項目時出錯:', error)
+      }
+    }
+    
+    return null
+  }
+  
+  private static removeLocalCombatItem(characterId: string, itemId: string): void {
+    const items = this.getLocalCombatItems(characterId)
+    const filtered = items.filter(item => item.id !== itemId)
+    this.setLocalCombatItems(characterId, filtered)
+  }
+  
+  // ===== 戰鬥項目同步操作 =====
+  
+  private static async syncCombatItemToDB(item: CharacterCombatAction): Promise<void> {
+    try {
+      // 如果是本地生成的ID，創建新項目
+      if (item.id.startsWith('local_')) {
+        const { id, created_at, ...itemData } = item
+        await CombatItemService.createCombatItem(itemData)
+      } else {
+        // 否則更新現有項目
+        await CombatItemService.updateCombatItem(item.id, item)
+      }
+    } catch (error) {
+      console.warn('戰鬥項目同步到 DB 失敗:', error)
+      throw error
+    }
+  }
+  
+  private static syncCombatItemsFromDB(characterId: string, dbItems: CharacterCombatAction[]): void {
+    try {
+      const localItems = this.getLocalCombatItems(characterId)
+      
+      // 簡單合併策略：DB 項目補充本地缺失的項目
+      const localIds = new Set(localItems.map(item => item.id))
+      const missingItems = dbItems.filter(item => !localIds.has(item.id))
+      
+      if (missingItems.length > 0) {
+        const mergedItems = [...localItems, ...missingItems]
+        this.setLocalCombatItems(characterId, mergedItems)
+        console.log(`從 DB 合併 ${missingItems.length} 個戰鬥項目到本地`)
+      }
+    } catch (error) {
+      console.error('從 DB 同步戰鬥項目失敗:', error)
     }
   }
 }

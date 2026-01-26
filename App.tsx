@@ -305,6 +305,8 @@ const AuthenticatedApp: React.FC = () => {
               updated_at: new Date().toISOString()
             },
             currentStats: {
+              id: '', // 將由資料庫自動生成
+              character_id: currentCharacter.id,
               current_hp: stats.hp.current || 1,
               max_hp: stats.hp.max || 1,
               temporary_hp: stats.hp.temp || 0,
@@ -323,6 +325,8 @@ const AuthenticatedApp: React.FC = () => {
               }
             },
             abilityScores: {
+              id: '', // 將由資料庫自動生成
+              character_id: currentCharacter.id,
               strength: stats.abilityScores.str || 10,
               dexterity: stats.abilityScores.dex || 10,
               constitution: stats.abilityScores.con || 10,
@@ -331,27 +335,14 @@ const AuthenticatedApp: React.FC = () => {
               charisma: stats.abilityScores.cha || 10
             },
             currency: {
+              id: '', // 將由資料庫自動生成  
+              character_id: currentCharacter.id,
               gp: stats.currency.gp || 0, // 使用統一的 gp 欄位
               copper: stats.currency.cp || 0,
               silver: stats.currency.sp || 0,
               electrum: stats.currency.ep || 0,
               platinum: stats.currency.pp || 0
-            },
-            // 添加技能熟練度同步
-            skillProficiencies: stats.proficiencies || {},
-            // 正確格式化豁免熟練度為資料庫格式，映射縮寫到完整名稱
-            savingThrows: (stats.savingProficiencies || []).map(ability => ({
-              character_id: currentCharacter.id,
-              ability: ({
-                str: 'strength',
-                dex: 'dexterity', 
-                con: 'constitution',
-                int: 'intelligence',
-                wis: 'wisdom',
-                cha: 'charisma'
-              } as any)[ability] || ability,
-              is_proficient: true
-            }))
+            }
           };
 
           console.log('💾 準備保存到 DB:', {
@@ -476,7 +467,7 @@ const AuthenticatedApp: React.FC = () => {
             <CharacterSheet stats={stats} setStats={setStats} />
           )}
           {activeTab === Tab.COMBAT && (
-            <CombatView stats={stats} setStats={setStats} />
+            <CombatView stats={stats} setStats={setStats} characterId={currentCharacter?.id} />
           )}
           {activeTab === Tab.SPELLS && (
             <SpellsView stats={stats} setStats={setStats} />

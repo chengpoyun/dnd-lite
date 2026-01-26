@@ -136,6 +136,25 @@ export interface CharacterCombatAction {
   current_uses: number
   recovery_type: 'turn' | 'short_rest' | 'long_rest' | 'manual'
   is_default: boolean
+  is_custom: boolean // 新增：是否為完全自定義項目
+  default_item_id?: string // 新增：關聯的預設項目ID
+  action_type?: string
+  damage_formula?: string
+  attack_bonus?: number
+  save_dc?: number
+  created_at?: string
+  updated_at?: string
+}
+
+// 新增：預設戰鬥動作類型
+export interface DefaultCombatAction {
+  id: string
+  category: 'action' | 'bonus_action' | 'reaction' | 'resource'
+  name: string
+  icon: string
+  description?: string
+  max_uses: number
+  recovery_type: 'turn' | 'short_rest' | 'long_rest' | 'manual'
   action_type?: string
   damage_formula?: string
   attack_bonus?: number
