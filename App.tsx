@@ -72,19 +72,60 @@ const AuthenticatedApp: React.FC = () => {
         const isAuth = await AuthService.isAuthenticated()
         if (isAuth) {
           setUserMode('authenticated')
-          // 檢查是否有角色，決定跳轉到角色選擇或歡迎頁
+          // 檢查是否有角色
           const characters = await HybridDataManager.getUserCharacters()
           if (characters.length > 0) {
-            setAppState('characterSelect')
+            // 有角色，直接載入最後使用的角色
+            const lastCharacterId = localStorage.getItem('dnd_last_character_id')
+            let characterToLoad = characters[0] // 預設使用第一個角色
+            
+            // 如果有記錄最後使用的角色，嘗試找到它
+            if (lastCharacterId) {
+              const lastCharacter = characters.find(c => c.id === lastCharacterId)
+              if (lastCharacter) {
+                characterToLoad = lastCharacter
+              } else {
+                // 最後記錄的角色不存在，清除記錄
+                localStorage.removeItem('dnd_last_character_id')
+              }
+            }
+            
+            // 更新最後使用的角色記錄
+            localStorage.setItem('dnd_last_character_id', characterToLoad.id)
+            
+            // 直接設定角色並進入主頁面
+            setCurrentCharacter(characterToLoad)
+            setAppState('main')
           } else {
-            setAppState('characterSelect') // 仍然顯示角色選擇頁來創建第一個角色
+            setAppState('characterSelect') // 沒有角色，顯示角色選擇頁來創建第一個角色
           }
         } else {
           // 檢查是否有本地角色數據
           const characters = await HybridDataManager.getUserCharacters()
           if (characters.length > 0) {
             setUserMode('anonymous')
-            setAppState('characterSelect')
+            
+            // 有角色，直接載入最後使用的角色
+            const lastCharacterId = localStorage.getItem('dnd_last_character_id')
+            let characterToLoad = characters[0] // 預設使用第一個角色
+            
+            // 如果有記錄最後使用的角色，嘗試找到它
+            if (lastCharacterId) {
+              const lastCharacter = characters.find(c => c.id === lastCharacterId)
+              if (lastCharacter) {
+                characterToLoad = lastCharacter
+              } else {
+                // 最後記錄的角色不存在，清除記錄
+                localStorage.removeItem('dnd_last_character_id')
+              }
+            }
+            
+            // 更新最後使用的角色記錄
+            localStorage.setItem('dnd_last_character_id', characterToLoad.id)
+            
+            // 直接設定角色並進入主頁面
+            setCurrentCharacter(characterToLoad)
+            setAppState('main')
           } else {
             setAppState('welcome')
           }
@@ -219,6 +260,8 @@ const AuthenticatedApp: React.FC = () => {
 
   const handleCharacterSelect = (character: Character) => {
     setCurrentCharacter(character)
+    // 記錄最後使用的角色，下次啟動時自動載入
+    localStorage.setItem('dnd_last_character_id', character.id)
     setAppState('main')
   }
 
@@ -231,6 +274,8 @@ const AuthenticatedApp: React.FC = () => {
     setAppState('welcome')
     setUserMode('anonymous')
     setCurrentCharacter(null)
+    // 清除最後使用的角色記錄
+    localStorage.removeItem('dnd_last_character_id')
   }
 
   // 渲染邏輯
