@@ -318,6 +318,13 @@ export class HybridDataManager {
   private static async syncUpdatesToDatabase(characterId: string, updates: Partial<FullCharacterData>) {
     const promises: Promise<any>[] = []
     
+    // 更新角色基本信息
+    if (updates.character) {
+      promises.push(
+        DetailedCharacterService.updateCharacterBasicInfo(characterId, updates.character)
+      )
+    }
+    
     // 根據 updates 類型分別同步
     if (updates.currentStats) {
       promises.push(

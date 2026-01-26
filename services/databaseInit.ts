@@ -28,10 +28,10 @@ export class DatabaseInitService {
    */
   private static async ensureCharactersTable(): Promise<void> {
     try {
-      // 嘗試查詢表結構
+      // 嘗試查詢表結構（包括 avatar_url 欄位）
       const { error } = await supabase
         .from('characters')
-        .select('id, name, character_class, level')
+        .select('id, name, character_class, level, avatar_url')
         .limit(0)
       
       if (error) {

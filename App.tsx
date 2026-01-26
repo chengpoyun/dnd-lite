@@ -121,6 +121,8 @@ const AuthenticatedApp: React.FC = () => {
           name: characterData.character.name,
           class: characterData.character.character_class || (characterData.character as any).class || '戰士',
           level: characterData.character.level,
+          exp: characterData.character.experience || INITIAL_STATS.exp,
+          avatarUrl: characterData.character.avatar_url || INITIAL_STATS.avatarUrl,
           hp: {
             current: characterData.currentStats?.current_hp || INITIAL_STATS.hp.current,
             max: characterData.currentStats?.max_hp || INITIAL_STATS.hp.max,
@@ -157,16 +159,29 @@ const AuthenticatedApp: React.FC = () => {
     const saveCharacterData = async () => {
       if (currentCharacter && appState === 'main') {
         try {
-          // TODO: 實作完整的角色數據更新
-          console.log('角色數據已更新到 localStorage')
-          // HybridDataManager 的 updateCharacter 方法需要完整實作
+          // 只更新角色的基本信息和頭像
+          const characterUpdates = {
+            character: {
+              ...currentCharacter,
+              name: stats.name,
+              character_class: stats.class,
+              level: stats.level,
+              experience: stats.exp,
+              avatar_url: stats.avatarUrl,
+              updated_at: new Date().toISOString()
+            }
+          };
+
+          // 使用 HybridDataManager 保存數據
+          await HybridDataManager.updateCharacter(currentCharacter.id, characterUpdates);
+          console.log('角色數據已保存');
         } catch (error) {
-          console.error('保存角色數據失敗:', error)
+          console.error('保存角色數據失敗:', error);
         }
       }
-    }
+    };
 
-    const timeoutId = setTimeout(saveCharacterData, 1000) // 延遲保存避免頻繁寫入
+    const timeoutId = setTimeout(saveCharacterData, 1000); // 延遲保存避免頻繁寫入
     return () => clearTimeout(timeoutId)
   }, [stats, currentCharacter, appState])
 

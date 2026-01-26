@@ -92,11 +92,11 @@ export class DetailedCharacterService {
         combatActionsResult
       ] = await Promise.all([
         supabase.from('characters').select('*').eq('id', characterId).single(),
-        supabase.from('character_ability_scores').select('*').eq('character_id', characterId).single(),
+        supabase.from('character_ability_scores').select('*').eq('character_id', characterId).maybeSingle(),
         supabase.from('character_saving_throws').select('*').eq('character_id', characterId),
         supabase.from('character_skill_proficiencies').select('*').eq('character_id', characterId),
-        supabase.from('character_current_stats').select('*').eq('character_id', characterId).single(),
-        supabase.from('character_currency').select('*').eq('character_id', characterId).single(),
+        supabase.from('character_current_stats').select('*').eq('character_id', characterId).maybeSingle(),
+        supabase.from('character_currency').select('*').eq('character_id', characterId).maybeSingle(),
         supabase.from('character_items').select('*').eq('character_id', characterId),
         supabase.from('character_spells').select('*').eq('character_id', characterId),
         supabase.from('character_spell_slots').select('*').eq('character_id', characterId),
@@ -246,12 +246,12 @@ export class DetailedCharacterService {
     try {
       const { error } = await supabase
         .from('character_ability_scores')
-        .update({ ...scores, updated_at: new Date().toISOString() })
+        .upsert({ character_id: characterId, ...scores, updated_at: new Date().toISOString() })
         .eq('character_id', characterId)
 
       return !error
     } catch (error) {
-      console.error('更新屬性分數失敗:', error)
+      console.error('更新能力值失敗:', error)
       return false
     }
   }
@@ -261,7 +261,7 @@ export class DetailedCharacterService {
     try {
       const { error } = await supabase
         .from('character_current_stats')
-        .update({ ...stats, updated_at: new Date().toISOString() })
+        .upsert({ character_id: characterId, ...stats, updated_at: new Date().toISOString() })
         .eq('character_id', characterId)
 
       return !error
@@ -271,12 +271,50 @@ export class DetailedCharacterService {
     }
   }
 
+  // 更新角色基本信息
+  static async updateCharacterBasicInfo(characterId: string, updates: Partial<Character>): Promise<boolean> {
+    try {
+      // 只允許更新特定欄位，排除系統欄位
+      const allowedFields: (keyof Character)[] = ['name', 'character_class', 'level', 'experience', 'avatar_url'];
+      const filteredUpdates: Partial<Character> = {};
+      
+      allowedFields.forEach(field => {
+        if (field in updates) {
+          (filteredUpdates as any)[field] = updates[field];
+        }
+      });
+      
+      if (Object.keys(filteredUpdates).length === 0) {
+        console.warn('沒有需要更新的欄位');
+        return false;
+      }
+      
+      const { error } = await supabase
+        .from('characters')
+        .update({ 
+          ...filteredUpdates, 
+          updated_at: new Date().toISOString() 
+        })
+        .eq('id', characterId);
+
+      if (error) {
+        console.error('更新角色基本信息失敗:', error);
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error('更新角色基本信息失敗:', error);
+      return false;
+    }
+  }
+
   // 更新貨幣
   static async updateCurrency(characterId: string, currency: Partial<CharacterCurrency>): Promise<boolean> {
     try {
       const { error } = await supabase
         .from('character_currency')
-        .update({ ...currency, updated_at: new Date().toISOString() })
+        .upsert({ character_id: characterId, ...currency, updated_at: new Date().toISOString() })
         .eq('character_id', characterId)
 
       return !error

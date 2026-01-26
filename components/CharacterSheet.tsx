@@ -162,12 +162,82 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({ stats, setStats 
     setActiveModal(null);
   };
 
-  const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // 圖片壓縮函數
+  const compressImage = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const img = new Image();
+      
+      img.onload = () => {
+        // 計算壓縮後的尺寸（最大300x300，保持比例）
+        const maxSize = 300;
+        let { width, height } = img;
+        
+        if (width > height) {
+          if (width > maxSize) {
+            height = (height * maxSize) / width;
+            width = maxSize;
+          }
+        } else {
+          if (height > maxSize) {
+            width = (width * maxSize) / height;
+            height = maxSize;
+          }
+        }
+        
+        // 設置 canvas 尺寸
+        canvas.width = width;
+        canvas.height = height;
+        
+        // 繪製並壓縮圖片
+        ctx?.drawImage(img, 0, 0, width, height);
+        
+        // 轉為 base64，JPEG 品質 80%
+        const compressedBase64 = canvas.toDataURL('image/jpeg', 0.8);
+        resolve(compressedBase64);
+      };
+      
+      img.onerror = () => reject(new Error('圖片載入失敗'));
+      img.src = URL.createObjectURL(file);
+    });
+  };
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => { setStats(prev => ({ ...prev, avatarUrl: reader.result as string })); };
-      reader.readAsDataURL(file);
+    if (!file) return;
+
+    // 檢查檔案大小（不超過 20MB）
+    const maxSizeInBytes = 20 * 1024 * 1024; // 20MB
+    if (file.size > maxSizeInBytes) {
+      alert('圖片檔案過大，請選擇小於 20MB 的圖片');
+      return;
+    }
+
+    // 檢查檔案類型
+    if (!file.type.startsWith('image/')) {
+      alert('請選擇圖片檔案');
+      return;
+    }
+
+    try {
+      // 顯示載入狀態
+      const loadingMessage = '正在處理圖片...';
+      console.log(loadingMessage);
+      
+      // 壓縮圖片
+      const compressedBase64 = await compressImage(file);
+      
+      // 檢查壓縮後大小
+      const compressedSizeKB = Math.round((compressedBase64.length * 3) / 4 / 1024);
+      console.log(`圖片壓縮完成，大小：${compressedSizeKB}KB`);
+      
+      // 更新狀態
+      setStats(prev => ({ ...prev, avatarUrl: compressedBase64 }));
+      
+    } catch (error) {
+      console.error('圖片處理失敗:', error);
+      alert('圖片處理失敗，請重試');
     }
   };
 
@@ -252,6 +322,7 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({ stats, setStats 
             const bonus = getModifier(stats.abilityScores[skill.base]) + (profLevel * profBonus);
             return (
               <Button
+                key={skill.name}
                 variant="ghost"
                 size="sm"
                 onClick={() => handleSkillClick(skill)}
