@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { CharacterStats, CustomRecord } from '../types';
 import { getModifier, getProfBonus, evaluateValue } from '../utils/helpers';
+import { PageContainer, Card, Button, Title, Subtitle, Input, BackButton } from './ui';
+import { STYLES, combineStyles } from '../styles/common';
 
 interface CharacterSheetProps {
   stats: CharacterStats;
@@ -249,17 +251,18 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({ stats, setStats 
             const profLevel = stats.proficiencies[skill.name] || 0;
             const bonus = getModifier(stats.abilityScores[skill.base]) + (profLevel * profBonus);
             return (
-              <div 
-                key={skill.name} 
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={() => handleSkillClick(skill)}
-                className={`flex items-center justify-between py-1.5 px-1 rounded border transition-all active:scale-95 h-9 ${profLevel > 0 ? 'bg-amber-500/10 border-amber-500/40 shadow-sm' : 'bg-slate-800/30 border-slate-800'}`}
+                className={`flex items-center justify-between py-1.5 px-1 rounded border transition-all h-9 ${profLevel > 0 ? 'bg-amber-500/10 border-amber-500/40 shadow-sm' : 'bg-slate-800/30 border-slate-800'}`}
               >
                 <div className="flex items-center gap-1 min-w-0 flex-1">
                    <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${profLevel === 1 ? 'bg-amber-500' : profLevel === 2 ? 'bg-amber-500 shadow-[0_0_5px_rgba(245,158,11,1)] ring-1 ring-amber-300' : 'bg-slate-700 opacity-30'}`} />
                    <span className={`text-[14px] font-bold leading-none truncate tracking-tighter ${profLevel > 0 ? 'text-amber-400' : 'text-slate-500'}`}>{skill.name}</span>
                 </div>
                 <span className={`text-[15px] font-mono font-black leading-none shrink-0 pl-0.5 ${profLevel > 0 ? 'text-white' : 'text-slate-600'}`}>{bonus >= 0 ? '+' : ''}{bonus}</span>
-              </div>
+              </Button>
             );
           })}
         </div>
@@ -268,12 +271,14 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({ stats, setStats 
       <div className="bg-slate-900/40 rounded-lg border border-slate-800 p-2.5 space-y-2.5 shadow-inner">
         <div className="flex justify-between items-center px-1 border-b border-slate-800 pb-1.5">
           <h3 className="text-[14px] font-black text-slate-500 uppercase tracking-tighter">冒險紀錄</h3>
-          <button 
+          <Button
+            variant="secondary"
+            size="sm"
             onClick={openAddRecordModal}
-            className="w-7 h-7 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-amber-500 font-bold active:scale-90 transition-transform"
+            className="w-7 h-7 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-amber-500 font-bold"
           >
             +
-          </button>
+          </Button>
         </div>
         <div className="flex flex-col gap-2">
           <div onClick={openDowntimeModal} className="flex items-center justify-between bg-slate-800/50 p-2.5 rounded border border-slate-700/50 active:bg-slate-700 transition-colors cursor-pointer">

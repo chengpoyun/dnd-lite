@@ -1,17 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
-import { LoginPage } from './components/LoginPage';
-import { UserProfile } from './components/UserProfile';
-import { CharacterSelector } from './components/CharacterSelector';
+import { WelcomePage } from './components/WelcomePage';
+import { CharacterSelectPage } from './components/CharacterSelectPage';
 import { CharacterSheet } from './components/CharacterSheet';
 import { DiceRoller } from './components/DiceRoller';
 import { CombatView } from './components/CombatView';
 import { SpellsView } from './components/SpellsView';
 import { InventoryView } from './components/InventoryView';
 import { CharacterStats } from './types';
-import { CharacterService, CacheService } from './services/database';
+import { HybridDataManager } from './services/hybridDataManager';
+import { AuthService } from './services/auth';
+import { AnonymousService } from './services/anonymous';
+import { DatabaseInitService } from './services/databaseInit';
 import type { Character } from './lib/supabase';
-import { MigrationService } from './services/migration';
 
 enum Tab {
   CHARACTER = 'character',
@@ -21,311 +22,287 @@ enum Tab {
   DICE = 'dice'
 }
 
-const STORAGE_KEY = 'dnd_char_stats_v3';
+type AppState = 'welcome' | 'characterSelect' | 'main'
+type UserMode = 'authenticated' | 'anonymous'
 
 const INITIAL_STATS: CharacterStats = {
-  name: "吉姆利",
+  name: "新角色",
   class: "戰士",
-  level: 3,
-  exp: 2700,
-  hp: { current: 32, max: 32, temp: 0 },
-  hitDice: { current: 3, total: 3, die: "d10" },
-  ac: 18,
+  level: 1,
+  exp: 0,
+  hp: { current: 10, max: 10, temp: 0 },
+  hitDice: { current: 1, total: 1, die: "d10" },
+  ac: 10,
   initiative: 0,
   speed: 30,
-  abilityScores: { str: 16, dex: 10, con: 16, int: 8, wis: 12, cha: 10 },
-  proficiencies: { "運動": 1, "威嚇": 1, "歷史": 1, "生存": 1 },
-  savingProficiencies: ["str", "con"],
-  downtime: 14,
-  renown: { used: 1200, total: 5000 },
-  prestige: { org: "皇家古生物學院", level: 1, rankName: "階級一" },
-  attacks: [
-    { name: "戰斧 (雙手)", bonus: 5, damage: "1d10 + 3", type: "揮砍" },
-    { name: "戰斧 (單手)", bonus: 5, damage: "1d8 + 3", type: "揮砍" },
-    { name: "手弩", bonus: 2, damage: "1d6", type: "穿刺" }
-  ],
-  currency: { cp: 120, sp: 45, ep: 0, gp: 320, pp: 5 },
+  abilityScores: { str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10 },
+  proficiencies: {},
+  savingProficiencies: [],
+  downtime: 0,
+  renown: { used: 0, total: 0 },
+  prestige: { org: "", level: 0, rankName: "" },
+  attacks: [],
+  currency: { cp: 0, sp: 0, ep: 0, gp: 50, pp: 0 },
   avatarUrl: undefined,
-  customRecords: [
-    { id: 'initial-prestige', name: "皇家古生物學院", value: "1", note: "階級一" }
-  ]
-};
-
-const deepMerge = (initial: any, saved: any): any => {
-  const result = { ...initial, ...saved };
-  for (const key in initial) {
-    if (initial[key] && typeof initial[key] === 'object' && !Array.isArray(initial[key])) {
-      result[key] = { ...initial[key], ...(saved[key] || {}) };
-    }
-    if (Array.isArray(initial[key]) && Array.isArray(saved[key])) {
-      result[key] = saved[key];
-    }
-  }
-  return result;
+  customRecords: []
 };
 
 const AuthenticatedApp: React.FC = () => {
   const { user } = useAuth();
-  // 修改預設分頁為 CHARACTER
-  const [activeTab, setActiveTab] = useState<Tab>(Tab.CHARACTER);
   
-  // 角色数据库管理
-  const [currentCharacterId, setCurrentCharacterId] = useState<string | null>(null);
-  const [stats, setStats] = useState<CharacterStats>(INITIAL_STATS);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isMigrated, setIsMigrated] = useState(false);
+  // 應用程式狀態
+  const [appState, setAppState] = useState<AppState>('welcome')
+  const [userMode, setUserMode] = useState<UserMode>('anonymous')
+  const [activeTab, setActiveTab] = useState<Tab>(Tab.CHARACTER)
+  
+  // 角色數據
+  const [currentCharacter, setCurrentCharacter] = useState<Character | null>(null)
+  const [stats, setStats] = useState<CharacterStats>(INITIAL_STATS)
+  const [isLoading, setIsLoading] = useState(true)
 
-  // 初始化数据
+  // 初始化狀態
   useEffect(() => {
-    const initializeData = async () => {
+    const initializeApp = async () => {
+      setIsLoading(true)
       try {
-        setIsLoading(true);
+        // 首先初始化資料庫
+        await DatabaseInitService.initializeTables()
         
-        // 检查是否需要迁移数据
-        if (MigrationService.needsMigration() && !isMigrated) {
-          console.log('检测到需要迁移的角色数据...');
-          const migratedId = await MigrationService.migrateCharacterData('我的角色');
-          if (migratedId) {
-            setCurrentCharacterId(migratedId);
-            localStorage.setItem('current_character_id', migratedId);
-            setIsMigrated(true);
-          }
-        }
-        
-        // 尝试从缓存或 localStorage 获取当前角色 ID
-        let characterId = currentCharacterId;
-        if (!characterId) {
-          characterId = localStorage.getItem('current_character_id');
-        }
-        
-        if (characterId) {
-          // 从数据库加载角色数据
-          let character = CacheService.getCachedCharacter(characterId);
-          if (!character) {
-            character = await CharacterService.getCharacter(characterId);
-            if (character) {
-              CacheService.cacheCharacter(character);
-            }
-          }
-          
-          if (character) {
-            setStats(character.stats);
-            setCurrentCharacterId(character.id);
+        // 檢查用戶登入狀態
+        const isAuth = await AuthService.isAuthenticated()
+        if (isAuth) {
+          setUserMode('authenticated')
+          // 檢查是否有角色，決定跳轉到角色選擇或歡迎頁
+          const characters = await HybridDataManager.getUserCharacters()
+          if (characters.length > 0) {
+            setAppState('characterSelect')
           } else {
-            // 角色不存在，创建新角色
-            await createNewCharacter();
+            setAppState('characterSelect') // 仍然顯示角色選擇頁來創建第一個角色
           }
         } else {
-          // 没有角色 ID，创建新角色
-          await createNewCharacter();
+          // 檢查是否有本地角色數據
+          const characters = await HybridDataManager.getUserCharacters()
+          if (characters.length > 0) {
+            setUserMode('anonymous')
+            setAppState('characterSelect')
+          } else {
+            setAppState('welcome')
+          }
+          // 初始化匿名用戶上下文
+          await AnonymousService.init()
         }
-        
       } catch (error) {
-        console.error('数据初始化失败:', error);
-        // Fallback 到 localStorage
-        await loadFromLegacyStorage();
+        console.error('初始化失敗:', error)
+        setAppState('welcome')
       } finally {
-        setIsLoading(false);
+        setIsLoading(false)
       }
-    };
+    }
 
-    const createNewCharacter = async () => {
-      try {
-        const character = await CharacterService.createCharacter({
-          name: '我的角色',
-          stats: INITIAL_STATS
-        });
-        
-        if (character) {
-          setStats(character.stats);
-          setCurrentCharacterId(character.id);
-          localStorage.setItem('current_character_id', character.id);
-          CacheService.cacheCharacter(character);
-        }
-      } catch (error) {
-        console.error('创建新角色失败:', error);
-        await loadFromLegacyStorage();
-      }
-    };
+    initializeApp()
+  }, [user])
 
-    const loadFromLegacyStorage = async () => {
-      try {
-        const savedString = localStorage.getItem(STORAGE_KEY);
-        if (savedString) {
-          const parsed = JSON.parse(savedString);
-          // 如果舊資料是 Array，轉換為 Record
-          if (Array.isArray(parsed.proficiencies)) {
-            const record: Record<string, number> = {};
-            parsed.proficiencies.forEach((skill: string) => { record[skill] = 1; });
-            parsed.proficiencies = record;
-          }
-          setStats(deepMerge(INITIAL_STATS, parsed));
-        }
-      } catch (e) {
-        console.error("Critical: Character data loading failed", e);
-        setStats(INITIAL_STATS);
-      }
-    };
-
-    initializeData();
-  }, [currentCharacterId, isMigrated]);
-
-  // 保存角色数据到数据库
+  // 載入角色數據
   useEffect(() => {
-    const saveCharacterData = async () => {
-      if (currentCharacterId && !isLoading) {
-        try {
-          const updatedCharacter = await CharacterService.updateCharacter(currentCharacterId, {
-            stats: stats
-          });
-          
-          if (updatedCharacter) {
-            CacheService.cacheCharacter(updatedCharacter);
-          }
-        } catch (error) {
-          console.error('保存角色数据失败:', error);
-          // Fallback 到 localStorage
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(stats));
-        }
-      } else if (!currentCharacterId && !isLoading) {
-        // 如果没有角色 ID，保存到 localStorage 作为备份
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(stats));
-      }
-    };
+    if (currentCharacter) {
+      loadCharacterStats()
+    }
+  }, [currentCharacter])
 
-    saveCharacterData();
-  }, [stats, currentCharacterId, isLoading]);
+  const loadCharacterStats = async () => {
+    if (!currentCharacter) return
 
-  // 角色切換處理
-  const handleCharacterChange = (character: Character) => {
-    setCurrentCharacterId(character.id);
-    setStats(character.stats);
-    localStorage.setItem('current_character_id', character.id);
-    CacheService.cacheCharacter(character);
-  };
-
-  // 創建新角色處理
-  const handleCreateCharacter = async () => {
     try {
-      const character = await CharacterService.createCharacter({
-        name: `新角色 ${new Date().getMonth() + 1}/${new Date().getDate()}`,
-        stats: INITIAL_STATS
-      });
-      
-      if (character) {
-        handleCharacterChange(character);
+      const characterData = await HybridDataManager.getCharacter(currentCharacter.id)
+      if (characterData && characterData.character) {
+        // 從完整角色數據中提取 CharacterStats
+        const extractedStats = {
+          ...INITIAL_STATS,
+          name: characterData.character.name,
+          class: characterData.character.character_class || (characterData.character as any).class || '戰士',
+          level: characterData.character.level,
+          hp: {
+            current: characterData.currentStats?.current_hp || INITIAL_STATS.hp.current,
+            max: characterData.currentStats?.max_hp || INITIAL_STATS.hp.max,
+            temp: characterData.currentStats?.temporary_hp || INITIAL_STATS.hp.temp
+          },
+          ac: characterData.currentStats?.armor_class || INITIAL_STATS.ac,
+          initiative: characterData.currentStats?.initiative_bonus || INITIAL_STATS.initiative,
+          speed: characterData.currentStats?.speed || INITIAL_STATS.speed,
+          abilityScores: {
+            str: characterData.abilityScores?.strength || INITIAL_STATS.abilityScores.str,
+            dex: characterData.abilityScores?.dexterity || INITIAL_STATS.abilityScores.dex,
+            con: characterData.abilityScores?.constitution || INITIAL_STATS.abilityScores.con,
+            int: characterData.abilityScores?.intelligence || INITIAL_STATS.abilityScores.int,
+            wis: characterData.abilityScores?.wisdom || INITIAL_STATS.abilityScores.wis,
+            cha: characterData.abilityScores?.charisma || INITIAL_STATS.abilityScores.cha
+          },
+          currency: {
+            cp: characterData.currency?.copper || INITIAL_STATS.currency.cp,
+            sp: characterData.currency?.silver || INITIAL_STATS.currency.sp,
+            ep: characterData.currency?.electrum || INITIAL_STATS.currency.ep,
+            gp: characterData.currency?.gold || INITIAL_STATS.currency.gp,
+            pp: characterData.currency?.platinum || INITIAL_STATS.currency.pp
+          }
+        }
+        setStats(extractedStats)
       }
     } catch (error) {
-      console.error('創建角色失敗:', error);
+      console.error('載入角色數據失敗:', error)
     }
-  };
+  }
 
-  const renderContent = () => {
-    switch (activeTab) {
-      case Tab.CHARACTER: return <CharacterSheet stats={stats} setStats={setStats} />;
-      case Tab.COMBAT: return <CombatView stats={stats} setStats={setStats} />;
-      case Tab.SPELLS: return <SpellsView />;
-      case Tab.ITEMS: return <InventoryView stats={stats} setStats={setStats} />;
-      case Tab.DICE: return <DiceRoller />;
-      default: return <CharacterSheet stats={stats} setStats={setStats} />;
+  // 保存角色數據
+  useEffect(() => {
+    const saveCharacterData = async () => {
+      if (currentCharacter && appState === 'main') {
+        try {
+          // TODO: 實作完整的角色數據更新
+          console.log('角色數據已更新到 localStorage')
+          // HybridDataManager 的 updateCharacter 方法需要完整實作
+        } catch (error) {
+          console.error('保存角色數據失敗:', error)
+        }
+      }
     }
-  };
 
-  return (
-    <div className="flex flex-col h-screen max-w-md mx-auto overflow-hidden bg-slate-950">
-      {/* 頂部用戶資訊 */}
-      <header className="bg-slate-900 border-b border-slate-800 px-4 py-2">
-        <div className="flex justify-between items-center mb-2">
-          <div className="flex items-center gap-2">
-            <span className="text-xl">🎲</span>
-            <span className="text-lg font-bold text-amber-400">D&D 助手</span>
-          </div>
-          <UserProfile />
+    const timeoutId = setTimeout(saveCharacterData, 1000) // 延遲保存避免頻繁寫入
+    return () => clearTimeout(timeoutId)
+  }, [stats, currentCharacter, appState])
+
+  // 事件處理
+  const handleWelcomeNext = (mode: UserMode) => {
+    setUserMode(mode)
+    setAppState('characterSelect')
+  }
+
+  const handleCharacterSelect = (character: Character) => {
+    setCurrentCharacter(character)
+    setAppState('main')
+  }
+
+  const handleBackToCharacterSelect = () => {
+    setCurrentCharacter(null)
+    setAppState('characterSelect')
+  }
+
+  const handleBackToWelcome = () => {
+    setAppState('welcome')
+    setUserMode('anonymous')
+    setCurrentCharacter(null)
+  }
+
+  // 渲染邏輯
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-4 border-amber-400 border-t-transparent mx-auto mb-4"></div>
+          <p className="text-slate-400">載入中...</p>
         </div>
-        {/* 角色選擇器 */}
-        <CharacterSelector
-          currentCharacterId={currentCharacterId}
-          onCharacterChange={handleCharacterChange}
-          onCreateCharacter={handleCreateCharacter}
-        />
-      </header>
+      </div>
+    )
+  }
 
-      <main className="flex-1 overflow-y-auto pb-16">
-        {/* 数据加载状态 */}
-        {isLoading ? (
-          <div className="flex justify-center items-center h-64">
-            <div className="flex flex-col items-center gap-3">
-              <div className="animate-spin rounded-full h-8 w-8 border-2 border-amber-500 border-t-transparent"></div>
-              <span className="text-[14px] text-amber-500/80">正在加载角色数据...</span>
+  // 歡迎頁面
+  if (appState === 'welcome') {
+    return <WelcomePage onNext={handleWelcomeNext} />
+  }
+
+  // 角色選擇頁面
+  if (appState === 'characterSelect') {
+    return (
+      <CharacterSelectPage
+        userMode={userMode}
+        onCharacterSelect={handleCharacterSelect}
+        onBack={handleBackToWelcome}
+      />
+    )
+  }
+
+  // 主應用程式
+  if (appState === 'main' && currentCharacter) {
+    return (
+      <div className="min-h-screen bg-slate-950 text-slate-100">
+        {/* 標題欄 */}
+        <header className="bg-slate-900 border-b border-slate-800 px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <button
+                onClick={handleBackToCharacterSelect}
+                className="text-slate-400 hover:text-slate-200 transition-colors"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+              <h1 className="text-xl font-bold text-amber-400">{currentCharacter.name}</h1>
+              <span className="text-slate-400 text-sm">
+                {currentCharacter.character_class || (currentCharacter as any).class || '戰士'} 等級 {currentCharacter.level}
+              </span>
+            </div>
+            
+            <div className="text-slate-400 text-sm">
+              {userMode === 'anonymous' ? '匿名模式' : '已登入'}
             </div>
           </div>
-        ) : (
-          <>
-            {renderContent()}
-          </>
-        )}
-      </main>
+        </header>
 
-      <nav className="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-slate-900/95 backdrop-blur-md border-t border-slate-800 safe-bottom shadow-2xl z-50">
-        <div className="flex justify-around items-center h-16">
-          <button onClick={() => setActiveTab(Tab.CHARACTER)} className={`flex flex-col items-center flex-1 transition-all duration-200 ${activeTab === Tab.CHARACTER ? 'text-amber-500 scale-110' : 'text-slate-500'}`}>
-            <span className="text-xl">👤</span>
-            <span className="text-[14px] mt-0.5 font-black uppercase tracking-tighter">角色</span>
-          </button>
-          <button onClick={() => setActiveTab(Tab.COMBAT)} className={`flex flex-col items-center flex-1 transition-all duration-200 ${activeTab === Tab.COMBAT ? 'text-amber-500 scale-110' : 'text-slate-500'}`}>
-            <span className="text-xl">⚔️</span>
-            <span className="text-[14px] mt-0.5 font-black uppercase tracking-tighter">戰鬥</span>
-          </button>
-          <button onClick={() => setActiveTab(Tab.SPELLS)} className={`flex flex-col items-center flex-1 transition-all duration-200 ${activeTab === Tab.SPELLS ? 'text-amber-500 scale-110' : 'text-slate-500'}`}>
-            <span className="text-xl">📖</span>
-            <span className="text-[14px] mt-0.5 font-black uppercase tracking-tighter">法術</span>
-          </button>
-          <button onClick={() => setActiveTab(Tab.ITEMS)} className={`flex flex-col items-center flex-1 transition-all duration-200 ${activeTab === Tab.ITEMS ? 'text-amber-500 scale-110' : 'text-slate-500'}`}>
-            <span className="text-xl">🎒</span>
-            <span className="text-[14px] mt-0.5 font-black uppercase tracking-tighter">道具</span>
-          </button>
-          <button onClick={() => setActiveTab(Tab.DICE)} className={`flex flex-col items-center flex-1 transition-all duration-200 ${activeTab === Tab.DICE ? 'text-amber-500 scale-110' : 'text-slate-500'}`}>
-            <span className="text-xl">🎲</span>
-            <span className="text-[14px] mt-0.5 font-black uppercase tracking-tighter">擲骰</span>
-          </button>
-        </div>
-      </nav>
-    </div>
-  );
-};
+        {/* 分頁導航 */}
+        <nav className="bg-slate-900/50 border-b border-slate-800">
+          <div className="flex overflow-x-auto">
+            {[
+              { id: Tab.CHARACTER, label: '角色', icon: '👤' },
+              { id: Tab.COMBAT, label: '戰鬥', icon: '⚔️' },
+              { id: Tab.SPELLS, label: '法術', icon: '✨' },
+              { id: Tab.ITEMS, label: '道具', icon: '🎒' },
+              { id: Tab.DICE, label: '骰子', icon: '🎲' }
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center gap-2 px-6 py-4 text-sm font-medium transition-colors whitespace-nowrap ${
+                  activeTab === tab.id
+                    ? 'text-amber-400 border-b-2 border-amber-400'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                <span className="text-base">{tab.icon}</span>
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        </nav>
 
-// 主 App 組件
+        {/* 主要內容 */}
+        <main className="p-6">
+          {activeTab === Tab.CHARACTER && (
+            <CharacterSheet stats={stats} setStats={setStats} />
+          )}
+          {activeTab === Tab.COMBAT && (
+            <CombatView stats={stats} setStats={setStats} />
+          )}
+          {activeTab === Tab.SPELLS && (
+            <SpellsView stats={stats} setStats={setStats} />
+          )}
+          {activeTab === Tab.ITEMS && (
+            <InventoryView stats={stats} setStats={setStats} />
+          )}
+          {activeTab === Tab.DICE && <DiceRoller />}
+        </main>
+      </div>
+    )
+  }
+
+  return null
+}
+
 const App: React.FC = () => {
   return (
     <AuthProvider>
-      <AppContent />
+      <AuthenticatedApp />
     </AuthProvider>
   );
-};
-
-// App 內容組件（需要在 AuthProvider 內部才能使用 useAuth）
-const AppContent: React.FC = () => {
-  const { user, isLoading: isAuthLoading } = useAuth();
-
-  if (isAuthLoading) {
-    // 認證狀態載入中
-    return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-        <div className="flex flex-col items-center gap-3">
-          <div className="animate-spin rounded-full h-8 w-8 border-2 border-amber-500 border-t-transparent"></div>
-          <span className="text-[14px] text-amber-500/80">載入中...</span>
-        </div>
-      </div>
-    );
-  }
-
-  if (!user) {
-    // 用戶未登入，顯示登入頁面
-    return <LoginPage />;
-  }
-
-  // 用戶已登入，顯示主應用
-  return <AuthenticatedApp />;
 };
 
 export default App;

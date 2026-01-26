@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
-import { CharacterService } from '../services/database'
+import { DetailedCharacterService } from '../services/detailedCharacter'
+import { useAuth } from '../contexts/AuthContext'
 import type { Character } from '../lib/supabase'
-import type { CharacterStats } from '../types'
 
 interface CharacterSelectorProps {
   currentCharacterId: string | null
@@ -14,24 +14,35 @@ export const CharacterSelector: React.FC<CharacterSelectorProps> = ({
   onCharacterChange,
   onCreateCharacter
 }) => {
+  const { user } = useAuth()
   const [characters, setCharacters] = useState<Character[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
 
   useEffect(() => {
     loadCharacters()
-  }, [])
+  }, [user])
 
   const loadCharacters = async () => {
     try {
       setIsLoading(true)
-      const userCharacters = await CharacterService.getCharacters()
+      const userCharacters = await DetailedCharacterService.getUserCharacters()
       setCharacters(userCharacters)
     } catch (error) {
       console.error('載入角色清單失敗:', error)
     } finally {
       setIsLoading(false)
     }
+  }
+
+  const handleCreateCharacter = () => {
+    // 匿名用戶只能有一個角色
+    if (!user && characters.length >= 1) {
+      alert('匿名用戶只能創建一個角色。請登入 Google 帳號以創建更多角色。')
+      return
+    }
+    onCreateCharacter()
+    setIsDropdownOpen(false)
   }
 
   const currentCharacter = characters.find(char => char.id === currentCharacterId)
@@ -51,7 +62,8 @@ export const CharacterSelector: React.FC<CharacterSelectorProps> = ({
                 {currentCharacter.name}
               </div>
               <div className="text-xs text-slate-400 truncate">
-                Lv.{currentCharacter.stats.level} {currentCharacter.stats.class}
+                Lv.{currentCharacter.level} {currentCharacter.class}
+                {!user && <span className="ml-1 text-amber-400">(匿名)</span>}
               </div>
             </>
           ) : (
@@ -77,7 +89,14 @@ export const CharacterSelector: React.FC<CharacterSelectorProps> = ({
         <div className="absolute left-0 top-12 w-72 bg-slate-800 border border-slate-700 rounded-lg shadow-lg z-50">
           {/* 標題 */}
           <div className="p-4 border-b border-slate-700">
-            <h3 className="text-sm font-medium text-slate-200">選擇角色</h3>
+            <h3 className="text-sm font-medium text-slate-200 flex items-center justify-between">
+              選擇角色
+              {!user && (
+                <span className="text-xs text-amber-400 bg-amber-400/10 px-2 py-1 rounded">
+                  匿名模式 (最多1個)
+                </span>
+              )}
+            </h3>
           </div>
 
           {/* 角色清單 */}
@@ -108,9 +127,10 @@ export const CharacterSelector: React.FC<CharacterSelectorProps> = ({
                       <div className="flex-1 min-w-0">
                         <div className="text-sm font-medium text-slate-200 truncate">
                           {character.name}
+                          {character.is_anonymous && <span className="ml-1 text-amber-400 text-xs">(匿名)</span>}
                         </div>
                         <div className="text-xs text-slate-400 truncate">
-                          Lv.{character.stats.level} {character.stats.class} • HP: {character.stats.hp.current}/{character.stats.hp.max}
+                          Lv.{character.level} {character.class}
                         </div>
                       </div>
                     </div>
@@ -130,17 +150,20 @@ export const CharacterSelector: React.FC<CharacterSelectorProps> = ({
           {/* 創建新角色按鈕 */}
           <div className="p-3 border-t border-slate-700">
             <button
-              onClick={() => {
-                onCreateCharacter()
-                setIsDropdownOpen(false)
-              }}
-              className="w-full flex items-center justify-center gap-2 bg-amber-600 hover:bg-amber-700 text-slate-900 font-medium py-2 px-4 rounded-lg transition-colors duration-200"
+              onClick={handleCreateCharacter}
+              disabled={!user && characters.length >= 1}
+              className="w-full flex items-center justify-center gap-2 bg-amber-600 hover:bg-amber-700 text-slate-900 font-medium py-2 px-4 rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-amber-600"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
               </svg>
-              創建新角色
+              {!user && characters.length >= 1 ? '需要登入以創建更多' : '創建新角色'}
             </button>
+            {!user && characters.length >= 1 && (
+              <p className="text-xs text-slate-500 mt-2 text-center">
+                匿名用戶限制一個角色
+              </p>
+            )}
           </div>
         </div>
       )}

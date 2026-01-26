@@ -1,4 +1,6 @@
 import { CharacterService, CombatItemService, CacheService } from './database'
+import { DetailedCharacterService } from './detailedCharacter'
+import { supabase } from '../lib/supabase'
 import type { CharacterStats, CombatItem as LocalCombatItem } from '../types'
 
 // 從 localStorage 遷移到 Supabase 的工具
@@ -15,28 +17,205 @@ export class MigrationService {
         return null
       }
 
-      // 建立新角色
-      const character = await CharacterService.createCharacter({
+      // 建立新角色（使用新的詳細資料庫結構）
+      const fullCharacter = await DetailedCharacterService.createCharacter({
         name: characterName,
+        class: existingStats.class,
+        level: existingStats.level,
         stats: existingStats
       })
 
-      if (!character) {
+      if (!fullCharacter) {
         throw new Error('建立角色失敗')
       }
 
-      console.log(`角色 "${characterName}" 遷移成功，ID: ${character.id}`)
-      
-      // 快取新角色
-      CacheService.cacheCharacter(character)
+      console.log(`角色 "${characterName}" 遷移成功，ID: ${fullCharacter.character.id}`)
       
       // 遷移戰鬥項目
-      await this.migrateCombatItems(character.id)
+      await this.migrateCombatItems(fullCharacter.character.id)
       
-      return character.id
+      return fullCharacter.character.id
     } catch (error) {
       console.error('角色資料遷移失敗:', error)
       return null
+    }
+  }
+
+  // 遷移所有舊格式角色資料到新結構
+  static async migrateAllCharacters(): Promise<{ success: number; failed: number }> {
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        console.warn('用戶未登入')
+        return { success: 0, failed: 0 }
+      }
+
+      // 獲取舊格式的角色
+      const { data: oldCharacters } = await supabase
+        .from('characters')
+        .select('*')
+        .eq('user_id', user.id)
+        .not('stats', 'is', null)
+
+      let success = 0
+      let failed = 0
+
+      for (const oldCharacter of oldCharacters || []) {
+        try {
+          await this.migrateCharacterToDetailedStructure(oldCharacter.id, oldCharacter.stats as CharacterStats)
+          success++
+        } catch (error) {
+          console.error(`遷移角色 ${oldCharacter.id} 失敗:`, error)
+          failed++
+        }
+      }
+
+      return { success, failed }
+    } catch (error) {
+      console.error('批量遷移失敗:', error)
+      return { success: 0, failed: 0 }
+    }
+  }
+
+  // 遷移單個角色到詳細結構
+  static async migrateCharacterToDetailedStructure(characterId: string, stats: CharacterStats): Promise<boolean> {
+    try {
+      // 更新角色基本資料
+      await supabase
+        .from('characters')
+        .update({
+          name: stats.name,
+          class: stats.class,
+          level: stats.level,
+          experience: stats.exp
+        })
+        .eq('id', characterId)
+
+      // 創建屬性分數
+      await supabase
+        .from('character_ability_scores')
+        .upsert({
+          character_id: characterId,
+          strength: stats.abilityScores.str,
+          dexterity: stats.abilityScores.dex,
+          constitution: stats.abilityScores.con,
+          intelligence: stats.abilityScores.int,
+          wisdom: stats.abilityScores.wis,
+          charisma: stats.abilityScores.cha
+        })
+
+      // 創建豁免骰資料
+      if (stats.savingThrows) {
+        const savingThrows = Object.entries(stats.savingThrows).map(([ability, isProficient]) => ({
+          character_id: characterId,
+          ability,
+          is_proficient: isProficient
+        }))
+        
+        await supabase
+          .from('character_saving_throws')
+          .upsert(savingThrows)
+      }
+
+      // 創建技能熟練度
+      if (stats.proficiencies) {
+        const skills = Object.entries(stats.proficiencies).map(([skillName, level]) => ({
+          character_id: characterId,
+          skill_name: skillName,
+          proficiency_level: level
+        }))
+        
+        await supabase
+          .from('character_skill_proficiencies')
+          .upsert(skills)
+      }
+
+      // 創建當前狀態
+      await supabase
+        .from('character_current_stats')
+        .upsert({
+          character_id: characterId,
+          current_hp: stats.hp.current,
+          max_hp: stats.hp.max,
+          temporary_hp: stats.hp.temp,
+          current_hit_dice: stats.hitDice.current,
+          total_hit_dice: stats.hitDice.total,
+          hit_die_type: stats.hitDice.die,
+          armor_class: stats.ac,
+          initiative_bonus: stats.initiative,
+          speed: stats.speed
+        })
+
+      // 創建貨幣
+      if (stats.currency) {
+        await supabase
+          .from('character_currency')
+          .upsert({
+            character_id: characterId,
+            copper: stats.currency.cp,
+            silver: stats.currency.sp,
+            electrum: stats.currency.ep,
+            gold: stats.currency.gp,
+            platinum: stats.currency.pp
+          })
+      }
+
+      // 遷移完成後清除舊的 stats 欄位
+      await supabase
+        .from('characters')
+        .update({ stats: null })
+        .eq('id', characterId)
+
+      console.log(`角色 ${characterId} 遷移到詳細結構成功`)
+      return true
+    } catch (error) {
+      console.error(`遷移角色 ${characterId} 到詳細結構失敗:`, error)
+      return false
+    }
+  }
+
+  // 檢查是否需要遷移到詳細結構
+  static async needsDetailedMigration(): Promise<boolean> {
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return false
+
+      const { data } = await supabase
+        .from('characters')
+        .select('id')
+        .eq('user_id', user.id)
+        .not('stats', 'is', null)
+        .limit(1)
+
+      return (data && data.length > 0) || false
+    } catch (error) {
+      console.error('檢查詳細遷移狀態失敗:', error)
+      return false
+    }
+  }
+
+  // 備份舊資料
+  static async backupOldData(): Promise<boolean> {
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return false
+
+      const { data: oldCharacters } = await supabase
+        .from('characters')
+        .select('*')
+        .eq('user_id', user.id)
+        .not('stats', 'is', null)
+
+      // 存儲到 localStorage 作為備份
+      if (oldCharacters && oldCharacters.length > 0) {
+        localStorage.setItem('dnd_backup_old_characters', JSON.stringify(oldCharacters))
+        console.log(`已備份 ${oldCharacters.length} 個角色的舊資料`)
+      }
+
+      return true
+    } catch (error) {
+      console.error('備份舊資料失敗:', error)
+      return false
     }
   }
 

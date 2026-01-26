@@ -1,0 +1,2 @@
+-- 直接添加 level 欄位的簡單遷移
+ALTER TABLE characters ADD COLUMN IF NOT EXISTS level INTEGER DEFAULT 1 NOT NULL;

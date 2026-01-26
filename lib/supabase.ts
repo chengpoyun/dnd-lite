@@ -7,28 +7,148 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || ''
 // 建立 Supabase 客戶端
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
-// 資料庫類型定義
+// 詳細資料庫類型定義
 export interface Character {
   id: string
-  user_id?: string
+  user_id: string | null
+  anonymous_id: string | null
   name: string
-  stats: CharacterStats
+  character_class: string
+  level: number
+  experience: number
+  is_anonymous: boolean
   created_at?: string
   updated_at?: string
 }
 
-export interface CombatItem {
+export interface CharacterAbilityScores {
   id: string
   character_id: string
-  category: 'action' | 'bonus' | 'reaction' | 'resource'
-  name: string
-  icon: string
-  max_uses: number
-  current_uses: number
-  recovery: 'round' | 'short' | 'long'
-  is_default: boolean
-  created_at?: string
+  strength: number
+  dexterity: number
+  constitution: number
+  intelligence: number
+  wisdom: number
+  charisma: number
+  updated_at?: string
 }
 
-// 從現有類型導入
+export interface CharacterSavingThrow {
+  id: string
+  character_id: string
+  ability: 'strength' | 'dexterity' | 'constitution' | 'intelligence' | 'wisdom' | 'charisma'
+  is_proficient: boolean
+  updated_at?: string
+}
+
+export interface CharacterSkillProficiency {
+  id: string
+  character_id: string
+  skill_name: string
+  proficiency_level: number // 0: 無熟練, 1: 熟練, 2: 專精
+  updated_at?: string
+}
+
+export interface CharacterCurrentStats {
+  id: string
+  character_id: string
+  current_hp: number
+  max_hp: number
+  temporary_hp: number
+  current_hit_dice: number
+  total_hit_dice: number
+  hit_die_type: string
+  armor_class: number
+  initiative_bonus: number
+  speed: number
+  updated_at?: string
+}
+
+export interface CharacterCurrency {
+  id: string
+  character_id: string
+  copper: number
+  silver: number
+  electrum: number
+  gold: number
+  platinum: number
+  updated_at?: string
+}
+
+export interface CharacterItem {
+  id: string
+  character_id: string
+  name: string
+  description?: string
+  quantity: number
+  weight: number
+  value_in_copper: number
+  item_type?: string
+  is_equipped: boolean
+  properties?: Record<string, any>
+  created_at?: string
+  updated_at?: string
+}
+
+export interface CharacterSpell {
+  id: string
+  character_id: string
+  name: string
+  level: number
+  school: string
+  casting_time: string
+  range_distance: string
+  components: string
+  duration: string
+  description: string
+  is_prepared: boolean
+  is_ritual: boolean
+  source?: string
+  created_at?: string
+  updated_at?: string
+}
+
+export interface CharacterSpellSlot {
+  id: string
+  character_id: string
+  spell_level: number
+  total_slots: number
+  used_slots: number
+  updated_at?: string
+}
+
+export interface CharacterCombatAction {
+  id: string
+  character_id: string
+  category: 'action' | 'bonus_action' | 'reaction' | 'resource'
+  name: string
+  icon: string
+  description?: string
+  max_uses: number
+  current_uses: number
+  recovery_type: 'turn' | 'short_rest' | 'long_rest' | 'manual'
+  is_default: boolean
+  action_type?: string
+  damage_formula?: string
+  attack_bonus?: number
+  save_dc?: number
+  created_at?: string
+  updated_at?: string
+}
+
+// 複合類型：完整的角色資料（用於前端顯示）
+export interface FullCharacterData {
+  character: Character
+  abilityScores: CharacterAbilityScores
+  savingThrows: CharacterSavingThrow[]
+  skillProficiencies: CharacterSkillProficiency[]
+  currentStats: CharacterCurrentStats
+  currency: CharacterCurrency
+  items: CharacterItem[]
+  spells: CharacterSpell[]
+  spellSlots: CharacterSpellSlot[]
+  combatActions: CharacterCombatAction[]
+}
+
+// 從現有類型導入（向後相容）
 import type { CharacterStats } from '../types'

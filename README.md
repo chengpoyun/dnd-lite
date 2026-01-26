@@ -1,104 +1,177 @@
-# DnD Lite - D&D 5E 角色助手
+# Supabase CLI
 
-一個輕量級的 D&D 5E 數位角色表和戰鬥追蹤工具。
+[![Coverage Status](https://coveralls.io/repos/github/supabase/cli/badge.svg?branch=main)](https://coveralls.io/github/supabase/cli?branch=main) [![Bitbucket Pipelines](https://img.shields.io/bitbucket/pipelines/supabase-cli/setup-cli/master?style=flat-square&label=Bitbucket%20Canary)](https://bitbucket.org/supabase-cli/setup-cli/pipelines) [![Gitlab Pipeline Status](https://img.shields.io/gitlab/pipeline-status/sweatybridge%2Fsetup-cli?label=Gitlab%20Canary)
+](https://gitlab.com/sweatybridge/setup-cli/-/pipelines)
 
-## ✨ 功能特色
+[Supabase](https://supabase.io) is an open source Firebase alternative. We're building the features of Firebase using enterprise-grade open source tools.
 
-- 📊 **角色數據管理** - 能力值、生命值、防禦等
-- ⚔️ **戰鬥系統** - D&D 5E 規則的動作經濟追蹤
-- 🎲 **骰子系統** - 內建各種骰子功能
-- 💾 **雲端同步** - 使用 Supabase 進行資料同步
-- 📱 **響應式設計** - 支援手機和桌面使用
+This repository contains all the functionality for Supabase CLI.
 
-## 🚀 快速開始
+- [x] Running Supabase locally
+- [x] Managing database migrations
+- [x] Creating and deploying Supabase Functions
+- [x] Generating types directly from your database schema
+- [x] Making authenticated HTTP requests to [Management API](https://supabase.com/docs/reference/api/introduction)
 
-### 前置需求
-- Node.js 20 或更高版本
-- Supabase 帳號
+## Getting started
 
-### 安裝步驟
+### Install the CLI
 
-1. **克隆專案**
-```bash
-git clone https://github.com/chengpoyun/dnd-lite.git
-cd dnd-lite
-```
-
-2. **安裝依賴**
-```bash
-npm install
-```
-
-3. **設定 Supabase**
-   - 前往 [Supabase](https://supabase.com) 建立新專案
-   - 複製專案的 URL 和 anon key
-   - 執行 `database/schema.sql` 中的 SQL 來建立資料表
-
-4. **環境變數設定**
-```bash
-cp .env.example .env
-```
-編輯 `.env` 檔案，填入您的 Supabase 設定：
-```env
-VITE_SUPABASE_URL=your_supabase_project_url
-VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
-```
-
-5. **啟動開發伺服器**
-```bash
-npm run dev
-```
-
-## 📊 資料庫結構
-
-專案使用 PostgreSQL (Supabase) 儲存資料：
-
-- `characters` - 角色基本資料和屬性
-- `combat_items` - 自定義戰鬥動作和道具
-
-詳見 `database/schema.sql` 檔案。
-
-## 🔄 資料遷移
-
-如果您之前使用過本地版本，系統會自動提示您將舊資料遷移到雲端。
-
-## 🛠 技術棧
-
-- **前端**: React 19 + TypeScript
-- **樣式**: Tailwind CSS
-- **建置工具**: Vite
-- **資料庫**: Supabase (PostgreSQL)
-- **部署**: GitHub Pages
-
-## 📝 開發
-
-### 專案結構
-```
-src/
-├── components/     # React 元件
-├── services/       # 資料服務層
-├── lib/           # 工具函式和設定
-├── types.ts       # TypeScript 類型定義
-└── ...
-
-database/
-└── schema.sql     # 資料庫結構
-
-.env.example       # 環境變數範本
-```
-
-### 可用指令
+Available via [NPM](https://www.npmjs.com) as dev dependency. To install:
 
 ```bash
-npm run dev        # 啟動開發伺服器
-npm run build      # 建置生產版本
-npm run preview    # 預覽生產版本
+npm i supabase --save-dev
 ```
 
-## 🤝 貢獻
+When installing with yarn 4, you need to disable experimental fetch with the following nodejs config.
 
-歡迎提交 Issues 和 Pull Requests！
+```
+NODE_OPTIONS=--no-experimental-fetch yarn add supabase
+```
 
-## 📄 授權
+> **Note**
+For Bun versions below v1.0.17, you must add `supabase` as a [trusted dependency](https://bun.sh/guides/install/trusted) before running `bun add -D supabase`.
 
-MIT License
+<details>
+  <summary><b>macOS</b></summary>
+
+  Available via [Homebrew](https://brew.sh). To install:
+
+  ```sh
+  brew install supabase/tap/supabase
+  ```
+
+  To install the beta release channel:
+  
+  ```sh
+  brew install supabase/tap/supabase-beta
+  brew link --overwrite supabase-beta
+  ```
+  
+  To upgrade:
+
+  ```sh
+  brew upgrade supabase
+  ```
+</details>
+
+<details>
+  <summary><b>Windows</b></summary>
+
+  Available via [Scoop](https://scoop.sh). To install:
+
+  ```powershell
+  scoop bucket add supabase https://github.com/supabase/scoop-bucket.git
+  scoop install supabase
+  ```
+
+  To upgrade:
+
+  ```powershell
+  scoop update supabase
+  ```
+</details>
+
+<details>
+  <summary><b>Linux</b></summary>
+
+  Available via [Homebrew](https://brew.sh) and Linux packages.
+
+  #### via Homebrew
+
+  To install:
+
+  ```sh
+  brew install supabase/tap/supabase
+  ```
+
+  To upgrade:
+
+  ```sh
+  brew upgrade supabase
+  ```
+
+  #### via Linux packages
+
+  Linux packages are provided in [Releases](https://github.com/supabase/cli/releases). To install, download the `.apk`/`.deb`/`.rpm`/`.pkg.tar.zst` file depending on your package manager and run the respective commands.
+
+  ```sh
+  sudo apk add --allow-untrusted <...>.apk
+  ```
+
+  ```sh
+  sudo dpkg -i <...>.deb
+  ```
+
+  ```sh
+  sudo rpm -i <...>.rpm
+  ```
+
+  ```sh
+  sudo pacman -U <...>.pkg.tar.zst
+  ```
+</details>
+
+<details>
+  <summary><b>Other Platforms</b></summary>
+
+  You can also install the CLI via [go modules](https://go.dev/ref/mod#go-install) without the help of package managers.
+
+  ```sh
+  go install github.com/supabase/cli@latest
+  ```
+
+  Add a symlink to the binary in `$PATH` for easier access:
+
+  ```sh
+  ln -s "$(go env GOPATH)/bin/cli" /usr/bin/supabase
+  ```
+
+  This works on other non-standard Linux distros.
+</details>
+
+<details>
+  <summary><b>Community Maintained Packages</b></summary>
+
+  Available via [pkgx](https://pkgx.sh/). Package script [here](https://github.com/pkgxdev/pantry/blob/main/projects/supabase.com/cli/package.yml).
+  To install in your working directory:
+
+  ```bash
+  pkgx install supabase
+  ```
+
+  Available via [Nixpkgs](https://nixos.org/). Package script [here](https://github.com/NixOS/nixpkgs/blob/master/pkgs/development/tools/supabase-cli/default.nix).
+</details>
+
+### Run the CLI
+
+```bash
+supabase bootstrap
+```
+
+Or using npx:
+
+```bash
+npx supabase bootstrap
+```
+
+The bootstrap command will guide you through the process of setting up a Supabase project using one of the [starter](https://github.com/supabase-community/supabase-samples/blob/main/samples.json) templates.
+
+## Docs
+
+Command & config reference can be found [here](https://supabase.com/docs/reference/cli/about).
+
+## Breaking changes
+
+We follow semantic versioning for changes that directly impact CLI commands, flags, and configurations.
+
+However, due to dependencies on other service images, we cannot guarantee that schema migrations, seed.sql, and generated types will always work for the same CLI major version. If you need such guarantees, we encourage you to pin a specific version of CLI in package.json.
+
+## Developing
+
+To run from source:
+
+```sh
+# Go >= 1.22
+go run . help
+```

@@ -1,7 +1,9 @@
 
+import './src/styles.css'
+import './src/styles.css'
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import AppDev from './AppDev'; // 使用簡化開發版本
+import App from './App'; // 使用完整功能版本
 
 const rootElement = document.getElementById('root');
 if (!rootElement) throw new Error("Root element not found");
@@ -9,6 +11,6 @@ if (!rootElement) throw new Error("Root element not found");
 const root = ReactDOM.createRoot(rootElement);
 root.render(
   <React.StrictMode>
-    <AppDev />
+    <App />
   </React.StrictMode>
 );
