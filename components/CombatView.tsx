@@ -5,7 +5,7 @@ import { CombatItemService } from '../services/database';
 import { MigrationService } from '../services/migration';
 import { PageContainer, Card, Button, Title, Subtitle, Input } from './ui';
 import { STYLES } from '../styles/common';
-import type { CombatItem as DatabaseCombatItem } from '../lib/supabase';
+import type { CharacterCombatAction as DatabaseCombatItem } from '../lib/supabase';
 
 interface CombatItem {
   id: string;
@@ -18,6 +18,12 @@ interface CombatItem {
   category?: string;
   item_id?: string;
   created_at?: string;
+  // D&D 5E 進階屬性
+  description?: string;
+  action_type?: 'attack' | 'spell' | 'ability' | 'item';
+  damage_formula?: string; // 如 '1d8+3'
+  attack_bonus?: number;   // 攻擊加值
+  save_dc?: number;        // 救難DC
 }
 
 const DEFAULT_ACTIONS: CombatItem[] = [
@@ -147,9 +153,9 @@ export const CombatView: React.FC<CombatViewProps> = ({ stats, setStats }) => {
         // 从数据库加载数据
         const combatItems = await CombatItemService.getCombatItems(characterId);
         
-        // 将数据库中的数据按类别分组
+        // 將資料庫中的數據按類別分組
         const actionItems = combatItems.filter(item => item.category === 'action');
-        const bonusItems = combatItems.filter(item => item.category === 'bonus');
+        const bonusItems = combatItems.filter(item => item.category === 'bonus_action');
         const reactionItems = combatItems.filter(item => item.category === 'reaction');
         const resourceItems = combatItems.filter(item => item.category === 'resource');
         
@@ -180,6 +186,49 @@ export const CombatView: React.FC<CombatViewProps> = ({ stats, setStats }) => {
     initializeData();
   }, [characterId, isMigrated]);
 
+  // 分類映射 - 前端到資料庫
+  const mapCategoryToDb = (category: ItemCategory): string => {
+    const mapping = {
+      'action': 'action',
+      'bonus': 'bonus_action',
+      'reaction': 'reaction', 
+      'resource': 'resource'
+    };
+    return mapping[category];
+  };
+
+  // 分類映射 - 資料庫到前端
+  const mapCategoryFromDb = (dbCategory: string): ItemCategory => {
+    const mapping = {
+      'action': 'action' as const,
+      'bonus_action': 'bonus' as const,
+      'reaction': 'reaction' as const,
+      'resource': 'resource' as const
+    };
+    return mapping[dbCategory] || 'resource' as const;
+  };
+
+  // 恢復類型映射 - 前端到資料庫
+  const mapRecoveryToDb = (recovery: 'round' | 'short' | 'long'): string => {
+    const mapping = {
+      'round': 'turn',
+      'short': 'short_rest',
+      'long': 'long_rest'
+    };
+    return mapping[recovery];
+  };
+
+  // 恢復類型映射 - 資料庫到前端
+  const mapRecoveryFromDb = (dbRecovery: string): 'round' | 'short' | 'long' => {
+    const mapping = {
+      'turn': 'round' as const,
+      'short_rest': 'short' as const,
+      'long_rest': 'long' as const,
+      'manual': 'long' as const // 手動管理預設為長休
+    };
+    return mapping[dbRecovery] || 'long' as const;
+  };
+
   // 将数据库项目转换为本地格式
   const convertDbItemToLocal = (dbItem: DatabaseCombatItem): CombatItem => ({
     id: dbItem.id, // 使用数据库 ID 作为主键
@@ -187,18 +236,24 @@ export const CombatView: React.FC<CombatViewProps> = ({ stats, setStats }) => {
     icon: dbItem.icon,
     current: dbItem.current_uses,
     max: dbItem.max_uses,
-    recovery: dbItem.recovery as 'round' | 'short' | 'long',
+    recovery: mapRecoveryFromDb(dbItem.recovery_type),
     character_id: dbItem.character_id,
-    category: dbItem.category,
+    category: mapCategoryFromDb(dbItem.category),
     item_id: dbItem.id, // 保存数据库 ID 作为 item_id
-    created_at: dbItem.created_at
+    created_at: dbItem.created_at,
+    // D&D 5E 進階屬性
+    description: dbItem.description,
+    action_type: dbItem.action_type as 'attack' | 'spell' | 'ability' | 'item',
+    damage_formula: dbItem.damage_formula,
+    attack_bonus: dbItem.attack_bonus,
+    save_dc: dbItem.save_dc
   });
 
   // 初始化默认项目到数据库
   const initializeDefaultItems = async () => {
     const defaultItems = [
       ...DEFAULT_ACTIONS.map(item => ({ ...item, category: 'action' })),
-      ...DEFAULT_BONUS_ACTIONS.map(item => ({ ...item, category: 'bonus' })),
+      ...DEFAULT_BONUS_ACTIONS.map(item => ({ ...item, category: 'bonus_action' })),
       ...DEFAULT_REACTIONS.map(item => ({ ...item, category: 'reaction' })),
       ...DEFAULT_RESOURCES.map(item => ({ ...item, category: 'resource' }))
     ];
@@ -211,7 +266,7 @@ export const CombatView: React.FC<CombatViewProps> = ({ stats, setStats }) => {
         icon: item.icon,
         current_uses: item.current,
         max_uses: item.max,
-        recovery: item.recovery,
+        recovery_type: mapRecoveryToDb(item.recovery),
         is_default: true
       });
     }
@@ -282,7 +337,7 @@ export const CombatView: React.FC<CombatViewProps> = ({ stats, setStats }) => {
           if (additionalFields.name) updateData.name = additionalFields.name;
           if (additionalFields.icon) updateData.icon = additionalFields.icon;
           if (additionalFields.max_uses !== undefined) updateData.max_uses = additionalFields.max_uses;
-          if (additionalFields.recovery) updateData.recovery = additionalFields.recovery;
+          if (additionalFields.recovery) updateData.recovery_type = mapRecoveryToDb(additionalFields.recovery);
         }
         
         await CombatItemService.updateCombatItem(dbItem.id, updateData);
@@ -357,12 +412,12 @@ export const CombatView: React.FC<CombatViewProps> = ({ stats, setStats }) => {
       // 保存到数据库
       await CombatItemService.createCombatItem({
         character_id: characterId,
-        category: activeCategory,
+        category: mapCategoryToDb(activeCategory),
         name: formName,
         icon: formIcon,
         current_uses: formMax,
         max_uses: formMax,
-        recovery: formRecovery,
+        recovery_type: mapRecoveryToDb(formRecovery),
         is_default: false
       });
     }

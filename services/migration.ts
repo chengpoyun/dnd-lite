@@ -251,7 +251,7 @@ export class MigrationService {
 
       const allItems = [
         ...combatData.actions.map(item => ({ ...item, category: 'action' as const })),
-        ...combatData.bonusActions.map(item => ({ ...item, category: 'bonus' as const })),
+        ...combatData.bonusActions.map(item => ({ ...item, category: 'bonus_action' as const })),
         ...combatData.reactions.map(item => ({ ...item, category: 'reaction' as const })),
         ...combatData.resources.map(item => ({ ...item, category: 'resource' as const }))
       ]
@@ -270,7 +270,7 @@ export class MigrationService {
           icon: item.icon,
           max_uses: item.max,
           current_uses: item.current,
-          recovery: item.recovery,
+          recovery_type: this.mapRecoveryToDb(item.recovery),
           is_default: false
         })
 
@@ -283,6 +283,16 @@ export class MigrationService {
     } catch (error) {
       console.error('戰鬥項目遷移失敗:', error)
     }
+  }
+
+  // 恢復類型映射
+  private static mapRecoveryToDb(recovery: string): string {
+    const mapping = {
+      'round': 'turn',
+      'short': 'short_rest', 
+      'long': 'long_rest'
+    };
+    return mapping[recovery] || 'long_rest';
   }
 
   // 從 localStorage 取得現有角色數據

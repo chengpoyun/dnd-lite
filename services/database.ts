@@ -1,4 +1,4 @@
-import { supabase, type Character, type CombatItem } from '../lib/supabase'
+import { supabase, type Character, type CharacterCombatAction as CombatItem } from '../lib/supabase'
 import type { CharacterStats } from '../types'
 
 // 廢棄的 CharacterService 已移除，請使用 DetailedCharacterService
@@ -9,7 +9,7 @@ export class CombatItemService {
   static async getCombatItems(characterId: string): Promise<CombatItem[]> {
     try {
       const { data, error } = await supabase
-        .from('combat_items')
+        .from('character_combat_actions')
         .select('*')
         .eq('character_id', characterId)
         .order('category', { ascending: true })
@@ -26,7 +26,7 @@ export class CombatItemService {
   static async createCombatItem(item: Omit<CombatItem, 'id' | 'created_at'>): Promise<CombatItem | null> {
     try {
       const { data, error } = await supabase
-        .from('combat_items')
+        .from('character_combat_actions')
         .insert([item])
         .select()
         .single()
@@ -43,7 +43,7 @@ export class CombatItemService {
   static async updateCombatItem(id: string, updates: Partial<CombatItem>): Promise<CombatItem | null> {
     try {
       const { data, error } = await supabase
-        .from('combat_items')
+        .from('character_combat_actions')
         .update(updates)
         .eq('id', id)
         .select()
@@ -61,7 +61,7 @@ export class CombatItemService {
   static async deleteCombatItem(id: string): Promise<boolean> {
     try {
       const { error } = await supabase
-        .from('combat_items')
+        .from('character_combat_actions')
         .delete()
         .eq('id', id)
       
@@ -78,7 +78,7 @@ export class CombatItemService {
     try {
       const updates = items.map(item => 
         supabase
-          .from('combat_items')
+          .from('character_combat_actions')
           .update({ current_uses: item.current_uses })
           .eq('id', item.id)
       )
