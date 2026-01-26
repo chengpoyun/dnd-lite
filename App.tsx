@@ -8,6 +8,7 @@ import { CombatView } from './components/CombatView';
 import { SpellsView } from './components/SpellsView';
 import { InventoryView } from './components/InventoryView';
 import { CharacterStats } from './types';
+import { getModifier } from './utils/helpers';
 import { HybridDataManager } from './services/hybridDataManager';
 import { AuthService } from './services/auth';
 import { AnonymousService } from './services/anonymous';
@@ -33,7 +34,7 @@ const INITIAL_STATS: CharacterStats = {
   hp: { current: 10, max: 10, temp: 0 },
   hitDice: { current: 1, total: 1, die: "d10" },
   ac: 10,
-  initiative: 0,
+  initiative: 0, // 會在後續計算時被敵捷調整值覆蓋
   speed: 30,
   abilityScores: { str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10 },
   proficiencies: {},
@@ -159,6 +160,9 @@ const AuthenticatedApp: React.FC = () => {
       // 添加除錯資訊
       console.log('📊 角色數據載入:', {
         hasCharacterData: !!characterData,
+        currentCharacter: currentCharacter.name,
+        characterId: currentCharacter.id,
+        characterDataKeys: characterData ? Object.keys(characterData) : 'null',
         skillProficienciesType: Array.isArray(characterData?.skillProficiencies) ? 'array' : typeof characterData?.skillProficiencies,
         skillProficienciesLength: Array.isArray(characterData?.skillProficiencies) ? characterData.skillProficiencies.length : 'not-array',
         savingThrowsType: Array.isArray(characterData?.savingThrows) ? 'array' : typeof characterData?.savingThrows
@@ -179,7 +183,9 @@ const AuthenticatedApp: React.FC = () => {
             temp: characterData.currentStats?.temporary_hp || INITIAL_STATS.hp.temp
           },
           ac: characterData.currentStats?.armor_class || INITIAL_STATS.ac,
-          initiative: characterData.currentStats?.initiative_bonus || INITIAL_STATS.initiative,
+          initiative: characterData.currentStats?.initiative_bonus !== undefined 
+            ? characterData.currentStats.initiative_bonus 
+            : (characterData.abilityScores?.dexterity ? getModifier(characterData.abilityScores.dexterity) : 0),
           speed: characterData.currentStats?.speed || INITIAL_STATS.speed,
           abilityScores: {
             str: characterData.abilityScores?.strength || INITIAL_STATS.abilityScores.str,
@@ -293,6 +299,8 @@ const AuthenticatedApp: React.FC = () => {
     const saveCharacterData = async () => {
       if (currentCharacter && appState === 'main') {
         try {
+          console.log('Saving character data, initiative:', stats.initiative);
+          console.log('Full stats object:', stats);
           // 更新完整的角色數據
           const characterUpdates: CharacterUpdateData = {
             character: {

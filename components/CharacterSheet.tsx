@@ -110,35 +110,30 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({ stats, setStats 
 
   // 預覽計算 - 使用統一的數值處理函數
   const gpResult = handleValueInput(tempGPValue, stats.currency.gp, {
-    mode: 'calculate',
     minValue: 0,
     allowZero: true
   });
   const gpPreview = gpResult.isValid ? gpResult.numericValue : stats.currency.gp;
   
   const expResult = handleValueInput(tempExpValue, stats.exp, {
-    mode: 'calculate',
     minValue: 0,
     allowZero: true
   });
   const expPreview = expResult.isValid ? expResult.numericValue : stats.exp;
   
   const downtimeResult = handleValueInput(tempDowntimeValue, stats.downtime, {
-    mode: 'calculate',
     minValue: 0,
     allowZero: true
   });
   const downtimePreview = downtimeResult.isValid ? downtimeResult.numericValue : stats.downtime;
   
   const renownUsedResult = handleValueInput(tempRenownUsedValue, stats.renown.used, {
-    mode: 'calculate',
     minValue: 0,
     allowZero: true
   });
   const renownUsedPreview = renownUsedResult.isValid ? renownUsedResult.numericValue : stats.renown.used;
   
   const renownTotalResult = handleValueInput(tempRenownTotalValue, stats.renown.total, {
-    mode: 'calculate',
     minValue: 0,
     allowZero: true
   });

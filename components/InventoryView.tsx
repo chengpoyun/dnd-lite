@@ -42,7 +42,6 @@ export const InventoryView: React.FC<InventoryViewProps> = ({ stats, setStats })
   const maxWeight = stats.abilityScores.str * 15;
 
   const gpResult = handleValueInput(tempGPValue, stats.currency.gp, {
-    mode: 'calculate',
     minValue: 0,
     allowZero: true
   });

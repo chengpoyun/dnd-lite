@@ -124,6 +124,7 @@ export const CombatView: React.FC<CombatViewProps> = ({ stats, setStats, charact
   const [isEditMode, setIsEditMode] = useState(false);
   const [isHPModalOpen, setIsHPModalOpen] = useState(false);
   const [isACModalOpen, setIsACModalOpen] = useState(false);
+  const [isInitiativeModalOpen, setIsInitiativeModalOpen] = useState(false);
   const [isEndCombatConfirmOpen, setIsEndCombatConfirmOpen] = useState(false);
   const [isItemEditModalOpen, setIsItemEditModalOpen] = useState(false);
   const [isCategoryUsageModalOpen, setIsCategoryUsageModalOpen] = useState(false);
@@ -138,7 +139,9 @@ export const CombatView: React.FC<CombatViewProps> = ({ stats, setStats, charact
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
 
   const [tempHPValue, setTempHPValue] = useState('');
+  const [tempMaxHPValue, setTempMaxHPValue] = useState('');
   const [tempACValue, setTempACValue] = useState('');
+  const [tempInitiativeValue, setTempInitiativeValue] = useState('');
   
   const [tempCategoryCurrent, setTempCategoryCurrent] = useState('0');
   const [tempCategoryMax, setTempCategoryMax] = useState('1');
@@ -745,7 +748,11 @@ export const CombatView: React.FC<CombatViewProps> = ({ stats, setStats, charact
 
       {/* 核心數據摘要 */}
       <div className="grid grid-cols-4 gap-1.5">
-        <div onClick={() => { setTempHPValue(stats.hp.current.toString()); setIsHPModalOpen(true); }} className={`flex flex-col items-center justify-center bg-slate-900 p-2 rounded-xl border ${hpColors.border} active:bg-slate-800 transition-colors cursor-pointer shadow-sm`}>
+        <div onClick={() => { 
+          setTempHPValue(stats.hp.current.toString()); 
+          setTempMaxHPValue(stats.hp.max.toString());
+          setIsHPModalOpen(true); 
+        }} className={`flex flex-col items-center justify-center bg-slate-900 p-2 rounded-xl border ${hpColors.border} active:bg-slate-800 transition-colors cursor-pointer shadow-sm`}>
           <span className={`text-[11px] font-black uppercase mb-1 tracking-tighter ${hpColors.label}`}>生命值</span>
           <span className={`text-[14px] font-fantasy leading-none ${hpColors.text}`}>{stats.hp.current}/{stats.hp.max}</span>
         </div>
@@ -753,7 +760,7 @@ export const CombatView: React.FC<CombatViewProps> = ({ stats, setStats, charact
           <span className="text-[11px] font-black text-amber-500/80 uppercase mb-1 tracking-tighter">防禦</span>
           <span className="text-lg font-fantasy text-white leading-none">{stats.ac}</span>
         </div>
-        <div className="flex flex-col items-center justify-center bg-slate-900 p-2 rounded-xl border border-indigo-900/30 shadow-sm">
+        <div onClick={() => { setTempInitiativeValue(stats.initiative.toString()); setIsInitiativeModalOpen(true); }} className="flex flex-col items-center justify-center bg-slate-900 p-2 rounded-xl border border-indigo-900/30 active:bg-slate-800 transition-colors cursor-pointer shadow-sm">
           <span className="text-[11px] font-black text-indigo-400/80 uppercase mb-1 tracking-tighter">先攻</span>
           <span className="text-lg font-fantasy text-white leading-none">+{stats.initiative}</span>
         </div>
@@ -982,22 +989,99 @@ export const CombatView: React.FC<CombatViewProps> = ({ stats, setStats, charact
       {isHPModalOpen && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center px-6">
           <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-md" onClick={() => setIsHPModalOpen(false)} />
-          <div className="relative bg-slate-900 border border-slate-700 w-full max-w-xs rounded-3xl p-6 shadow-2xl animate-in zoom-in duration-150">
-            <h3 className="text-lg font-fantasy text-emerald-500 mb-4">修改生命值</h3>
-            <input type="text" value={tempHPValue} onChange={(e) => setTempHPValue(e.target.value)} className="w-full bg-slate-800 border border-slate-700 rounded-2xl p-4 text-3xl font-mono text-center text-white outline-none mb-4" placeholder={stats.hp.current.toString()} autoFocus />
+          <div className="relative bg-slate-900 border border-slate-700 w-full max-w-sm rounded-3xl p-6 shadow-2xl animate-in zoom-in duration-150">
+            <h3 className="text-lg font-fantasy text-emerald-500 mb-4 border-b border-slate-800 pb-2">修改生命值</h3>
+            
+            <div className="space-y-4">
+              <div>
+                <span className="text-[10px] text-slate-500 font-black block mb-2 uppercase tracking-widest">當前HP</span>
+                <input 
+                  type="text" 
+                  value={tempHPValue} 
+                  onChange={(e) => setTempHPValue(e.target.value)} 
+                  className="w-full bg-slate-800 border border-slate-700 rounded-xl p-4 text-3xl font-mono text-center text-white outline-none" 
+                  placeholder={stats.hp.current.toString()} 
+                  autoFocus 
+                />
+              </div>
+              
+              <div>
+                <span className="text-[10px] text-slate-500 font-black block mb-2 uppercase tracking-widest">最大HP</span>
+                <input 
+                  type="text" 
+                  value={tempMaxHPValue} 
+                  onChange={(e) => setTempMaxHPValue(e.target.value)} 
+                  className="w-full bg-slate-800 border border-slate-700 rounded-xl p-4 text-3xl font-mono text-center text-white outline-none" 
+                  placeholder={stats.hp.max.toString()} 
+                />
+              </div>
+            </div>
             <div className="flex gap-2">
-              <button onClick={() => setIsHPModalOpen(false)} className="flex-1 py-3 bg-slate-800 text-slate-400 rounded-xl font-bold">取消</button>
+              <button onClick={() => {
+                setIsHPModalOpen(false);
+                setTempHPValue('');
+                setTempMaxHPValue('');
+              }} className="flex-1 py-3 bg-slate-800 text-slate-400 rounded-xl font-bold">取消</button>
               <button onClick={() => { 
-                const result = handleValueInput(tempHPValue, stats.hp.current, {
-                  mode: 'calculate',
-                  minValue: 0,
-                  maxValue: stats.hp.max,
-                  allowZero: true
-                });
-                if (result.isValid) {
-                  setStats(prev => ({ ...prev, hp: { ...prev.hp, current: result.numericValue } }));
+                console.log('Current HP Input:', tempHPValue);
+                console.log('Max HP Input:', tempMaxHPValue);
+                
+                // 處理當前HP
+                let finalCurrentHP = stats.hp.current;
+                if (tempHPValue.trim()) {
+                  const isCalculationInput = tempHPValue.includes('+') || tempHPValue.includes('-');
+                  
+                  if (isCalculationInput) {
+                    const result = handleValueInput(tempHPValue, stats.hp.current, {
+                      minValue: 0,
+                      maxValue: stats.hp.max,
+                      allowZero: true
+                    });
+                    finalCurrentHP = result.isValid ? result.numericValue : stats.hp.current;
+                  } else {
+                    const numericValue = parseInt(tempHPValue);
+                    if (!isNaN(numericValue) && numericValue >= 0) {
+                      finalCurrentHP = numericValue;
+                    }
+                  }
                 }
-                setIsHPModalOpen(false); setTempHPValue(''); 
+                
+                // 處理最大HP
+                let finalMaxHP = stats.hp.max;
+                if (tempMaxHPValue.trim()) {
+                  const isCalculationInput = tempMaxHPValue.includes('+') || tempMaxHPValue.includes('-');
+                  
+                  if (isCalculationInput) {
+                    const result = handleValueInput(tempMaxHPValue, stats.hp.max, {
+                      minValue: 1,
+                      allowZero: false
+                    });
+                    finalMaxHP = result.isValid ? result.numericValue : stats.hp.max;
+                  } else {
+                    const numericValue = parseInt(tempMaxHPValue);
+                    if (!isNaN(numericValue) && numericValue >= 1) {
+                      finalMaxHP = numericValue;
+                    }
+                  }
+                }
+                
+                // 確保當前HP不超過最大HP
+                finalCurrentHP = Math.min(finalCurrentHP, finalMaxHP);
+                
+                console.log('Final Current HP:', finalCurrentHP);
+                console.log('Final Max HP:', finalMaxHP);
+                
+                setStats(prev => ({ 
+                  ...prev, 
+                  hp: { 
+                    current: finalCurrentHP,
+                    max: finalMaxHP
+                  } 
+                }));
+                
+                setIsHPModalOpen(false); 
+                setTempHPValue(''); 
+                setTempMaxHPValue('');
               }} className="flex-1 py-3 bg-emerald-600 text-white rounded-xl font-bold">套用</button>
             </div>
           </div>
@@ -1014,7 +1098,6 @@ export const CombatView: React.FC<CombatViewProps> = ({ stats, setStats, charact
               <button onClick={() => setIsACModalOpen(false)} className="flex-1 py-3 bg-slate-800 text-slate-400 rounded-xl font-bold">取消</button>
               <button onClick={() => { 
                 const result = handleValueInput(tempACValue, stats.ac, {
-                  mode: 'calculate',
                   minValue: 1,
                   allowZero: false
                 });
@@ -1023,6 +1106,53 @@ export const CombatView: React.FC<CombatViewProps> = ({ stats, setStats, charact
                 }
                 setIsACModalOpen(false); setTempACValue(''); 
               }} className="flex-1 py-3 bg-amber-600 text-white rounded-xl font-bold">套用</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isInitiativeModalOpen && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center px-6">
+          <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-md" onClick={() => setIsInitiativeModalOpen(false)} />
+          <div className="relative bg-slate-900 border border-slate-700 w-full max-w-xs rounded-3xl p-6 shadow-2xl animate-in zoom-in duration-150">
+            <h3 className="text-lg font-fantasy text-indigo-500 mb-4">修改先攻修正</h3>
+            <input 
+              type="text" 
+              value={tempInitiativeValue} 
+              onChange={(e) => setTempInitiativeValue(e.target.value)} 
+              className="w-full bg-slate-800 border border-slate-700 rounded-2xl p-4 text-3xl font-mono text-center text-white outline-none mb-4" 
+              placeholder={stats.initiative.toString()} 
+              autoFocus 
+            />
+            <div className="flex gap-2">
+              <button onClick={() => setIsInitiativeModalOpen(false)} className="flex-1 py-3 bg-slate-800 text-slate-400 rounded-xl font-bold">取消</button>
+              <button onClick={() => { 
+                // 如果輸入純數字，直接設定為該值
+                // 如果輸入運算表達式（如+2），則基於當前值計算
+                let finalValue;
+                const isCalculationInput = tempInitiativeValue.includes('+') || tempInitiativeValue.includes('-');
+                
+                if (isCalculationInput) {
+                  // 運算模式
+                  const result = handleValueInput(tempInitiativeValue, stats.initiative, {
+                    allowZero: true
+                  });
+                  finalValue = result.isValid ? result.numericValue : stats.initiative;
+                } else {
+                  // 純數字模式 - 直接設定
+                  const numericValue = parseInt(tempInitiativeValue);
+                  if (!isNaN(numericValue)) {
+                    finalValue = numericValue;
+                  } else {
+                    finalValue = stats.initiative; // 無效輸入時保持原值
+                  }
+                }
+                
+                console.log('Setting initiative from', stats.initiative, 'to', finalValue);
+                setStats(prev => ({ ...prev, initiative: finalValue }));
+                setIsInitiativeModalOpen(false); 
+                setTempInitiativeValue(''); 
+              }} className="flex-1 py-3 bg-indigo-600 text-white rounded-xl font-bold">套用</button>
             </div>
           </div>
         </div>

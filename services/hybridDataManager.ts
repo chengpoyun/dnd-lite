@@ -184,9 +184,25 @@ export class HybridDataManager {
   
   private static getLocalCharacter(characterId: string): FullCharacterData | null {
     try {
+      // 檢查 characterId 有效性
+      if (!characterId || characterId.trim() === '' || characterId.length < 32) {
+        console.error('getLocalCharacter: 無效的 characterId:', characterId)
+        return null
+      }
+
       const key = `${this.STORAGE_PREFIX}character_${characterId}`
       const data = localStorage.getItem(key)
-      return data ? JSON.parse(data) : null
+      if (!data) return null
+
+      const parsed = JSON.parse(data) as FullCharacterData
+      
+      // 驗證解析出的數據
+      if (!parsed?.character?.id) {
+        console.error('getLocalCharacter: 解析數據無效，缺少 character.id:', parsed)
+        return null
+      }
+
+      return parsed
     } catch (error) {
       console.warn('localStorage 讀取失敗:', error)
       return null
@@ -271,6 +287,12 @@ export class HybridDataManager {
   private static async syncToDatabase(characterId: string, data: FullCharacterData, blocking: boolean = true): Promise<void> {
     const syncOperation = async () => {
       try {
+        // 驗證 characterId 是有效的 UUID
+        if (!characterId || characterId.trim() === '' || characterId.length < 32) {
+          console.error('無效的 characterId，跳過 DB 同步:', characterId)
+          return
+        }
+
         const promises: Promise<any>[] = []
         
         // 更新角色基本信息 (需要實作相應的更新方法)
@@ -282,21 +304,21 @@ export class HybridDataManager {
             DetailedCharacterService.updateCurrentStats(characterId, data.currentStats)
           )
         }
-        
+
         // 更新能力值
         if (data.abilityScores) {
           promises.push(
             DetailedCharacterService.updateAbilityScores(characterId, data.abilityScores)
           )
         }
-        
+
         // 更新貨幣
         if (data.currency) {
           promises.push(
             DetailedCharacterService.updateCurrency(characterId, data.currency)
           )
         }
-        
+
         // 等待所有更新完成
         await Promise.all(promises)
         console.log(`DB 同步完成: ${data.character.name}`)
@@ -319,7 +341,14 @@ export class HybridDataManager {
   }
 
   private static async syncUpdatesToDatabase(characterId: string, updates: CharacterUpdateData) {
-    const promises: Promise<any>[] = []
+    try {
+      // 驗證 characterId 是有效的 UUID
+      if (!characterId || characterId.trim() === '' || characterId.length < 32) {
+        console.error('無效的 characterId，跳過 DB 更新:', characterId)
+        return
+      }
+
+      const promises: Promise<any>[] = []
     
     // 更新角色基本信息
     if (updates.character) {
@@ -376,6 +405,10 @@ export class HybridDataManager {
     // 等待所有同步完成
     await Promise.all(promises)
     console.log(`DB 同步成功: ${characterId}`)
+    } catch (error) {
+      console.error('DB 同步失敗:', error)
+      throw error
+    }
   }
   
   // ===== 工具方法 =====

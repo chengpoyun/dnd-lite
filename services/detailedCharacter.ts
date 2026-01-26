@@ -60,6 +60,12 @@ export class DetailedCharacterService {
   // 獲取完整的角色資料
   static async getFullCharacter(characterId: string): Promise<FullCharacterData | null> {
     try {
+      // 驗證 characterId 是有效的 UUID
+      if (!characterId || characterId.trim() === '' || characterId.length < 32) {
+        console.error('getFullCharacter: 無效的 characterId:', characterId)
+        return null
+      }
+
       const context = await this.getCurrentUserContext()
       
       // 驗證角色所有權
@@ -239,6 +245,12 @@ export class DetailedCharacterService {
   // 更新屬性分數
   static async updateAbilityScores(characterId: string, scores: Partial<CharacterAbilityScores>): Promise<boolean> {
     try {
+      // 驗證 characterId 是有效的 UUID
+      if (!characterId || characterId.trim() === '' || characterId.length < 32) {
+        console.error('updateAbilityScores: 無效的 characterId:', characterId)
+        return false
+      }
+
       const { error } = await supabase
         .from('character_ability_scores')
         .upsert(
@@ -260,6 +272,12 @@ export class DetailedCharacterService {
   // 更新當前狀態（血量、護甲值等）
   static async updateCurrentStats(characterId: string, stats: Partial<CharacterCurrentStats>): Promise<boolean> {
     try {
+      // 驗證 characterId 是有效的 UUID
+      if (!characterId || characterId.trim() === '' || characterId.length < 32) {
+        console.error('updateCurrentStats: 無效的 characterId:', characterId)
+        return false
+      }
+
       const { error } = await supabase
         .from('character_current_stats')
         .upsert(
@@ -331,6 +349,12 @@ export class DetailedCharacterService {
   // 更新貨幣
   static async updateCurrency(characterId: string, currency: Partial<CharacterCurrency>): Promise<boolean> {
     try {
+      // 驗證 characterId 是有效的 UUID
+      if (!characterId || characterId.trim() === '' || characterId.length < 32) {
+        console.error('updateCurrency: 無效的 characterId:', characterId)
+        return false
+      }
+
       const { error } = await supabase
         .from('character_currency')
         .upsert(
