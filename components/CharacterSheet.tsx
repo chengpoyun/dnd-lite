@@ -13,6 +13,7 @@ interface CharacterSheetProps {
   onSaveAbilityScores?: (abilityScores: CharacterStats['abilityScores']) => Promise<boolean>;
   onSaveCurrencyAndExp?: (gp: number, exp: number) => Promise<boolean>;
   onSaveExtraData?: (extraData: any) => Promise<boolean>;
+  onSaveAvatarUrl?: (avatarUrl: string) => Promise<boolean>;
 }
 
 const STAT_LABELS: Record<keyof CharacterStats['abilityScores'], string> = {
@@ -41,7 +42,8 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
   onSaveCharacterBasicInfo,
   onSaveAbilityScores,
   onSaveCurrencyAndExp,
-  onSaveExtraData
+  onSaveExtraData,
+  onSaveAvatarUrl
 }) => {
   const [activeModal, setActiveModal] = useState<'info' | 'abilities' | 'currency' | 'downtime' | 'renown' | 'skill_detail' | 'add_record' | 'edit_record' | null>(null);
   const [selectedSkill, setSelectedSkill] = useState<{ name: string; base: keyof CharacterStats['abilityScores'] } | null>(null);
@@ -475,6 +477,16 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
       
       // 更新狀態
       setStats(prev => ({ ...prev, avatarUrl: compressedBase64 }));
+      
+      // 保存到數據庫
+      if (onSaveAvatarUrl) {
+        const saveSuccess = await onSaveAvatarUrl(compressedBase64);
+        if (saveSuccess) {
+          console.log('✅ 頭像已成功保存到數據庫');
+        } else {
+          console.error('❌ 頭像保存到數據庫失敗');
+        }
+      }
       
     } catch (error) {
       console.error('圖片處理失敗:', error);

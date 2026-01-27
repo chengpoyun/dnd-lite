@@ -488,6 +488,36 @@ const AuthenticatedApp: React.FC = () => {
     }
   }
 
+  // 保存頭像 URL
+  const saveAvatarUrl = async (avatarUrl: string) => {
+    if (!currentCharacter || isSaving) return false
+    
+    setIsSaving(true)
+    try {
+      console.log('🖼️ 保存頭像 URL:', avatarUrl)
+      const characterUpdate: CharacterUpdateData = {
+        character: {
+          ...currentCharacter,
+          avatar_url: avatarUrl,
+          updated_at: new Date().toISOString()
+        }
+      }
+      
+      const success = await HybridDataManager.updateCharacter(currentCharacter.id, characterUpdate)
+      if (success) {
+        console.log('✅ 頭像保存成功')
+        // 更新本地角色資料
+        setCurrentCharacter(prev => prev ? { ...prev, avatar_url: avatarUrl } : null)
+      }
+      return success
+    } catch (error) {
+      console.error('❌ 頭像保存失敗:', error)
+      return false
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
   // 保存額外數據（downtime、renown、自定義記錄等）
   const saveExtraData = async (extraData: any) => {
     if (!currentCharacter || isSaving) return false
@@ -723,8 +753,8 @@ const AuthenticatedApp: React.FC = () => {
           {activeTab === Tab.CHARACTER && (
             <>
               {isCharacterDataReady ? (
-                <CharacterSheet 
-                  stats={stats} 
+                <CharacterSheet
+                  stats={stats}
                   setStats={setStats}
                   onSaveSkillProficiency={saveSkillProficiency}
                   onSaveSavingThrowProficiencies={saveSavingThrowProficiencies}
@@ -732,6 +762,7 @@ const AuthenticatedApp: React.FC = () => {
                   onSaveAbilityScores={saveAbilityScores}
                   onSaveCurrencyAndExp={saveCurrencyAndExp}
                   onSaveExtraData={saveExtraData}
+                  onSaveAvatarUrl={saveAvatarUrl}
                 />
               ) : (
                 <div className="flex items-center justify-center h-64">
