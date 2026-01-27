@@ -7,6 +7,8 @@ import { STYLES, combineStyles } from '../styles/common';
 interface CharacterSheetProps {
   stats: CharacterStats;
   setStats: React.Dispatch<React.SetStateAction<CharacterStats>>;
+  onSaveSkillProficiency?: (skillName: string, level: number) => Promise<boolean>;
+  onSaveSavingThrowProficiencies?: (proficiencies: string[]) => Promise<boolean>;
 }
 
 const STAT_LABELS: Record<keyof CharacterStats['abilityScores'], string> = {
@@ -27,7 +29,12 @@ const SKILLS_MAP: { name: string; base: keyof CharacterStats['abilityScores'] }[
 
 const ABILITY_KEYS: (keyof CharacterStats['abilityScores'])[] = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
 
-export const CharacterSheet: React.FC<CharacterSheetProps> = ({ stats, setStats }) => {
+export const CharacterSheet: React.FC<CharacterSheetProps> = ({ 
+  stats, 
+  setStats, 
+  onSaveSkillProficiency, 
+  onSaveSavingThrowProficiencies 
+}) => {
   const [activeModal, setActiveModal] = useState<'info' | 'abilities' | 'currency' | 'downtime' | 'renown' | 'skill_detail' | 'add_record' | 'edit_record' | null>(null);
   const [selectedSkill, setSelectedSkill] = useState<{ name: string; base: keyof CharacterStats['abilityScores'] } | null>(null);
   const [selectedRecord, setSelectedRecord] = useState<CustomRecord | null>(null);
@@ -52,15 +59,24 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({ stats, setStats 
     setActiveModal('skill_detail');
   };
 
-  const setSkillProficiency = (skillName: string, level: number) => {
+  const setSkillProficiency = async (skillName: string, level: number) => {
     console.log(`🎯 設定技能熟練度: ${skillName} = ${level}`)
+    
+    // 立即保存到數據庫
+    if (onSaveSkillProficiency) {
+      const success = await onSaveSkillProficiency(skillName, level)
+      if (success) {
+        console.log(`✅ 技能 ${skillName} 保存成功`)
+      } else {
+        console.error(`❌ 技能 ${skillName} 保存失敗`)
+      }
+    }
+    
+    // 更新本地狀態
     setStats(prev => {
       const newProfs = { ...prev.proficiencies };
-      if (level === 0) {
-        delete newProfs[skillName];
-      } else {
-        newProfs[skillName] = level;
-      }
+      // 不冊除技能，而是明確設定為 0、1 或 2
+      newProfs[skillName] = level;
       console.log('📝 更新後的技能熟練度:', newProfs)
       return { ...prev, proficiencies: newProfs };
     });
@@ -150,7 +166,7 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({ stats, setStats 
     setActiveModal(null); 
   };
   
-  const saveAbilities = () => { 
+  const saveAbilities = async () => { 
     // 驗證所有能力值不為空
     const abilities: any = {};
     let hasInvalidValue = false;
@@ -173,7 +189,18 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({ stats, setStats 
       setActiveModal(null);
       return;
     }
+
+    // 立即保存豁免熟練度到資料庫
+    if (onSaveSavingThrowProficiencies) {
+      const success = await onSaveSavingThrowProficiencies([...editSavingProfs])
+      if (success) {
+        console.log('✅ 豁免熟練度保存成功')
+      } else {
+        console.error('❌ 豁免熟練度保存失敗')
+      }
+    }
     
+    // 更新本地狀態
     setStats(prev => ({ ...prev, abilityScores: abilities, savingProficiencies: [...editSavingProfs] })); 
     setActiveModal(null); 
   };

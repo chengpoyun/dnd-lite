@@ -4,17 +4,25 @@ import { supabase } from '../lib/supabase'
  * 確保資料庫表結構正確的初始化服務
  */
 export class DatabaseInitService {
+  private static isInitialized: boolean = false // 添加初始化標記
   
   /**
    * 初始化資料庫表結構
    */
   static async initializeTables(): Promise<boolean> {
     try {
+      // 如果已經初始化過，直接返回成功
+      if (this.isInitialized) {
+        console.log('資料庫已初始化，跳過檢查')
+        return true
+      }
+
       console.log('開始檢查資料庫表結構...')
       
       // 檢查 characters 表是否存在並有正確的欄位
       await this.ensureCharactersTable()
       
+      this.isInitialized = true // 標記為已初始化
       console.log('資料庫表結構檢查完成')
       return true
     } catch (error) {

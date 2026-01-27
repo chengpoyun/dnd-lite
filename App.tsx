@@ -13,7 +13,7 @@ import { AuthService } from './services/auth';
 import { AnonymousService } from './services/anonymous';
 import { DatabaseInitService } from './services/databaseInit';
 import { UserSettingsService } from './services/userSettings';
-import type { Character, CharacterAbilityScores, CharacterCurrentStats, CharacterCurrency, CharacterUpdateData } from './lib/supabase';
+import type { Character, CharacterAbilityScores, CharacterCurrentStats, CharacterCurrency, CharacterUpdateData, CharacterSkillProficiency } from './lib/supabase';
 
 enum Tab {
   CHARACTER = 'character',
@@ -58,43 +58,77 @@ const AuthenticatedApp: React.FC = () => {
   const [currentCharacter, setCurrentCharacter] = useState<Character | null>(null)
   const [stats, setStats] = useState<CharacterStats>(INITIAL_STATS)
   const [isLoading, setIsLoading] = useState(true)
+  const [isLoadingCharacter, setIsLoadingCharacter] = useState(false) // 添加角色載入狀態
+  const [isSaving, setIsSaving] = useState(false) // 添加保存狀態鎖
 
   // 初始化狀態
   useEffect(() => {
     const initializeApp = async () => {
       setIsLoading(true)
+      
+      // 添加超時機制
+      const timeoutId = setTimeout(() => {
+        console.error('初始化超時，強制進入歡迎頁面')
+        setAppState('welcome')
+        setIsLoading(false)
+      }, 10000) // 10秒超時
+      
       try {
+        console.log('🚀 開始初始化應用...')
+        
         // 首先初始化資料庫
+        console.log('1. 初始化資料庫...')
         await DatabaseInitService.initializeTables()
         
-        // 檢查用戶登入狀態
+        // 檢查用戶登入狀態  
+        console.log('2. 檢查用戶登入狀態...')
         const isAuth = await AuthService.isAuthenticated()
         if (isAuth) {
+          console.log('3. 用戶已認證，設置認證模式')
           setUserMode('authenticated')
+          
           // 檢查是否有角色
+          console.log('4. 載入角色列表...')
           const characters = await HybridDataManager.getUserCharacters()
+          console.log(`找到 ${characters.length} 個角色`)
+          
           if (characters.length > 0) {
-            // 有角色，直接載入最後使用的角色
-            const lastCharacterId = await UserSettingsService.getLastCharacterId()
+            console.log('5. 有角色數據，載入最後使用的角色...')
+            
             let characterToLoad = characters[0] // 預設使用第一個角色
             
-            // 如果有記錄最後使用的角色，嘗試找到它
-            if (lastCharacterId) {
-              const lastCharacter = characters.find(c => c.id === lastCharacterId)
-              if (lastCharacter) {
-                characterToLoad = lastCharacter
-              } else {
-                // 最後記錄的角色不存在，清除記錄
-                await UserSettingsService.setLastCharacterId(null)
+            try {
+              const lastCharacterId = await UserSettingsService.getLastCharacterId()
+              console.log('6. 最後使用角色 ID:', lastCharacterId)
+              
+              // 如果有記錄最後使用的角色，嘗試找到它
+              if (lastCharacterId) {
+                const lastCharacter = characters.find(c => c.id === lastCharacterId)
+                if (lastCharacter) {
+                  characterToLoad = lastCharacter
+                } else {
+                  // 最後記錄的角色不存在，清除記錄
+                  await UserSettingsService.setLastCharacterId(null)
+                }
               }
+            } catch (settingsError) {
+              console.error('無法載入用戶設定，使用預設角色:', settingsError)
+              characterToLoad = characters[0]
             }
             
+            console.log('7. 設定角色並進入主頁面:', characterToLoad.name)
+            
             // 更新最後使用的角色記錄
-            await UserSettingsService.setLastCharacterId(characterToLoad.id)
+            try {
+              await UserSettingsService.setLastCharacterId(characterToLoad.id)
+            } catch (updateError) {
+              console.warn('無法更新最後使用角色記錄:', updateError)
+            }
             
             // 直接設定角色並進入主頁面
             setCurrentCharacter(characterToLoad)
             setAppState('main')
+            console.log('✅ 成功載入角色，進入主應用')
           } else {
             setAppState('characterSelect') // 沒有角色，顯示角色選擇頁來創建第一個角色
           }
@@ -117,10 +151,13 @@ const AuthenticatedApp: React.FC = () => {
           await AnonymousService.init()
         }
       } catch (error) {
-        console.error('初始化失敗:', error)
+        console.error('😨 初始化失敗:', error)
+        // 在出錯時進入歡迎頁面
         setAppState('welcome')
       } finally {
+        clearTimeout(timeoutId) // 清理超時定時器
         setIsLoading(false)
+        console.log('⚙️ 初始化完成')
       }
     }
 
@@ -135,7 +172,9 @@ const AuthenticatedApp: React.FC = () => {
   }, [currentCharacter])
 
   const loadCharacterStats = async () => {
-    if (!currentCharacter) return
+    if (!currentCharacter || isLoadingCharacter) return
+    
+    setIsLoadingCharacter(true) // 設置載入狀態
 
     try {
       const characterData = await HybridDataManager.getCharacter(currentCharacter.id)
@@ -185,31 +224,41 @@ const AuthenticatedApp: React.FC = () => {
             gp: characterData.currency?.gp || INITIAL_STATS.currency.gp,
             pp: characterData.currency?.platinum || INITIAL_STATS.currency.pp
           },
-          // 載入技能熟練度 - 處理不同的數據格式
+          // 載入技能熟練度 - 簡化處理，只載入有記錄的技能
           proficiencies: (() => {
             const skillProfs = characterData.skillProficiencies
+            const result: Record<string, number> = {};
             
             try {
               // 檢查是否為數組格式（新格式）
               if (Array.isArray(skillProfs)) {
-                return skillProfs.reduce((acc, skill) => {
-                  if (skill && typeof skill === 'object' && skill.skill_name) {
-                    acc[skill.skill_name] = skill.proficiency_level || 1
+                skillProfs.forEach(skill => {
+                  if (skill && typeof skill === 'object' && skill.skill_name && skill.proficiency_level > 0) {
+                    result[skill.skill_name] = skill.proficiency_level;
                   }
-                  return acc
-                }, {} as Record<string, number>)
+                });
+                console.log('📊 載入技能熟練度（陣列格式）:', result);
+                return result;
               }
               
               // 檢查是否已經是物件格式（舊格式/直接格式）
               if (skillProfs && typeof skillProfs === 'object' && !Array.isArray(skillProfs)) {
-                return skillProfs as Record<string, number>
+                // 只包含熟練度 > 0 的技能
+                Object.entries(skillProfs as Record<string, number>).forEach(([skillName, level]) => {
+                  if (level > 0) {
+                    result[skillName] = level;
+                  }
+                });
+                console.log('📊 載入技能熟練度（物件格式）:', result);
+                return result;
               }
             } catch (skillError) {
               console.warn('🔧 技能熟練度處理異常，使用預設值:', skillError)
             }
             
-            // 預設值
-            return INITIAL_STATS.proficiencies
+            // 預設值 - 空物件（沒有任何技能熟練度）
+            console.log('📊 使用預設技能熟練度（空）');
+            return result;
           })(),
           // 載入豁免骰熟練度 - 添加安全檢查和詳細除錯
           savingProficiencies: (() => {
@@ -274,89 +323,164 @@ const AuthenticatedApp: React.FC = () => {
       })
       // 設置預設值以防止應用崩潰
       setStats(INITIAL_STATS)
+    } finally {
+      setIsLoadingCharacter(false) // 清除載入狀態
     }
   }
 
-  // 保存角色數據
+  // 保存操作鎖和序列化機制
+  const saveTimeoutRef = React.useRef<NodeJS.Timeout | null>(null)
+  
+  // 移除自動保存 useEffect，改為按需保存
+  /*
+  // 角色數據自動保存 effect - 只在關鍵數據變化時觸發
   useEffect(() => {
-    const saveCharacterData = async () => {
-      if (currentCharacter && appState === 'main') {
-        try {
-          console.log('Saving character data, initiative:', stats.initiative);
-          console.log('Full stats object:', stats);
-          // 更新完整的角色數據
-          const characterUpdates: CharacterUpdateData = {
-            character: {
-              ...currentCharacter,
-              name: stats.name || '未命名角色',
-              character_class: stats.class || '戰士',
-              level: stats.level || 1,
-              experience: stats.exp || 0,
-              avatar_url: stats.avatarUrl,
-              updated_at: new Date().toISOString()
-            },
-            currentStats: {
-              character_id: currentCharacter.id,
-              current_hp: stats.hp.current || 1,
-              max_hp: stats.hp.max || 1,
-              temporary_hp: stats.hp.temp || 0,
-              current_hit_dice: stats.hitDice.current || 0,
-              total_hit_dice: stats.hitDice.total || stats.level || 1, // 使用角色等級作為預設值
-              armor_class: stats.ac || 10,
-              initiative_bonus: stats.initiative || 0, // 使用角色的先攻修正
-              speed: stats.speed || 30,
-              hit_die_type: stats.hitDice.die || 'd8', // 使用實際的骰子類型
-              extra_data: {
-                downtime: stats.downtime || 0,
-                renown: stats.renown || { used: 0, total: 0 },
-                prestige: stats.prestige || { org: '', level: 0, rankName: '' },
-                customRecords: stats.customRecords || [],
-                attacks: stats.attacks || []
-              }
-            } as Partial<CharacterCurrentStats>,
-            abilityScores: {
-              character_id: currentCharacter.id,
-              strength: stats.abilityScores.str || 10,
-              dexterity: stats.abilityScores.dex || 10,
-              constitution: stats.abilityScores.con || 10,
-              intelligence: stats.abilityScores.int || 10,
-              wisdom: stats.abilityScores.wis || 10,
-              charisma: stats.abilityScores.cha || 10
-            } as Partial<CharacterAbilityScores>,
-            currency: {
-              character_id: currentCharacter.id,
-              gp: stats.currency.gp || 0, // 使用統一的 gp 欄位
-              copper: stats.currency.cp || 0,
-              silver: stats.currency.sp || 0,
-              electrum: stats.currency.ep || 0,
-              platinum: stats.currency.pp || 0
-            } as Partial<CharacterCurrency>
-          };
+    // ... 自動保存代碼已註釋掉，改為按需保存
+  }, []);
+  */
 
-          console.log('💾 準備保存到 DB:', {
-            skillProficiencies: stats.proficiencies || {},
-            savingProficiencies: stats.savingProficiencies || [],
-            formattedSavingThrows: (stats.savingProficiencies || []).map(ability => ({
-              character_id: currentCharacter.id,
-              ability,
-              is_proficient: true
-            }))
-          });
+  // 專門的數據保存函數 - 按需調用
+  
+  // 保存技能熟練度
+  const saveSkillProficiency = async (skillName: string, level: number) => {
+    if (!currentCharacter) return false
+    
+    console.log('🎯 保存技能熟練度:', { skillName, level })
+    return await HybridDataManager.updateSingleSkillProficiency(currentCharacter.id, skillName, level)
+  }
 
-          // 使用 HybridDataManager 保存數據
-          await HybridDataManager.updateCharacter(currentCharacter.id, characterUpdates);
-          console.log('角色數據已保存');
-        } catch (error) {
-          console.error('保存角色數據失敗:', error);
-        }
+  // 保存豁免熟練度
+  const saveSavingThrowProficiencies = async (proficiencies: string[]) => {
+    if (!currentCharacter || isSaving) return false
+    
+    setIsSaving(true)
+    try {
+      console.log('🛡️ 保存豁免熟練度:', proficiencies)
+      const abilityMap: Record<string, string> = {
+        str: 'strength', dex: 'dexterity', con: 'constitution',
+        int: 'intelligence', wis: 'wisdom', cha: 'charisma'
       }
-    };
+      
+      const savingThrows = proficiencies.map((ability: string) => ({
+        character_id: currentCharacter.id,
+        ability: abilityMap[ability] || ability,
+        is_proficient: true
+      }))
+      
+      const characterUpdate: CharacterUpdateData = { savingThrows }
+      const success = await HybridDataManager.updateCharacter(currentCharacter.id, characterUpdate)
+      if (success) {
+        console.log('✅ 豁免熟練度保存成功')
+      }
+      return success
+    } catch (error) {
+      console.error('❌ 豁免熟練度保存失敗:', error)
+      return false
+    } finally {
+      setIsSaving(false)
+    }
+  }
 
-    const timeoutId = setTimeout(saveCharacterData, 1000); // 延遲保存避免頻繁寫入
-    return () => clearTimeout(timeoutId)
-  }, [stats, currentCharacter, appState])
+  // 手動保存功能
+  const handleManualSave = async () => {
+    if (!currentCharacter || isSaving) {
+      console.log('❌ 無法手動保存：', { 
+        hasCharacter: !!currentCharacter, 
+        isSaving: isSaving 
+      })
+      return
+    }
+    
+    setIsSaving(true)
+    setIsLoadingCharacter(true)
+    try {
+      const characterUpdates: CharacterUpdateData = {
+        character: {
+          ...currentCharacter,
+          name: stats.name || '未命名角色',
+          character_class: stats.class || '戰士',
+          level: stats.level || 1,
+          experience: stats.exp || 0,
+          avatar_url: stats.avatarUrl,
+          updated_at: new Date().toISOString()
+        },
+        currentStats: {
+          character_id: currentCharacter.id,
+          current_hp: stats.hp.current || 1,
+          max_hp: stats.hp.max || 1,
+          temporary_hp: stats.hp.temp || 0,
+          current_hit_dice: stats.hitDice.current || 0,
+          total_hit_dice: stats.hitDice.total || stats.level || 1,
+          armor_class: stats.ac || 10,
+          initiative_bonus: stats.initiative || 0,
+          speed: stats.speed || 30,
+          hit_die_type: stats.hitDice.die || 'd8',
+          extra_data: {
+            downtime: stats.downtime || 0,
+            renown: stats.renown || { used: 0, total: 0 },
+            prestige: stats.prestige || { org: '', level: 0, rankName: '' },
+            customRecords: stats.customRecords || [],
+            attacks: stats.attacks || []
+          }
+        } as Partial<CharacterCurrentStats>,
+        abilityScores: {
+          character_id: currentCharacter.id,
+          strength: stats.abilityScores.str || 10,
+          dexterity: stats.abilityScores.dex || 10,
+          constitution: stats.abilityScores.con || 10,
+          intelligence: stats.abilityScores.int || 10,
+          wisdom: stats.abilityScores.wis || 10,
+          charisma: stats.abilityScores.cha || 10
+        } as Partial<CharacterAbilityScores>,
+        currency: {
+          character_id: currentCharacter.id,
+          gp: stats.currency.gp || 0,
+          copper: stats.currency.cp || 0,
+          silver: stats.currency.sp || 0,
+          electrum: stats.currency.ep || 0,
+          platinum: stats.currency.pp || 0
+        } as Partial<CharacterCurrency>,
+        // 添加技能熟練度保存 - 直接處理 proficiencies 物件
+        skillProficiencies: Object.entries(stats.proficiencies || {}).map(([skillName, proficiency]) => ({
+          character_id: currentCharacter.id,
+          skill_name: skillName,
+          proficiency_level: proficiency as number,
+          updated_at: new Date().toISOString()
+        } as Omit<CharacterSkillProficiency, 'id'>)),
+        // 添加豁免熟練度保存
+        savingThrows: (stats.savingProficiencies || []).map((ability: string) => {
+          // 將縮寫形式轉換為完整名稱
+          const abilityMap: Record<string, string> = {
+            str: 'strength',
+            dex: 'dexterity', 
+            con: 'constitution',
+            int: 'intelligence',
+            wis: 'wisdom',
+            cha: 'charisma'
+          }
+          return {
+            character_id: currentCharacter.id,
+            ability: abilityMap[ability] || ability,
+            is_proficient: true
+          }
+        })
+      }
 
-  // 事件處理
+      const success = await HybridDataManager.updateCharacter(currentCharacter.id, characterUpdates)
+      
+      if (success) {
+        alert('✅ 角色數據保存成功！')
+      } else {
+        alert('❌ 保存失敗，請檢查網絡連接或重試')
+      }
+    } catch (error) {
+      console.error('手動保存失敗:', error)
+      alert('❌ 保存時發生錯誤，請重試')
+    } finally {
+      setIsLoadingCharacter(false)
+      setIsSaving(false) // 釋放保存鎖
+    }
+  }
   const handleWelcomeNext = (mode: UserMode) => {
     setUserMode(mode)
     setAppState('characterSelect')
@@ -440,6 +564,20 @@ const AuthenticatedApp: React.FC = () => {
               </button>
             ))}
             
+            {/* 手動保存按鈕 */}
+            <button
+              onClick={handleManualSave}
+              disabled={isLoadingCharacter}
+              className={`flex items-center gap-2 px-6 py-4 text-sm font-medium transition-colors whitespace-nowrap ${
+                isLoadingCharacter 
+                  ? 'text-slate-500 cursor-not-allowed' 
+                  : 'text-green-400 hover:text-green-200'
+              }`}
+            >
+              <span className="text-base">💾</span>
+              {isLoadingCharacter ? '保存中...' : '保存'}
+            </button>
+            
             {/* 角色切換按鈕 */}
             <button
               onClick={handleBackToCharacterSelect}
@@ -454,7 +592,12 @@ const AuthenticatedApp: React.FC = () => {
         {/* 主要內容 */}
         <main className="p-6">
           {activeTab === Tab.CHARACTER && (
-            <CharacterSheet stats={stats} setStats={setStats} />
+            <CharacterSheet 
+              stats={stats} 
+              setStats={setStats}
+              onSaveSkillProficiency={saveSkillProficiency}
+              onSaveSavingThrowProficiencies={saveSavingThrowProficiencies}
+            />
           )}
           {activeTab === Tab.COMBAT && (
             <CombatView stats={stats} setStats={setStats} characterId={currentCharacter?.id} />

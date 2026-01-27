@@ -89,8 +89,23 @@ export class UserSettingsService {
    * 獲取最後使用的角色ID
    */
   static async getLastCharacterId(): Promise<string | null> {
-    const settings = await this.getUserSettings()
-    return settings?.last_character_id || null
+    try {
+      console.log('🔍 正在獲取最後使用的角色ID...')
+      
+      // 添加超時機制
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error('獲取用戶設定超時')), 5000)
+      })
+      
+      const settingsPromise = this.getUserSettings()
+      const settings = await Promise.race([settingsPromise, timeoutPromise])
+      
+      console.log('✅ 用戶設定載入完成:', settings?.last_character_id || 'null')
+      return settings?.last_character_id || null
+    } catch (error) {
+      console.error('❌ 獲取最後角色ID失敗:', error)
+      return null
+    }
   }
 
   /**

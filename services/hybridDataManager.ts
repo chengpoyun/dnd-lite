@@ -8,6 +8,18 @@ import type { FullCharacterData, Character, CharacterCombatAction, CharacterUpda
  * 所有資料直接從 DB 讀取和儲存
  */
 export class HybridDataManager {
+  private static cachedCharacters: Character[] | null = null
+  private static cacheTimestamp: number = 0
+  private static CACHE_DURATION = 10000 // 10秒緩存
+  
+  /**
+   * 清除所有緩存（用於緊急重置）
+   */
+  static clearCache(): void {
+    this.cachedCharacters = null
+    this.cacheTimestamp = 0
+    console.log('🗑️ 已清除所有緩存')
+  }
   
   // ===== 讀取操作 =====
   
@@ -33,16 +45,41 @@ export class HybridDataManager {
   }
   
   /**
-   * 獲取用戶所有角色（直接從 DB 讀取）
+   * 獲取用戶所有角色（直接從 DB 讀取，帶緩存）
    */
   static async getUserCharacters(): Promise<Character[]> {
     try {
-      console.log('從 DB 載入角色列表')
-      const dbCharacters = await DetailedCharacterService.getUserCharacters()
-      console.log(`成功載入 ${dbCharacters.length} 個角色`)
+      const now = Date.now()
+      
+      // 檢查緩存是否有效
+      if (this.cachedCharacters && (now - this.cacheTimestamp) < this.CACHE_DURATION) {
+        console.log(`📋 從緩存載入 ${this.cachedCharacters.length} 個角色`)
+        return this.cachedCharacters
+      }
+      
+      console.log('🔄 從 DB 載入角色列表')
+      
+      // 添加超時機制
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error('載入角色列表超時')), 8000)
+      })
+      
+      const charactersPromise = DetailedCharacterService.getUserCharacters()
+      const dbCharacters = await Promise.race([charactersPromise, timeoutPromise])
+      
+      // 更新緩存
+      this.cachedCharacters = dbCharacters
+      this.cacheTimestamp = now
+      
+      console.log(`✅ 成功載入 ${dbCharacters.length} 個角色`)
       return dbCharacters
     } catch (error) {
-      console.error('載入角色列表失敗:', error)
+      console.error('❌ 載入角色列表失敗:', error)
+      // 如果有緩存，返回緩存數據
+      if (this.cachedCharacters) {
+        console.log('🔄 返回緩存的角色數據')
+        return this.cachedCharacters
+      }
       return []
     }
   }
@@ -54,16 +91,179 @@ export class HybridDataManager {
    */
   static async updateCharacter(characterId: string, updates: CharacterUpdateData): Promise<boolean> {
     try {
-      console.log(`更新角色到 DB: ${characterId}`)
+      console.log(`🔄 更新角色到 DB: ${characterId}`, {
+        hasCharacter: !!updates.character,
+        hasAbilityScores: !!updates.abilityScores,
+        hasCurrentStats: !!updates.currentStats,
+        hasCurrency: !!updates.currency,
+        hasSkillProficiencies: !!updates.skillProficiencies
+      })
       
-      // 直接寫入 DB
-      const success = await DetailedCharacterService.updateCharacter(characterId, updates)
-      
-      if (success) {
-        console.log(`角色更新成功: ${characterId}`)
+      let allSuccess = true
+      const errors: string[] = []
+
+      // 更新角色基本信息
+      if (updates.character) {
+        console.log('📝 更新角色基本信息:', updates.character)
+        const success = await DetailedCharacterService.updateCharacterBasicInfo(characterId, updates.character)
+        if (!success) {
+          allSuccess = false
+          errors.push('角色基本信息更新失敗')
+        }
+      }
+
+      // 更新屬性值
+      if (updates.abilityScores) {
+        console.log('💪 更新屬性值')
+        const success = await DetailedCharacterService.updateAbilityScores(characterId, updates.abilityScores)
+        if (!success) {
+          allSuccess = false
+          errors.push('屬性值更新失敗')
+        }
+      }
+
+      // 更新當前狀態
+      if (updates.currentStats) {
+        console.log('❤️ 更新當前狀態')
+        const success = await DetailedCharacterService.updateCurrentStats(characterId, updates.currentStats)
+        if (!success) {
+          allSuccess = false
+          errors.push('當前狀態更新失敗')
+        }
+      }
+
+      // 更新貨幣
+      if (updates.currency) {
+        console.log('💰 更新貨幣')
+        const success = await DetailedCharacterService.updateCurrency(characterId, updates.currency)
+        if (!success) {
+          allSuccess = false
+          errors.push('貨幣更新失敗')
+        }
+      }
+
+      // 更新技能熟練度
+      if (updates.skillProficiencies) {
+        console.log('🎯 更新技能熟練度', {
+          skillCount: updates.skillProficiencies.length,
+          isArray: Array.isArray(updates.skillProficiencies),
+          skillData: updates.skillProficiencies
+        })
+        
+        if (Array.isArray(updates.skillProficiencies)) {
+          // 使用 upsert 方式更新技能，不清空所有記錄
+          console.log('📝 使用陣列格式更新技能 - 逐個 upsert')
+          
+          let insertErrors = []
+          for (const skill of updates.skillProficiencies) {
+            console.log(`🎯 Upsert 技能: ${skill.skill_name} = ${skill.proficiency_level}`)
+            try {
+              if (skill.proficiency_level > 0) {
+                // 有熟練度，插入或更新
+                const success = await DetailedCharacterService.upsertSkillProficiency(
+                  characterId, 
+                  skill.skill_name, 
+                  skill.proficiency_level
+                )
+                if (!success) {
+                  insertErrors.push(`技能 ${skill.skill_name} upsert失敗`)
+                }
+              } else {
+                // 無熟練度，刪除記錄
+                const success = await DetailedCharacterService.deleteSkillProficiency(
+                  characterId, 
+                  skill.skill_name
+                )
+                if (!success) {
+                  console.warn(`技能 ${skill.skill_name} 刪除失敗，但不影響整體更新`)
+                }
+              }
+            } catch (insertError: any) {
+              console.warn(`技能 ${skill.skill_name} 處理出錯:`, insertError)
+              insertErrors.push(`技能 ${skill.skill_name} 處理失敗: ${insertError.message}`)
+            }
+          }
+          
+          if (insertErrors.length === 0) {
+            console.log('✅ 技能熟練度陣列格式更新完成')
+          } else {
+            console.warn('❌ 部分技能更新失敗:', insertErrors)
+            allSuccess = false
+            errors.push(...insertErrors)
+          }
+        } else {
+          // 如果是 Record<string, number> 格式，使用舊邏輯
+          console.log('📝 使用物件格式更新技能')
+          for (const [skillName, level] of Object.entries(updates.skillProficiencies)) {
+            console.log(`🎯 更新技能: ${skillName} = ${level}`)
+            const success = await DetailedCharacterService.updateSkillProficiency(characterId, skillName, level)
+            if (!success) {
+              allSuccess = false
+              errors.push(`技能 ${skillName} 更新失敗`)
+            }
+          }
+          console.log('✅ 技能熟練度物件格式更新完成')
+        }
+      } else {
+        console.log('⚠️ 沒有技能熟練度需要更新')
+      }
+
+      // 更新豁免檢定熟練度 - 添加重試邏輯
+      if (updates.savingThrows) {
+        console.log('🛡️ 更新豁免檢定熟練度', {
+          savingThrowsCount: updates.savingThrows.length,
+          savingThrowsData: updates.savingThrows
+        })
+        const proficiencies = updates.savingThrows.map(st => st.ability)
+        console.log('🛡️ 提取的豁免能力值:', proficiencies)
+        
+        let retryCount = 0
+        const maxRetries = 3
+        let savingThrowSuccess = false
+        
+        while (retryCount < maxRetries) {
+          try {
+            const success = await DetailedCharacterService.updateSavingThrowProficiencies(characterId, proficiencies)
+            if (success) {
+              console.log('✅ 豁免檢定熟練度更新成功')
+              savingThrowSuccess = true
+              break
+            } else {
+              throw new Error('豁免檢定熟練度更新返回 false')
+            }
+          } catch (error: any) {
+            console.error(`豁免檢定更新重試 ${retryCount + 1} 失敗:`, error)
+            if (error.code === '23505' && retryCount < maxRetries - 1) {
+              // 重複鍵錯誤，重試
+              console.log(`❌ 豁免檢定重複鍵錯誤，重試 (${retryCount + 1}/${maxRetries})`)
+              retryCount++
+              await new Promise(resolve => setTimeout(resolve, 100 * retryCount))
+              continue
+            } else if (retryCount < maxRetries - 1) {
+              retryCount++
+              await new Promise(resolve => setTimeout(resolve, 100 * retryCount))
+              continue
+            } else {
+              break // 最後一次重試失敗
+            }
+          }
+        }
+        
+        if (!savingThrowSuccess) {
+          allSuccess = false
+          errors.push('豁免檢定熟練度更新失敗')
+        }
+      } else {
+        console.log('⚠️ 沒有豁免熟練度需要更新')
+      }
+
+      if (allSuccess) {
+        console.log(`✅ 角色更新成功: ${characterId}`)
+        // 清除角色列表緩存，因為數據已更新
+        this.cachedCharacters = null
         return true
       } else {
-        console.error('角色更新失敗')
+        console.error(`❌ 部分角色更新失敗: ${characterId}`, errors)
         return false
       }
     } catch (error) {
@@ -158,6 +358,36 @@ export class HybridDataManager {
     } catch (error) {
       console.error('創建戰鬥項目失敗:', error)
       return null
+    }
+  }
+
+  // 單獨更新技能熟練度的專用方法
+  static async updateSingleSkillProficiency(characterId: string, skillName: string, level: number): Promise<boolean> {
+    try {
+      console.log(`🎯 單獨更新技能熟練度: ${skillName} = ${level} (角色: ${characterId})`)
+      
+      if (level > 0) {
+        // 有熟練度，使用 upsert
+        const success = await DetailedCharacterService.upsertSkillProficiency(characterId, skillName, level)
+        if (success) {
+          console.log(`✅ 技能 ${skillName} 更新為 ${level}`)
+        } else {
+          console.error(`❌ 技能 ${skillName} 更新失敗`)
+        }
+        return success
+      } else {
+        // 無熟練度，刪除記錄
+        const success = await DetailedCharacterService.deleteSkillProficiency(characterId, skillName)
+        if (success) {
+          console.log(`✅ 技能 ${skillName} 已清除`)
+        } else {
+          console.warn(`⚠️ 技能 ${skillName} 清除失敗，但不影響整體操作`)
+        }
+        return success
+      }
+    } catch (error) {
+      console.error(`❌ 單獨更新技能熟練度失敗 ${skillName}:`, error)
+      return false
     }
   }
 }

@@ -191,7 +191,7 @@ export interface CharacterUpdateData {
   character?: Partial<Character>
   abilityScores?: Partial<CharacterAbilityScores>
   savingThrows?: CharacterSavingThrow[]
-  skillProficiencies?: Record<string, number> | CharacterSkillProficiency[]
+  skillProficiencies?: Record<string, number> | CharacterSkillProficiency[] | Omit<CharacterSkillProficiency, 'id'>[]
   currentStats?: Partial<CharacterCurrentStats>
   currency?: Partial<CharacterCurrency>
   items?: CharacterItem[]
