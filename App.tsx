@@ -59,6 +59,7 @@ const AuthenticatedApp: React.FC = () => {
   const [stats, setStats] = useState<CharacterStats>(INITIAL_STATS)
   const [isLoading, setIsLoading] = useState(true)
   const [isLoadingCharacter, setIsLoadingCharacter] = useState(false) // 添加角色載入狀態
+  const [isCharacterDataReady, setIsCharacterDataReady] = useState(false) // 角色資料是否已載入完成
   const [isSaving, setIsSaving] = useState(false) // 添加保存狀態鎖
 
   // 初始化狀態
@@ -167,6 +168,7 @@ const AuthenticatedApp: React.FC = () => {
   // 載入角色數據
   useEffect(() => {
     if (currentCharacter) {
+      setIsCharacterDataReady(false) // 重置資料準備狀態
       loadCharacterStats()
     }
   }, [currentCharacter])
@@ -309,9 +311,11 @@ const AuthenticatedApp: React.FC = () => {
         }
         setStats(extractedStats)
         console.log('✅ 角色數據載入成功')
+        setIsCharacterDataReady(true) // 設置資料載入完成
       } else {
         console.warn('⚠️ 角色數據不完整，使用預設值')
         setStats(INITIAL_STATS)
+        setIsCharacterDataReady(true) // 即使沒有資料也設為準備完成
       }
     } catch (error) {
       console.error('❌ 載入角色數據失敗:', error)
@@ -323,6 +327,7 @@ const AuthenticatedApp: React.FC = () => {
       })
       // 設置預設值以防止應用崩潰
       setStats(INITIAL_STATS)
+      setIsCharacterDataReady(true) // 錯誤時也設為準備完成
     } finally {
       setIsLoadingCharacter(false) // 清除載入狀態
     }
@@ -592,12 +597,23 @@ const AuthenticatedApp: React.FC = () => {
         {/* 主要內容 */}
         <main className="p-6">
           {activeTab === Tab.CHARACTER && (
-            <CharacterSheet 
-              stats={stats} 
-              setStats={setStats}
-              onSaveSkillProficiency={saveSkillProficiency}
-              onSaveSavingThrowProficiencies={saveSavingThrowProficiencies}
-            />
+            <>
+              {isCharacterDataReady ? (
+                <CharacterSheet 
+                  stats={stats} 
+                  setStats={setStats}
+                  onSaveSkillProficiency={saveSkillProficiency}
+                  onSaveSavingThrowProficiencies={saveSavingThrowProficiencies}
+                />
+              ) : (
+                <div className="flex items-center justify-center h-64">
+                  <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+                    <p className="text-gray-600">載入角色資料中...</p>
+                  </div>
+                </div>
+              )}
+            </>
           )}
           {activeTab === Tab.COMBAT && (
             <CombatView stats={stats} setStats={setStats} characterId={currentCharacter?.id} />
