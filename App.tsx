@@ -5,21 +5,19 @@ import { CharacterSelectPage } from './components/CharacterSelectPage';
 import { CharacterSheet } from './components/CharacterSheet';
 import { DiceRoller } from './components/DiceRoller';
 import { CombatView } from './components/CombatView';
-import { SpellsView } from './components/SpellsView';
-import { InventoryView } from './components/InventoryView';
+
 import { CharacterStats } from './types';
 import { getModifier } from './utils/helpers';
 import { HybridDataManager } from './services/hybridDataManager';
 import { AuthService } from './services/auth';
 import { AnonymousService } from './services/anonymous';
 import { DatabaseInitService } from './services/databaseInit';
+import { UserSettingsService } from './services/userSettings';
 import type { Character, CharacterAbilityScores, CharacterCurrentStats, CharacterCurrency, CharacterUpdateData } from './lib/supabase';
 
 enum Tab {
   CHARACTER = 'character',
   COMBAT = 'combat',
-  SPELLS = 'spells',
-  ITEMS = 'items',
   DICE = 'dice'
 }
 
@@ -77,7 +75,7 @@ const AuthenticatedApp: React.FC = () => {
           const characters = await HybridDataManager.getUserCharacters()
           if (characters.length > 0) {
             // 有角色，直接載入最後使用的角色
-            const lastCharacterId = localStorage.getItem('dnd_last_character_id')
+            const lastCharacterId = await UserSettingsService.getLastCharacterId()
             let characterToLoad = characters[0] // 預設使用第一個角色
             
             // 如果有記錄最後使用的角色，嘗試找到它
@@ -87,12 +85,12 @@ const AuthenticatedApp: React.FC = () => {
                 characterToLoad = lastCharacter
               } else {
                 // 最後記錄的角色不存在，清除記錄
-                localStorage.removeItem('dnd_last_character_id')
+                await UserSettingsService.setLastCharacterId(null)
               }
             }
             
             // 更新最後使用的角色記錄
-            localStorage.setItem('dnd_last_character_id', characterToLoad.id)
+            await UserSettingsService.setLastCharacterId(characterToLoad.id)
             
             // 直接設定角色並進入主頁面
             setCurrentCharacter(characterToLoad)
@@ -106,23 +104,8 @@ const AuthenticatedApp: React.FC = () => {
           if (characters.length > 0) {
             setUserMode('anonymous')
             
-            // 有角色，直接載入最後使用的角色
-            const lastCharacterId = localStorage.getItem('dnd_last_character_id')
+            // 有角色，直接載入最後使用的角色（匿名模式下無法使用 UserSettingsService）
             let characterToLoad = characters[0] // 預設使用第一個角色
-            
-            // 如果有記錄最後使用的角色，嘗試找到它
-            if (lastCharacterId) {
-              const lastCharacter = characters.find(c => c.id === lastCharacterId)
-              if (lastCharacter) {
-                characterToLoad = lastCharacter
-              } else {
-                // 最後記錄的角色不存在，清除記錄
-                localStorage.removeItem('dnd_last_character_id')
-              }
-            }
-            
-            // 更新最後使用的角色記錄
-            localStorage.setItem('dnd_last_character_id', characterToLoad.id)
             
             // 直接設定角色並進入主頁面
             setCurrentCharacter(characterToLoad)
@@ -379,10 +362,12 @@ const AuthenticatedApp: React.FC = () => {
     setAppState('characterSelect')
   }
 
-  const handleCharacterSelect = (character: Character) => {
+  const handleCharacterSelect = async (character: Character) => {
     setCurrentCharacter(character)
     // 記錄最後使用的角色，下次啟動時自動載入
-    localStorage.setItem('dnd_last_character_id', character.id)
+    if (userMode === 'authenticated') {
+      await UserSettingsService.setLastCharacterId(character.id)
+    }
     setAppState('main')
   }
 
@@ -391,12 +376,14 @@ const AuthenticatedApp: React.FC = () => {
     setAppState('characterSelect')
   }
 
-  const handleBackToWelcome = () => {
+  const handleBackToWelcome = async () => {
     setAppState('welcome')
     setUserMode('anonymous')
     setCurrentCharacter(null)
     // 清除最後使用的角色記錄
-    localStorage.removeItem('dnd_last_character_id')
+    if (userMode === 'authenticated') {
+      await UserSettingsService.setLastCharacterId(null)
+    }
   }
 
   // 渲染邏輯
@@ -437,8 +424,6 @@ const AuthenticatedApp: React.FC = () => {
             {[
               { id: Tab.CHARACTER, label: '角色', icon: '👤' },
               { id: Tab.COMBAT, label: '戰鬥', icon: '⚔️' },
-              { id: Tab.SPELLS, label: '法術', icon: '✨' },
-              { id: Tab.ITEMS, label: '道具', icon: '🎒' },
               { id: Tab.DICE, label: '骰子', icon: '🎲' }
             ].map((tab) => (
               <button
@@ -474,12 +459,7 @@ const AuthenticatedApp: React.FC = () => {
           {activeTab === Tab.COMBAT && (
             <CombatView stats={stats} setStats={setStats} characterId={currentCharacter?.id} />
           )}
-          {activeTab === Tab.SPELLS && (
-            <SpellsView stats={stats} setStats={setStats} />
-          )}
-          {activeTab === Tab.ITEMS && (
-            <InventoryView stats={stats} setStats={setStats} />
-          )}
+
           {activeTab === Tab.DICE && <DiceRoller />}
         </main>
       </div>

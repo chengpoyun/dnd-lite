@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
+import { UserSettingsService } from '../services/userSettings'
 
 export const SupabaseTest: React.FC = () => {
   const [connectionStatus, setConnectionStatus] = useState<'testing' | 'success' | 'error' | 'hidden'>('testing')
@@ -7,13 +8,22 @@ export const SupabaseTest: React.FC = () => {
 
   useEffect(() => {
     // 檢查是否已經測試過了
-    const hasTestedBefore = localStorage.getItem('supabase_test_completed')
-    if (hasTestedBefore) {
-      setConnectionStatus('hidden')
-      return
+    const checkTestStatus = async () => {
+      try {
+        const hasTestedBefore = await UserSettingsService.isSupabaseTestCompleted()
+        if (hasTestedBefore) {
+          setConnectionStatus('hidden')
+          return
+        }
+        testConnection()
+      } catch (error) {
+        console.warn('無法檢查測試狀態:', error)
+        // 繼續進行測試
+        testConnection()
+      }
     }
     
-    testConnection()
+    checkTestStatus()
   }, [])
 
   const testConnection = async () => {
@@ -32,7 +42,9 @@ export const SupabaseTest: React.FC = () => {
         console.log('Supabase 連接成功！', data)
         setConnectionStatus('success')
         // 標記測試已完成，下次不再顯示
-        localStorage.setItem('supabase_test_completed', 'true')
+        UserSettingsService.setSupabaseTestCompleted(true).catch(error => {
+          console.warn('無法保存測試狀態:', error)
+        })
       }
     } catch (err) {
       console.error('連接測試失敗:', err)
@@ -41,9 +53,13 @@ export const SupabaseTest: React.FC = () => {
     }
   }
 
-  const hideTest = () => {
+  const hideTest = async () => {
     setConnectionStatus('hidden')
-    localStorage.setItem('supabase_test_completed', 'true')
+    try {
+      await UserSettingsService.setSupabaseTestCompleted(true)
+    } catch (error) {
+      console.warn('無法保存測試狀態:', error)
+    }
   }
 
   if (connectionStatus === 'hidden') {
@@ -59,7 +75,7 @@ export const SupabaseTest: React.FC = () => {
               <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
               <span className="text-blue-400">正在測試 Supabase 連接...</span>
             </div>
-            <button onClick={hideTest} className="text-blue-500 hover:text-blue-300 text-xs">隱藏</button>
+            <button onClick={() => hideTest()} className="text-blue-500 hover:text-blue-300 text-xs">隱藏</button>
           </div>
         </div>
       </div>
@@ -75,7 +91,7 @@ export const SupabaseTest: React.FC = () => {
               <span className="text-red-500 text-xl">❌</span>
               <span className="text-red-400 font-bold">Supabase 連接失敗</span>
             </div>
-            <button onClick={hideTest} className="text-red-500 hover:text-red-300 text-xs">隱藏</button>
+            <button onClick={() => hideTest()} className="text-red-500 hover:text-red-300 text-xs">隱藏</button>
           </div>
           <p className="text-red-300 text-sm mb-2">{error}</p>
           <button 
@@ -97,7 +113,7 @@ export const SupabaseTest: React.FC = () => {
             <span className="text-emerald-500 text-xl">✅</span>
             <span className="text-emerald-400 font-bold">Supabase 連接成功！</span>
           </div>
-          <button onClick={hideTest} className="text-emerald-500 hover:text-emerald-300 text-xs">隱藏</button>
+          <button onClick={() => hideTest()} className="text-emerald-500 hover:text-emerald-300 text-xs">隱藏</button>
         </div>
         <p className="text-emerald-300 text-sm mt-1">資料庫已準備就緒，可以開始使用雲端功能</p>
       </div>

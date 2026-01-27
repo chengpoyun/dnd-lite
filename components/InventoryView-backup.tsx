@@ -80,7 +80,22 @@ export const InventoryView: React.FC<InventoryViewProps> = ({ stats, setStats, c
         </div>
       </div>
     );
-  }
+  };
+
+  const currentWeight = items.reduce((acc, item) => acc + (item.weight * item.quantity), 0);
+  const maxWeight = stats.abilityScores.str * 15;
+
+  const gpResult = handleValueInput(tempGPValue, stats.currency.gp, {
+    minValue: 0,
+    allowZero: true
+  });
+  const gpPreview = gpResult.isValid ? gpResult.numericValue : stats.currency.gp;
+
+  const saveCurrency = () => {
+    setStats(prev => ({ ...prev, currency: { ...prev.currency, gp: gpPreview } }));
+    setTempGPValue('');
+    setIsCurrencyModalOpen(false);
+  };
 
   return (
     <div className="px-4 py-6 space-y-6 h-full overflow-y-auto pb-24 select-none">

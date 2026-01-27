@@ -50,6 +50,15 @@ export interface CharacterSkillProficiency {
   updated_at?: string
 }
 
+export interface UserSettings {
+  id: string
+  user_id: string
+  last_character_id?: string | null
+  supabase_test_completed?: boolean
+  created_at: string
+  updated_at: string
+}
+
 export interface CharacterCurrentStats {
   id: string
   character_id: string
