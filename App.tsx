@@ -13,7 +13,8 @@ import { AuthService } from './services/auth';
 import { AnonymousService } from './services/anonymous';
 import { DatabaseInitService } from './services/databaseInit';
 import { UserSettingsService } from './services/userSettings';
-import type { Character, CharacterAbilityScores, CharacterCurrentStats, CharacterCurrency, CharacterUpdateData, CharacterSkillProficiency } from './lib/supabase';
+import { DetailedCharacterService } from './services/detailedCharacter';
+import type { Character, CharacterAbilityScores, CharacterCurrentStats, CharacterCurrency, CharacterUpdateData, CharacterSkillProficiency, CharacterSavingThrow } from './lib/supabase';
 
 enum Tab {
   CHARACTER = 'character',
@@ -366,11 +367,14 @@ const AuthenticatedApp: React.FC = () => {
         int: 'intelligence', wis: 'wisdom', cha: 'charisma'
       }
       
-      const savingThrows = proficiencies.map((ability: string) => ({
-        character_id: currentCharacter.id,
-        ability: abilityMap[ability] || ability,
-        is_proficient: true
-      }))
+      const savingThrows = proficiencies.map((ability: string) => {
+        const fullAbility = abilityMap[ability] || ability;
+        return {
+          character_id: currentCharacter.id,
+          ability: fullAbility as 'strength' | 'dexterity' | 'constitution' | 'intelligence' | 'wisdom' | 'charisma',
+          is_proficient: true
+        }
+      })
       
       const characterUpdate: CharacterUpdateData = { savingThrows }
       const success = await HybridDataManager.updateCharacter(currentCharacter.id, characterUpdate)
@@ -380,6 +384,126 @@ const AuthenticatedApp: React.FC = () => {
       return success
     } catch (error) {
       console.error('❌ 豁免熟練度保存失敗:', error)
+      return false
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  // 保存角色基本信息（名字、職業、等級）
+  const saveCharacterBasicInfo = async (name: string, characterClass: string, level: number) => {
+    if (!currentCharacter || isSaving) return false
+    
+    setIsSaving(true)
+    try {
+      console.log('📝 保存角色基本信息:', { name, characterClass, level })
+      const characterUpdate: CharacterUpdateData = {
+        character: {
+          ...currentCharacter,
+          name: name,
+          character_class: characterClass,
+          level: level,
+          updated_at: new Date().toISOString()
+        }
+      }
+      
+      const success = await HybridDataManager.updateCharacter(currentCharacter.id, characterUpdate)
+      if (success) {
+        console.log('✅ 角色基本信息保存成功')
+      }
+      return success
+    } catch (error) {
+      console.error('❌ 角色基本信息保存失敗:', error)
+      return false
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  // 保存能力值
+  const saveAbilityScores = async (abilityScores: CharacterStats['abilityScores']) => {
+    if (!currentCharacter || isSaving) return false
+    
+    setIsSaving(true)
+    try {
+      console.log('💪 保存能力值:', abilityScores)
+      const characterUpdate: CharacterUpdateData = {
+        abilityScores: {
+          character_id: currentCharacter.id,
+          strength: abilityScores.str,
+          dexterity: abilityScores.dex,
+          constitution: abilityScores.con,
+          intelligence: abilityScores.int,
+          wisdom: abilityScores.wis,
+          charisma: abilityScores.cha
+        } as Partial<CharacterAbilityScores>
+      }
+      
+      const success = await HybridDataManager.updateCharacter(currentCharacter.id, characterUpdate)
+      if (success) {
+        console.log('✅ 能力值保存成功')
+      }
+      return success
+    } catch (error) {
+      console.error('❌ 能力值保存失敗:', error)
+      return false
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  // 保存貨幣和經驗值
+  const saveCurrencyAndExp = async (gp: number, exp: number) => {
+    if (!currentCharacter || isSaving) return false
+    
+    setIsSaving(true)
+    try {
+      console.log('💰 保存貨幣和經驗值:', { gp, exp })
+      const characterUpdate: CharacterUpdateData = {
+        character: {
+          ...currentCharacter,
+          experience: exp,
+          updated_at: new Date().toISOString()
+        },
+        currency: {
+          character_id: currentCharacter.id,
+          gp: gp,
+          copper: stats.currency.cp || 0,
+          silver: stats.currency.sp || 0,
+          electrum: stats.currency.ep || 0,
+          platinum: stats.currency.pp || 0
+        } as Partial<CharacterCurrency>
+      }
+      
+      const success = await HybridDataManager.updateCharacter(currentCharacter.id, characterUpdate)
+      if (success) {
+        console.log('✅ 貨幣和經驗值保存成功')
+      }
+      return success
+    } catch (error) {
+      console.error('❌ 貨幣和經驗值保存失敗:', error)
+      return false
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  // 保存額外數據（downtime、renown、自定義記錄等）
+  const saveExtraData = async (extraData: any) => {
+    if (!currentCharacter || isSaving) return false
+    
+    setIsSaving(true)
+    try {
+      console.log('📊 保存額外數據:', extraData)
+      
+      // 使用專門的 updateExtraData 方法，只更新 extra_data 欄位
+      const success = await DetailedCharacterService.updateExtraData(currentCharacter.id, extraData)
+      if (success) {
+        console.log('✅ 額外數據保存成功')
+      }
+      return success
+    } catch (error) {
+      console.error('❌ 額外數據保存失敗:', error)
       return false
     } finally {
       setIsSaving(false)
@@ -604,6 +728,10 @@ const AuthenticatedApp: React.FC = () => {
                   setStats={setStats}
                   onSaveSkillProficiency={saveSkillProficiency}
                   onSaveSavingThrowProficiencies={saveSavingThrowProficiencies}
+                  onSaveCharacterBasicInfo={saveCharacterBasicInfo}
+                  onSaveAbilityScores={saveAbilityScores}
+                  onSaveCurrencyAndExp={saveCurrencyAndExp}
+                  onSaveExtraData={saveExtraData}
                 />
               ) : (
                 <div className="flex items-center justify-center h-64">

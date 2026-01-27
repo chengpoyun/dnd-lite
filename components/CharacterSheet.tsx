@@ -9,6 +9,10 @@ interface CharacterSheetProps {
   setStats: React.Dispatch<React.SetStateAction<CharacterStats>>;
   onSaveSkillProficiency?: (skillName: string, level: number) => Promise<boolean>;
   onSaveSavingThrowProficiencies?: (proficiencies: string[]) => Promise<boolean>;
+  onSaveCharacterBasicInfo?: (name: string, characterClass: string, level: number) => Promise<boolean>;
+  onSaveAbilityScores?: (abilityScores: CharacterStats['abilityScores']) => Promise<boolean>;
+  onSaveCurrencyAndExp?: (gp: number, exp: number) => Promise<boolean>;
+  onSaveExtraData?: (extraData: any) => Promise<boolean>;
 }
 
 const STAT_LABELS: Record<keyof CharacterStats['abilityScores'], string> = {
@@ -33,7 +37,11 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
   stats, 
   setStats, 
   onSaveSkillProficiency, 
-  onSaveSavingThrowProficiencies 
+  onSaveSavingThrowProficiencies,
+  onSaveCharacterBasicInfo,
+  onSaveAbilityScores,
+  onSaveCurrencyAndExp,
+  onSaveExtraData
 }) => {
   const [activeModal, setActiveModal] = useState<'info' | 'abilities' | 'currency' | 'downtime' | 'renown' | 'skill_detail' | 'add_record' | 'edit_record' | null>(null);
   const [selectedSkill, setSelectedSkill] = useState<{ name: string; base: keyof CharacterStats['abilityScores'] } | null>(null);
@@ -155,13 +163,25 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
   });
   const renownTotalPreview = renownTotalResult.isValid ? renownTotalResult.numericValue : stats.renown.total;
 
-  const saveInfo = () => { 
+  const saveInfo = async () => { 
     // 驗證等級不為空
     const level = parseInt(editInfo.level);
     if (!level || level < 1) {
       setActiveModal(null);
       return;
     }
+    
+    // 立即保存到資料庫
+    if (onSaveCharacterBasicInfo) {
+      const success = await onSaveCharacterBasicInfo(editInfo.name, editInfo.class, level)
+      if (success) {
+        console.log('✅ 角色基本信息保存成功')
+      } else {
+        console.error('❌ 角色基本信息保存失敗')
+      }
+    }
+    
+    // 更新本地狀態
     setStats(prev => ({ ...prev, name: editInfo.name, class: editInfo.class, level })); 
     setActiveModal(null); 
   };
@@ -199,6 +219,16 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
         console.error('❌ 豁免熟練度保存失敗')
       }
     }
+
+    // 立即保存能力值到資料庫
+    if (onSaveAbilityScores) {
+      const success = await onSaveAbilityScores(abilities)
+      if (success) {
+        console.log('✅ 能力值保存成功')
+      } else {
+        console.error('❌ 能力值保存失敗')
+      }
+    }
     
     // 更新本地狀態
     setStats(prev => ({ ...prev, abilityScores: abilities, savingProficiencies: [...editSavingProfs] })); 
@@ -206,13 +236,24 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
   };
   const toggleSavingProf = (key: keyof CharacterStats['abilityScores']) => { setEditSavingProfs(prev => prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]); };
   
-  const saveCurrencyAndExp = () => { 
+  const saveCurrencyAndExp = async () => { 
     // 驗證金幣和經驗值不為空或無效
     if (isNaN(gpPreview) || isNaN(expPreview) || gpPreview < 0 || expPreview < 0) {
       setActiveModal(null);
       return;
     }
     
+    // 立即保存到資料庫
+    if (onSaveCurrencyAndExp) {
+      const success = await onSaveCurrencyAndExp(gpPreview, expPreview)
+      if (success) {
+        console.log('✅ 貨幣和經驗值保存成功')
+      } else {
+        console.error('❌ 貨幣和經驗值保存失敗')
+      }
+    }
+
+    // 更新本地狀態
     setStats(prev => ({ 
       ...prev, 
       currency: { ...prev.currency, gp: gpPreview }, 
@@ -221,13 +262,54 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
     setActiveModal(null); 
   };
 
-  const saveDowntime = () => { setStats(prev => ({ ...prev, downtime: downtimePreview })); setActiveModal(null); };
-  const saveRenown = () => { 
+  const saveDowntime = async () => { 
+    // 立即保存到資料庫
+    if (onSaveExtraData) {
+      // 保留現有的extra_data，只更新downtime
+      const extraData = {
+        downtime: downtimePreview,
+        renown: stats.renown || { used: 0, total: 0 },
+        prestige: stats.prestige || { org: '', level: 0, rankName: '' },
+        customRecords: stats.customRecords || [],
+        attacks: stats.attacks || []
+      }
+      
+      const success = await onSaveExtraData(extraData)
+      if (success) {
+        console.log('✅ Downtime保存成功')
+      } else {
+        console.error('❌ Downtime保存失敗')
+      }
+    }
+    
+    setStats(prev => ({ ...prev, downtime: downtimePreview })); 
+    setActiveModal(null); 
+  };
+  const saveRenown = async () => { 
+    // 立即保存到資料庫
+    if (onSaveExtraData) {
+      // 保留現有的extra_data，只更新renown
+      const extraData = {
+        downtime: stats.downtime || 0,
+        renown: { used: renownUsedPreview, total: renownTotalPreview },
+        prestige: stats.prestige || { org: '', level: 0, rankName: '' },
+        customRecords: stats.customRecords || [],
+        attacks: stats.attacks || []
+      }
+      
+      const success = await onSaveExtraData(extraData)
+      if (success) {
+        console.log('✅ Renown保存成功')
+      } else {
+        console.error('❌ Renown保存失敗')
+      }
+    }
+    
     setStats(prev => ({ ...prev, renown: { used: renownUsedPreview, total: renownTotalPreview } })); 
     setActiveModal(null); 
   };
 
-  const handleSaveNewRecord = () => {
+  const handleSaveNewRecord = async () => {
     if (!newRecord.name || !newRecord.value) return;
     const record: CustomRecord = {
       id: Date.now().toString(),
@@ -235,30 +317,89 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
       value: newRecord.value,
       note: newRecord.note
     };
+    
+    const updatedCustomRecords = [...(stats.customRecords || []), record];
     setStats(prev => ({
       ...prev,
-      customRecords: [...(prev.customRecords || []), record]
+      customRecords: updatedCustomRecords
     }));
+    
+    // 保存到資料庫
+    const extraData = {
+      downtime: stats.downtime || 0,
+      renown: stats.renown || { used: 0, total: 0 },
+      prestige: stats.prestige || { org: '', level: 0, rankName: '' },
+      customRecords: updatedCustomRecords,
+      attacks: stats.attacks || []
+    }
+    
+    const success = await onSaveExtraData(extraData)
+    if (success) {
+      console.log('✅ 冒險紀錄保存成功')
+    } else {
+      console.error('❌ 冒險紀錄保存失敗')
+    }
+    
     setActiveModal(null);
   };
 
-  const handleUpdateRecord = () => {
+  const handleUpdateRecord = async () => {
     if (!selectedRecord || !newRecord.name || !newRecord.value) return;
+    
+    const updatedCustomRecords = (stats.customRecords || []).map(r => 
+      r.id === selectedRecord.id ? { ...r, name: newRecord.name, value: newRecord.value, note: newRecord.note } : r
+    );
+    
     setStats(prev => ({
       ...prev,
-      customRecords: (prev.customRecords || []).map(r => 
-        r.id === selectedRecord.id ? { ...r, name: newRecord.name, value: newRecord.value, note: newRecord.note } : r
-      )
+      customRecords: updatedCustomRecords
     }));
+    
+    // 保存到資料庫
+    const extraData = {
+      downtime: stats.downtime || 0,
+      renown: stats.renown || { used: 0, total: 0 },
+      prestige: stats.prestige || { org: '', level: 0, rankName: '' },
+      customRecords: updatedCustomRecords,
+      attacks: stats.attacks || []
+    }
+    
+    const success = await onSaveExtraData(extraData)
+    if (success) {
+      console.log('✅ 冒險紀錄更新成功')
+    } else {
+      console.error('❌ 冒險紀錄更新失敗')
+    }
+    
     setActiveModal(null);
   };
 
-  const handleDeleteRecord = () => {
+  const handleDeleteRecord = async () => {
     if (!selectedRecord) return;
+    
+    const updatedCustomRecords = (stats.customRecords || []).filter(r => r.id !== selectedRecord.id);
+    
     setStats(prev => ({
       ...prev,
-      customRecords: (prev.customRecords || []).filter(r => r.id !== selectedRecord.id)
+      customRecords: updatedCustomRecords
     }));
+    
+    // 保存到資料庫
+    const extraData = {
+      downtime: stats.downtime || 0,
+      renown: stats.renown || { used: 0, total: 0 },
+      prestige: stats.prestige || { org: '', level: 0, rankName: '' },
+      customRecords: updatedCustomRecords,
+      attacks: stats.attacks || []
+    }
+    
+    const success = await onSaveExtraData(extraData)
+    if (success) {
+      console.log('✅ 冒險紀錄刪除成功')
+    } else {
+      console.error('❌ 冒險紀錄刪除失敗')
+    }
+    
     setActiveModal(null);
   };
 

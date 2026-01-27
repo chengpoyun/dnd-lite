@@ -296,6 +296,65 @@ export class DetailedCharacterService {
     }
   }
 
+  // 專門更新 extra_data 的方法
+  static async updateExtraData(characterId: string, extraData: any): Promise<boolean> {
+    try {
+      // 驗證 characterId
+      if (!characterId || characterId.trim() === '' || characterId.length < 32) {
+        console.error('updateExtraData: 無效的 characterId:', characterId)
+        return false
+      }
+
+      // 先查詢現有記錄，如果不存在則創建基本記錄
+      const { data: existingStats } = await supabase
+        .from('character_current_stats')
+        .select('*')
+        .eq('character_id', characterId)
+        .single()
+
+      if (existingStats) {
+        // 記錄存在，只更新 extra_data
+        const { error } = await supabase
+          .from('character_current_stats')
+          .update({ extra_data: extraData, updated_at: new Date().toISOString() })
+          .eq('character_id', characterId)
+
+        if (error) {
+          console.error('更新額外數據失敗:', error)
+          return false
+        }
+      } else {
+        // 記錄不存在，創建新記錄with預設值
+        const { error } = await supabase
+          .from('character_current_stats')
+          .insert({
+            character_id: characterId,
+            current_hp: 1,
+            max_hp: 1,
+            temporary_hp: 0,
+            current_hit_dice: 0,
+            total_hit_dice: 1,
+            armor_class: 10,
+            initiative_bonus: 0,
+            speed: 30,
+            hit_die_type: 'd8',
+            extra_data: extraData,
+            updated_at: new Date().toISOString()
+          })
+
+        if (error) {
+          console.error('創建角色狀態記錄失敗:', error)
+          return false
+        }
+      }
+
+      return true
+    } catch (error) {
+      console.error('更新額外數據失敗:', error)
+      return false
+    }
+  }
+
   // 更新角色基本信息 - 接受前端 CharacterStats 格式並映射到資料庫欄位
   static async updateCharacterBasicInfo(characterId: string, updates: Partial<Character> | { name?: string; class?: string; level?: number; experience?: number; avatar_url?: string }): Promise<boolean> {
     try {
