@@ -17,7 +17,8 @@ import {
   getTotalCurrentHitDice,
   getTotalMaxHitDice
 } from '../../utils/classUtils'
-import type { ClassInfo, HitDicePools } from '../../types'
+import { migrateLegacyCharacterStats, needsMulticlassMigration, validateMulticlassData, ensureDisplayClass } from '../../utils/migrationHelpers'
+import type { ClassInfo, HitDicePools, CharacterStats } from '../../types'
 
 describe('classUtils - D&D 5E 職業工具函數', () => {
   
@@ -337,6 +338,205 @@ describe('classUtils - D&D 5E 職業工具函數', () => {
       }
       
       expect(getTotalMaxHitDice(emptyPools)).toBe(0)
+    })
+  })
+
+  // ===== 兼職系統遷移測試 =====
+  describe('Multiclass Migration System', () => {
+    const legacyCharacterStats: CharacterStats = {
+      name: "測試戰士",
+      class: "戰士",
+      level: 5,
+      exp: 6500,
+      hp: { current: 45, max: 55, temp: 0 },
+      hitDice: { current: 3, total: 5, die: "d10" },
+      ac: 16,
+      initiative: 2,
+      speed: 30,
+      abilityScores: { str: 16, dex: 14, con: 15, int: 10, wis: 12, cha: 8 },
+      proficiencies: { "運動": 1, "威嚇": 1 },
+      savingProficiencies: ["str", "con"],
+      downtime: 10,
+      renown: { used: 2, total: 8 },
+      prestige: { org: "哈潑同盟", level: 1, rankName: "披風" },
+      customRecords: [],
+      attacks: [],
+      currency: { cp: 0, sp: 0, ep: 0, gp: 100, pp: 0 }
+    }
+
+    describe('needsMulticlassMigration', () => {
+      it('應該檢測出需要移轉的傳統角色', () => {
+        expect(needsMulticlassMigration(legacyCharacterStats)).toBe(true)
+      })
+
+      it('已有兼職資料的角色不需要移轉', () => {
+        const modernStats: CharacterStats = {
+          ...legacyCharacterStats,
+          classes: [{ name: "戰士", level: 5, hitDie: "d10", isPrimary: true }],
+          hitDicePools: {
+            d12: { current: 0, total: 0 },
+            d10: { current: 3, total: 5 },
+            d8: { current: 0, total: 0 },
+            d6: { current: 0, total: 0 }
+          }
+        }
+        expect(needsMulticlassMigration(modernStats)).toBe(false)
+      })
+    })
+
+    describe('migrateLegacyCharacterStats', () => {
+      it('應該正確移轉傳統單職業角色', () => {
+        const migrated = migrateLegacyCharacterStats(legacyCharacterStats)
+        
+        expect(migrated.classes).toEqual([{
+          name: "戰士",
+          level: 5,
+          hitDie: "d10",
+          isPrimary: true
+        }])
+
+        expect(migrated.hitDicePools).toEqual({
+          d12: { current: 0, total: 0 },
+          d10: { current: 3, total: 5 },
+          d8: { current: 0, total: 0 },
+          d6: { current: 0, total: 0 }
+        })
+      })
+
+      it('應該無縫移轉傳統角色到兼職系統', () => {
+        const legacyFighter: CharacterStats = {
+          name: "老戰士",
+          class: "戰士",
+          level: 7,
+          exp: 23000,
+          hp: { current: 58, max: 65, temp: 0 },
+          hitDice: { current: 4, total: 7, die: "d10" },
+          ac: 17,
+          initiative: 1,
+          speed: 30,
+          abilityScores: { str: 18, dex: 12, con: 16, int: 10, wis: 13, cha: 8 },
+          proficiencies: { "運動": 1, "威嚇": 1 },
+          savingProficiencies: ["str", "con"],
+          downtime: 0,
+          renown: { used: 0, total: 0 },
+          prestige: { org: "", level: 0, rankName: "" },
+          customRecords: [],
+          attacks: [],
+          currency: { cp: 0, sp: 0, ep: 0, gp: 150, pp: 0 }
+        }
+
+        const migratedFighter = migrateLegacyCharacterStats(legacyFighter)
+        expect(migratedFighter.classes).toEqual([{
+          name: "戰士",
+          level: 7,
+          hitDie: "d10",
+          isPrimary: true
+        }])
+
+        expect(migratedFighter.hitDicePools!.d10).toEqual({ current: 4, total: 7 })
+      })
+    })
+
+    describe('validateMulticlassData', () => {
+      it('有效的兼職資料應該通過驗證', () => {
+        const validStats: CharacterStats = {
+          ...legacyCharacterStats,
+          level: 8,
+          classes: [
+            { name: "戰士", level: 5, hitDie: "d10", isPrimary: true },
+            { name: "法師", level: 3, hitDie: "d6", isPrimary: false }
+          ],
+          hitDicePools: {
+            d12: { current: 0, total: 0 },
+            d10: { current: 3, total: 5 },
+            d8: { current: 0, total: 0 },
+            d6: { current: 2, total: 3 }
+          }
+        }
+        
+        expect(validateMulticlassData(validStats)).toEqual({ isValid: true, errors: [] })
+      })
+    })
+
+    describe('ensureDisplayClass', () => {
+      it('應該從兼職資料中設定正確的顯示職業', () => {
+        const stats: CharacterStats = {
+          ...legacyCharacterStats,
+          class: "舊職業",
+          level: 5,
+          classes: [
+            { name: "戰士", level: 3, hitDie: "d10", isPrimary: true },
+            { name: "法師", level: 2, hitDie: "d6", isPrimary: false }
+          ]
+        }
+
+        const result = ensureDisplayClass(stats)
+        expect(result.class).toBe("戰士")
+        expect(result.level).toBe(5)
+      })
+    })
+  })
+
+  // ===== 完整兼職系統整合測試 =====
+  describe('Complete Multiclass Integration', () => {
+    it('應該支持完整的兼職系統工作流程', () => {
+      const multiclassCharacter: CharacterStats = {
+        name: "艾瑞克·鋼法",
+        class: "戰士",
+        level: 8,
+        exp: 34000,
+        hp: { current: 65, max: 72, temp: 0 },
+        hitDice: { current: 4, total: 8, die: "d10" },
+        ac: 18,
+        initiative: 2,
+        speed: 30,
+        abilityScores: { str: 16, dex: 14, con: 16, int: 14, wis: 12, cha: 10 },
+        proficiencies: { "運動": 1, "奧秘": 1 },
+        savingProficiencies: ["str", "con"],
+        downtime: 15,
+        renown: { used: 1, total: 5 },
+        prestige: { org: "哈潑同盟", level: 1, rankName: "披風" },
+        customRecords: [],
+        attacks: [],
+        currency: { cp: 0, sp: 0, ep: 0, gp: 250, pp: 1 },
+        classes: [
+          { name: "戰士", level: 5, hitDie: "d10", isPrimary: true },
+          { name: "法師", level: 3, hitDie: "d6", isPrimary: false }
+        ],
+        hitDicePools: {
+          d12: { current: 0, total: 0 },
+          d10: { current: 3, total: 5 },
+          d8: { current: 0, total: 0 },
+          d6: { current: 2, total: 3 }
+        }
+      }
+
+      // 驗證職業顯示格式
+      expect(formatClassDisplay(multiclassCharacter.classes!, 'full')).toBe('戰士 Lv5 / 法師 Lv3')
+      expect(formatClassDisplay(multiclassCharacter.classes!, 'primary')).toBe('戰士')
+
+      // 驗證生命骰計算
+      expect(getTotalCurrentHitDice(multiclassCharacter.hitDicePools!)).toBe(5)
+      expect(getTotalMaxHitDice(multiclassCharacter.hitDicePools!)).toBe(8)
+
+      // 驗證生命骰池格式化
+      const formattedPools = formatHitDicePools(multiclassCharacter.hitDicePools!)
+      expect(formattedPools).toContain('3/5d10')
+      expect(formattedPools).toContain('2/3d6')
+    })
+
+    it('同類型生命骰的職業應該正確合併', () => {
+      const sameHitDieClasses: ClassInfo[] = [
+        { name: "盜賊", level: 4, hitDie: "d8", isPrimary: true },
+        { name: "遊俠", level: 2, hitDie: "d8", isPrimary: false }
+      ]
+
+      const pools = calculateHitDiceTotals(sameHitDieClasses)
+      
+      expect(pools.d8).toEqual({ current: 6, total: 6 })
+      expect(pools.d10).toEqual({ current: 0, total: 0 })
+      expect(pools.d6).toEqual({ current: 0, total: 0 })
+      expect(pools.d12).toEqual({ current: 0, total: 0 })
     })
   })
 })

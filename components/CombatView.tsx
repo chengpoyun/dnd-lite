@@ -3,7 +3,6 @@ import { CharacterStats } from '../types';
 import { evaluateValue, getModifier, setNormalValue, handleValueInput } from '../utils/helpers';
 import { formatHitDicePools, getTotalCurrentHitDice, useHitDie, recoverHitDiceOnLongRest } from '../utils/classUtils';
 import { HybridDataManager } from '../services/hybridDataManager';
-import { MigrationService } from '../services/migration';
 import { PageContainer, Card, Button, Title, Subtitle, Input } from './ui';
 import { Modal, ModalButton, ModalInput } from './ui/Modal';
 import { STYLES } from '../styles/common';
@@ -76,11 +75,7 @@ const DEFAULT_ITEM_IDS = {
 };
 
 const STORAGE_KEYS = {
-  ACTIONS: 'dnd_actions_v6',
-  BONUS: 'dnd_bonus_v7',
-  REACTIONS: 'dnd_reactions_v6',
-  RESOURCES: 'dnd_resources_v6',
-  COMBAT_STATE: 'dnd_combat_state_v4'
+
 };
 
 type ItemCategory = 'action' | 'bonus' | 'reaction' | 'resource';
@@ -149,9 +144,7 @@ export const CombatView: React.FC<CombatViewProps> = ({
   
   // Hit dice states for multiclass support
   const [selectedHitDie, setSelectedHitDie] = useState<'d12' | 'd10' | 'd8' | 'd6' | null>(null);
-  const [isMigrated, setIsMigrated] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const migrationRef = useRef(false); // 防止重複遷移
   
   const [isEditMode, setIsEditMode] = useState(false);
   const [isHPModalOpen, setIsHPModalOpen] = useState(false);
@@ -190,32 +183,6 @@ export const CombatView: React.FC<CombatViewProps> = ({
       try {
         setIsLoading(true);
         setError(null); // 清除之前的錯誤
-        
-        // 檢查是否需要遷移資料（防止重複遷移）
-        const migrationKey = `combat_migrated_${characterId}`;
-        const alreadyMigrated = localStorage.getItem(migrationKey) === 'true';
-        
-        const hasLocalData = localStorage.getItem(STORAGE_KEYS.ACTIONS) || 
-                            localStorage.getItem(STORAGE_KEYS.BONUS) ||
-                            localStorage.getItem(STORAGE_KEYS.REACTIONS) ||
-                            localStorage.getItem(STORAGE_KEYS.RESOURCES);
-        
-        if (hasLocalData && !alreadyMigrated && !migrationRef.current) {
-          console.log('檢測到本地資料，開始遷移到資料庫...');
-          migrationRef.current = true; // 設置標記防止重複執行
-          
-          try {
-            await MigrationService.migrateCombatItems(characterId);
-            localStorage.setItem(migrationKey, 'true'); // 標記已完成遷移
-            console.log('資料遷移完成');
-            setIsMigrated(true);
-          } catch (migrationError) {
-            console.error('遷移失敗:', migrationError);
-            migrationRef.current = false; // 失敗時重置標記以允許重試
-            // 遷移失敗不應該阻止載入默認數據
-            setError(`資料遷移失敗：${migrationError instanceof Error ? migrationError.message : '未知錯誤'}`);
-          }
-        }
         
         // 從資料庫載入資料
         try {
