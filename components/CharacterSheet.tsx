@@ -555,7 +555,7 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
     for (const key in editAbilities) {
       const result = handleValueInput(editAbilities[key], undefined, {
         minValue: 1,
-        maxValue: 30,
+        maxValue: 99,
         allowZero: false
       });
       
