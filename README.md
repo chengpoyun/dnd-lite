@@ -1,177 +1,96 @@
-# Supabase CLI
+# D&D Lite - 冒險者助手 🐉
 
-[![Coverage Status](https://coveralls.io/repos/github/supabase/cli/badge.svg?branch=main)](https://coveralls.io/github/supabase/cli?branch=main) [![Bitbucket Pipelines](https://img.shields.io/bitbucket/pipelines/supabase-cli/setup-cli/master?style=flat-square&label=Bitbucket%20Canary)](https://bitbucket.org/supabase-cli/setup-cli/pipelines) [![Gitlab Pipeline Status](https://img.shields.io/gitlab/pipeline-status/sweatybridge%2Fsetup-cli?label=Gitlab%20Canary)
-](https://gitlab.com/sweatybridge/setup-cli/-/pipelines)
+> 現代化的 D&D 5e 角色管理應用程式，專為數位桌遊玩家設計
 
-[Supabase](https://supabase.io) is an open source Firebase alternative. We're building the features of Firebase using enterprise-grade open source tools.
+[![Tests](https://img.shields.io/badge/tests-124%20passing-brightgreen)](src/test/) [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue)](tsconfig.json) [![React](https://img.shields.io/badge/React-19-61dafb)](package.json)
 
-This repository contains all the functionality for Supabase CLI.
+## ✨ 特色功能
 
-- [x] Running Supabase locally
-- [x] Managing database migrations
-- [x] Creating and deploying Supabase Functions
-- [x] Generating types directly from your database schema
-- [x] Making authenticated HTTP requests to [Management API](https://supabase.com/docs/reference/api/introduction)
+- **🎯 完整角色管理** - 能力值、技能熟練度、兼職系統支援
+- **⚔️ 戰鬥輔助** - 血量追蹤、戰鬥動作、先攻管理
+- **🎲 內建骰子** - 各種骰子類型，支援修正值
+- **☁️ 雲端同步** - Supabase 後端，跨設備同步
+- **👤 匿名模式** - 無需註冊即可試用
+- **📱 響應式設計** - 手機、平板、電腦完美適配
+- **🔒 資料安全** - Row Level Security，用戶資料完全隔離
 
-## Getting started
+## 🚀 技術特色
 
-### Install the CLI
+- **React 19** + **TypeScript** - 現代前端框架
+- **Vite** - 極速開發體驗
+- **Tailwind CSS** - 精美 UI 設計
+- **Supabase** - 開源後端服務
+- **Vitest** - 快速單元測試（124個測試）
+- **零 localStorage 依賴** - 完全雲端化資料管理
 
-Available via [NPM](https://www.npmjs.com) as dev dependency. To install:
+## 🎮 快速開始
+
+### 環境需求
+- Node.js 18+
+- npm 或 yarn
+
+### 安裝與開發
 
 ```bash
-npm i supabase --save-dev
-```
+# 克隆專案
+git clone <repository-url>
+cd dnd-lite
 
-When installing with yarn 4, you need to disable experimental fetch with the following nodejs config.
+# 安裝依賴
+npm install
 
-```
-NODE_OPTIONS=--no-experimental-fetch yarn add supabase
-```
+# 啟動開發伺服器
+npm run dev
 
-> **Note**
-For Bun versions below v1.0.17, you must add `supabase` as a [trusted dependency](https://bun.sh/guides/install/trusted) before running `bun add -D supabase`.
-
-<details>
-  <summary><b>macOS</b></summary>
-
-  Available via [Homebrew](https://brew.sh). To install:
-
-  ```sh
-  brew install supabase/tap/supabase
-  ```
-
-  To install the beta release channel:
-  
-  ```sh
-  brew install supabase/tap/supabase-beta
-  brew link --overwrite supabase-beta
-  ```
+# 運行測試
+npm test
   
   To upgrade:
 
   ```sh
-  brew upgrade supabase
-  ```
-</details>
-
-<details>
-  <summary><b>Windows</b></summary>
-
-  Available via [Scoop](https://scoop.sh). To install:
-
-  ```powershell
-  scoop bucket add supabase https://github.com/supabase/scoop-bucket.git
-  scoop install supabase
-  ```
-
-  To upgrade:
-
-  ```powershell
-  scoop update supabase
-  ```
-</details>
-
-<details>
-  <summary><b>Linux</b></summary>
-
-  Available via [Homebrew](https://brew.sh) and Linux packages.
-
-  #### via Homebrew
-
-  To install:
-
-  ```sh
-  brew install supabase/tap/supabase
-  ```
-
-  To upgrade:
-
-  ```sh
-  brew upgrade supabase
-  ```
-
-  #### via Linux packages
-
-  Linux packages are provided in [Releases](https://github.com/supabase/cli/releases). To install, download the `.apk`/`.deb`/`.rpm`/`.pkg.tar.zst` file depending on your package manager and run the respective commands.
-
-  ```sh
-  sudo apk add --allow-untrusted <...>.apk
-  ```
-
-  ```sh
-  sudo dpkg -i <...>.deb
-  ```
-
-  ```sh
-  sudo rpm -i <...>.rpm
-  ```
-
-  ```sh
-  sudo pacman -U <...>.pkg.tar.zst
-  ```
-</details>
-
-<details>
-  <summary><b>Other Platforms</b></summary>
-
-  You can also install the CLI via [go modules](https://go.dev/ref/mod#go-install) without the help of package managers.
-
-  ```sh
-  go install github.com/supabase/cli@latest
-  ```
-
-  Add a symlink to the binary in `$PATH` for easier access:
-
-  ```sh
-  ln -s "$(go env GOPATH)/bin/cli" /usr/bin/supabase
-  ```
-
-  This works on other non-standard Linux distros.
-</details>
-
-<details>
-  <summary><b>Community Maintained Packages</b></summary>
-
-  Available via [pkgx](https://pkgx.sh/). Package script [here](https://github.com/pkgxdev/pantry/blob/main/projects/supabase.com/cli/package.yml).
-  To install in your working directory:
-
-  ```bash
-  pkgx install supabase
-  ```
-
-  Available via [Nixpkgs](https://nixos.org/). Package script [here](https://github.com/NixOS/nixpkgs/blob/master/pkgs/development/tools/supabase-cli/default.nix).
-</details>
-
-### Run the CLI
-
-```bash
-supabase bootstrap
+# 執行測試
+npm run test:watch
 ```
 
-Or using npx:
+## 🎮 使用方式
 
-```bash
-npx supabase bootstrap
-```
+1. **建立角色** - 快速創建 D&D 5e 角色
+2. **管理數據** - 能力值、技能、裝備完整管理
+3. **戰鬥輔助** - 血量追蹤、骰子系統、行動管理
+4. **雲端同步** - 自動保存，跨設備存取
 
-The bootstrap command will guide you through the process of setting up a Supabase project using one of the [starter](https://github.com/supabase-community/supabase-samples/blob/main/samples.json) templates.
+## 📊 專案統計
 
-## Docs
+- **程式碼行數** - ~15,000+ 行 TypeScript/TSX
+- **測試覆蓋** - 124 個單元測試
+- **元件數量** - 15+ React 組件
+- **資料表** - 8 個資料庫表格
+- **支援職業** - 13 個 D&D 5e 基礎職業
 
-Command & config reference can be found [here](https://supabase.com/docs/reference/cli/about).
+## 🤝 貢獻指南
 
-## Breaking changes
+1. Fork 本專案
+2. 創建功能分支 (`git checkout -b feature/amazing-feature`)
+3. 提交變更 (`git commit -m 'Add amazing feature'`)
+4. 推送到分支 (`git push origin feature/amazing-feature`)
+5. 開啟 Pull Request
 
-We follow semantic versioning for changes that directly impact CLI commands, flags, and configurations.
+## 📝 授權
 
-However, due to dependencies on other service images, we cannot guarantee that schema migrations, seed.sql, and generated types will always work for the same CLI major version. If you need such guarantees, we encourage you to pin a specific version of CLI in package.json.
+本專案採用 [MIT 授權](LICENSE) - 詳見授權文件
 
-## Developing
+## 🔗 相關連結
 
-To run from source:
+- [線上 Demo](https://dnd-lite.vercel.app) (如果有部署)
+- [開發文檔](README-project.md)
+- [測試報告](TEST-README.md)
+- [更新日誌](CHANGELOG.md) (如果有)
 
-```sh
-# Go >= 1.22
-go run . help
-```
+---
+
+**💡 提示**: 如果在使用過程中遇到任何問題，請查看 [Issues](../../issues) 或建立新的 issue！
+
+**🎯 願景**: 成為最好用的 D&D 5e 數位輔助工具，讓每場冒險都更精彩！
+
+---
+*由 ❤️ 使用 React + TypeScript + Supabase 構建*

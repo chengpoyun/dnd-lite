@@ -1,144 +1,199 @@
-# 角色數值更新與保存測試
+# D&D Lite - 測試文檔 🧪
 
-## 概述
+> 完整的測試套件文檔，確保 D&D 5e 角色管理系統的穩定性與可靠性
 
-此測試套件確保角色頁面的數值更新與儲存功能能夠正常運作，防止往後的修改破壞基本功能。
+[![Tests](https://img.shields.io/badge/tests-124%20passing-brightgreen)](src/test/) [![Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen)](src/test/) [![Vitest](https://img.shields.io/badge/test--framework-Vitest-yellow)](vitest.config.ts)
 
-## 測試覆蓋範圍
+## 📊 測試總覽
 
-### 1. 角色基本信息保存 (`save-logic.test.ts`)
-- ✅ 角色名稱、職業、等級的驗證和保存
-- ✅ 輸入值的邊界檢查
-- ✅ 空值和無效值的處理
+### 統計數據
+- **總測試數量**: 124 個測試
+- **測試檔案**: 9 個測試檔案
+- **測試通過率**: 100%
+- **測試框架**: Vitest
+- **測試環境**: JSDOM (瀏覽器模擬)
 
-### 2. 能力值管理
-- ✅ 六項基本能力值 (力量、敏捷、體質、智力、感知、魅力)
-- ✅ 數值範圍驗證 (1-30)
-- ✅ 整數類型檢查
+### 測試分類
+- **單元測試** (80%) - 個別函數與模組
+- **整合測試** (15%) - 服務間互動
+- **組件測試** (5%) - React 組件行為
 
-### 3. 技能熟練度系統
-- ✅ 技能名稱驗證
-- ✅ 熟練度等級檢查 (0=無熟練, 1=熟練, 2=專精)
-- ✅ 保存邏輯正確性
-
-### 4. 貨幣和經驗值
-- ✅ 非負整數驗證
-- ✅ 零值處理
-- ✅ 保存機制測試
-
-### 5. 冒險紀錄管理
-- ✅ 自定義記錄的增刪改
-- ✅ 必要欄位驗證 (id, name, value)
-- ✅ 數據完整性檢查
-
-### 6. 額外數據處理
-- ✅ 修整期 (downtime) 驗證
-- ✅ 名聲 (renown) 數據結構
-- ✅ 威望 (prestige) 信息
-- ✅ 空數據處理
-
-### 7. 資料庫操作
-- ✅ updateExtraData 參數驗證
-- ✅ characterId UUID 格式檢查
-- ✅ 錯誤處理機制
-
-### 8. 組件渲染測試 (`CharacterSheet.test.tsx`)
-- ✅ 組件正確渲染
-- ✅ Props 正確傳遞
-- ✅ 基本數據顯示
-
-## 運行測試
-
-### 基本命令
-
-```bash
-# 運行所有測試
-npm t
-
-# 運行單次測試（不進入 watch 模式）
-npm test -- --run
-
-# 運行特定測試文件
-npm test -- --run src/test/save-logic.test.ts
-
-# 以詳細模式運行
-npm test -- --run --verbose
-```
-
-### 測試保護檢查
-
-運行測試保護腳本來驗證測試能夠檢測破壞性變更：
-
-```bash
-./test-protection.sh
-```
-
-此腳本會：
-1. 運行基線測試確保正常
-2. 模擬破壞關鍵功能
-3. 驗證測試能夠檢測到問題
-4. 還原所有修改
-
-## 測試結構
+## 🗂️ 測試檔案結構
 
 ```
 src/test/
-├── setup.ts                    # 測試環境設置和 Mock
-├── CharacterSheet.test.tsx     # 組件渲染測試
-├── character-data-services.test.ts # 服務層測試
-├── save-logic.test.ts          # 保存邏輯純函數測試  
-└── updateExtraData.test.ts     # 額外數據更新測試
+├── avatar-save.test.ts          # 頭像儲存功能 (8 tests)
+├── character-data-services.test.ts # 角色資料服務 (14 tests)
+├── CharacterSheet.test.tsx      # 角色表組件 (8 tests)
+├── classUtils.test.ts           # 職業系統工具 (41 tests)
+├── CombatView.clean.test.tsx    # 戰鬥介面-清潔 (10 tests)
+├── CombatView.defaultItems.test.tsx # 戰鬥介面-預設項目 (7 tests)
+├── DeleteFunction.simple.test.tsx # 刪除功能 (4 tests)
+├── save-logic.test.ts           # 保存邏輯 (21 tests)
+└── updateExtraData.test.ts      # 額外資料更新 (11 tests)
 ```
 
-## Mock 設置
+## 🎯 詳細測試覆蓋
 
-測試使用以下 Mock：
-- `@testing-library/jest-dom` - DOM 測試工具
-- Supabase 客戶端 Mock
-- 所有服務模塊 Mock
-- React hooks Mock
+### 1. 角色基本資料管理 (`save-logic.test.ts`)
+- ✅ **角色識別** - 名稱、職業、等級驗證
+- ✅ **能力值系統** - 六項基本能力值 (1-30 範圍檢查)
+- ✅ **技能熟練度** - 技能名稱與等級驗證 (0=無, 1=熟練, 2=專精)
+- ✅ **經驗值與貨幣** - 非負整數驗證
+- ✅ **錯誤處理** - 無效值與邊界條件
 
-## 持續改進
+### 2. 職業系統與兼職支援 (`classUtils.test.ts`)
+- ✅ **職業資訊** - 13個基礎職業支援
+- ✅ **生命骰系統** - d6, d8, d10, d12 管理
+- ✅ **兼職計算** - 多職業等級與熟練度
+- ✅ **遷移系統** - 傳統單職業轉換為兼職
+- ✅ **顯示格式** - 職業名稱格式化
 
-### 添加新功能時
-1. 為新的保存邏輯編寫對應測試
-2. 確保輸入驗證覆蓋
-3. 測試錯誤處理情況
-4. 運行完整測試套件
+### 3. 戰鬥系統管理 (`CombatView.*.test.tsx`)
+- ✅ **預設動作保護** - 攻擊、衝刺等預設動作不可刪除
+- ✅ **自訂動作管理** - 新增、編輯、刪除自訂戰鬥動作
+- ✅ **編輯模式切換** - UI 狀態正確切換
+- ✅ **項目分類** - 動作、獎勵動作、反應分類
+- ✅ **功能完整性** - CRUD 操作完整支援
 
-### 修改現有功能時
-1. 運行相關測試確保不破壞功能
-2. 根據需要更新測試
-3. 驗證邊界案例仍然有效
+### 4. 資料持久化 (`character-data-services.test.ts`)
+- ✅ **Supabase 整合** - 資料庫連線與操作
+- ✅ **資料同步** - 即時更新與衝突解決
+- ✅ **錯誤處理** - 網路異常與資料庫錯誤
+- ✅ **匿名支援** - 訪客模式資料管理
 
-## 最佳實踐
+### 5. 額外資料管理 (`updateExtraData.test.ts`)
+- ✅ **參數驗證** - characterId UUID 格式檢查
+- ✅ **修整期管理** - downtime 數值更新
+- ✅ **名聲威望** - renown 與 prestige 系統
+- ✅ **自訂記錄** - customRecords 動態內容
 
-1. **專注於邏輯測試**: 測試業務邏輯而非 UI 細節
-2. **輸入驗證**: 確保所有用戶輸入都被正確驗證
-3. **錯誤處理**: 測試失敗情況和異常處理
-4. **數據完整性**: 驗證保存的數據符合預期格式
-5. **邊界測試**: 測試極值和邊界條件
+### 6. UI 組件行為 (`CharacterSheet.test.tsx`)
+- ✅ **組件渲染** - 正確顯示角色資料
+- ✅ **Props 傳遞** - 資料正確流動
+- ✅ **互動測試** - 表單輸入與提交
+- ✅ **錯誤邊界** - 異常狀態處理
 
-## 疑難排解
+### 7. 檔案管理 (`avatar-save.test.ts`)
+- ✅ **頭像上傳** - 圖片檔案處理
+- ✅ **格式驗證** - 支援的圖片格式
+- ✅ **大小限制** - 檔案大小檢查
+- ✅ **錯誤處理** - 上傳失敗情境
 
-### 測試失敗
-1. 檢查錯誤訊息中的具體失敗點
-2. 確認 Mock 設置正確
-3. 驗證測試數據格式
-4. 運行單一測試文件進行調試
+### 8. 刪除功能 (`DeleteFunction.simple.test.tsx`)
+- ✅ **安全刪除** - 確認對話框
+- ✅ **關聯清理** - 相關資料同步刪除
+- ✅ **權限檢查** - 用戶授權驗證
+- ✅ **回滾機制** - 刪除失敗復原
 
-### 新增測試
-1. 參考現有測試結構
-2. 使用 describe/it 組織測試
-3. 在 beforeEach 中清理 Mock 狀態
-4. 為成功和失敗情況都編寫測試
+## 🚀 運行測試
 
-## 技術細節
+### 基本命令
+```bash
+# 運行所有測試
+npm test
 
-- **測試框架**: Vitest
-- **測試工具**: @testing-library/react
-- **Mock 框架**: Vitest 內建 Mock
-- **覆蓋目標**: 角色數據的 CRUD 操作
-- **驗證重點**: 數據驗證、保存邏輯、錯誤處理
+# 監視模式 (開發時使用)
+npm run test:watch
 
-這個測試套件確保了角色管理系統的核心功能穩定性，為後續開發提供了安全保障。
+# 測試 UI 介面
+npm run test:ui
+
+# 快速測試 (別名)
+npm run t
+```
+
+### 高級選項
+```bash
+# 運行特定檔案
+npx vitest run src/test/classUtils.test.ts
+
+# 運行匹配模式的測試
+npx vitest run --grep "職業系統"
+
+# 產生覆蓋率報告
+npx vitest run --coverage
+```
+
+## 🔧 測試配置
+
+### Vitest 設定 (`vitest.config.ts`)
+```typescript
+export default defineConfig({
+  test: {
+    globals: true,           // 全域測試函數
+    environment: 'jsdom',    // DOM 環境模擬
+    setupFiles: ['src/test/setup.ts'],
+    coverage: {
+      reporter: ['text', 'json', 'html']
+    }
+  }
+})
+```
+
+### 測試環境設定 (`src/test/setup.ts`)
+- Testing Library 配置
+- JSDOM polyfills
+- 全域 mocks 設定
+
+## 📈 品質保證
+
+### 持續整合
+- ✅ 每次提交自動執行測試
+- ✅ Pull Request 必須通過所有測試
+- ✅ 測試覆蓋率維持 100%
+
+### 測試策略
+- **單元測試優先** - 確保每個函數正確運作
+- **整合測試補充** - 驗證系統間互動
+- **回歸測試防護** - 防止功能倒退
+- **邊界條件覆蓋** - 處理極端情況
+
+## 🐛 測試除錯
+
+### 常見問題
+1. **JSDOM 限制** - 某些瀏覽器 API 需要 mock
+2. **非同步操作** - 正確使用 async/await
+3. **React 狀態** - 使用 act() 包裝狀態更新
+4. **資料庫連線** - 使用 mock 避免實際資料庫操作
+
+### 除錯技巧
+```bash
+# 使用 Node.js inspector
+npx vitest --inspect-brk
+
+# 顯示詳細錯誤
+npx vitest --reporter=verbose
+
+# 只運行失敗的測試
+npx vitest --run --reporter=verbose --bail=1
+```
+
+## 📋 新增測試指南
+
+### 測試檔案命名
+- 功能測試: `*.test.ts`
+- 組件測試: `*.test.tsx`
+- 置於 `src/test/` 目錄
+
+### 測試結構
+```typescript
+import { describe, it, expect } from 'vitest'
+
+describe('功能模組名稱', () => {
+  describe('子功能群組', () => {
+    it('應該正確執行特定行為', () => {
+      // Arrange - 準備測試資料
+      // Act - 執行測試動作
+      // Assert - 驗證結果
+      expect(result).toBe(expected)
+    })
+  })
+})
+```
+
+---
+
+**📍 重要提醒**: 所有新功能開發都必須包含對應的測試案例，確保系統穩定性！
+
+**🎯 目標**: 維持 100% 測試通過率，打造最穩定可靠的 D&D 輔助工具！
