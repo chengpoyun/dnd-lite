@@ -22,6 +22,7 @@ export const CharacterSelectPage: React.FC<CharacterSelectPageProps> = ({
   const [isCreating, setIsCreating] = useState(false)
   const [newCharacterName, setNewCharacterName] = useState('')
   const [showCreateForm, setShowCreateForm] = useState(false)
+  const [isSigningIn, setIsSigningIn] = useState(false)
 
   useEffect(() => {
     loadCharacters()
@@ -107,6 +108,27 @@ export const CharacterSelectPage: React.FC<CharacterSelectPageProps> = ({
     if (confirm('確定要登出嗎？')) {
       await AuthService.signOut()
       onBack()
+    }
+  }
+
+  const handleSignIn = async () => {
+    if (isSigningIn) return
+    
+    setIsSigningIn(true)
+    try {
+      const result = await AuthService.signInWithGoogle()
+      if (result.success) {
+        console.log('✅ Google 登入成功，等待頁面重新導向...')
+        // 登入成功後，頁面會重新導向，由 App.tsx 處理後續邏輯
+      } else {
+        console.error('❌ Google 登入失敗:', result.error)
+        alert('登入失敗: ' + result.error)
+      }
+    } catch (error) {
+      console.error('登入過程出錯:', error)
+      alert('登入過程出錯: ' + error.message)
+    } finally {
+      setIsSigningIn(false)
     }
   }
 
@@ -219,7 +241,13 @@ export const CharacterSelectPage: React.FC<CharacterSelectPageProps> = ({
             <div className="text-slate-500 text-xs sm:text-sm text-center">
               匿名模式下僅限一個角色。
               <br />
-              <span className="text-amber-400">登入帳號</span> 以創建更多角色。
+              <button
+                onClick={handleSignIn}
+                disabled={isSigningIn}
+                className="text-amber-400 hover:text-amber-300 underline decoration-dotted underline-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                {isSigningIn ? '登入中...' : '登入帳號'}
+              </button> 以創建更多角色。
             </div>
           )}
         </div>
