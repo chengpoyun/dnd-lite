@@ -90,9 +90,8 @@ const AuthenticatedApp: React.FC = () => {
       const dbConnected = await HybridDataManager.testDatabaseConnection()
       
       if (!dbConnected) {
-        console.warn('⚠️ 資料庫連接不穩定，將使用離線模式')
-        setAppState('welcome')
-        return
+        console.warn('⚠️ 資料庫連接測試失敗，但繼續嘗試載入數據...')
+        // 不要立即進入離線模式，繼續嘗試載入角色
       }
       
       console.log('3. 檢查用戶登入狀態...')
@@ -510,17 +509,24 @@ const AuthenticatedApp: React.FC = () => {
   }
 
   // 保存當前HP
-  const saveHP = async (currentHP: number) => {
+  const saveHP = async (currentHP: number, maxHP?: number) => {
     if (!currentCharacter || isSaving) return false
     
     setIsSaving(true)
     try {
-      console.log('❤️ 保存當前HP:', currentHP)
+      console.log('❤️ 保存HP:', { currentHP, maxHP })
+      const updateData: Partial<CharacterCurrentStats> = {
+        character_id: currentCharacter.id,
+        current_hp: currentHP
+      }
+      
+      // 如果提供了最大HP，也一起更新
+      if (maxHP !== undefined) {
+        updateData.max_hp = maxHP
+      }
+      
       const characterUpdate: CharacterUpdateData = {
-        currentStats: {
-          character_id: currentCharacter.id,
-          hp: currentHP
-        } as Partial<CharacterCurrentStats>
+        currentStats: updateData
       }
       
       const success = await HybridDataManager.updateCharacter(currentCharacter.id, characterUpdate)
@@ -546,7 +552,7 @@ const AuthenticatedApp: React.FC = () => {
       const characterUpdate: CharacterUpdateData = {
         currentStats: {
           character_id: currentCharacter.id,
-          ac: ac
+          armor_class: ac
         } as Partial<CharacterCurrentStats>
       }
       
@@ -573,7 +579,7 @@ const AuthenticatedApp: React.FC = () => {
       const characterUpdate: CharacterUpdateData = {
         currentStats: {
           character_id: currentCharacter.id,
-          initiative: initiative
+          initiative_bonus: initiative
         } as Partial<CharacterCurrentStats>
       }
       

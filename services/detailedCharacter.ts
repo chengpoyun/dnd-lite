@@ -322,17 +322,48 @@ export class DetailedCharacterService {
         return false
       }
 
-      const { error } = await supabase
+      // 先檢查記錄是否存在
+      const { data: existingRecord, error: queryError } = await supabase
         .from('character_current_stats')
-        .upsert(
-          { character_id: characterId, ...stats, updated_at: new Date().toISOString() },
-          { onConflict: 'character_id' }
-        )
+        .select('*')
+        .eq('character_id', characterId)
+        .single()
 
-      if (error) {
-        console.error('更新當前狀態失敗:', error)
+      if (queryError && queryError.code !== 'PGRST116') { // PGRST116 = 記錄不存在
+        console.error('查詢現有記錄失敗:', queryError)
         return false
       }
+
+      if (existingRecord) {
+        // 記錄存在，進行 UPDATE
+        const { error } = await supabase
+          .from('character_current_stats')
+          .update({ ...stats, updated_at: new Date().toISOString() })
+          .eq('character_id', characterId)
+
+        if (error) {
+          console.error('更新當前狀態失敗:', error)
+          return false
+        }
+      } else {
+        // 記錄不存在，創建新記錄（使用默認值）
+        const defaultStats = this.getDefaultCurrentStats()
+        const { error } = await supabase
+          .from('character_current_stats')
+          .insert([{
+            character_id: characterId,
+            ...defaultStats,
+            ...stats, // 覆蓋默認值
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          }])
+
+        if (error) {
+          console.error('創建當前狀態記錄失敗:', error)
+          return false
+        }
+      }
+      
       return true
     } catch (error) {
       console.error('更新當前狀態失敗:', error)

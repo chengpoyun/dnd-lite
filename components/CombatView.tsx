@@ -72,7 +72,7 @@ interface CombatViewProps {
   stats: CharacterStats;
   setStats: React.Dispatch<React.SetStateAction<CharacterStats>>;
   characterId?: string; // 從 App.tsx 傳入的角色 ID
-  onSaveHP?: (currentHP: number) => Promise<boolean>;
+  onSaveHP?: (currentHP: number, maxHP?: number) => Promise<boolean>;
   onSaveAC?: (ac: number) => Promise<boolean>;
   onSaveInitiative?: (initiative: number) => Promise<boolean>;
 }
@@ -1210,7 +1210,7 @@ export const CombatView: React.FC<CombatViewProps> = ({
 
               // 保存HP到資料庫
               if (onSaveHP) {
-                onSaveHP(finalCurrentHP).then(success => {
+                onSaveHP(finalCurrentHP, finalMaxHP).then(success => {
                   if (!success) {
                     console.error('❌ HP保存失敗');
                   }

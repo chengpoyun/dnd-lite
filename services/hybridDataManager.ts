@@ -46,12 +46,12 @@ export class HybridDataManager {
   }
   
   /**
-   * 快速測試資料庫連接（500ms超時）
+   * 快速測試資料庫連接（5秒超時）
    */
-  static async testDatabaseConnection(): Promise<boolean> {
+  static async testDatabaseConnection(): Promise<void> {
     try {
       const timeoutPromise = new Promise<never>((_, reject) => {
-        setTimeout(() => reject(new Error('資料庫連接測試超時')), 500)
+        setTimeout(() => reject(new Error('資料庫連接測試超時')), 5000)
       })
       
       const testPromise = supabase.from('characters').select('id').limit(1)
@@ -227,8 +227,6 @@ export class HybridDataManager {
           }
           console.log('✅ 技能熟練度物件格式更新完成')
         }
-      } else {
-        console.log('⚠️ 沒有技能熟練度需要更新')
       }
 
       // 更新豁免檢定熟練度 - 添加重試邏輯
@@ -276,8 +274,6 @@ export class HybridDataManager {
           allSuccess = false
           errors.push('豁免檢定熟練度更新失敗')
         }
-      } else {
-        console.log('⚠️ 沒有豁免熟練度需要更新')
       }
 
       if (allSuccess) {
