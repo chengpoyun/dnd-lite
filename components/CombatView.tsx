@@ -1064,7 +1064,9 @@ export const CombatView: React.FC<CombatViewProps> = ({
           {lastRestRoll && (
             <div className="mt-2 bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-3 flex items-center justify-between">
                       <div className="text-xs text-emerald-500 font-bold">上一次恢復</div>
-                      <span className="text-emerald-400 font-mono text-lg">+{lastRestRoll.total}</span>
+                      <span className="text-emerald-400 font-mono text-lg">
+                        +{lastRestRoll.die}{lastRestRoll.mod >= 0 ? `+${lastRestRoll.mod}` : lastRestRoll.mod}
+                      </span>
             </div>
           )}
         </div>
