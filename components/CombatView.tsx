@@ -72,9 +72,19 @@ interface CombatViewProps {
   stats: CharacterStats;
   setStats: React.Dispatch<React.SetStateAction<CharacterStats>>;
   characterId?: string; // 從 App.tsx 傳入的角色 ID
+  onSaveHP?: (currentHP: number) => Promise<boolean>;
+  onSaveAC?: (ac: number) => Promise<boolean>;
+  onSaveInitiative?: (initiative: number) => Promise<boolean>;
 }
 
-export const CombatView: React.FC<CombatViewProps> = ({ stats, setStats, characterId: propCharacterId }) => {
+export const CombatView: React.FC<CombatViewProps> = ({ 
+  stats, 
+  setStats, 
+  characterId: propCharacterId,
+  onSaveHP,
+  onSaveAC, 
+  onSaveInitiative
+}) => {
   // 角色 ID 管理 - 優先使用從 props 傳入的 ID，否則從 localStorage 獲取
   const [characterId] = useState(() => {
     if (propCharacterId) {
@@ -1197,6 +1207,17 @@ export const CombatView: React.FC<CombatViewProps> = ({ stats, setStats, charact
                   max: finalMaxHP
                 } 
               }));
+
+              // 保存HP到資料庫
+              if (onSaveHP) {
+                onSaveHP(finalCurrentHP).then(success => {
+                  if (!success) {
+                    console.error('❌ HP保存失敗');
+                  }
+                }).catch(error => {
+                  console.error('❌ HP保存錯誤:', error);
+                });
+              }
               
               setIsHPModalOpen(false); 
               setTempHPValue(''); 
@@ -1235,6 +1256,17 @@ export const CombatView: React.FC<CombatViewProps> = ({ stats, setStats, charact
               });
               if (result.isValid) {
                 setStats(prev => ({ ...prev, ac: result.numericValue }));
+                
+                // 保存AC到資料庫
+                if (onSaveAC) {
+                  onSaveAC(result.numericValue).then(success => {
+                    if (!success) {
+                      console.error('❌ AC保存失敗');
+                    }
+                  }).catch(error => {
+                    console.error('❌ AC保存錯誤:', error);
+                  });
+                }
               }
               setIsACModalOpen(false); 
               setTempACValue(''); 
@@ -1287,6 +1319,18 @@ export const CombatView: React.FC<CombatViewProps> = ({ stats, setStats, charact
             
             console.log('Setting initiative from', stats.initiative, 'to', finalValue);
             setStats(prev => ({ ...prev, initiative: finalValue }));
+
+            // 保存先攻值到資料庫
+            if (onSaveInitiative) {
+              onSaveInitiative(finalValue).then(success => {
+                if (!success) {
+                  console.error('❌ 先攻值保存失敗');
+                }
+              }).catch(error => {
+                console.error('❌ 先攻值保存錯誤:', error);
+              });
+            }
+
             setIsInitiativeModalOpen(false); 
             setTempInitiativeValue(''); 
           }} className="bg-indigo-600 hover:bg-indigo-500">

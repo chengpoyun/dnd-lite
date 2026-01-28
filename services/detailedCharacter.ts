@@ -17,6 +17,20 @@ import type { CharacterStats } from '../types'
 
 // 詳細角色資料服務
 export class DetailedCharacterService {
+  // 添加角色資料緩存
+  private static characterCache: Map<string, { data: FullCharacterData; timestamp: number }> = new Map()
+  private static CACHE_DURATION = 30000 // 30秒緩存
+
+  // 清除指定角色的緩存
+  static clearCharacterCache(characterId?: string): void {
+    if (characterId) {
+      this.characterCache.delete(characterId)
+      console.log(`🗑️ 已清除角色 ${characterId} 的緩存`)
+    } else {
+      this.characterCache.clear()
+      console.log('🗑️ 已清除所有角色緩存')
+    }
+  }
   
   // 檢查當前用戶狀態（認證或匿名）
   private static async getCurrentUserContext(): Promise<{
@@ -24,11 +38,22 @@ export class DetailedCharacterService {
     userId?: string,
     anonymousId?: string
   }> {
-    const { data: { user } } = await supabase.auth.getUser()
-    
-    if (user) {
-      return { isAuthenticated: true, userId: user.id }
-    } else {
+    try {
+      console.log('🔐 開始檢查用戶認證狀態...')
+      const { data: { user } } = await supabase.auth.getUser()
+      console.log('🔐 認證檢查完成:', { hasUser: !!user })
+      
+      if (user) {
+        return { isAuthenticated: true, userId: user.id }
+      } else {
+        console.log('👤 獲取匿名用戶ID...')
+        const anonymousId = AnonymousService.getAnonymousId()
+        console.log('👤 匿名用戶ID獲取完成:', { anonymousId: anonymousId?.substring(0, 8) + '...' })
+        return { isAuthenticated: false, anonymousId }
+      }
+    } catch (error) {
+      console.error('❌ 獲取用戶上下文失敗:', error)
+      // 發生錯誤時，嘗試使用匿名模式
       const anonymousId = AnonymousService.getAnonymousId()
       return { isAuthenticated: false, anonymousId }
     }
@@ -37,7 +62,9 @@ export class DetailedCharacterService {
   // 獲取用戶的角色列表
   static async getUserCharacters(): Promise<Character[]> {
     try {
+      console.log('📋 開始獲取用戶上下文...')
       const context = await this.getCurrentUserContext()
+      console.log('📋 用戶上下文獲取完成:', { isAuthenticated: context.isAuthenticated })
       
       let query = supabase.from('characters').select('*')
       
@@ -47,43 +74,55 @@ export class DetailedCharacterService {
         query = query.eq('anonymous_id', context.anonymousId)
       }
       
+      console.log('📋 開始查詢角色列表...')
       const { data, error } = await query
       if (error) throw error
       
+      console.log('📋 角色列表查詢完成，數量:', data?.length || 0)
       return data || []
     } catch (error) {
-      console.error('獲取角色列表失敗:', error)
+      console.error('❌ 獲取角色列表失敗:', {
+        errorMessage: error.message,
+        errorName: error.name,
+        stack: error.stack
+      })
       return []
     }
   }
 
   // 獲取完整的角色資料
   static async getFullCharacter(characterId: string): Promise<FullCharacterData | null> {
+    const startTime = Date.now()
     try {
+      console.log(`⏰ 開始載入角色: ${characterId}`)
+
+      // 檢查緩存
+      const cached = this.characterCache.get(characterId)
+      if (cached && (Date.now() - cached.timestamp) < this.CACHE_DURATION) {
+        console.log(`⚡ 從緩存載入角色，耗時: ${Date.now() - startTime}ms`)
+        return cached.data
+      }
+
       // 驗證 characterId 是有效的 UUID
       if (!characterId || characterId.trim() === '' || characterId.length < 32) {
         console.error('getFullCharacter: 無效的 characterId:', characterId)
         return null
       }
 
+      const contextStart = Date.now()
       const context = await this.getCurrentUserContext()
-      
-      // 驗證角色所有權
-      let ownerQuery = supabase.from('characters').select('*').eq('id', characterId)
+      console.log(`⏰ 用戶上下文載入耗時: ${Date.now() - contextStart}ms`)
+
+      // 並行獲取所有資料（包含權限驗證）
+      const dataStart = Date.now()
+      let characterQuery = supabase.from('characters').select('*').eq('id', characterId)
       
       if (context.isAuthenticated) {
-        ownerQuery = ownerQuery.eq('user_id', context.userId)
+        characterQuery = characterQuery.eq('user_id', context.userId)
       } else {
-        ownerQuery = ownerQuery.eq('anonymous_id', context.anonymousId)
+        characterQuery = characterQuery.eq('anonymous_id', context.anonymousId)
       }
       
-      const { data: ownerCheck, error: ownerError } = await ownerQuery.single()
-      if (ownerError || !ownerCheck) {
-        console.error('角色不存在或無權限訪問')
-        return null
-      }
-
-      // 並行獲取所有資料
       const [
         characterResult,
         abilityScoresResult,
@@ -93,7 +132,7 @@ export class DetailedCharacterService {
         currencyResult,
         combatActionsResult
       ] = await Promise.all([
-        supabase.from('characters').select('*').eq('id', characterId).single(),
+        characterQuery.single(),
         supabase.from('character_ability_scores').select('*').eq('character_id', characterId).maybeSingle(),
         supabase.from('character_saving_throws').select('*').eq('character_id', characterId),
         supabase.from('character_skill_proficiencies').select('*').eq('character_id', characterId),
@@ -101,20 +140,34 @@ export class DetailedCharacterService {
         supabase.from('character_currency').select('*').eq('character_id', characterId).maybeSingle(),
         supabase.from('character_combat_actions').select('*').eq('character_id', characterId)
       ])
+      console.log(`⏰ 資料查詢耗時: ${Date.now() - dataStart}ms`)
 
-      if (characterResult.error) throw characterResult.error
+      if (characterResult.error || !characterResult.data) {
+        console.error('角色不存在或無權限訪問')
+        return null
+      }
 
-      return {
+      const result = {
         character: characterResult.data,
-        abilityScores: abilityScoresResult.data || await this.createDefaultAbilityScores(characterId),
+        abilityScores: abilityScoresResult.data || this.getDefaultAbilityScores(),
         savingThrows: savingThrowsResult.data || [],
         skillProficiencies: skillsResult.data || [],
-        currentStats: currentStatsResult.data || await this.createDefaultCurrentStats(characterId),
-        currency: currencyResult.data || await this.createDefaultCurrency(characterId),
+        currentStats: currentStatsResult.data || this.getDefaultCurrentStats(),
+        currency: currencyResult.data || this.getDefaultCurrency(),
         combatActions: combatActionsResult.data || []
       }
+      
+      // 存入緩存
+      this.characterCache.set(characterId, {
+        data: result,
+        timestamp: Date.now()
+      })
+      
+      console.log(`⏰ 角色載入總耗時: ${Date.now() - startTime}ms`)
+      return result
     } catch (error) {
       console.error('獲取完整角色資料失敗:', error)
+      console.log(`⏰ 載入失敗，總耗時: ${Date.now() - startTime}ms`)
       return null
     }
   }
@@ -723,6 +776,53 @@ export class DetailedCharacterService {
   }
 
   // === 私有輔助方法 ===
+
+  // 獲取預設能力值（不寫入資料庫）
+  private static getDefaultAbilityScores(): CharacterAbilityScores {
+    return {
+      character_id: '', // 會在實際使用時忽略
+      strength: 10,
+      dexterity: 10,
+      constitution: 10,
+      intelligence: 10,
+      wisdom: 10,
+      charisma: 10,
+      created_at: '',
+      updated_at: ''
+    }
+  }
+
+  // 獲取預設當前狀態（不寫入資料庫）
+  private static getDefaultCurrentStats(): CharacterCurrentStats {
+    return {
+      character_id: '',
+      current_hp: 20,
+      max_hp: 20,
+      temporary_hp: 0,
+      current_hit_dice: 1,
+      total_hit_dice: 1,
+      hit_die_type: 'd8',
+      armor_class: 10,
+      initiative_bonus: 0,
+      speed: 30,
+      created_at: '',
+      updated_at: ''
+    }
+  }
+
+  // 獲取預設貨幣（不寫入資料庫）
+  private static getDefaultCurrency(): CharacterCurrency {
+    return {
+      character_id: '',
+      copper: 0,
+      silver: 0,
+      electrum: 0,
+      gp: 150,
+      platinum: 0,
+      created_at: '',
+      updated_at: ''
+    }
+  }
 
   private static async createDefaultAbilityScores(characterId: string): Promise<CharacterAbilityScores> {
     return this.createAbilityScores(characterId, {})

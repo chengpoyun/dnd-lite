@@ -1,5 +1,6 @@
 import { DetailedCharacterService } from './detailedCharacter'
 import { CombatItemService } from './database'
+import { supabase } from '../lib/supabase'
 import type { FullCharacterData, Character, CharacterCombatAction, CharacterUpdateData } from '../lib/supabase'
 
 /**
@@ -45,6 +46,26 @@ export class HybridDataManager {
   }
   
   /**
+   * 快速測試資料庫連接（500ms超時）
+   */
+  static async testDatabaseConnection(): Promise<boolean> {
+    try {
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error('資料庫連接測試超時')), 500)
+      })
+      
+      const testPromise = supabase.from('characters').select('id').limit(1)
+      await Promise.race([testPromise, timeoutPromise])
+      
+      console.log('✅ 資料庫連接正常')
+      return true
+    } catch (error) {
+      console.warn('⚠️ 資料庫連接測試失敗:', error.message)
+      return false
+    }
+  }
+
+  /**
    * 獲取用戶所有角色（直接從 DB 讀取，帶緩存）
    */
   static async getUserCharacters(): Promise<Character[]> {
@@ -59,9 +80,9 @@ export class HybridDataManager {
       
       console.log('🔄 從 DB 載入角色列表')
       
-      // 添加超時機制
+      // 添加超時機制（縮短到3秒）
       const timeoutPromise = new Promise<never>((_, reject) => {
-        setTimeout(() => reject(new Error('載入角色列表超時')), 8000)
+        setTimeout(() => reject(new Error('載入角色列表超時（3秒）')), 3000)
       })
       
       const charactersPromise = DetailedCharacterService.getUserCharacters()
@@ -80,6 +101,8 @@ export class HybridDataManager {
         console.log('🔄 返回緩存的角色數據')
         return this.cachedCharacters
       }
+      // 超時錯誤時返回空數組，避免阻擋應用繼續運行
+      console.warn('⚠️ 無緩存可用，返回空角色列表')
       return []
     }
   }
@@ -261,6 +284,8 @@ export class HybridDataManager {
         console.log(`✅ 角色更新成功: ${characterId}`)
         // 清除角色列表緩存，因為數據已更新
         this.cachedCharacters = null
+        // 清除該角色的詳細資料緩存
+        DetailedCharacterService.clearCharacterCache(characterId)
         return true
       } else {
         console.error(`❌ 部分角色更新失敗: ${characterId}`, errors)

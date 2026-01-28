@@ -85,25 +85,35 @@ const AuthenticatedApp: React.FC = () => {
         await DatabaseInitService.initializeTables()
         
         // 檢查用戶登入狀態  
-        console.log('2. 檢查用戶登入狀態...')
+        // 檢查數據庫連接
+      console.log('2. 檢查資料庫連接狀態...')
+      const dbConnected = await HybridDataManager.testDatabaseConnection()
+      
+      if (!dbConnected) {
+        console.warn('⚠️ 資料庫連接不穩定，將使用離線模式')
+        setAppState('welcome')
+        return
+      }
+      
+      console.log('3. 檢查用戶登入狀態...')
         const isAuth = await AuthService.isAuthenticated()
         if (isAuth) {
-          console.log('3. 用戶已認證，設置認證模式')
+          console.log('4. 用戶已認證，設置認證模式')
           setUserMode('authenticated')
           
           // 檢查是否有角色
-          console.log('4. 載入角色列表...')
+          console.log('5. 載入角色列表...')
           const characters = await HybridDataManager.getUserCharacters()
           console.log(`找到 ${characters.length} 個角色`)
           
           if (characters.length > 0) {
-            console.log('5. 有角色數據，載入最後使用的角色...')
+            console.log('6. 有角色數據，載入最後使用的角色...')
             
             let characterToLoad = characters[0] // 預設使用第一個角色
             
             try {
               const lastCharacterId = await UserSettingsService.getLastCharacterId()
-              console.log('6. 最後使用角色 ID:', lastCharacterId)
+              console.log('7. 最後使用角色 ID:', lastCharacterId)
               
               // 如果有記錄最後使用的角色，嘗試找到它
               if (lastCharacterId) {
@@ -499,6 +509,87 @@ const AuthenticatedApp: React.FC = () => {
     }
   }
 
+  // 保存當前HP
+  const saveHP = async (currentHP: number) => {
+    if (!currentCharacter || isSaving) return false
+    
+    setIsSaving(true)
+    try {
+      console.log('❤️ 保存當前HP:', currentHP)
+      const characterUpdate: CharacterUpdateData = {
+        currentStats: {
+          character_id: currentCharacter.id,
+          hp: currentHP
+        } as Partial<CharacterCurrentStats>
+      }
+      
+      const success = await HybridDataManager.updateCharacter(currentCharacter.id, characterUpdate)
+      if (success) {
+        console.log('✅ HP保存成功')
+      }
+      return success
+    } catch (error) {
+      console.error('❌ HP保存失敗:', error)
+      return false
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  // 保存AC
+  const saveAC = async (ac: number) => {
+    if (!currentCharacter || isSaving) return false
+    
+    setIsSaving(true)
+    try {
+      console.log('🛡️ 保存AC:', ac)
+      const characterUpdate: CharacterUpdateData = {
+        currentStats: {
+          character_id: currentCharacter.id,
+          ac: ac
+        } as Partial<CharacterCurrentStats>
+      }
+      
+      const success = await HybridDataManager.updateCharacter(currentCharacter.id, characterUpdate)
+      if (success) {
+        console.log('✅ AC保存成功')
+      }
+      return success
+    } catch (error) {
+      console.error('❌ AC保存失敗:', error)
+      return false
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  // 保存先攻值
+  const saveInitiative = async (initiative: number) => {
+    if (!currentCharacter || isSaving) return false
+    
+    setIsSaving(true)
+    try {
+      console.log('⚡ 保存先攻值:', initiative)
+      const characterUpdate: CharacterUpdateData = {
+        currentStats: {
+          character_id: currentCharacter.id,
+          initiative: initiative
+        } as Partial<CharacterCurrentStats>
+      }
+      
+      const success = await HybridDataManager.updateCharacter(currentCharacter.id, characterUpdate)
+      if (success) {
+        console.log('✅ 先攻值保存成功')
+      }
+      return success
+    } catch (error) {
+      console.error('❌ 先攻值保存失敗:', error)
+      return false
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
   // 保存貨幣和經驗值
   const saveCurrencyAndExp = async (gp: number, exp: number) => {
     if (!currentCharacter || isSaving) return false
@@ -710,7 +801,14 @@ const AuthenticatedApp: React.FC = () => {
             </>
           )}
           {activeTab === Tab.COMBAT && (
-            <CombatView stats={stats} setStats={setStats} characterId={currentCharacter?.id} />
+            <CombatView 
+              stats={stats} 
+              setStats={setStats} 
+              characterId={currentCharacter?.id}
+              onSaveHP={saveHP}
+              onSaveAC={saveAC}
+              onSaveInitiative={saveInitiative}
+            />
           )}
 
           {activeTab === Tab.DICE && <DiceRoller />}
