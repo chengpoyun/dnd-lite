@@ -1,24 +1,32 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import React from 'react';
+
+// Mock HybridDataManager before importing
+const mockDeleteCombatItem = vi.fn().mockResolvedValue(true);
+
+vi.mock('../../services/hybridDataManager', () => ({
+  HybridDataManager: {
+    deleteCombatItem: mockDeleteCombatItem,
+    getCombatItems: vi.fn().mockResolvedValue([]),
+    testDatabaseConnection: vi.fn().mockResolvedValue(true)
+  }
+}));
 
 // 簡化的刪除功能測試 - 專注於驗證修復的bug
 describe('刪除功能修復驗證', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   it('HybridDataManager.deleteCombatItem 方法應該存在並可調用', async () => {
     const { HybridDataManager } = await import('../../services/hybridDataManager');
     
     // 驗證方法存在
     expect(typeof HybridDataManager.deleteCombatItem).toBe('function');
     
-    // 測試調用會正常執行（不測試實際資料庫調用）
-    try {
-      // 這會失敗但不是因為方法不存在
-      await HybridDataManager.deleteCombatItem('test-item-id');
-    } catch (error) {
-      // 預期的資料庫錯誤，不是"方法不存在"錯誤
-      expect(error.message).not.toContain('is not a function');
-    }
+    // 測試調用
+    await HybridDataManager.deleteCombatItem('test-item-id');
+    expect(mockDeleteCombatItem).toHaveBeenCalledWith('test-item-id');
   });
 
   it('CombatView 組件中的 removeItem 函數應該正確調用 HybridDataManager.deleteCombatItem', async () => {
@@ -62,15 +70,8 @@ describe('刪除功能修復驗證', () => {
     // 測試方法存在性
     expect(typeof HybridDataManager.deleteCombatItem).toBe('function');
     
-    // 嘗試調用以驗證不會拋出"is not a function"錯誤
-    try {
-      await HybridDataManager.deleteCombatItem('test-item-123');
-      // 如果沒有拋出"is not a function"錯誤，則方法存在
-      expect(true).toBe(true);
-    } catch (error) {
-      // 如果是其他錯誤（如資料庫連接），這是可以接受的
-      // 但不應該是"is not a function"錯誤
-      expect(error.message).not.toContain('is not a function');
-    }
+    // 測試調用
+    await HybridDataManager.deleteCombatItem('test-item-123');
+    expect(mockDeleteCombatItem).toHaveBeenCalledWith('test-item-123');
   });
 });

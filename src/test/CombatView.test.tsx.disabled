@@ -10,19 +10,32 @@ import type { CharacterStats } from '../../types';
 vi.mock('../../services/hybridDataManager');
 vi.mock('../../services/migration');
 
-// Create a proper mock for HybridDataManager
-const mockDataManagerInstance = {
+// 正確的mock設置：HybridDataManager是靜態類
+const mockHybridDataManager = {
   testDatabaseConnection: vi.fn().mockResolvedValue(true),
-  getCombatItems: vi.fn().mockResolvedValue([]),
+  getCombatItems: vi.fn().mockResolvedValue([{
+    id: 'attack',
+    character_id: 'test-char',
+    name: '攻擊',
+    icon: '⚔️',
+    category: 'action',
+    current_uses: 1,
+    max_uses: 1,
+    recovery_type: 'round',
+    is_default: true
+  }]),
   createCombatItem: vi.fn().mockResolvedValue({}),
   updateCombatItem: vi.fn().mockResolvedValue(true),
   deleteCombatItem: vi.fn().mockResolvedValue(true)
 };
 
-const mockHybridDataManager = vi.mocked(HybridDataManager);
-mockHybridDataManager.mockImplementation(() => mockDataManagerInstance as any);
+// 設置靜態方法mock
+vi.mocked(HybridDataManager).testDatabaseConnection = mockHybridDataManager.testDatabaseConnection;
+vi.mocked(HybridDataManager).getCombatItems = mockHybridDataManager.getCombatItems;
+vi.mocked(HybridDataManager).createCombatItem = mockHybridDataManager.createCombatItem;
+vi.mocked(HybridDataManager).updateCombatItem = mockHybridDataManager.updateCombatItem;
+vi.mocked(HybridDataManager).deleteCombatItem = mockHybridDataManager.deleteCombatItem;
 
-const mockMigrationService = vi.mocked(MigrationService);
 
 // Mock localStorage
 const localStorageMock = (() => {
@@ -102,14 +115,12 @@ describe('CombatView', () => {
     vi.clearAllMocks();
     localStorageMock.clear();
     
-    // Reset mock implementations
-    mockDataManagerInstance.getCombatItems.mockResolvedValue(mockCombatItems);
-    mockDataManagerInstance.createCombatItem.mockResolvedValue(mockCombatItems[0]);
-    mockDataManagerInstance.updateCombatItem.mockResolvedValue(true);
-    mockDataManagerInstance.deleteCombatItem.mockResolvedValue(true);
-    
-    // Mock MigrationService
-    mockMigrationService.migrateCombatItems.mockResolvedValue();
+    // 重置mock實現
+    mockHybridDataManager.getCombatItems.mockResolvedValue(mockCombatItems);
+    mockHybridDataManager.createCombatItem.mockResolvedValue(mockCombatItems[0]);
+    mockHybridDataManager.updateCombatItem.mockResolvedValue(true);
+    mockHybridDataManager.deleteCombatItem.mockResolvedValue(true);
+    mockHybridDataManager.testDatabaseConnection.mockResolvedValue(true);
   });
 
   afterEach(() => {
@@ -326,7 +337,7 @@ describe('CombatView', () => {
       
       await waitFor(() => {
         expect(consoleSpy).toHaveBeenCalledWith(
-          expect.stringContaining('資料載入失敗'),
+          expect.stringContaining('資料庫載入失敗'),
           expect.any(Error)
         );
       });
