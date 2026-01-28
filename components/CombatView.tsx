@@ -20,6 +20,7 @@ interface CombatItem {
   category?: string;
   item_id?: string;
   created_at?: string;
+  is_default?: boolean; // 是否為預設項目
   // D&D 5E 進階屬性
   description?: string;
   action_type?: 'attack' | 'spell' | 'ability' | 'item';
@@ -50,6 +51,22 @@ const DEFAULT_REACTIONS: CombatItem[] = [
 ];
 
 const DEFAULT_RESOURCES: CombatItem[] = [];
+
+// 預設項目名稱列表 - 用於判斷是否為預設項目
+const DEFAULT_ITEM_NAMES = new Set([
+  '攻擊', '疾跑', '疾走', '撤離', '閃避', '幫助', '躲藏', '隱匿', '搜尋', '搜索', '準備動作', '準備', '使用物品',
+  '副手攻擊', '藥水',
+  '藉機攻擊'
+]);
+
+// 檢查是否為預設項目
+const isDefaultItem = (item: CombatItem): boolean => {
+  return item.is_default || 
+         DEFAULT_ITEM_NAMES.has(item.name) || 
+         DEFAULT_ITEM_IDS.action.includes(item.id) ||
+         DEFAULT_ITEM_IDS.bonus.includes(item.id) ||
+         DEFAULT_ITEM_IDS.reaction.includes(item.id);
+};
 
 // 預設項目ID列表 - 這些項目不能被刪除
 const DEFAULT_ITEM_IDS = {
@@ -121,13 +138,13 @@ export const CombatView: React.FC<CombatViewProps> = ({
     reaction: { current: 1, max: 1 }
   });
   
-  // 状态管理 - 从数据库加载
+  // 狀態管理 - 從資料庫載入
   const [actions, setActions] = useState<CombatItem[]>(DEFAULT_ACTIONS);
   const [bonusActions, setBonusActions] = useState<CombatItem[]>(DEFAULT_BONUS_ACTIONS);
   const [reactions, setReactions] = useState<CombatItem[]>(DEFAULT_REACTIONS);
   const [resources, setResources] = useState<CombatItem[]>(DEFAULT_RESOURCES);
   
-  // 数据加载状态
+  // 資料載入狀態
   const [isLoading, setIsLoading] = useState(true);
   
   // Hit dice states for multiclass support
@@ -167,14 +184,14 @@ export const CombatView: React.FC<CombatViewProps> = ({
   const [formMax, setFormMax] = useState('1');
   const [formRecovery, setFormRecovery] = useState<'round' | 'short' | 'long'>('round');
 
-  // 数据库初始化和迁移
+  // 資料庫初始化和遷移
   useEffect(() => {
     const initializeData = async () => {
       try {
         setIsLoading(true);
         setError(null); // 清除之前的錯誤
         
-        // 检查是否需要迁移数据（防止重複遷移）
+        // 檢查是否需要遷移資料（防止重複遷移）
         const migrationKey = `combat_migrated_${characterId}`;
         const alreadyMigrated = localStorage.getItem(migrationKey) === 'true';
         
@@ -184,13 +201,13 @@ export const CombatView: React.FC<CombatViewProps> = ({
                             localStorage.getItem(STORAGE_KEYS.RESOURCES);
         
         if (hasLocalData && !alreadyMigrated && !migrationRef.current) {
-          console.log('检测到本地数据，开始迁移到数据库...');
+          console.log('檢測到本地資料，開始遷移到資料庫...');
           migrationRef.current = true; // 設置標記防止重複執行
           
           try {
             await MigrationService.migrateCombatItems(characterId);
             localStorage.setItem(migrationKey, 'true'); // 標記已完成遷移
-            console.log('数据迁移完成');
+            console.log('資料遷移完成');
             setIsMigrated(true);
           } catch (migrationError) {
             console.error('遷移失敗:', migrationError);
@@ -200,7 +217,7 @@ export const CombatView: React.FC<CombatViewProps> = ({
           }
         }
         
-        // 从数据库加载数据
+        // 從資料庫載入資料
         try {
           const combatItems = await HybridDataManager.getCombatItems(characterId);
           
@@ -210,22 +227,34 @@ export const CombatView: React.FC<CombatViewProps> = ({
           const reactionItems = combatItems.filter(item => item.category === 'reaction');
           const resourceItems = combatItems.filter(item => item.category === 'resource');
           
-          // 如果数据库中没有数据，使用默认数据并保存到数据库
+          // 如果資料庫中沒有資料，使用預設資料並保存到資料庫
           if (combatItems.length === 0) {
-            console.log('数据库中没有数据，使用默认数据');
+            console.log('資料庫中沒有資料，使用預設資料');
             await initializeDefaultItems();
           } else {
-            // 转换数据库格式到组件格式
-            setActions(actionItems.map(convertDbItemToLocal));
-            setBonusActions(bonusItems.map(convertDbItemToLocal));
-            setReactions(reactionItems.map(convertDbItemToLocal));
-            setResources(resourceItems.map(convertDbItemToLocal));
+            // 轉換資料庫格式到組件格式
+            const convertedActions = actionItems.map(convertDbItemToLocal);
+            const convertedBonusActions = bonusItems.map(convertDbItemToLocal);
+            const convertedReactions = reactionItems.map(convertDbItemToLocal);
+            const convertedResources = resourceItems.map(convertDbItemToLocal);
+            
+            // 調試：檢查預設項目標記
+            console.log('🔍 預設項目檢查:', {
+              actions: convertedActions.filter(item => item.is_default),
+              bonus: convertedBonusActions.filter(item => item.is_default),
+              reactions: convertedReactions.filter(item => item.is_default)
+            });
+            
+            setActions(convertedActions);
+            setBonusActions(convertedBonusActions);
+            setReactions(convertedReactions);
+            setResources(convertedResources);
           }
         } catch (dbError) {
           console.error('資料庫載入失敗:', dbError);
           setError(`資料載入失敗：${dbError instanceof Error ? dbError.message : '未知錯誤'}`);
           
-          // fallback 到默認資料
+          // fallback 到預設資料
           console.log('使用預設戰鬥資料');
           setActions(DEFAULT_ACTIONS);
           setBonusActions(DEFAULT_BONUS_ACTIONS);
@@ -234,8 +263,8 @@ export const CombatView: React.FC<CombatViewProps> = ({
         }
         
       } catch (error) {
-        console.error('数据初始化失败:', error);
-        // fallback 到默认数据
+        console.error('資料初始化失敗:', error);
+        // fallback 到預設資料
         setActions(DEFAULT_ACTIONS);
         setBonusActions(DEFAULT_BONUS_ACTIONS);
         setReactions(DEFAULT_REACTIONS);
@@ -291,9 +320,9 @@ export const CombatView: React.FC<CombatViewProps> = ({
     return mapping[dbRecovery] || 'long' as const;
   };
 
-  // 将数据库项目转换为本地格式
+  // 將資料庫項目轉換為本地格式
   const convertDbItemToLocal = (dbItem: DatabaseCombatItem): CombatItem => ({
-    id: dbItem.id, // 使用数据库 ID 作为主键
+    id: dbItem.default_item_id || dbItem.id, // 優先使用原始ID，否則使用資料庫ID
     name: dbItem.name,
     icon: dbItem.icon,
     current: dbItem.current_uses,
@@ -301,8 +330,9 @@ export const CombatView: React.FC<CombatViewProps> = ({
     recovery: mapRecoveryFromDb(dbItem.recovery_type),
     character_id: dbItem.character_id,
     category: mapCategoryFromDb(dbItem.category),
-    item_id: dbItem.id, // 保存数据库 ID 作为 item_id
+    item_id: dbItem.id, // 保存資料庫 ID 作為 item_id
     created_at: dbItem.created_at,
+    is_default: dbItem.is_default, // 傳遞預設標記
     // D&D 5E 進階屬性
     description: dbItem.description,
     action_type: dbItem.action_type as 'attack' | 'spell' | 'ability' | 'item',
@@ -311,7 +341,7 @@ export const CombatView: React.FC<CombatViewProps> = ({
     save_dc: dbItem.save_dc
   });
 
-  // 初始化默认项目到数据库
+  // 初始化預設項目到資料庫
   const initializeDefaultItems = async () => {
     try {
       console.log('初始化預設戰鬥項目，角色ID:', characterId);
@@ -334,7 +364,9 @@ export const CombatView: React.FC<CombatViewProps> = ({
             current_uses: item.current,
             max_uses: item.max,
             recovery_type: mapRecoveryToDb(item.recovery),
-            is_default: true
+            is_default: true,
+            is_custom: false,
+            default_item_id: item.id // 設置原始ID
           });
           
           if (newItem) {
@@ -366,7 +398,7 @@ export const CombatView: React.FC<CombatViewProps> = ({
     }
   };
 
-  // 保存状态到本地 localStorage (保留原有的战斗状态同步)
+  // 保存狀態到本地 localStorage (保留原有的戰鬥狀態同步)
   useEffect(() => {
     localStorage.setItem(STORAGE_KEYS.COMBAT_STATE, JSON.stringify({ combatSeconds }));
   }, [combatSeconds]);
@@ -398,12 +430,12 @@ export const CombatView: React.FC<CombatViewProps> = ({
         [category]: { ...prev[category], current: prev[category].current - 1 }
       }));
       
-      // 減少物品使用次數并同步到数据库
+      // 減少物品使用次數並同步到資料庫
       const newCurrent = item.current - 1;
       const setter = category === 'action' ? setActions : category === 'bonus' ? setBonusActions : setReactions;
       setter(prev => prev.map(i => i.id === id ? { ...i, current: newCurrent } : i));
       
-      // 更新数据库
+      // 更新資料庫
       await updateItemInDatabase(id, category, newCurrent);
     } else {
       // 職業資源仍使用個別項目的使用次數
@@ -411,12 +443,12 @@ export const CombatView: React.FC<CombatViewProps> = ({
       const newCurrent = item.current - 1;
       setResources(prev => prev.map(i => i.id === id ? { ...i, current: newCurrent } : i));
       
-      // 更新数据库
+      // 更新資料庫
       await updateItemInDatabase(id, category, newCurrent);
     }
   };
 
-  // 更新数据库中的项目使用次数
+  // 更新資料庫中的項目使用次數
   const updateItemInDatabase = async (itemId: string, category: string, newCurrent: number, additionalFields?: { name?: string, icon?: string, max_uses?: number, recovery?: string }) => {
     try {
       const combatItems = await HybridDataManager.getCombatItems(characterId);
@@ -438,7 +470,7 @@ export const CombatView: React.FC<CombatViewProps> = ({
         await HybridDataManager.updateCombatItem(dbItem.id, updateData);
       }
     } catch (error) {
-      console.error('更新数据库项目失败:', error);
+      console.error('更新資料庫項目失敗:', error);
     }
   };
 
@@ -490,6 +522,10 @@ export const CombatView: React.FC<CombatViewProps> = ({
 
   const handleSaveItem = async () => {
     if (!formName.trim()) return;
+    if (!characterId) {
+      console.error('❌ 無法保存項目：沒有角色ID');
+      return;
+    }
 
     // 使用通用數值處理函數
     const currentResult = setNormalValue(formCurrent, 0, true); // 允許0作為剩餘次數
@@ -506,21 +542,26 @@ export const CombatView: React.FC<CombatViewProps> = ({
     const setter = activeCategory === 'action' ? setActions : activeCategory === 'bonus' ? setBonusActions : activeCategory === 'reaction' ? setReactions : setResources;
 
     if (editingItemId) {
-      // 编辑现有项目
+      // 編輯現有項目
       const updatedItem = { name: formName, icon: formIcon, current: currentValue, max: maxValue, recovery: formRecovery };
       setter(prev => prev.map(item => 
         item.id === editingItemId ? { ...item, ...updatedItem } : item
       ));
       
-      // 更新数据库
-      await updateItemInDatabase(editingItemId, activeCategory, currentValue, {
-        name: formName,
-        icon: formIcon,
-        max_uses: maxValue,
-        recovery: formRecovery
-      });
+      // 更新資料庫
+      try {
+        await updateItemInDatabase(editingItemId, activeCategory, currentValue, {
+          name: formName,
+          icon: formIcon,
+          max_uses: maxValue,
+          recovery: formRecovery
+        });
+        console.log('✅ 項目更新成功');
+      } catch (error) {
+        console.error('❌ 項目更新失敗:', error);
+      }
     } else {
-      // 创建新项目
+      // 創建新項目
       const newItemId = `item-${Date.now()}`;
       const newItem: CombatItem = {
         id: newItemId,
@@ -532,17 +573,25 @@ export const CombatView: React.FC<CombatViewProps> = ({
       };
       setter(prev => [...prev, newItem]);
       
-      // 保存到数据库
-      await HybridDataManager.createCombatItem({
-        character_id: characterId,
-        category: mapCategoryToDb(activeCategory),
-        name: formName,
-        icon: formIcon,
-        current_uses: maxValue,
-        max_uses: maxValue,
-        recovery_type: mapRecoveryToDb(formRecovery),
-        is_default: false
-      });
+      // 保存到資料庫
+      try {
+        await HybridDataManager.createCombatItem({
+          character_id: characterId,
+          category: mapCategoryToDb(activeCategory),
+          name: formName,
+          icon: formIcon,
+          current_uses: maxValue,
+          max_uses: maxValue,
+          recovery_type: mapRecoveryToDb(formRecovery),
+          is_default: false,
+          is_custom: true
+        });
+        console.log('✅ 新項目創建成功:', formName);
+      } catch (error) {
+        console.error('❌ 新項目創建失敗:', error);
+        // 如果保存失敗，從本地狀態移除
+        setter(prev => prev.filter(item => item.id !== newItemId));
+      }
     }
     setIsItemEditModalOpen(false);
   };
@@ -551,7 +600,7 @@ export const CombatView: React.FC<CombatViewProps> = ({
     const setter = category === 'action' ? setActions : category === 'bonus' ? setBonusActions : category === 'reaction' ? setReactions : setResources;
     setter(prev => prev.filter(item => item.id !== id));
     
-    // 从数据库删除
+    // 從資料庫刪除
     try {
       const combatItems = await HybridDataManager.getCombatItems(characterId);
       const dbItem = combatItems.find(item => item.id === id && item.category === category);
@@ -560,7 +609,7 @@ export const CombatView: React.FC<CombatViewProps> = ({
         await HybridDataManager.deleteCombatItem(characterId, dbItem.id);
       }
     } catch (error) {
-      console.error('从数据库删除项目失败:', error);
+      console.error('從資料庫刪除項目失敗:', error);
     }
   };
 
@@ -579,7 +628,7 @@ export const CombatView: React.FC<CombatViewProps> = ({
     setReactions(updatedReactions);
     setResources(updatedResources);
     
-    // 同步到数据库
+    // 同步到資料庫
     try {
       const allUpdatedItems = [...updatedActions, ...updatedBonusActions, ...updatedReactions, ...updatedResources];
       const combatItems = await HybridDataManager.getCombatItems(characterId);
@@ -595,7 +644,7 @@ export const CombatView: React.FC<CombatViewProps> = ({
         }
       }
     } catch (error) {
-      console.error('同步重置数据到数据库失败:', error);
+      console.error('同步重設資料到資料庫失敗:', error);
     }
   };
 
@@ -620,12 +669,14 @@ export const CombatView: React.FC<CombatViewProps> = ({
   };
 
   const handleLongRest = () => {
+    const newCurrentHP = stats.hp.max; // 長休恢復滿血
+    
     if (stats.hitDicePools) {
       // Multiclass hit dice recovery
       const recoveredPools = recoverHitDiceOnLongRest(stats.hitDicePools);
       setStats(prev => ({
         ...prev,
-        hp: { ...prev.hp, current: prev.hp.max },
+        hp: { ...prev.hp, current: newCurrentHP },
         hitDicePools: recoveredPools
       }));
     } else {
@@ -635,9 +686,16 @@ export const CombatView: React.FC<CombatViewProps> = ({
       
       setStats(prev => ({
         ...prev,
-        hp: { ...prev.hp, current: prev.hp.max },
+        hp: { ...prev.hp, current: newCurrentHP },
         hitDice: { ...prev.hitDice, current: newHitDice }
       }));
+    }
+
+    // 保存HP到資料庫
+    if (onSaveHP) {
+      onSaveHP(newCurrentHP).catch(error => {
+        console.error('❌ 長休後HP保存失敗:', error);
+      });
     }
 
     resetByRecovery(['round', 'short', 'long']);
@@ -653,11 +711,20 @@ export const CombatView: React.FC<CombatViewProps> = ({
     const conMod = getModifier(stats.abilityScores.con);
     const total = Math.max(0, roll + conMod);
     setLastRestRoll({ die: roll, mod: conMod, total });
+    
+    const newCurrentHP = Math.min(stats.hp.max, stats.hp.current + total);
     setStats(prev => ({
       ...prev,
-      hp: { ...prev.hp, current: Math.min(prev.hp.max, prev.hp.current + total) },
+      hp: { ...prev.hp, current: newCurrentHP },
       hitDice: { ...prev.hitDice, current: prev.hitDice.current - 1 }
     }));
+    
+    // 保存HP到資料庫
+    if (onSaveHP) {
+      onSaveHP(newCurrentHP).catch(error => {
+        console.error('❌ 生命骰恢復後HP保存失敗:', error);
+      });
+    }
   };
 
   // Multiclass hit die rolling
@@ -673,11 +740,20 @@ export const CombatView: React.FC<CombatViewProps> = ({
     
     try {
       const updatedPools = useHitDie(stats.hitDicePools, dieType, 1);
+      const newCurrentHP = Math.min(stats.hp.max, stats.hp.current + total);
+      
       setStats(prev => ({
         ...prev,
-        hp: { ...prev.hp, current: Math.min(prev.hp.max, prev.hp.current + total) },
+        hp: { ...prev.hp, current: newCurrentHP },
         hitDicePools: updatedPools
       }));
+      
+      // 保存HP到資料庫
+      if (onSaveHP) {
+        onSaveHP(newCurrentHP).catch(error => {
+          console.error('❌ 多職生命骰恢復後HP保存失敗:', error);
+        });
+      }
     } catch (error) {
       console.error('Failed to use hit die:', error);
     }
@@ -729,14 +805,14 @@ export const CombatView: React.FC<CombatViewProps> = ({
   };
   const hpColors = getHPColorClasses();
 
-  // 如果正在加载，显示加载状态
+  // 如果正在載入，顯示載入狀態
   if (isLoading) {
     return (
       <div className="px-2 py-3 space-y-3 h-full overflow-y-auto pb-24 relative select-none bg-slate-950">
         <div className="flex justify-center items-center h-64">
           <div className="flex flex-col items-center gap-3">
             <div className="animate-spin rounded-full h-8 w-8 border-2 border-amber-500 border-t-transparent"></div>
-            <span className="text-[16px] text-amber-500/80">正在加载战斗数据...</span>
+            <span className="text-[16px] text-amber-500/80">正在載入戰鬥資料...</span>
           </div>
         </div>
       </div>
@@ -1448,7 +1524,7 @@ const ActionList: React.FC<ActionListProps> = ({ title, category, items, colorCl
                   </>
                 )}
               </button>
-              {isEditMode && !defaultItemIds.includes(item.id) && (
+              {isEditMode && !isDefaultItem(item) && (
                 <button 
                   onClick={(e) => { e.stopPropagation(); onRemove(item.id); }}
                   className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-rose-600 text-white rounded-full flex items-center justify-center text-[16px] font-black border border-slate-950 shadow-lg z-10 active:scale-75 transition-transform"

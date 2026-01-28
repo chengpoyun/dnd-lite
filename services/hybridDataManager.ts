@@ -80,9 +80,9 @@ export class HybridDataManager {
       
       console.log('🔄 從 DB 載入角色列表')
       
-      // 添加超時機制（縮短到3秒）
+      // 添加超時機制（5秒）
       const timeoutPromise = new Promise<never>((_, reject) => {
-        setTimeout(() => reject(new Error('載入角色列表超時（3秒）')), 3000)
+        setTimeout(() => reject(new Error('載入角色列表超時（5秒）')), 5000)
       })
       
       const charactersPromise = DetailedCharacterService.getUserCharacters()
