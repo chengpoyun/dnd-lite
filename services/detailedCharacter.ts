@@ -39,9 +39,7 @@ export class DetailedCharacterService {
     anonymousId?: string
   }> {
     try {
-      console.log('🔐 開始檢查用戶認證狀態...')
       const { data: { user } } = await supabase.auth.getUser()
-      console.log('🔐 認證檢查完成:', { hasUser: !!user })
       
       if (user) {
         return { isAuthenticated: true, userId: user.id }
@@ -62,9 +60,7 @@ export class DetailedCharacterService {
   // 獲取用戶的角色列表
   static async getUserCharacters(): Promise<Character[]> {
     try {
-      console.log('📋 開始獲取用戶上下文...')
       const context = await this.getCurrentUserContext()
-      console.log('📋 用戶上下文獲取完成:', { isAuthenticated: context.isAuthenticated })
       
       let query = supabase.from('characters').select('*')
       
@@ -74,11 +70,9 @@ export class DetailedCharacterService {
         query = query.eq('anonymous_id', context.anonymousId)
       }
       
-      console.log('📋 開始查詢角色列表...')
       const { data, error } = await query
       if (error) throw error
       
-      console.log('📋 角色列表查詢完成，數量:', data?.length || 0)
       return data || []
     } catch (error) {
       console.error('❌ 獲取角色列表失敗:', {
@@ -94,12 +88,9 @@ export class DetailedCharacterService {
   static async getFullCharacter(characterId: string): Promise<FullCharacterData | null> {
     const startTime = Date.now()
     try {
-      console.log(`⏰ 開始載入角色: ${characterId}`)
-
       // 檢查緩存
       const cached = this.characterCache.get(characterId)
       if (cached && (Date.now() - cached.timestamp) < this.CACHE_DURATION) {
-        console.log(`⚡ 從緩存載入角色，耗時: ${Date.now() - startTime}ms`)
         return cached.data
       }
 
@@ -111,7 +102,6 @@ export class DetailedCharacterService {
 
       const contextStart = Date.now()
       const context = await this.getCurrentUserContext()
-      console.log(`⏰ 用戶上下文載入耗時: ${Date.now() - contextStart}ms`)
 
       // 並行獲取所有資料（包含權限驗證）
       const dataStart = Date.now()
@@ -140,8 +130,6 @@ export class DetailedCharacterService {
         supabase.from('character_currency').select('*').eq('character_id', characterId).maybeSingle(),
         supabase.from('character_combat_actions').select('*').eq('character_id', characterId)
       ])
-      console.log(`⏰ 資料查詢耗時: ${Date.now() - dataStart}ms`)
-
       if (characterResult.error || !characterResult.data) {
         console.error('角色不存在或無權限訪問')
         return null
@@ -163,11 +151,9 @@ export class DetailedCharacterService {
         timestamp: Date.now()
       })
       
-      console.log(`⏰ 角色載入總耗時: ${Date.now() - startTime}ms`)
       return result
     } catch (error) {
       console.error('獲取完整角色資料失敗:', error)
-      console.log(`⏰ 載入失敗，總耗時: ${Date.now() - startTime}ms`)
       return null
     }
   }
@@ -960,7 +946,8 @@ export class DetailedCharacterService {
   // 將匿名用戶的角色轉換為登入用戶的角色
   static async convertAnonymousCharactersToUser(userId: string): Promise<boolean> {
     try {
-      const anonymousId = AnonymousService.getCurrentAnonymousId()
+      // 直接從 localStorage 獲取 anonymousId
+      const anonymousId = localStorage.getItem('dnd_anonymous_user_id')
       if (!anonymousId) {
         return true // 沒有匿名角色需要轉換
       }
@@ -1005,8 +992,11 @@ export class DetailedCharacterService {
   // 檢查是否有匿名角色需要轉換
   static async hasAnonymousCharactersToConvert(): Promise<boolean> {
     try {
-      const anonymousId = AnonymousService.getCurrentAnonymousId()
-      if (!anonymousId) return false
+      // 直接從 localStorage 獲取 anonymousId，而不是從內存
+      const anonymousId = localStorage.getItem('dnd_anonymous_user_id')
+      if (!anonymousId) {
+        return false
+      }
 
       const { data, error } = await supabase
         .from('characters')

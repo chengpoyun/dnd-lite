@@ -30,10 +30,8 @@ export const migrateLegacyCharacterStats = (stats: CharacterStats): CharacterSta
     migratedHitDicePools[legacyHitDie].total = stats.hitDice.total; // Preserve original total
   }
 
-  console.log(`🔄 Migrating legacy character "${stats.name}" to multiclass system`, {
-    legacy: { class: stats.class, level: stats.level, hitDice: stats.hitDice },
-    migrated: { classes: migratedClasses, hitDicePools: migratedHitDicePools }
-  });
+  // Migration completed silently to reduce console noise
+  // Legacy class: ${stats.class}, Level: ${stats.level} -> Multiclass system
 
   return {
     ...stats,

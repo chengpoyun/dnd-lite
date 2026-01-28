@@ -5,6 +5,7 @@ import { CharacterSelectPage } from './components/CharacterSelectPage';
 import { CharacterSheet } from './components/CharacterSheet';
 import { DiceRoller } from './components/DiceRoller';
 import { CombatView } from './components/CombatView';
+import { ConversionPage } from './components/ConversionPage';
 
 import { CharacterStats } from './types';
 import { getModifier } from './utils/helpers';
@@ -24,7 +25,7 @@ enum Tab {
   DICE = 'dice'
 }
 
-type AppState = 'welcome' | 'characterSelect' | 'main'
+type AppState = 'welcome' | 'conversion' | 'characterSelect' | 'main'
 type UserMode = 'authenticated' | 'anonymous'
 
 const INITIAL_STATS: CharacterStats = {
@@ -56,6 +57,7 @@ const AuthenticatedApp: React.FC = () => {
   const [appState, setAppState] = useState<AppState>('welcome')
   const [userMode, setUserMode] = useState<UserMode>('anonymous')
   const [activeTab, setActiveTab] = useState<Tab>(Tab.CHARACTER)
+  const [needsConversion, setNeedsConversion] = useState(false)
   
   // 角色數據
   const [currentCharacter, setCurrentCharacter] = useState<Character | null>(null)
@@ -78,41 +80,21 @@ const AuthenticatedApp: React.FC = () => {
       }, 10000) // 10秒超時
       
       try {
-        console.log('🚀 開始初始化應用...')
-        
-        // 首先初始化資料庫
-        console.log('1. 初始化資料庫...')
+        // 靜默初始化，只在錯誤時輸出
         await DatabaseInitService.initializeTables()
         
-        // 檢查用戶登入狀態  
-        // 檢查數據庫連接
-      console.log('2. 檢查資料庫連接狀態...')
-      const dbConnected = await HybridDataManager.testDatabaseConnection()
-      
-      if (!dbConnected) {
-        console.warn('⚠️ 資料庫連接測試失敗，但繼續嘗試載入數據...')
-        // 不要立即進入離線模式，繼續嘗試載入角色
-      }
-      
-      console.log('3. 檢查用戶登入狀態...')
         const isAuth = await AuthService.isAuthenticated()
         if (isAuth) {
-          console.log('4. 用戶已認證，設置認證模式')
           setUserMode('authenticated')
           
-          // 檢查是否有角色
-          console.log('5. 載入角色列表...')
           const characters = await HybridDataManager.getUserCharacters()
-          console.log(`找到 ${characters.length} 個角色`)
           
           if (characters.length > 0) {
-            console.log('6. 有角色數據，載入最後使用的角色...')
-            
+            // 靜默載入最後使用的角色
             let characterToLoad = characters[0] // 預設使用第一個角色
             
             try {
               const lastCharacterId = await UserSettingsService.getLastCharacterId()
-              console.log('7. 最後使用角色 ID:', lastCharacterId)
               
               // 如果有記錄最後使用的角色，嘗試找到它
               if (lastCharacterId) {
@@ -129,19 +111,16 @@ const AuthenticatedApp: React.FC = () => {
               characterToLoad = characters[0]
             }
             
-            console.log('7. 設定角色並進入主頁面:', characterToLoad.name)
-            
             // 更新最後使用的角色記錄
             try {
               await UserSettingsService.setLastCharacterId(characterToLoad.id)
             } catch (updateError) {
-              console.warn('無法更新最後使用角色記錄:', updateError)
+              // 靜默處理更新錯誤
             }
             
             // 直接設定角色並進入主頁面
             setCurrentCharacter(characterToLoad)
             setAppState('main')
-            console.log('✅ 成功載入角色，進入主應用')
           } else {
             setAppState('characterSelect') // 沒有角色，顯示角色選擇頁來創建第一個角色
           }
@@ -170,12 +149,37 @@ const AuthenticatedApp: React.FC = () => {
       } finally {
         clearTimeout(timeoutId) // 清理超時定時器
         setIsLoading(false)
-        console.log('⚙️ 初始化完成')
+        // 初始化完成
       }
     }
 
     initializeApp()
   }, [user])
+
+  // 處理匿名角色轉換
+  useEffect(() => {
+    const checkConversion = async () => {
+      if (user && userMode === 'anonymous') {
+        // 用戶剛登入，檢查是否需要轉換匿名角色
+        try {
+          const hasAnonymousChars = await DetailedCharacterService.hasAnonymousCharactersToConvert()
+          if (hasAnonymousChars) {
+            setNeedsConversion(true)
+            setAppState('conversion')
+          } else {
+            setUserMode('authenticated')
+            setAppState('characterSelect')
+          }
+        } catch (error) {
+          console.error('檢查轉換需求失敗:', error)
+          setUserMode('authenticated')
+          setAppState('characterSelect')
+        }
+      }
+    }
+
+    checkConversion()
+  }, [user, userMode])
 
   // 載入角色數據
   useEffect(() => {
@@ -192,17 +196,6 @@ const AuthenticatedApp: React.FC = () => {
 
     try {
       const characterData = await HybridDataManager.getCharacter(currentCharacter.id)
-      
-      // 添加除錯資訊
-      console.log('📊 角色數據載入:', {
-        hasCharacterData: !!characterData,
-        currentCharacter: currentCharacter.name,
-        characterId: currentCharacter.id,
-        characterDataKeys: characterData ? Object.keys(characterData) : 'null',
-        skillProficienciesType: Array.isArray(characterData?.skillProficiencies) ? 'array' : typeof characterData?.skillProficiencies,
-        skillProficienciesLength: Array.isArray(characterData?.skillProficiencies) ? characterData.skillProficiencies.length : 'not-array',
-        savingThrowsType: Array.isArray(characterData?.savingThrows) ? 'array' : typeof characterData?.savingThrows
-      })
       
       if (characterData && characterData.character) {
         // 從完整角色數據中提取 CharacterStats
@@ -251,7 +244,6 @@ const AuthenticatedApp: React.FC = () => {
                     result[skill.skill_name] = skill.proficiency_level;
                   }
                 });
-                console.log('📊 載入技能熟練度（陣列格式）:', result);
                 return result;
               }
               
@@ -263,7 +255,7 @@ const AuthenticatedApp: React.FC = () => {
                     result[skillName] = level;
                   }
                 });
-                console.log('📊 載入技能熟練度（物件格式）:', result);
+
                 return result;
               }
             } catch (skillError) {
@@ -271,18 +263,11 @@ const AuthenticatedApp: React.FC = () => {
             }
             
             // 預設值 - 空物件（沒有任何技能熟練度）
-            console.log('📊 使用預設技能熟練度（空）');
             return result;
           })(),
           // 載入豁免骰熟練度 - 添加安全檢查和詳細除錯
           savingProficiencies: (() => {
             try {
-              console.log('🎯 豁免骰載入除錯:', {
-                savingThrowsData: characterData.savingThrows,
-                isArray: Array.isArray(characterData.savingThrows),
-                length: characterData.savingThrows?.length
-              })
-              
               if (Array.isArray(characterData.savingThrows)) {
                 const proficientSaves = characterData.savingThrows
                   .filter(st => st && st.is_proficient)
@@ -299,13 +284,11 @@ const AuthenticatedApp: React.FC = () => {
                     return abilityMap[st.ability] || st.ability
                   }) as (keyof typeof INITIAL_STATS.abilityScores)[]
                   
-                console.log('🎯 過濾後的豁免熟練度:', proficientSaves)
                 return proficientSaves
               }
             } catch (savingError) {
               console.warn('🔧 豁免骰處理異常，使用預設值:', savingError)
             }
-            console.log('🎯 使用預設豁免熟練度')
             return INITIAL_STATS.savingProficiencies
           })(),
           // 載入額外資料（修整期、名聲等）
@@ -367,7 +350,6 @@ const AuthenticatedApp: React.FC = () => {
         finalStats = ensureDisplayClass(finalStats);
         
         setStats(finalStats)
-        console.log('✅ 角色數據載入成功')
         setIsCharacterDataReady(true) // 設置資料載入完成
       } else {
         console.warn('⚠️ 角色數據不完整，使用預設值')
@@ -407,7 +389,6 @@ const AuthenticatedApp: React.FC = () => {
   const saveSkillProficiency = async (skillName: string, level: number) => {
     if (!currentCharacter) return false
     
-    console.log('🎯 保存技能熟練度:', { skillName, level })
     return await HybridDataManager.updateSingleSkillProficiency(currentCharacter.id, skillName, level)
   }
 
@@ -668,8 +649,6 @@ const AuthenticatedApp: React.FC = () => {
     
     setIsSaving(true)
     try {
-      console.log('📊 保存額外數據:', extraData)
-      
       // 使用專門的 updateExtraData 方法，只更新 extra_data 欄位
       const success = await DetailedCharacterService.updateExtraData(currentCharacter.id, extraData)
       if (success) {
@@ -687,7 +666,22 @@ const AuthenticatedApp: React.FC = () => {
 
   const handleWelcomeNext = (mode: UserMode) => {
     setUserMode(mode)
-    setAppState('characterSelect')
+    if (mode === 'authenticated' && user) {
+      // 如果是認證模式但還沒檢查轉換，會在 useEffect 中處理
+    } else {
+      setAppState('characterSelect')
+    }
+  }
+
+  const handleConversionComplete = (success: boolean) => {
+    setNeedsConversion(false)
+    setUserMode('authenticated')
+    if (success) {
+      setAppState('characterSelect')
+    } else {
+      // 即使轉換失敗也進入角色選擇頁面
+      setAppState('characterSelect')
+    }
   }
 
   const handleCharacterSelect = async (character: Character) => {
@@ -729,6 +723,16 @@ const AuthenticatedApp: React.FC = () => {
   // 歡迎頁面
   if (appState === 'welcome') {
     return <WelcomePage onNext={handleWelcomeNext} />
+  }
+
+  // 角色轉換頁面
+  if (appState === 'conversion' && user) {
+    return (
+      <ConversionPage 
+        userId={user.id} 
+        onComplete={handleConversionComplete} 
+      />
+    )
   }
 
   // 角色選擇頁面

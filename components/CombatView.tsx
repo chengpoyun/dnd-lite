@@ -205,13 +205,6 @@ export const CombatView: React.FC<CombatViewProps> = ({
             const convertedReactions = reactionItems.map(convertDbItemToLocal);
             const convertedResources = resourceItems.map(convertDbItemToLocal);
             
-            // 調試：檢查預設項目標記
-            console.log('🔍 預設項目檢查:', {
-              actions: convertedActions.filter(item => item.is_default),
-              bonus: convertedBonusActions.filter(item => item.is_default),
-              reactions: convertedReactions.filter(item => item.is_default)
-            });
-            
             setActions(convertedActions);
             setBonusActions(convertedBonusActions);
             setReactions(convertedReactions);

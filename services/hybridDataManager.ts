@@ -11,6 +11,7 @@ import type { FullCharacterData, Character, CharacterCombatAction, CharacterUpda
 export class HybridDataManager {
   private static cachedCharacters: Character[] | null = null
   private static cacheTimestamp: number = 0
+  private static connectionTestCache = { lastTest: 0, isConnected: false }
   private static CACHE_DURATION = 10000 // 10秒緩存
   
   /**
@@ -29,11 +30,9 @@ export class HybridDataManager {
    */
   static async getCharacter(characterId: string): Promise<FullCharacterData | null> {
     try {
-      console.log(`從 DB 載入角色: ${characterId}`)
       const dbData = await DetailedCharacterService.getFullCharacter(characterId)
       
       if (dbData) {
-        console.log(`成功載入角色: ${dbData.character.name}`)
         return dbData
       }
       
@@ -48,7 +47,14 @@ export class HybridDataManager {
   /**
    * 快速測試資料庫連接（5秒超時）
    */
-  static async testDatabaseConnection(): Promise<void> {
+  static async testDatabaseConnection(): Promise<boolean> {
+    const now = Date.now()
+    
+    // 如果最近測試過且成功，直接返回緩存結果
+    if (now - this.connectionTestCache.lastTest < 5000 && this.connectionTestCache.isConnected) {
+      return true
+    }
+    
     try {
       const timeoutPromise = new Promise<never>((_, reject) => {
         setTimeout(() => reject(new Error('資料庫連接測試超時')), 5000)
@@ -57,9 +63,14 @@ export class HybridDataManager {
       const testPromise = supabase.from('characters').select('id').limit(1)
       await Promise.race([testPromise, timeoutPromise])
       
-      console.log('✅ 資料庫連接正常')
+      // 更新緩存
+      this.connectionTestCache.lastTest = now
+      this.connectionTestCache.isConnected = true
+      
       return true
     } catch (error) {
+      this.connectionTestCache.lastTest = now
+      this.connectionTestCache.isConnected = false
       console.warn('⚠️ 資料庫連接測試失敗:', error.message)
       return false
     }
@@ -74,11 +85,8 @@ export class HybridDataManager {
       
       // 檢查緩存是否有效
       if (this.cachedCharacters && (now - this.cacheTimestamp) < this.CACHE_DURATION) {
-        console.log(`📋 從緩存載入 ${this.cachedCharacters.length} 個角色`)
         return this.cachedCharacters
       }
-      
-      console.log('🔄 從 DB 載入角色列表')
       
       // 添加超時機制（5秒）
       const timeoutPromise = new Promise<never>((_, reject) => {
@@ -92,7 +100,6 @@ export class HybridDataManager {
       this.cachedCharacters = dbCharacters
       this.cacheTimestamp = now
       
-      console.log(`✅ 成功載入 ${dbCharacters.length} 個角色`)
       return dbCharacters
     } catch (error) {
       console.error('❌ 載入角色列表失敗:', error)

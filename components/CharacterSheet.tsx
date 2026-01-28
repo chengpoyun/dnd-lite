@@ -101,8 +101,6 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
   };
 
   const setSkillProficiency = async (skillName: string, level: number) => {
-    console.log(`🎯 設定技能熟練度: ${skillName} = ${level}`)
-    
     // 立即保存到數據庫
     if (onSaveSkillProficiency) {
       const success = await onSaveSkillProficiency(skillName, level)

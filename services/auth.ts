@@ -13,12 +13,24 @@ export interface AuthUser {
 export class AuthService {
   
   // Google 登入
-  static async signInWithGoogle(): Promise<{ success: boolean, error?: string }> {
+  static async signInWithGoogle(redirectTo?: string): Promise<{ success: boolean, error?: string }> {
     try {
+      // 動態重定向 URL 配置
+      const getRedirectUrl = () => {
+        if (redirectTo) return redirectTo
+        const isLocalhost = window.location.hostname === 'localhost'
+        const finalUrl = isLocalhost 
+          ? `http://localhost:${window.location.port}/dnd-lite/` 
+          : 'https://chengpoyun.github.io/dnd-lite/'
+        
+        console.log('重定向 URL:', finalUrl)
+        return finalUrl
+      }
+
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/dnd-lite/`
+          redirectTo: getRedirectUrl()
         }
       })
 

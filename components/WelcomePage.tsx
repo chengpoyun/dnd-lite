@@ -3,6 +3,8 @@ import { AuthService } from '../services/auth'
 import { AnonymousService } from '../services/anonymous'
 import { PageContainer, Card, Button, Title, Subtitle } from './ui'
 import { STYLES, combineStyles } from '../styles/common'
+import { useToast } from '../hooks/useToast'
+import { ToastContainer } from './Toast'
 
 interface WelcomePageProps {
   onNext: (mode: 'authenticated' | 'anonymous') => void
@@ -10,20 +12,31 @@ interface WelcomePageProps {
 
 export const WelcomePage: React.FC<WelcomePageProps> = ({ onNext }) => {
   const [isSigningIn, setIsSigningIn] = useState(false)
+  const { toasts, showSuccess, showError, removeToast } = useToast()
+
+  // 動態重定向 URL 配置
+  const getRedirectUrl = () => {
+    const isLocalhost = window.location.hostname === 'localhost'
+    return isLocalhost 
+      ? `http://localhost:${window.location.port}/dnd-lite/` 
+      : 'https://chengpoyun.github.io/dnd-lite/'
+  }
 
   const handleGoogleSignIn = async () => {
     setIsSigningIn(true)
     try {
+      // 先試試不傳遞自定義重定向 URL，使用 Supabase 的預設設定
       const result = await AuthService.signInWithGoogle()
       if (result.success) {
-        onNext('authenticated')
+        showSuccess('正在跳轉到 Google 登入頁面...')
+        // OAuth 會自動重定向，不需要調用 onNext
       } else {
-        alert('登入失敗，請稍後再試')
+        showError(result.error || '登入失敗，請稍後再試')
         setIsSigningIn(false)
       }
     } catch (error) {
       console.error('登入錯誤:', error)
-      alert('登入時發生錯誤')
+      showError('登入時發生錯誤，請稍後再試')
       setIsSigningIn(false)
     }
   }
@@ -32,10 +45,11 @@ export const WelcomePage: React.FC<WelcomePageProps> = ({ onNext }) => {
     try {
       // 初始化匿名用戶
       await AnonymousService.init()
+      showSuccess('初始化成功，歡迎使用！')
       onNext('anonymous')
     } catch (error) {
       console.error('匿名初始化失敗:', error)
-      alert('初始化失敗，請稍後再試')
+      showError('初始化失敗，請稍後再試')
     }
   }
 
@@ -138,6 +152,7 @@ export const WelcomePage: React.FC<WelcomePageProps> = ({ onNext }) => {
           D&D 角色助手 v1.0
         </div>
       </Card>
+      <ToastContainer toasts={toasts} onRemove={removeToast} />
     </div>
   )
 }
