@@ -31,10 +31,4 @@ SELECT 'character_saving_throws', count(*) FROM character_saving_throws
 UNION ALL
 SELECT 'character_skill_proficiencies', count(*) FROM character_skill_proficiencies
 UNION ALL
-SELECT 'character_items', count(*) FROM character_items
-UNION ALL
-SELECT 'character_spells', count(*) FROM character_spells
-UNION ALL
-SELECT 'character_spell_slots', count(*) FROM character_spell_slots
-UNION ALL
 SELECT 'character_combat_actions', count(*) FROM character_combat_actions;

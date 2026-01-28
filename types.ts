@@ -63,14 +63,6 @@ export interface CharacterStats {
   customRecords: CustomRecord[];
 }
 
-export interface InventoryItem {
-  id: string;
-  name: string;
-  quantity: number;
-  weight: number;
-  description: string;
-}
-
 export interface DieResult {
   die: number;
   value: number;

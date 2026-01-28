@@ -91,9 +91,6 @@ export class DetailedCharacterService {
         skillsResult,
         currentStatsResult,
         currencyResult,
-        itemsResult,
-        spellsResult,
-        spellSlotsResult,
         combatActionsResult
       ] = await Promise.all([
         supabase.from('characters').select('*').eq('id', characterId).single(),
@@ -102,9 +99,6 @@ export class DetailedCharacterService {
         supabase.from('character_skill_proficiencies').select('*').eq('character_id', characterId),
         supabase.from('character_current_stats').select('*').eq('character_id', characterId).maybeSingle(),
         supabase.from('character_currency').select('*').eq('character_id', characterId).maybeSingle(),
-        supabase.from('character_items').select('*').eq('character_id', characterId),
-        supabase.from('character_spells').select('*').eq('character_id', characterId),
-        supabase.from('character_spell_slots').select('*').eq('character_id', characterId),
         supabase.from('character_combat_actions').select('*').eq('character_id', characterId)
       ])
 
@@ -117,9 +111,6 @@ export class DetailedCharacterService {
         skillProficiencies: skillsResult.data || [],
         currentStats: currentStatsResult.data || await this.createDefaultCurrentStats(characterId),
         currency: currencyResult.data || await this.createDefaultCurrency(characterId),
-        items: itemsResult.data || [],
-        spells: spellsResult.data || [],
-        spellSlots: spellSlotsResult.data || [],
         combatActions: combatActionsResult.data || []
       }
     } catch (error) {

@@ -92,48 +92,6 @@ export interface CharacterCurrency {
   updated_at?: string
 }
 
-export interface CharacterItem {
-  id: string
-  character_id: string
-  name: string
-  description?: string
-  quantity: number
-  weight: number
-  value_in_copper: number
-  item_type?: string
-  is_equipped: boolean
-  properties?: Record<string, any>
-  created_at?: string
-  updated_at?: string
-}
-
-export interface CharacterSpell {
-  id: string
-  character_id: string
-  name: string
-  level: number
-  school: string
-  casting_time: string
-  range_distance: string
-  components: string
-  duration: string
-  description: string
-  is_prepared: boolean
-  is_ritual: boolean
-  source?: string
-  created_at?: string
-  updated_at?: string
-}
-
-export interface CharacterSpellSlot {
-  id: string
-  character_id: string
-  spell_level: number
-  total_slots: number
-  used_slots: number
-  updated_at?: string
-}
-
 export interface CharacterCombatAction {
   id: string
   character_id: string
@@ -180,9 +138,6 @@ export interface FullCharacterData {
   skillProficiencies: CharacterSkillProficiency[]
   currentStats: CharacterCurrentStats
   currency: CharacterCurrency
-  items: CharacterItem[]
-  spells: CharacterSpell[]
-  spellSlots: CharacterSpellSlot[]
   combatActions: CharacterCombatAction[]
 }
 
@@ -194,9 +149,6 @@ export interface CharacterUpdateData {
   skillProficiencies?: Record<string, number> | CharacterSkillProficiency[] | Omit<CharacterSkillProficiency, 'id'>[]
   currentStats?: Partial<CharacterCurrentStats>
   currency?: Partial<CharacterCurrency>
-  items?: CharacterItem[]
-  spells?: CharacterSpell[]
-  spellSlots?: CharacterSpellSlot[]
   combatActions?: CharacterCombatAction[]
 }
 
