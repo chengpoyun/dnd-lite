@@ -382,6 +382,23 @@ export class HybridDataManager {
     }
   }
 
+  /**
+   * 刪除戰鬥項目（直接從 DB 刪除）
+   */
+  static async deleteCombatItem(itemId: string): Promise<boolean> {
+    try {
+      console.log(`從 DB 刪除戰鬥項目: ${itemId}`)
+      const success = await CombatItemService.deleteCombatItem(itemId)
+      if (success) {
+        console.log(`戰鬥項目刪除成功: ${itemId}`)
+      }
+      return success
+    } catch (error) {
+      console.error('刪除戰鬥項目失敗:', error)
+      return false
+    }
+  }
+
   // 單獨更新技能熟練度的專用方法
   static async updateSingleSkillProficiency(characterId: string, skillName: string, level: number): Promise<boolean> {
     try {

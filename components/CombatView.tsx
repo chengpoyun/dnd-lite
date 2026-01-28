@@ -606,7 +606,8 @@ export const CombatView: React.FC<CombatViewProps> = ({
       const dbItem = combatItems.find(item => item.id === id && item.category === category);
       
       if (dbItem) {
-        await HybridDataManager.deleteCombatItem(characterId, dbItem.id);
+        await HybridDataManager.deleteCombatItem(dbItem.id);
+        console.log(`✅ 成功刪除戰鬥項目: ${dbItem.name}`);
       }
     } catch (error) {
       console.error('從資料庫刪除項目失敗:', error);
