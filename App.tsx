@@ -8,6 +8,8 @@ import { CombatView } from './components/CombatView';
 
 import { CharacterStats } from './types';
 import { getModifier } from './utils/helpers';
+import { formatClassDisplay, getPrimaryClass, getTotalLevel, getClassHitDie } from './utils/classUtils';
+import { migrateLegacyCharacterStats, needsMulticlassMigration, ensureDisplayClass } from './utils/migrationHelpers';
 import { HybridDataManager } from './services/hybridDataManager';
 import { AuthService } from './services/auth';
 import { AnonymousService } from './services/anonymous';
@@ -61,6 +63,7 @@ const AuthenticatedApp: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true)
   const [isLoadingCharacter, setIsLoadingCharacter] = useState(false) // 添加角色載入狀態
   const [isCharacterDataReady, setIsCharacterDataReady] = useState(false) // 角色資料是否已載入完成
+  const [isSaving, setIsSaving] = useState(false) // 添加保存狀態
 
   // 初始化狀態
   useEffect(() => {
@@ -307,9 +310,54 @@ const AuthenticatedApp: React.FC = () => {
             current: characterData.currentStats?.current_hit_dice || INITIAL_STATS.hitDice.current,
             total: characterData.currentStats?.total_hit_dice || stats.level || INITIAL_STATS.hitDice.total,
             die: characterData.currentStats?.hit_die_type || INITIAL_STATS.hitDice.die
-          }
+          },
+          
+          // 載入兼職系統資料（新增）
+          classes: characterData.currentStats?.extra_data?.classes ? 
+            characterData.currentStats.extra_data.classes.map((c: any, index: number) => ({
+              id: c.id || `class-${index}`,
+              name: c.name,
+              level: c.level,
+              hitDie: c.hitDie || getClassHitDie(c.name),
+              isPrimary: c.isPrimary
+            })) :
+            (characterData.classes && characterData.classes.length > 0 ? 
+              characterData.classes.map(c => ({
+                id: `legacy-${c.class_name}`,
+                name: c.class_name,
+                level: c.class_level,
+                hitDie: c.hit_die,
+                isPrimary: c.is_primary
+              })) : undefined), // 無資料時使用傳統模式
+          
+          hitDicePools: characterData.hitDicePools ? {
+            d12: { 
+              current: characterData.hitDicePools.d12_current, 
+              total: characterData.hitDicePools.d12_total 
+            },
+            d10: { 
+              current: characterData.hitDicePools.d10_current, 
+              total: characterData.hitDicePools.d10_total 
+            },
+            d8: { 
+              current: characterData.hitDicePools.d8_current, 
+              total: characterData.hitDicePools.d8_total 
+            },
+            d6: { 
+              current: characterData.hitDicePools.d6_current, 
+              total: characterData.hitDicePools.d6_total 
+            }
+          } : undefined // 無資料時使用傳統模式
         }
-        setStats(extractedStats)
+        
+        // 執行資料移轉（如果需要）
+        let finalStats = extractedStats;
+        if (needsMulticlassMigration(extractedStats)) {
+          finalStats = migrateLegacyCharacterStats(extractedStats);
+        }
+        finalStats = ensureDisplayClass(finalStats);
+        
+        setStats(finalStats)
         console.log('✅ 角色數據載入成功')
         setIsCharacterDataReady(true) // 設置資料載入完成
       } else {

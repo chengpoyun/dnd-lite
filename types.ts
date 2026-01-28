@@ -15,8 +15,8 @@ export interface CustomRecord {
 
 export interface CharacterStats {
   name: string;
-  class: string;
-  level: number;
+  class: string;  // 保留作為主職業（向下相容）
+  level: number;  // 保留作為總等級（向下相容）
   exp: number;
   hp: {
     current: number;
@@ -28,6 +28,9 @@ export interface CharacterStats {
     total: number;
     die: string;
   };
+  // 新增：兼職系統支援
+  classes?: ClassInfo[];  // 職業列表
+  hitDicePools?: HitDicePools;  // 多種生命骰池
   ac: number;
   initiative: number;
   speed: number;
@@ -68,3 +71,36 @@ export interface DieResult {
   value: number;
   timestamp: number;
 }
+
+// ===== 兼職系統類型 =====
+export interface ClassInfo {
+  name: string;
+  level: number;
+  hitDie: 'd4' | 'd6' | 'd8' | 'd10' | 'd12';
+  isPrimary: boolean;
+}
+
+export interface HitDicePools {
+  d12: { current: number; total: number };
+  d10: { current: number; total: number };
+  d8: { current: number; total: number };
+  d6: { current: number; total: number };
+}
+
+// D&D 5E 職業常數
+export const DND_CLASSES = {
+  '野蠻人': { hitDie: 'd12' as const },
+  '戰士': { hitDie: 'd10' as const },
+  '聖騎士': { hitDie: 'd10' as const },
+  '騎兵': { hitDie: 'd10' as const },
+  '牧師': { hitDie: 'd8' as const },
+  '德魯伊': { hitDie: 'd8' as const },
+  '遊俠': { hitDie: 'd8' as const },
+  '術士': { hitDie: 'd8' as const },
+  '邪術師': { hitDie: 'd8' as const },
+  '盜賊': { hitDie: 'd8' as const },
+  '吟遊詩人': { hitDie: 'd8' as const },
+  '法師': { hitDie: 'd6' as const }
+} as const;
+
+export type DndClassName = keyof typeof DND_CLASSES;

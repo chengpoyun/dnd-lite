@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { CharacterStats } from '../types';
 import { evaluateValue, getModifier, setNormalValue, handleValueInput } from '../utils/helpers';
+import { formatHitDicePools, getTotalCurrentHitDice, useHitDie, recoverHitDiceOnLongRest } from '../utils/classUtils';
 import { HybridDataManager } from '../services/hybridDataManager';
 import { MigrationService } from '../services/migration';
 import { PageContainer, Card, Button, Title, Subtitle, Input } from './ui';
@@ -117,6 +118,9 @@ export const CombatView: React.FC<CombatViewProps> = ({ stats, setStats, charact
   
   // 数据加载状态
   const [isLoading, setIsLoading] = useState(true);
+  
+  // Hit dice states for multiclass support
+  const [selectedHitDie, setSelectedHitDie] = useState<'d12' | 'd10' | 'd8' | 'd6' | null>(null);
   const [isMigrated, setIsMigrated] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const migrationRef = useRef(false); // 防止重複遷移
@@ -409,7 +413,8 @@ export const CombatView: React.FC<CombatViewProps> = ({ stats, setStats, charact
       
       if (dbItem) {
         const updateData: any = {
-          current_uses: newCurrent
+          current_uses: newCurrent,
+          character_id: characterId // 確保總是包含 character_id
         };
         
         if (additionalFields) {
@@ -604,14 +609,25 @@ export const CombatView: React.FC<CombatViewProps> = ({ stats, setStats, charact
   };
 
   const handleLongRest = () => {
-    const recoveredHitDice = Math.max(1, Math.floor(stats.hitDice.total / 2));
-    const newHitDice = Math.min(stats.hitDice.total, stats.hitDice.current + recoveredHitDice);
-
-    setStats(prev => ({
-      ...prev,
-      hp: { ...prev.hp, current: prev.hp.max },
-      hitDice: { ...prev.hitDice, current: newHitDice }
-    }));
+    if (stats.hitDicePools) {
+      // Multiclass hit dice recovery
+      const recoveredPools = recoverHitDiceOnLongRest(stats.hitDicePools);
+      setStats(prev => ({
+        ...prev,
+        hp: { ...prev.hp, current: prev.hp.max },
+        hitDicePools: recoveredPools
+      }));
+    } else {
+      // Legacy single hit die recovery
+      const recoveredHitDice = Math.max(1, Math.floor(stats.hitDice.total / 2));
+      const newHitDice = Math.min(stats.hitDice.total, stats.hitDice.current + recoveredHitDice);
+      
+      setStats(prev => ({
+        ...prev,
+        hp: { ...prev.hp, current: prev.hp.max },
+        hitDice: { ...prev.hitDice, current: newHitDice }
+      }));
+    }
 
     resetByRecovery(['round', 'short', 'long']);
     setCombatSeconds(0);
@@ -631,6 +647,50 @@ export const CombatView: React.FC<CombatViewProps> = ({ stats, setStats, charact
       hp: { ...prev.hp, current: Math.min(prev.hp.max, prev.hp.current + total) },
       hitDice: { ...prev.hitDice, current: prev.hitDice.current - 1 }
     }));
+  };
+
+  // Multiclass hit die rolling
+  const rollMulticlassHitDie = (dieType: 'd12' | 'd10' | 'd8' | 'd6') => {
+    if (!stats.hitDicePools || stats.hitDicePools[dieType].current <= 0) return;
+    
+    const sides = parseInt(dieType.replace('d', ''));
+    const roll = Math.floor(Math.random() * sides) + 1;
+    const conMod = getModifier(stats.abilityScores.con);
+    const total = Math.max(0, roll + conMod);
+    
+    setLastRestRoll({ die: roll, mod: conMod, total });
+    
+    try {
+      const updatedPools = useHitDie(stats.hitDicePools, dieType, 1);
+      setStats(prev => ({
+        ...prev,
+        hp: { ...prev.hp, current: Math.min(prev.hp.max, prev.hp.current + total) },
+        hitDicePools: updatedPools
+      }));
+    } catch (error) {
+      console.error('Failed to use hit die:', error);
+    }
+  };
+
+  // Get available hit dice types for selection
+  const getAvailableHitDice = () => {
+    if (!stats.hitDicePools) return [];
+    
+    return Object.entries(stats.hitDicePools)
+      .filter(([_, pool]) => pool.current > 0)
+      .map(([dieType, pool]) => ({ 
+        dieType: dieType as 'd12' | 'd10' | 'd8' | 'd6', 
+        current: pool.current,
+        total: pool.total
+      }));
+  };
+
+  // Check if any hit dice are available
+  const hasHitDiceAvailable = () => {
+    if (stats.hitDicePools) {
+      return getTotalCurrentHitDice(stats.hitDicePools) > 0;
+    }
+    return stats.hitDice.current > 0;
   };
 
   const confirmEndCombat = () => {
@@ -923,12 +983,45 @@ export const CombatView: React.FC<CombatViewProps> = ({ stats, setStats, charact
               <div>
                 <h3 className="text-xl font-fantasy text-amber-500 mb-2 text-center">正在短休...</h3>
                 <div className="bg-slate-950/50 p-4 rounded-2xl border border-slate-800 mb-6 space-y-4">
-                  <div className="flex justify-between items-center px-1">
-                    <span className="text-xs font-black text-slate-500 uppercase">生命骰 ({stats.hitDice.die})</span>
-                    <span className={`text-lg font-mono font-black ${stats.hitDice.current > 0 ? 'text-amber-500' : 'text-slate-600'}`}>
-                      {stats.hitDice.current} <span className="text-xs text-slate-700">/ {stats.hitDice.total}</span>
-                    </span>
-                  </div>
+                  {stats.hitDicePools ? (
+                    // Multiclass hit dice display
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center px-1">
+                        <span className="text-xs font-black text-slate-500 uppercase">生命骰池</span>
+                        <span className="text-lg font-mono font-black text-amber-500">
+                          {formatHitDicePools(stats.hitDicePools, 'current')}
+                        </span>
+                      </div>
+                      
+                      {/* Hit dice selection buttons */}
+                      <div className="grid grid-cols-2 gap-2">
+                        {getAvailableHitDice().map(({ dieType, current, total }) => (
+                          <button
+                            key={dieType}
+                            onClick={() => rollMulticlassHitDie(dieType)}
+                            disabled={current <= 0 || stats.hp.current >= stats.hp.max}
+                            className={`py-3 px-2 rounded-lg font-bold text-sm transition-all ${
+                              current > 0 && stats.hp.current < stats.hp.max
+                                ? 'bg-amber-600 text-white active:scale-95 shadow-lg'
+                                : 'bg-slate-800 text-slate-600 cursor-not-allowed'
+                            }`}
+                          >
+                            <div className="text-xs opacity-70 uppercase">{dieType}</div>
+                            <div className="font-mono">{current}/{total}</div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    // Legacy single hit die display
+                    <div className="flex justify-between items-center px-1">
+                      <span className="text-xs font-black text-slate-500 uppercase">生命骰 ({stats.hitDice.die})</span>
+                      <span className={`text-lg font-mono font-black ${stats.hitDice.current > 0 ? 'text-amber-500' : 'text-slate-600'}`}>
+                        {stats.hitDice.current} <span className="text-xs text-slate-700">/ {stats.hitDice.total}</span>
+                      </span>
+                    </div>
+                  )}
+                  
                   <div className="flex justify-between items-center px-1 border-t border-slate-800 pt-3">
                     <span className="text-xs font-black text-slate-500 uppercase">目前生命值</span>
                     <span className="text-lg font-mono font-black text-white">{stats.hp.current} / {stats.hp.max}</span>
@@ -941,7 +1034,16 @@ export const CombatView: React.FC<CombatViewProps> = ({ stats, setStats, charact
                   )}
                 </div>
                 <div className="flex flex-col gap-3">
-                  <button onClick={rollHitDie} disabled={stats.hitDice.current <= 0 || stats.hp.current >= stats.hp.max} className="py-4 bg-amber-600 disabled:bg-slate-800 text-white rounded-xl font-black text-lg shadow-lg active:scale-95">🎲 消耗生命骰</button>
+                  {/* Legacy hit die button for single-class characters */}
+                  {!stats.hitDicePools && (
+                    <button 
+                      onClick={rollHitDie} 
+                      disabled={stats.hitDice.current <= 0 || stats.hp.current >= stats.hp.max} 
+                      className="py-4 bg-amber-600 disabled:bg-slate-800 text-white rounded-xl font-black text-lg shadow-lg active:scale-95"
+                    >
+                      🎲 消耗生命骰
+                    </button>
+                  )}
                   <button onClick={() => { handleShortRest(); setIsShortRestDetailOpen(false); setIsRestOptionsOpen(false); }} className="py-4 bg-emerald-600 text-white rounded-xl font-black text-lg active:scale-95">完成短休</button>
                 </div>
               </div>

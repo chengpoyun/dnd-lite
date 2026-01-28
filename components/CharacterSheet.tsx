@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { CharacterStats, CustomRecord } from '../types';
 import { getModifier, getProfBonus, evaluateValue, handleValueInput } from '../utils/helpers';
+import { getAvailableClasses, getClassHitDie, formatClassDisplay } from '../utils/classUtils';
 import { PageContainer, Card, Button, Title, Subtitle, Input, BackButton } from './ui';
 import { STYLES, combineStyles } from '../styles/common';
 
@@ -45,11 +46,23 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
   onSaveExtraData,
   onSaveAvatarUrl
 }) => {
-  const [activeModal, setActiveModal] = useState<'info' | 'abilities' | 'currency' | 'downtime' | 'renown' | 'skill_detail' | 'add_record' | 'edit_record' | null>(null);
+  const [activeModal, setActiveModal] = useState<'info' | 'multiclass' | 'abilities' | 'currency' | 'downtime' | 'renown' | 'skill_detail' | 'add_record' | 'edit_record' | null>(null);
   const [selectedSkill, setSelectedSkill] = useState<{ name: string; base: keyof CharacterStats['abilityScores'] } | null>(null);
   const [selectedRecord, setSelectedRecord] = useState<CustomRecord | null>(null);
   
   const [editInfo, setEditInfo] = useState({ name: stats.name, class: stats.class, level: stats.level.toString() });
+  
+  // 兼職編輯狀態
+  const [editClasses, setEditClasses] = useState<Array<{id: string, name: string, level: number, isPrimary: boolean}>>(
+    stats.classes?.map((c, index) => ({ 
+      id: `class-${index}`, 
+      name: c.name, 
+      level: c.level, 
+      isPrimary: c.isPrimary 
+    })) || [{ id: 'class-0', name: stats.class, level: stats.level, isPrimary: true }]
+  );
+  const [newClassName, setNewClassName] = useState('');
+  const [newClassLevel, setNewClassLevel] = useState('1');
   const [editAbilities, setEditAbilities] = useState(
     Object.fromEntries(Object.entries(stats.abilityScores).map(([k, v]) => [k, v.toString()]))
   );
@@ -63,6 +76,24 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
   const [newRecord, setNewRecord] = useState({ name: '', value: '', note: '' });
 
   const profBonus = getProfBonus(stats.level);
+
+  // 同步兼職編輯狀態
+  useEffect(() => {
+    // 只在 stats.classes 真正存在且有數據時才設定多職業
+    if (stats.classes && stats.classes.length > 0) {
+      setEditClasses(
+        stats.classes.map((c, index) => ({ 
+          id: c.id || `class-${index}`, 
+          name: c.name, 
+          level: c.level, 
+          isPrimary: c.isPrimary 
+        }))
+      );
+    } else {
+      // 只有在明確沒有多職業數據時才使用單職業後備
+      setEditClasses([{ id: 'class-0', name: stats.class, level: stats.level, isPrimary: true }]);
+    }
+  }, [stats.classes, stats.class, stats.level]);
 
   const handleSkillClick = (skill: typeof SKILLS_MAP[0]) => {
     setSelectedSkill(skill);
@@ -108,8 +139,12 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
 
   const openCurrencyModal = () => {
     setTempGPValue(stats.currency.gp.toString());
-    setTempExpValue(stats.exp.toString());
     setActiveModal('currency');
+  };
+
+  const openExpModal = () => {
+    setTempExpValue(stats.exp.toString());
+    setActiveModal('exp');
   };
 
   const openDowntimeModal = () => {
@@ -187,6 +222,330 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
     setStats(prev => ({ ...prev, name: editInfo.name, class: editInfo.class, level })); 
     setActiveModal(null); 
   };
+
+  // 兼職管理函數
+  const openMulticlassModal = () => {
+    // 初始化編輯狀態
+    setEditClasses(
+      stats.classes?.map((c, index) => ({ 
+        id: `class-${index}`, 
+        name: c.name, 
+        level: c.level, 
+        isPrimary: c.isPrimary 
+      })) || [{ id: 'class-0', name: stats.class, level: stats.level, isPrimary: true }]
+    );
+    setActiveModal('multiclass');
+  };
+
+  const addNewClass = async () => {
+    const level = parseInt(newClassLevel) || 1;
+    if (!newClassName || level < 1) return;
+    
+    const newId = `class-${Date.now()}`;
+    const updatedClasses = [
+      ...editClasses,
+      { id: newId, name: newClassName, level: level, isPrimary: false }
+    ];
+    
+    setEditClasses(updatedClasses);
+    setNewClassName('');
+    setNewClassLevel('1');
+    
+    // 自動保存多職業資料
+    const totalLevel = updatedClasses.reduce((sum, c) => sum + c.level, 0);
+    const primaryClass = updatedClasses.find(c => c.isPrimary) || updatedClasses[0];
+    
+    // 同時保存基本信息和多職業資料
+    const basicInfoPromise = onSaveCharacterBasicInfo ? 
+      onSaveCharacterBasicInfo(stats.name, primaryClass.name, totalLevel) : 
+      Promise.resolve(true);
+      
+    const multiclassPromise = onSaveExtraData ? 
+      onSaveExtraData({ ...stats.extraData, classes: updatedClasses }) : 
+      Promise.resolve(true);
+    
+    try {
+      const [basicSuccess, extraSuccess] = await Promise.all([basicInfoPromise, multiclassPromise]);
+      
+      if (basicSuccess && extraSuccess) {
+        console.log('✅ 新增兼職保存成功');
+        // 更新本地狀態
+        setStats(prev => ({ 
+          ...prev, 
+          class: primaryClass.name,
+          level: totalLevel,
+          classes: updatedClasses.map(c => ({
+            id: c.id,
+            name: c.name,
+            level: c.level,
+            hitDie: getClassHitDie(c.name),
+            isPrimary: c.isPrimary
+          }))
+        }));
+        // 關閉模態框
+        setActiveModal(null);
+      } else {
+        console.error('❌ 新增兼職保存失敗', { basicSuccess, extraSuccess });
+      }
+    } catch (error) {
+      console.error('❌ 新增兼職保存錯誤:', error);
+    }
+  };
+
+  const removeClassById = (classId: string) => {
+    setEditClasses(prev => {
+      const filtered = prev.filter(c => c.id !== classId);
+      // 確保至少有一個主職業
+      if (filtered.length > 0 && !filtered.some(c => c.isPrimary)) {
+        filtered[0].isPrimary = true;
+      }
+      return filtered;
+    });
+  };
+
+  const updateClassLevel = (classId: string, newLevel: number) => {
+    if (newLevel < 1) return;
+    setEditClasses(prev => 
+      prev.map(c => c.id === classId ? { ...c, level: newLevel } : c)
+    );
+  };
+
+  const setPrimaryClass = (classId: string) => {
+    setEditClasses(prev => 
+      prev.map(c => ({ ...c, isPrimary: c.id === classId }))
+    );
+  };
+
+  const saveMulticlassInfo = async () => {
+    if (editClasses.length === 0) return;
+    
+    // 計算總等級
+    const totalLevel = editClasses.reduce((sum, c) => sum + c.level, 0);
+    const primaryClass = editClasses.find(c => c.isPrimary) || editClasses[0];
+    
+    // TODO: 這裡需要實現保存兼職資料的逻輯
+    // 暫時保存為傳統格式
+    if (onSaveCharacterBasicInfo) {
+      const success = await onSaveCharacterBasicInfo(
+        editInfo.name, 
+        primaryClass.name, 
+        totalLevel
+      );
+      
+      if (success) {
+        console.log('✅ 兼職資料保存成功');
+        // 更新本地狀態
+        setStats(prev => ({ 
+          ...prev, 
+          name: editInfo.name,
+          class: primaryClass.name,
+          level: totalLevel,
+          classes: editClasses.map(c => ({
+            name: c.name,
+            level: c.level,
+            hitDie: getClassHitDie(c.name),
+            isPrimary: c.isPrimary
+          }))
+        }));
+        setActiveModal(null);
+      } else {
+        console.error('❌ 兼職資料保存失敗');
+      }
+    }
+  };
+  
+  // 管理現有兼職的函數
+  const updateExistingClassLevel = async (classIndex: number, newLevel: number) => {
+    if (newLevel < 1 || !stats.classes) return;
+    
+    const updatedClasses = stats.classes.map((classInfo, index) => 
+      index === classIndex ? { ...classInfo, level: newLevel } : classInfo
+    );
+    
+    const totalLevel = updatedClasses.reduce((sum, c) => sum + c.level, 0);
+    const primaryClass = updatedClasses.find(c => c.isPrimary) || updatedClasses[0];
+    
+    // 保存到數據庫
+    if (onSaveCharacterBasicInfo) {
+      const success = await onSaveCharacterBasicInfo(
+        stats.name, 
+        primaryClass.name, 
+        totalLevel
+      );
+      
+      if (success) {
+        console.log('✅ 兼職等級更新成功');
+        setStats(prev => ({ 
+          ...prev, 
+          level: totalLevel,
+          classes: updatedClasses
+        }));
+      } else {
+        console.error('❌ 兼職等級更新失敗');
+      }
+    }
+  };
+  
+  const setExistingClassAsPrimary = async (classIndex: number) => {
+    if (!stats.classes) return;
+    
+    const updatedClasses = stats.classes.map((classInfo, index) => 
+      ({ ...classInfo, isPrimary: index === classIndex })
+    );
+    
+    const totalLevel = updatedClasses.reduce((sum, c) => sum + c.level, 0);
+    const primaryClass = updatedClasses[classIndex];
+    
+    // 保存到數據庫
+    if (onSaveCharacterBasicInfo) {
+      const success = await onSaveCharacterBasicInfo(
+        stats.name, 
+        primaryClass.name, 
+        totalLevel
+      );
+      
+      if (success) {
+        console.log('✅ 主職業設定成功');
+        setStats(prev => ({ 
+          ...prev, 
+          class: primaryClass.name,
+          level: totalLevel,
+          classes: updatedClasses
+        }));
+      } else {
+        console.error('❌ 主職業設定失敗');
+      }
+    }
+  };
+  
+  const deleteExistingClass = async (classIndex: number) => {
+    if (!stats.classes || stats.classes.length <= 1) return;
+    
+    const updatedClasses = stats.classes.filter((_, index) => index !== classIndex);
+    
+    // 確保有主職業
+    if (!updatedClasses.some(c => c.isPrimary)) {
+      updatedClasses[0].isPrimary = true;
+    }
+    
+    const totalLevel = updatedClasses.reduce((sum, c) => sum + c.level, 0);
+    const primaryClass = updatedClasses.find(c => c.isPrimary) || updatedClasses[0];
+    
+    // 保存到數據庫
+    if (onSaveCharacterBasicInfo) {
+      const success = await onSaveCharacterBasicInfo(
+        stats.name, 
+        primaryClass.name, 
+        totalLevel
+      );
+      
+      if (success) {
+        console.log('✅ 兼職刪除成功');
+        setStats(prev => ({ 
+          ...prev, 
+          class: primaryClass.name,
+          level: totalLevel,
+          classes: updatedClasses
+        }));
+      } else {
+        console.error('❌ 兼職刪除失敗');
+      }
+    }
+  };
+  
+  // 簡化的職業編輯函數
+  const updateEditClass = (index: number, field: 'name' | 'level', value: string | number) => {
+    setEditClasses(prev => 
+      prev.map((classInfo, i) => 
+        i === index ? { 
+          ...classInfo, 
+          [field]: value // 直接使用值，不強制轉換
+        } : classInfo
+      )
+    );
+  };
+  
+  const removeEditClass = (index: number) => {
+    if (editClasses.length <= 1) return; // 保護最後一個職業
+    
+    setEditClasses(prev => {
+      const filtered = prev.filter((_, i) => i !== index);
+      // 確保有主職業
+      if (!filtered.some(c => c.isPrimary)) {
+        filtered[0].isPrimary = true;
+      }
+      return filtered;
+    });
+  };
+  
+  const addNewEditClass = () => {
+    const availableClasses = getAvailableClasses().filter(
+      className => !editClasses.some(c => c.name === className)
+    );
+    
+    if (availableClasses.length === 0) return; // 沒有可用的職業
+    
+    const newId = `class-${Date.now()}`;
+    setEditClasses(prev => [
+      ...prev,
+      { 
+        id: newId, 
+        name: availableClasses[0], 
+        level: 1, 
+        isPrimary: false 
+      }
+    ]);
+  };
+  
+  const saveInfoWithClasses = async () => {
+    if (editClasses.length === 0) return;
+    
+    // 驗證所有等級為有效數字
+    const validClasses = editClasses.map(c => ({
+      ...c,
+      level: Math.max(1, parseInt(String(c.level)) || 1) // 確保等級至少為1
+    }));
+    
+    // 計算總等級
+    const totalLevel = validClasses.reduce((sum, c) => sum + c.level, 0);
+    const primaryClass = validClasses.find(c => c.isPrimary) || validClasses[0];
+    
+    // 同時保存基本信息和多職業資料
+    const basicInfoPromise = onSaveCharacterBasicInfo ? 
+      onSaveCharacterBasicInfo(editInfo.name, primaryClass.name, totalLevel) : 
+      Promise.resolve(true);
+      
+    const multiclassPromise = onSaveExtraData ? 
+      onSaveExtraData({ ...stats.extraData, classes: validClasses }) : 
+      Promise.resolve(true);
+    
+    try {
+      const [basicSuccess, extraSuccess] = await Promise.all([basicInfoPromise, multiclassPromise]);
+      
+      if (basicSuccess && extraSuccess) {
+        console.log('✅ 角色資料保存成功');
+        // 更新本地狀態
+        setStats(prev => ({ 
+          ...prev, 
+          name: editInfo.name,
+          class: primaryClass.name,
+          level: totalLevel,
+          classes: validClasses.map(c => ({
+            id: c.id,
+            name: c.name,
+            level: c.level,
+            hitDie: getClassHitDie(c.name),
+            isPrimary: c.isPrimary
+          }))
+        }));
+        setActiveModal(null);
+      } else {
+        console.error('❌ 角色資料保存失敗', { basicSuccess, extraSuccess });
+      }
+    } catch (error) {
+      console.error('❌ 角色資料保存錯誤:', error);
+    }
+  };
   
   const saveAbilities = async () => { 
     // 驗證所有能力值不為空
@@ -238,30 +597,54 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
   };
   const toggleSavingProf = (key: keyof CharacterStats['abilityScores']) => { setEditSavingProfs(prev => prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]); };
   
-  const saveCurrencyAndExp = async () => { 
-    // 驗證金幣和經驗值不為空或無效
-    if (isNaN(gpPreview) || isNaN(expPreview) || gpPreview < 0 || expPreview < 0) {
+  const saveCurrency = async () => {
+    // 驗證金幣不為空或無效
+    if (isNaN(gpPreview) || gpPreview < 0) {
       setActiveModal(null);
       return;
     }
     
-    // 立即保存到資料庫
-    if (onSaveCurrencyAndExp) {
-      const success = await onSaveCurrencyAndExp(gpPreview, expPreview)
-      if (success) {
-        console.log('✅ 貨幣和經驗值保存成功')
-      } else {
-        console.error('❌ 貨幣和經驗值保存失敗')
-      }
-    }
-
     // 更新本地狀態
     setStats(prev => ({ 
       ...prev, 
-      currency: { ...prev.currency, gp: gpPreview }, 
+      currency: { ...prev.currency, gp: gpPreview }
+    })); 
+    setActiveModal(null); 
+    
+    // 立即保存到資料庫
+    if (onSaveCurrencyAndExp) {
+      const success = await onSaveCurrencyAndExp(gpPreview, stats.exp)
+      if (success) {
+        console.log('✅ 金幣保存成功')
+      } else {
+        console.error('❌ 金幣保存失敗')
+      }
+    }
+  };
+  
+  const saveExp = async () => {
+    // 驗證經驗值不為空或無效
+    if (isNaN(expPreview) || expPreview < 0) {
+      setActiveModal(null);
+      return;
+    }
+    
+    // 更新本地狀態
+    setStats(prev => ({ 
+      ...prev, 
       exp: expPreview 
     })); 
     setActiveModal(null); 
+    
+    // 立即保存到資料庫
+    if (onSaveCurrencyAndExp) {
+      const success = await onSaveCurrencyAndExp(stats.currency.gp, expPreview)
+      if (success) {
+        console.log('✅ 經驗值保存成功')
+      } else {
+        console.error('❌ 經驗值保存失敗')
+      }
+    }
   };
 
   const saveDowntime = async () => { 
@@ -515,7 +898,12 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
               <h1 className="text-2xl font-fantasy text-white leading-tight truncate">{stats.name}</h1>
               <div className="flex items-center gap-2 mt-1">
                 <span className="text-lg text-slate-300 font-black uppercase">LV {stats.level}</span>
-                <span className="text-lg text-slate-400 font-bold uppercase truncate">{stats.class}</span>
+                <span className="text-lg text-slate-400 font-bold uppercase truncate">
+                  {stats.classes && stats.classes.length > 0 
+                    ? formatClassDisplay(stats.classes, 'primary')
+                    : stats.class
+                  }
+                </span>
               </div>
             </button>
           </div>
@@ -524,16 +912,6 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
               <span className="text-xs opacity-60 font-black leading-none uppercase">HP</span>
               <span className="text-lg font-black leading-none">{stats.hp.current}</span>
             </div>
-            <button onClick={openCurrencyModal} className="bg-slate-800/80 px-2 py-1 rounded-lg border border-slate-700 active:bg-slate-700 transition-colors">
-              <div className="flex gap-1 items-center justify-end text-base font-mono font-black text-amber-500">
-                <span>{stats.currency.gp}</span>
-                <span className="text-sm opacity-60 font-black tracking-widest">GP</span>
-              </div>
-              <div className="text-sm text-slate-500 font-black mt-0.5 leading-none flex items-center justify-end uppercase">
-                <span className="mr-1">Exp</span>
-                <span className="font-mono text-slate-400">{stats.exp}</span>
-              </div>
-            </button>
           </div>
         </div>
       </div>
@@ -605,6 +983,18 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
           </Button>
         </div>
         <div className="flex flex-col gap-2">
+          <div onClick={openCurrencyModal} className="flex items-center justify-between bg-slate-800/50 p-2 rounded border border-slate-700/50 active:bg-slate-700 transition-colors cursor-pointer">
+            <div className="flex flex-col">
+              <span className="text-base font-bold text-slate-300">金幣</span>
+            </div>
+            <span className="text-lg font-mono font-black text-amber-500">{stats.currency.gp} <span className="text-sm text-slate-500 font-normal">GP</span></span>
+          </div>
+          <div onClick={openExpModal} className="flex items-center justify-between bg-slate-800/50 p-2 rounded border border-slate-700/50 active:bg-slate-700 transition-colors cursor-pointer">
+            <div className="flex flex-col">
+              <span className="text-base font-bold text-slate-300">經驗值</span>
+            </div>
+            <span className="text-lg font-mono font-black text-emerald-400">{stats.exp} <span className="text-sm text-slate-500 font-normal">EXP</span></span>
+          </div>
           <div onClick={openDowntimeModal} className="flex items-center justify-between bg-slate-800/50 p-2 rounded border border-slate-700/50 active:bg-slate-700 transition-colors cursor-pointer">
             <div className="flex flex-col">
               <span className="text-base font-bold text-slate-300">修整期</span>
@@ -715,26 +1105,139 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
         <div className="fixed inset-0 z-[100] flex items-center justify-center px-6">
           <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-sm" onClick={() => setActiveModal(null)} />
           <div className="relative bg-slate-900 border border-slate-700 w-full max-w-xs rounded-2xl p-3 shadow-2xl">
-            <h3 className="text-base font-fantasy text-amber-500 mb-4 border-b border-slate-800 pb-2">編輯屬性</h3>
+            <h3 className="text-base font-fantasy text-amber-500 mb-4 border-b border-slate-800 pb-2">編輯角色資料</h3>
             <div className="space-y-4">
               <div className="space-y-1">
                 <label className="text-[14px] font-black text-slate-500 uppercase ml-1">名稱</label>
                 <input type="text" value={editInfo.name} onChange={(e) => setEditInfo({ ...editInfo, name: e.target.value })} className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white outline-none" autoFocus />
               </div>
-              <div className="flex gap-3">
-                <div className="w-20 space-y-1">
-                  <label className="text-[14px] font-black text-slate-500 uppercase ml-1">等級</label>
-                  <input type="text" value={editInfo.level} onChange={(e) => setEditInfo({ ...editInfo, level: e.target.value })} className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-3 text-white outline-none text-center" />
-                </div>
-                <div className="flex-1 space-y-1">
-                  <label className="text-[14px] font-black text-slate-500 uppercase ml-1">職業</label>
-                  <input type="text" value={editInfo.class} onChange={(e) => setEditInfo({ ...editInfo, class: e.target.value })} className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white outline-none" />
+              
+              {/* 職業與等級編輯 */}
+              <div className="space-y-2">
+                <label className="text-[14px] font-black text-slate-500 uppercase ml-1">職業與等級</label>
+                <div className="space-y-2">
+                  {editClasses.map((classInfo, index) => (
+                    <div key={classInfo.id || index} className="flex items-center gap-2">
+                      <select 
+                        value={classInfo.name}
+                        onChange={(e) => updateEditClass(index, 'name', e.target.value)}
+                        className="flex-1 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm"
+                      >
+                        {getAvailableClasses()
+                          .filter(className => className === classInfo.name || !editClasses.some(c => c.name === className))
+                          .map(className => (
+                            <option key={className} value={className}>{className}</option>
+                          ))
+                        }
+                      </select>
+                      <input 
+                        type="number" 
+                        min="1" 
+                        max="20"
+                        value={classInfo.level} 
+                        onChange={(e) => updateEditClass(index, 'level', e.target.value)}
+                        className="w-16 bg-slate-800 border border-slate-700 rounded-lg px-2 py-2 text-center text-white text-sm"
+                      />
+                      {editClasses.length > 1 && (
+                        <button 
+                          onClick={() => removeEditClass(index)}
+                          className="w-8 h-8 bg-red-600/20 text-red-400 rounded-lg hover:bg-red-600/40 transition-colors flex items-center justify-center"
+                        >
+                          ×
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                  
+                  {/* 新增按鈕 */}
+                  <button 
+                    onClick={addNewEditClass}
+                    className="w-full py-2 bg-slate-700/50 text-slate-400 rounded-lg border border-slate-600 hover:bg-slate-700 transition-colors flex items-center justify-center font-bold"
+                  >
+                    +
+                  </button>
+                  
+                  {/* 總等級顯示 */}
+                  <div className="text-center pt-2 border-t border-slate-700">
+                    <span className="text-xs text-slate-500">總等級: LV {editClasses.reduce((sum, c) => sum + (parseInt(String(c.level)) || 0), 0)}</span>
+                  </div>
                 </div>
               </div>
               <div className="flex gap-2 pt-4">
                 <button onClick={() => setActiveModal(null)} className="flex-1 px-4 py-3 bg-slate-800 text-slate-400 rounded-xl font-bold">取消</button>
-                <button onClick={saveInfo} className="flex-1 px-4 py-3 bg-amber-600 text-white rounded-xl font-bold">儲存</button>
+                <button onClick={saveInfoWithClasses} className="flex-1 px-4 py-3 bg-amber-600 text-white rounded-xl font-bold">儲存</button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 兼職管理 Modal */}
+      {activeModal === 'multiclass' && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center px-6">
+          <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-sm" onClick={() => setActiveModal(null)} />
+          <div className="relative bg-slate-900 border border-slate-700 w-full max-w-xs rounded-2xl p-4 shadow-2xl">
+            <h3 className="text-lg font-fantasy text-amber-500 mb-6 border-b border-slate-800 pb-2">🎆 新增兼職</h3>
+            
+            {/* 新增職業 */}
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-slate-400 uppercase">選擇職業</label>
+                <select 
+                  value={newClassName}
+                  onChange={(e) => setNewClassName(e.target.value)}
+                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white text-base"
+                >
+                  <option value="">選擇職業...</option>
+                  {getAvailableClasses()
+                    .filter(className => !editClasses.some(c => c.name === className))
+                    .map(className => (
+                      <option key={className} value={className}>{className}</option>
+                    ))
+                  }
+                </select>
+              </div>
+              
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-slate-400 uppercase">等級</label>
+                <input 
+                  type="number" 
+                  min="1" 
+                  max="20"
+                  value={newClassLevel} 
+                  onChange={(e) => setNewClassLevel(e.target.value)}
+                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-center text-white text-base"
+                  placeholder="1"
+                />
+              </div>
+              
+              {/* 預覽 */}
+              {newClassName && (
+                <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-700">
+                  <div className="text-sm text-slate-400 mb-1">預覽:</div>
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-white">{newClassName}</span>
+                    <span className="text-slate-400 text-sm font-mono">LV {newClassLevel || 1}</span>
+                  </div>
+                </div>
+              )}
+            </div>
+            
+            {/* 按鈕 */}
+            <div className="flex gap-2 mt-6">
+              <button 
+                onClick={() => setActiveModal(null)} 
+                className="flex-1 px-4 py-3 bg-slate-800 text-slate-400 rounded-xl font-bold"
+              >
+                取消
+              </button>
+              <button 
+                onClick={() => { addNewClass(); }} 
+                disabled={!newClassName}
+                className="flex-1 px-4 py-3 bg-emerald-600 disabled:bg-slate-700 text-white disabled:text-slate-500 rounded-xl font-bold transition-colors"
+              >
+                新增兼職
+              </button>
             </div>
           </div>
         </div>
@@ -744,8 +1247,8 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
         <div className="fixed inset-0 z-[100] flex items-center justify-center px-6">
           <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-sm" onClick={() => setActiveModal(null)} />
           <div className="relative bg-slate-900 border border-slate-700 w-full max-w-xs rounded-2xl p-3 shadow-2xl">
-            <h3 className="text-base font-fantasy text-amber-500 mb-6 border-b border-slate-800 pb-2">修改資金與經驗</h3>
-            <div className="space-y-8">
+            <h3 className="text-base font-fantasy text-amber-500 mb-6 border-b border-slate-800 pb-2">修改資金</h3>
+            <div className="space-y-6">
               <div className="space-y-4">
                 <label className="text-[14px] font-black text-amber-500 uppercase ml-1">持有金幣 (GP)</label>
                 <input type="text" value={tempGPValue} onChange={(e) => setTempGPValue(e.target.value)} className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-3xl font-mono text-center text-amber-500 focus:outline-none" placeholder={stats.currency.gp.toString()} autoFocus />
@@ -758,21 +1261,36 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
                   </div>
                 </div>
               </div>
+              <div className="flex gap-2 pt-2">
+                <button onClick={() => setActiveModal(null)} className="flex-1 px-4 py-3 bg-slate-800 text-slate-400 rounded-xl font-bold">取消</button>
+                <button onClick={saveCurrency} className="flex-1 px-4 py-3 bg-amber-600 text-white rounded-xl font-bold">套用</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {activeModal === 'exp' && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center px-6">
+          <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-sm" onClick={() => setActiveModal(null)} />
+          <div className="relative bg-slate-900 border border-slate-700 w-full max-w-xs rounded-2xl p-3 shadow-2xl">
+            <h3 className="text-base font-fantasy text-emerald-400 mb-6 border-b border-slate-800 pb-2">修改經驗值</h3>
+            <div className="space-y-6">
               <div className="space-y-4">
-                <label className="text-[14px] font-black text-indigo-400 uppercase ml-1">經驗值 (Exp)</label>
-                <input type="text" value={tempExpValue} onChange={(e) => setTempExpValue(e.target.value)} className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-3xl font-mono text-center text-indigo-400 focus:outline-none" placeholder={stats.exp.toString()} />
+                <label className="text-[14px] font-black text-emerald-400 uppercase ml-1">經驗值 (EXP)</label>
+                <input type="text" value={tempExpValue} onChange={(e) => setTempExpValue(e.target.value)} className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-3xl font-mono text-center text-emerald-400 focus:outline-none" placeholder={stats.exp.toString()} autoFocus />
                 <div className="text-center mt-2">
                   <span className="text-[14px] text-slate-500 uppercase font-black tracking-widest">計算結果</span>
                   <div className="flex items-center justify-center gap-3 text-lg font-bold">
                     <span className="text-slate-400 font-[14px]">{stats.exp}</span>
                     <span className="text-slate-600">→</span>
-                    <span className="text-indigo-400 text-2xl">{expPreview}</span>
+                    <span className="text-emerald-400 text-2xl">{expPreview}</span>
                   </div>
                 </div>
               </div>
               <div className="flex gap-2 pt-2">
                 <button onClick={() => setActiveModal(null)} className="flex-1 px-4 py-3 bg-slate-800 text-slate-400 rounded-xl font-bold">取消</button>
-                <button onClick={saveCurrencyAndExp} className="flex-1 px-4 py-3 bg-amber-600 text-white rounded-xl font-bold">套用</button>
+                <button onClick={saveExp} className="flex-1 px-4 py-3 bg-emerald-600 text-white rounded-xl font-bold">套用</button>
               </div>
             </div>
           </div>

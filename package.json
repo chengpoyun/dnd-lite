@@ -7,10 +7,11 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "vitest",
+    "test": "vitest --run",
+    "test:watch": "vitest",
     "test:ui": "vitest --ui",
     "test:run": "vitest run",
-    "t": "vitest",
+    "t": "vitest --run",
     "db:migrate": "./scripts/migrate-wrapper.sh",
     "db:create": "./scripts/create-migration.sh",
     "db:status": "./scripts/status-wrapper.sh"

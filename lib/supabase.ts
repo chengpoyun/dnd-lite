@@ -113,6 +113,32 @@ export interface CharacterCombatAction {
   updated_at?: string
 }
 
+// ===== 兼職系統類型 =====
+export interface CharacterClass {
+  id: string
+  character_id: string
+  class_name: string
+  class_level: number
+  hit_die: 'd4' | 'd6' | 'd8' | 'd10' | 'd12'
+  is_primary: boolean
+  created_at?: string
+  updated_at?: string
+}
+
+export interface CharacterHitDicePools {
+  id: string
+  character_id: string
+  d12_current: number
+  d12_total: number
+  d10_current: number
+  d10_total: number
+  d8_current: number
+  d8_total: number
+  d6_current: number
+  d6_total: number
+  updated_at?: string
+}
+
 // 新增：預設戰鬥動作類型
 export interface DefaultCombatAction {
   id: string
@@ -139,6 +165,8 @@ export interface FullCharacterData {
   currentStats: CharacterCurrentStats
   currency: CharacterCurrency
   combatActions: CharacterCombatAction[]
+  classes: CharacterClass[]  // 新增：職業列表
+  hitDicePools: CharacterHitDicePools  // 新增：生命骰池
 }
 
 // 更新專用類型：用於部分更新角色資料
