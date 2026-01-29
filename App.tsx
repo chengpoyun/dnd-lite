@@ -6,6 +6,7 @@ import { CharacterSheet } from './components/CharacterSheet';
 import { DiceRoller } from './components/DiceRoller';
 import { CombatView } from './components/CombatView';
 import { ConversionPage } from './components/ConversionPage';
+import { SessionExpiredModal } from './components/SessionExpiredModal';
 
 import { CharacterStats } from './types';
 import { getModifier } from './utils/helpers';
@@ -51,13 +52,14 @@ const INITIAL_STATS: CharacterStats = {
 };
 
 const AuthenticatedApp: React.FC = () => {
-  const { user, isLoading: authLoading } = useAuth();
+  const { user, isLoading: authLoading, signOut } = useAuth();
   
   // 應用程式狀態
   const [appState, setAppState] = useState<AppState>('welcome')
   const [userMode, setUserMode] = useState<UserMode>('anonymous')
   const [activeTab, setActiveTab] = useState<Tab>(Tab.CHARACTER)
   const [needsConversion, setNeedsConversion] = useState(false)
+  const [showSessionExpired, setShowSessionExpired] = useState(false)
   
   // 角色數據
   const [currentCharacter, setCurrentCharacter] = useState<Character | null>(null)
@@ -421,6 +423,21 @@ const AuthenticatedApp: React.FC = () => {
   // 保存操作鎖和序列化機制
   const saveTimeoutRef = React.useRef<NodeJS.Timeout | null>(null)
   
+  // Session 驗證輔助函數
+  const validateSessionBeforeSave = async (): Promise<boolean> => {
+    // 匿名用戶不需要驗證 session
+    if (userMode === 'anonymous') return true
+    
+    // 認證用戶驗證 session
+    const isValid = await UserSettingsService.validateSession()
+    if (!isValid) {
+      console.log('❌ Session 已失效，顯示登出提示')
+      setShowSessionExpired(true)
+      return false
+    }
+    return true
+  }
+  
   // 移除自動保存 useEffect，改為按需保存
   /*
   // 角色數據自動保存 effect - 只在關鍵數據變化時觸發
@@ -435,12 +452,18 @@ const AuthenticatedApp: React.FC = () => {
   const saveSkillProficiency = async (skillName: string, level: number) => {
     if (!currentCharacter) return false
     
+    // 驗證 session
+    if (!await validateSessionBeforeSave()) return false
+    
     return await HybridDataManager.updateSingleSkillProficiency(currentCharacter.id, skillName, level)
   }
 
   // 保存豁免熟練度
   const saveSavingThrowProficiencies = async (proficiencies: string[]) => {
     if (!currentCharacter || isSaving) return false
+    
+    // 驗證 session
+    if (!await validateSessionBeforeSave()) return false
     
     setIsSaving(true)
     try {
@@ -477,6 +500,9 @@ const AuthenticatedApp: React.FC = () => {
   const saveCharacterBasicInfo = async (name: string, characterClass: string, level: number) => {
     if (!currentCharacter || isSaving) return false
     
+    // 驗證 session
+    if (!await validateSessionBeforeSave()) return false
+    
     setIsSaving(true)
     try {
       console.log('📝 保存角色基本信息:', { name, characterClass, level })
@@ -506,6 +532,9 @@ const AuthenticatedApp: React.FC = () => {
   // 保存能力值
   const saveAbilityScores = async (abilityScores: CharacterStats['abilityScores']) => {
     if (!currentCharacter || isSaving) return false
+    
+    // 驗證 session
+    if (!await validateSessionBeforeSave()) return false
     
     setIsSaving(true)
     try {
@@ -544,6 +573,9 @@ const AuthenticatedApp: React.FC = () => {
   const saveHP = async (currentHP: number, maxHP?: number) => {
     if (!currentCharacter || isSaving) return false
     
+    // 驗證 session
+    if (!await validateSessionBeforeSave()) return false
+    
     setIsSaving(true)
     try {
       console.log('❤️ 保存HP:', { currentHP, maxHP })
@@ -578,6 +610,9 @@ const AuthenticatedApp: React.FC = () => {
   const saveAC = async (ac: number) => {
     if (!currentCharacter || isSaving) return false
     
+    // 驗證 session
+    if (!await validateSessionBeforeSave()) return false
+    
     setIsSaving(true)
     try {
       console.log('🛡️ 保存AC:', ac)
@@ -605,6 +640,9 @@ const AuthenticatedApp: React.FC = () => {
   const saveInitiative = async (initiative: number) => {
     if (!currentCharacter || isSaving) return false
     
+    // 驗證 session
+    if (!await validateSessionBeforeSave()) return false
+    
     setIsSaving(true)
     try {
       console.log('⚡ 保存先攻值:', initiative)
@@ -631,6 +669,9 @@ const AuthenticatedApp: React.FC = () => {
   // 保存貨幣和經驗值
   const saveCurrencyAndExp = async (gp: number, exp: number) => {
     if (!currentCharacter || isSaving) return false
+    
+    // 驗證 session
+    if (!await validateSessionBeforeSave()) return false
     
     setIsSaving(true)
     try {
@@ -668,6 +709,9 @@ const AuthenticatedApp: React.FC = () => {
   const saveAvatarUrl = async (avatarUrl: string) => {
     if (!currentCharacter || isSaving) return false
     
+    // 驗證 session
+    if (!await validateSessionBeforeSave()) return false
+    
     setIsSaving(true)
     try {
       console.log('🖼️ 保存頭像 URL:', avatarUrl)
@@ -697,6 +741,9 @@ const AuthenticatedApp: React.FC = () => {
   // 保存額外數據（downtime、renown、自定義記錄等）
   const saveExtraData = async (extraData: any) => {
     if (!currentCharacter || isSaving) return false
+    
+    // 驗證 session
+    if (!await validateSessionBeforeSave()) return false
     
     setIsSaving(true)
     try {
@@ -768,6 +815,15 @@ const AuthenticatedApp: React.FC = () => {
     // useEffect 會自動重新觸發初始化
   }
 
+  // Session 失效後重新登入
+  const handleSessionExpiredRelogin = async () => {
+    setShowSessionExpired(false)
+    await signOut()
+    setAppState('welcome')
+    setUserMode('anonymous')
+    setCurrentCharacter(null)
+  }
+
   // 渲染邏輯
   if (isLoading) {
     return (
@@ -778,6 +834,11 @@ const AuthenticatedApp: React.FC = () => {
         </div>
       </div>
     )
+  }
+
+  // Session Expired Modal（全域覆蓋）
+  if (showSessionExpired) {
+    return <SessionExpiredModal isOpen={true} onRelogin={handleSessionExpiredRelogin} />
   }
 
   // 歡迎頁面
