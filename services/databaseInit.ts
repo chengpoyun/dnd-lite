@@ -16,11 +16,40 @@ export class DatabaseInitService {
         return true
       }
 
-      // 靜默檢查資料庫表結構
-      await this.ensureCharactersTable()
+      // 使用重試機制檢查資料庫表結構
+      const maxRetries = 2
+      let lastError: any = null
       
-      this.isInitialized = true // 標記為已初始化
-      return true
+      for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+          if (attempt > 1) {
+            console.log(`🔄 資料庫初始化重試第 ${attempt} 次...`)
+            await new Promise(resolve => setTimeout(resolve, 1000))
+          }
+          
+          await this.ensureCharactersTable()
+          this.isInitialized = true
+          return true
+          
+        } catch (error) {
+          lastError = error
+          const errorMessage = error?.message || ''
+          if (attempt < maxRetries && (
+            errorMessage.includes('CORS') || 
+            errorMessage.includes('520') || 
+            errorMessage.includes('502') || 
+            errorMessage.includes('503') ||
+            errorMessage.includes('Failed to fetch')
+          )) {
+            console.warn(`⚠️ 資料庫初始化失敗，將重試: ${errorMessage}`)
+            continue
+          }
+        }
+      }
+      
+      console.error('❌ 資料庫初始化失敗（已重試）:', lastError)
+      return false
+      
     } catch (error) {
       console.error('資料庫初始化失敗:', error)
       return false
@@ -32,20 +61,23 @@ export class DatabaseInitService {
    */
   private static async ensureCharactersTable(): Promise<void> {
     try {
-      // 檢查新的資料庫結構
-      const { error } = await supabase
-        .from('characters')
-        .select('id, name, character_class, level, avatar_url')
-        .limit(0)
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error('資料庫連接超時')), 10000)
+      })
       
-      if (error) {
-        console.error('Characters 表不存在或結構不正確:', error)
+      const checkPromise = supabase
+        .from('characters')
+        .select('id')
+        .limit(1)
+      
+      const { error } = await Promise.race([checkPromise, timeoutPromise])
+      
+      if (error && error.message !== 'No rows found') {
+        console.error('Characters 表檢查失敗:', error.message)
         throw error
       }
-      
-      // 表結構正確
     } catch (error) {
-      console.error('無法存取 characters 表:', error)
+      console.error('無法存取 characters 表:', error?.message || error)
       throw error
     }
   }

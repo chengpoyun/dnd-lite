@@ -38,74 +38,168 @@ export class DetailedCharacterService {
     userId?: string,
     anonymousId?: string
   }> {
+    const startTime = performance.now()
+    console.log('⏱️ getCurrentUserContext() 開始')
+    
     try {
+      const authCheckStart = performance.now()
       const { data: { user } } = await supabase.auth.getUser()
+      const authCheckTime = performance.now() - authCheckStart
+      console.log(`⏱️ supabase.auth.getUser(): ${authCheckTime.toFixed(1)}ms`)
       
       if (user) {
+        const totalTime = performance.now() - startTime
+        console.log(`✅ getCurrentUserContext 認證用戶 (${totalTime.toFixed(1)}ms)`)
         return { isAuthenticated: true, userId: user.id }
       } else {
+        const anonIdStart = performance.now()
         console.log('👤 獲取匿名用戶ID...')
         const anonymousId = AnonymousService.getAnonymousId()
-        console.log('👤 匿名用戶ID獲取完成:', { anonymousId: anonymousId?.substring(0, 8) + '...' })
+        const anonIdTime = performance.now() - anonIdStart
+        console.log(`⏱️ 匿名ID獲取: ${anonIdTime.toFixed(1)}ms`)
+        
+        const totalTime = performance.now() - startTime
+        console.log(`✅ getCurrentUserContext 匿名用戶 (${totalTime.toFixed(1)}ms)`)
         return { isAuthenticated: false, anonymousId }
       }
     } catch (error) {
-      console.error('❌ 獲取用戶上下文失敗:', error)
-      // 發生錯誤時，嘗試使用匿名模式
+      const totalTime = performance.now() - startTime
+      console.error(`❌ getCurrentUserContext 失敗 (${totalTime.toFixed(1)}ms):`, error?.message)
+      
+      // 降級到匿名模式
       const anonymousId = AnonymousService.getAnonymousId()
       return { isAuthenticated: false, anonymousId }
     }
   }
 
   // 獲取用戶的角色列表
-  static async getUserCharacters(): Promise<Character[]> {
-    try {
-      const context = await this.getCurrentUserContext()
-      
-      let query = supabase.from('characters').select('*')
-      
-      if (context.isAuthenticated) {
-        query = query.eq('user_id', context.userId)
-      } else {
-        query = query.eq('anonymous_id', context.anonymousId)
+  static async getUserCharacters(userContext?: {
+    isAuthenticated: boolean,
+    userId?: string,
+    anonymousId?: string
+  }): Promise<Character[]> {
+    // 重試邏輯：處理 Supabase 冷啟動
+    const maxRetries = 2
+    let lastError: any = null
+    
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        if (attempt > 1) {
+          console.log(`🔄 重試第 ${attempt} 次...`)
+          await new Promise(resolve => setTimeout(resolve, 1000))
+        }
+        
+        let context
+        if (userContext) {
+          context = userContext
+        } else {
+          context = await this.getCurrentUserContext()
+        }
+        
+        let query = supabase
+          .from('characters')
+          .select('id, user_id, anonymous_id, name, character_class, level, experience, avatar_url, is_anonymous, created_at, updated_at')
+          .order('updated_at', { ascending: false })
+        
+        if (context.isAuthenticated) {
+          query = query.eq('user_id', context.userId)
+        } else {
+          query = query.eq('anonymous_id', context.anonymousId)
+        }
+        
+        const dbQueryStart = performance.now()
+        const { data, error } = await query
+        const dbQueryTime = performance.now() - dbQueryStart
+        
+        if (error) {
+          // 檢查是否為值得重試的錯誤
+          const errorMessage = error.message || ''
+          if (attempt < maxRetries && (
+            errorMessage.includes('CORS') || 
+            errorMessage.includes('520') || 
+            errorMessage.includes('502') || 
+            errorMessage.includes('503') ||
+            errorMessage.includes('Failed to fetch') ||
+            dbQueryTime > 30000 // 超過 30 秒視為超時
+          )) {
+            console.warn(`⚠️ 查詢超時或網路錯誤，將重試`)
+            lastError = error
+            continue
+          }
+          
+          console.warn('⚠️ 載入角色列表失敗:', error.message)
+          return []
+        }
+        
+        return data || []
+        
+      } catch (error) {
+        lastError = error
       }
-      
-      const { data, error } = await query
-      if (error) throw error
-      
-      return data || []
-    } catch (error) {
-      console.error('❌ 獲取角色列表失敗:', {
-        errorMessage: error.message,
-        errorName: error.name,
-        stack: error.stack
-      })
-      return []
     }
+    
+    // 所有重試都失敗
+    console.error('❌ 載入角色列表失敗（已重試）:', lastError?.message || lastError)
+    return []
   }
 
   // 獲取完整的角色資料
-  static async getFullCharacter(characterId: string): Promise<FullCharacterData | null> {
-    const startTime = Date.now()
-    try {
-      // 檢查緩存
-      const cached = this.characterCache.get(characterId)
-      if (cached && (Date.now() - cached.timestamp) < this.CACHE_DURATION) {
-        return cached.data
-      }
+  static async getFullCharacter(
+    characterId: string,
+    userContext?: { isAuthenticated: boolean, userId?: string, anonymousId?: string }
+  ): Promise<FullCharacterData | null> {
+    // 重試邏輯：處理 Supabase 冷啟動問題（520 錯誤）
+    const maxRetries = 2
+    let lastError: any = null
+    
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        if (attempt > 1) {
+          console.log(`🔄 重試第 ${attempt} 次...`)
+          await new Promise(resolve => setTimeout(resolve, 1000))
+        }
+        
+        // 檢查緩存
+        const cached = this.characterCache.get(characterId)
+        if (cached && (Date.now() - cached.timestamp) < this.CACHE_DURATION) {
+          return cached.data
+        }
 
-      // 驗證 characterId 是有效的 UUID
-      if (!characterId || characterId.trim() === '' || characterId.length < 32) {
-        console.error('getFullCharacter: 無效的 characterId:', characterId)
-        return null
-      }
+        // 驗證 characterId 是有效的 UUID
+        if (!characterId || characterId.trim() === '' || characterId.length < 32) {
+          console.error('getFullCharacter: 無效的 characterId:', characterId)
+          return null
+        }
 
-      const contextStart = Date.now()
-      const context = await this.getCurrentUserContext()
+        // 使用傳入的上下文或獲取新的
+        const context = userContext || await this.getCurrentUserContext()
 
-      // 並行獲取所有資料（包含權限驗證）
-      const dataStart = Date.now()
-      let characterQuery = supabase.from('characters').select('*').eq('id', characterId)
+        // 使用單一查詢與 JOIN 避免多次 RLS 檢查
+      // 先只驗證角色權限（最關鍵的 RLS 檢查）
+      let characterQuery = supabase
+        .from('characters')
+        .select(`
+          id, user_id, anonymous_id, name, character_class, level, experience, avatar_url, is_anonymous, created_at, updated_at,
+          character_ability_scores!character_ability_scores_character_id_fkey (
+            id, strength, dexterity, constitution, intelligence, wisdom, charisma, updated_at
+          ),
+          character_current_stats!character_current_stats_character_id_fkey (
+            id, current_hp, max_hp, temporary_hp, current_hit_dice, total_hit_dice, hit_die_type, armor_class, initiative_bonus, speed, extra_data, updated_at
+          ),
+          character_currency!character_currency_character_id_fkey (
+            id, copper, silver, electrum, gp, platinum, updated_at
+          ),
+          character_saving_throws!character_saving_throws_character_id_fkey (
+            id, ability, is_proficient, updated_at
+          ),
+          character_skill_proficiencies!character_skill_proficiencies_character_id_fkey (
+            id, skill_name, proficiency_level, updated_at
+          ),
+          character_combat_actions!character_combat_actions_character_id_fkey (
+            id, name, category, current_uses, max_uses, is_custom, default_item_id, created_at, updated_at
+          )
+        `)
+        .eq('id', characterId)
       
       if (context.isAuthenticated) {
         characterQuery = characterQuery.eq('user_id', context.userId)
@@ -113,36 +207,59 @@ export class DetailedCharacterService {
         characterQuery = characterQuery.eq('anonymous_id', context.anonymousId)
       }
       
-      const [
-        characterResult,
-        abilityScoresResult,
-        savingThrowsResult,
-        skillsResult,
-        currentStatsResult,
-        currencyResult,
-        combatActionsResult
-      ] = await Promise.all([
-        characterQuery.single(),
-        supabase.from('character_ability_scores').select('*').eq('character_id', characterId).maybeSingle(),
-        supabase.from('character_saving_throws').select('*').eq('character_id', characterId),
-        supabase.from('character_skill_proficiencies').select('*').eq('character_id', characterId),
-        supabase.from('character_current_stats').select('*').eq('character_id', characterId).maybeSingle(),
-        supabase.from('character_currency').select('*').eq('character_id', characterId).maybeSingle(),
-        supabase.from('character_combat_actions').select('*').eq('character_id', characterId)
-      ])
-      if (characterResult.error || !characterResult.data) {
-        console.error('角色不存在或無權限訪問')
-        return null
-      }
+        const characterResult = await characterQuery.single()
+        
+        if (characterResult.error || !characterResult.data) {
+          // 檢查是否為網路/伺服器錯誤（值得重試）
+          if (characterResult.error && attempt < maxRetries) {
+            const errorMessage = characterResult.error.message || ''
+            // CORS, 520, 502, 503 等錯誤值得重試
+            if (errorMessage.includes('CORS') || errorMessage.includes('520') || 
+                errorMessage.includes('502') || errorMessage.includes('503') ||
+                errorMessage.includes('Failed to fetch')) {
+              console.warn(`⚠️ 網路錯誤，將重試`)
+              lastError = characterResult.error
+              continue // 進入下一次循環重試
+            }
+          }
+          console.error('角色不存在或無權限訪問')
+          return null
+        }
+
+      // 提取嵌套的資料（來自 JOIN）
+      const character = characterResult.data
+      const abilityScores = Array.isArray(character.character_ability_scores) && character.character_ability_scores.length > 0
+        ? character.character_ability_scores[0]
+        : null
+      const currentStats = Array.isArray(character.character_current_stats) && character.character_current_stats.length > 0
+        ? character.character_current_stats[0]
+        : null
+      const currency = Array.isArray(character.character_currency) && character.character_currency.length > 0
+        ? character.character_currency[0]
+        : null
+      const savingThrows = character.character_saving_throws || []
+      const skillProficiencies = character.character_skill_proficiencies || []
+      const combatActions = character.character_combat_actions || []
+
+      // 移除嵌套數據，只保留角色基本信息
+      const { 
+        character_ability_scores, 
+        character_current_stats, 
+        character_currency, 
+        character_saving_throws, 
+        character_skill_proficiencies,
+        character_combat_actions,
+        ...characterData 
+      } = character
 
       const result = {
-        character: characterResult.data,
-        abilityScores: abilityScoresResult.data || this.getDefaultAbilityScores(),
-        savingThrows: savingThrowsResult.data || [],
-        skillProficiencies: skillsResult.data || [],
-        currentStats: currentStatsResult.data || this.getDefaultCurrentStats(),
-        currency: currencyResult.data || this.getDefaultCurrency(),
-        combatActions: combatActionsResult.data || []
+        character: characterData,
+        abilityScores: abilityScores || this.getDefaultAbilityScores(),
+        savingThrows: savingThrows,
+        skillProficiencies: skillProficiencies,
+        currentStats: currentStats || this.getDefaultCurrentStats(),
+        currency: currency || this.getDefaultCurrency(),
+        combatActions: combatActions
       }
       
       // 存入緩存
@@ -152,10 +269,15 @@ export class DetailedCharacterService {
       })
       
       return result
-    } catch (error) {
-      console.error('獲取完整角色資料失敗:', error)
-      return null
+      
+      } catch (error) {
+        lastError = error
+      }
     }
+    
+    // 所有重試都失敗
+    console.error('❌ 載入角色資料失敗（已重試）:', lastError?.message || lastError)
+    return null
   }
 
   // 創建新角色（包含所有預設資料）

@@ -100,7 +100,10 @@ export class AuthService {
   // 監聽認證狀態變化
   static onAuthStateChange(callback: (user: AuthUser | null) => void) {
     return supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('認證狀態變化:', event, session?.user?.email)
+      // 只在重要事件時記錄日誌
+      if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
+        console.log('🔐 認證狀態:', event, session?.user?.email || '匿名')
+      }
       
       if (session?.user) {
         const authUser: AuthUser = {
@@ -108,24 +111,6 @@ export class AuthService {
           email: session.user.email,
           full_name: session.user.user_metadata?.full_name || session.user.user_metadata?.name,
           avatar_url: session.user.user_metadata?.avatar_url || session.user.user_metadata?.picture
-        }
-
-        // 在用戶登入時自動轉換匿名角色
-        if (event === 'SIGNED_IN') {
-          try {
-            const hasAnonymousChars = await DetailedCharacterService.hasAnonymousCharactersToConvert()
-            if (hasAnonymousChars) {
-              console.log('檢測到匿名角色，開始轉換...')
-              const success = await DetailedCharacterService.convertAnonymousCharactersToUser(session.user.id)
-              if (success) {
-                console.log('匿名角色轉換成功')
-              } else {
-                console.error('匿名角色轉換失敗')
-              }
-            }
-          } catch (error) {
-            console.error('轉換匿名角色時發生錯誤:', error)
-          }
         }
 
         callback(authUser)

@@ -51,7 +51,7 @@ const INITIAL_STATS: CharacterStats = {
 };
 
 const AuthenticatedApp: React.FC = () => {
-  const { user } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   
   // 應用程式狀態
   const [appState, setAppState] = useState<AppState>('welcome')
@@ -66,95 +66,113 @@ const AuthenticatedApp: React.FC = () => {
   const [isLoadingCharacter, setIsLoadingCharacter] = useState(false) // 添加角色載入狀態
   const [isCharacterDataReady, setIsCharacterDataReady] = useState(false) // 角色資料是否已載入完成
   const [isSaving, setIsSaving] = useState(false) // 添加保存狀態
+  const [isInitialized, setIsInitialized] = useState(false) // 防止重複初始化
 
-  // 初始化狀態
+  // 初始化狀態 - 等待AuthContext確認狀態後才執行
   useEffect(() => {
+    // 防止重複初始化：等待認證狀態確認且未初始化過
+    if (authLoading || isInitialized) {
+      return
+    }
+    
     const initializeApp = async () => {
-      setIsLoading(true)
+      // 防止競爭條件
+      if (isInitialized) {
+        console.warn('⚠️ 初始化已在進行中，跳過')
+        return
+      }
       
-      // 添加超時機制
-      const timeoutId = setTimeout(() => {
-        console.error('初始化超時，強制進入歡迎頁面')
-        setAppState('welcome')
-        setIsLoading(false)
-      }, 10000) // 10秒超時
+      console.log('🚀 開始應用初始化...')
+      setIsLoading(true)
+      setIsInitialized(true)
+      
+      // 暫時移除超時機制，讓資料庫查詢完成
+      // const timeoutId = setTimeout(() => {
+      //   console.error('⏰ 初始化超時，強制進入歡迎頁面')
+      //   setAppState('welcome')
+      //   setIsLoading(false)
+      // }, 20000) // 延長至20秒超時
       
       try {
-        // 靜默初始化，只在錯誤時輸出
+        // 静默初始化，只在錯誤時輸出
         await DatabaseInitService.initializeTables()
         
-        const isAuth = await AuthService.isAuthenticated()
-        if (isAuth) {
+        if (user) {
           setUserMode('authenticated')
           
-          const characters = await HybridDataManager.getUserCharacters()
-          
-          if (characters.length > 0) {
-            // 靜默載入最後使用的角色
-            let characterToLoad = characters[0] // 預設使用第一個角色
+          try {
+            // 傳入認證用戶上下文
+            const userContext = {
+              isAuthenticated: true,
+              userId: user.id
+            }
+            const characters = await HybridDataManager.getUserCharacters(userContext)
             
-            try {
-              const lastCharacterId = await UserSettingsService.getLastCharacterId()
+            if (characters.length > 0) {
+              // 載入最後使用的角色
+              let characterToLoad = characters[0]
               
-              // 如果有記錄最後使用的角色，嘗試找到它
-              if (lastCharacterId) {
-                const lastCharacter = characters.find(c => c.id === lastCharacterId)
-                if (lastCharacter) {
-                  characterToLoad = lastCharacter
-                } else {
-                  // 最後記錄的角色不存在，清除記錄
-                  await UserSettingsService.setLastCharacterId(null)
+              try {
+                const lastCharacterId = await UserSettingsService.getLastCharacterId()
+                if (lastCharacterId) {
+                  const lastCharacter = characters.find(c => c.id === lastCharacterId)
+                  if (lastCharacter) {
+                    characterToLoad = lastCharacter
+                  }
                 }
+                await UserSettingsService.setLastCharacterId(characterToLoad.id)
+              } catch (settingsError) {
+                // 靜默處理設定錯誤
               }
-            } catch (settingsError) {
-              console.error('無法載入用戶設定，使用預設角色:', settingsError)
-              characterToLoad = characters[0]
+              
+              setCurrentCharacter(characterToLoad)
+              setAppState('main')
+            } else {
+              // 沒有角色，進入選擇頁面
+              setAppState('characterSelect')
             }
-            
-            // 更新最後使用的角色記錄
-            try {
-              await UserSettingsService.setLastCharacterId(characterToLoad.id)
-            } catch (updateError) {
-              // 靜默處理更新錯誤
-            }
-            
-            // 直接設定角色並進入主頁面
-            setCurrentCharacter(characterToLoad)
-            setAppState('main')
-          } else {
-            setAppState('characterSelect') // 沒有角色，顯示角色選擇頁來創建第一個角色
+          } catch (error) {
+            console.error('❌ 載入角色失敗:', error?.message)
+            // 即使載入失敗也進入選擇頁面
+            setAppState('characterSelect')
           }
         } else {
-          // 檢查是否有本地角色數據
-          const characters = await HybridDataManager.getUserCharacters()
-          if (characters.length > 0) {
-            setUserMode('anonymous')
+          // 匿名用戶模式
+          try {
+            await AnonymousService.init()
             
-            // 有角色，直接載入最後使用的角色（匿名模式下無法使用 UserSettingsService）
-            let characterToLoad = characters[0] // 預設使用第一個角色
+            // 傳入匿名用戶上下文
+            const userContext = {
+              isAuthenticated: false,
+              anonymousId: AnonymousService.getAnonymousId()
+            }
+            const characters = await HybridDataManager.getUserCharacters(userContext)
             
-            // 直接設定角色並進入主頁面
-            setCurrentCharacter(characterToLoad)
-            setAppState('main')
-          } else {
+            if (characters.length > 0) {
+              setUserMode('anonymous')
+              setCurrentCharacter(characters[0])
+              setAppState('main')
+            } else {
+              setAppState('welcome')
+            }
+          } catch (error) {
+            console.error('❌ 匿名用戶初始化失敗:', error?.message)
             setAppState('welcome')
           }
-          // 初始化匿名用戶上下文
-          await AnonymousService.init()
         }
       } catch (error) {
         console.error('😨 初始化失敗:', error)
         // 在出錯時進入歡迎頁面
         setAppState('welcome')
       } finally {
-        clearTimeout(timeoutId) // 清理超時定時器
+        // clearTimeout(timeoutId) // 清理超時定時器
         setIsLoading(false)
         // 初始化完成
       }
     }
 
     initializeApp()
-  }, [user])
+  }, [user, authLoading, isInitialized]) // 添加authLoading依賴，確保認證狀態穩定後才初始化
 
   // 處理匿名角色轉換
   useEffect(() => {
@@ -181,21 +199,31 @@ const AuthenticatedApp: React.FC = () => {
     checkConversion()
   }, [user, userMode])
 
-  // 載入角色數據
+  // 載入角色數據 - 添加防重複載入保護
   useEffect(() => {
-    if (currentCharacter) {
+    if (currentCharacter && !isLoadingCharacter) {
       setIsCharacterDataReady(false) // 重置資料準備狀態
       loadCharacterStats()
     }
   }, [currentCharacter])
 
   const loadCharacterStats = async () => {
-    if (!currentCharacter || isLoadingCharacter) return
+    if (!currentCharacter || isLoadingCharacter) {
+      return
+    }
     
-    setIsLoadingCharacter(true) // 設置載入狀態
+    setIsLoadingCharacter(true)
 
     try {
-      const characterData = await HybridDataManager.getCharacter(currentCharacter.id)
+      // 傳入用戶上下文避免冗餘的身份驗證調用
+      const userContext = user ? {
+        isAuthenticated: true,
+        userId: user.id
+      } : {
+        isAuthenticated: false,
+        anonymousId: AnonymousService.getAnonymousId()
+      }
+      const characterData = await HybridDataManager.getCharacter(currentCharacter.id, userContext)
       
       if (characterData && characterData.character) {
         // 從完整角色數據中提取 CharacterStats

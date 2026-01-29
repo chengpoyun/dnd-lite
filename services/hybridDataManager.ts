@@ -28,9 +28,12 @@ export class HybridDataManager {
   /**
    * 獲取角色完整資料（直接從 DB 讀取）
    */
-  static async getCharacter(characterId: string): Promise<FullCharacterData | null> {
+  static async getCharacter(
+    characterId: string,
+    userContext?: { isAuthenticated: boolean, userId?: string, anonymousId?: string }
+  ): Promise<FullCharacterData | null> {
     try {
-      const dbData = await DetailedCharacterService.getFullCharacter(characterId)
+      const dbData = await DetailedCharacterService.getFullCharacter(characterId, userContext)
       
       if (dbData) {
         return dbData
@@ -39,7 +42,7 @@ export class HybridDataManager {
       console.warn(`角色 ${characterId} 不存在`)
       return null
     } catch (error) {
-      console.error('載入角色失敗:', error)
+      console.error('❌ 載入角色失敗:', error?.message || error)
       return null
     }
   }
@@ -79,37 +82,53 @@ export class HybridDataManager {
   /**
    * 獲取用戶所有角色（直接從 DB 讀取，帶緩存）
    */
-  static async getUserCharacters(): Promise<Character[]> {
+  static async getUserCharacters(userContext?: {
+    isAuthenticated: boolean,
+    userId?: string,
+    anonymousId?: string
+  }): Promise<Character[]> {
+    const startTime = performance.now()
+    console.log('⏱️ HybridDataManager.getUserCharacters() 開始')
+    
     try {
       const now = Date.now()
       
       // 檢查緩存是否有效
+      const cacheCheckStart = performance.now()
       if (this.cachedCharacters && (now - this.cacheTimestamp) < this.CACHE_DURATION) {
+        const cacheTime = performance.now() - cacheCheckStart
+        console.log(`⚡ 使用緩存: ${cacheTime.toFixed(1)}ms`)
         return this.cachedCharacters
       }
+      const cacheTime = performance.now() - cacheCheckStart
+      console.log(`⏱️ 緩存檢查: ${cacheTime.toFixed(1)}ms`)
       
-      // 添加超時機制（5秒）
-      const timeoutPromise = new Promise<never>((_, reject) => {
-        setTimeout(() => reject(new Error('載入角色列表超時（5秒）')), 5000)
-      })
-      
-      const charactersPromise = DetailedCharacterService.getUserCharacters()
-      const dbCharacters = await Promise.race([charactersPromise, timeoutPromise])
+      // 傳入用戶上下文，避免重複認證檢查
+      const serviceCallStart = performance.now()
+      const dbCharacters = await DetailedCharacterService.getUserCharacters(userContext)
+      const serviceTime = performance.now() - serviceCallStart
+      console.log(`⏱️ DetailedCharacterService 調用: ${serviceTime.toFixed(1)}ms`)
       
       // 更新緩存
+      const updateCacheStart = performance.now()
       this.cachedCharacters = dbCharacters
       this.cacheTimestamp = now
+      const updateCacheTime = performance.now() - updateCacheStart
+      console.log(`⏱️ 更新緩存: ${updateCacheTime.toFixed(1)}ms`)
+      
+      const totalTime = performance.now() - startTime
+      console.log(`✅ HybridDataManager 總時間: ${totalTime.toFixed(1)}ms, 結果: ${dbCharacters.length} 個角色`)
       
       return dbCharacters
     } catch (error) {
-      console.error('❌ 載入角色列表失敗:', error)
+      console.error('❌ 載入角色列表失敗:', error?.message)
+      
       // 如果有緩存，返回緩存數據
       if (this.cachedCharacters) {
-        console.log('🔄 返回緩存的角色數據')
         return this.cachedCharacters
       }
-      // 超時錯誤時返回空數組，避免阻擋應用繼續運行
-      console.warn('⚠️ 無緩存可用，返回空角色列表')
+      
+      // 無緩存時返回空陣列
       return []
     }
   }
