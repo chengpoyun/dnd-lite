@@ -202,14 +202,27 @@ export class UserSettingsService {
 
   /**
    * 建立新的 session
+   * @param force 是否強制建立新 session（忽略現有 session）
    * @returns session token
    */
-  static async createSession(): Promise<string | null> {
+  static async createSession(force: boolean = false): Promise<string | null> {
     try {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) {
         console.warn('未找到已認證用戶，無法建立 session')
         return null
+      }
+
+      // 如果不是強制建立，檢查現有 session 是否有效
+      if (!force) {
+        const localToken = localStorage.getItem('dnd_session_token')
+        if (localToken) {
+          const serverToken = await this.getActiveSessionToken()
+          if (localToken === serverToken) {
+            console.log('✅ Session 已存在且有效，跳過創建')
+            return localToken
+          }
+        }
       }
 
       const sessionToken = this.generateSessionToken()
@@ -276,9 +289,15 @@ export class UserSettingsService {
 
       const serverToken = await this.getActiveSessionToken()
       
+      console.log('🔍 Session 驗證:')
+      console.log('  - 本地 token:', localToken?.substring(0, 30) + '...')
+      console.log('  - 伺服器 token:', serverToken?.substring(0, 30) + '...')
+      
       const isValid = localToken === serverToken
       if (!isValid) {
         console.log('❌ Session 已失效（被其他裝置踢出）')
+      } else {
+        console.log('✅ Session 有效')
       }
       
       return isValid
