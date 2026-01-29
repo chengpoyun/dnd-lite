@@ -525,6 +525,11 @@ const AuthenticatedApp: React.FC = () => {
       const success = await HybridDataManager.updateCharacter(currentCharacter.id, characterUpdate)
       if (success) {
         console.log('✅ 能力值保存成功')
+        // 保存成功後，立即更新本地狀態，確保與資料庫一致
+        setStats(prev => ({
+          ...prev,
+          abilityScores: abilityScores
+        }))
       }
       return success
     } catch (error) {

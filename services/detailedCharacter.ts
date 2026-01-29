@@ -175,29 +175,17 @@ export class DetailedCharacterService {
         const context = userContext || await this.getCurrentUserContext()
 
         // 使用單一查詢與 JOIN 避免多次 RLS 檢查
-      // 先只驗證角色權限（最關鍵的 RLS 檢查）
+      // 使用簡化的 JOIN 語法，讓 Supabase 自動找到外鍵關係
       let characterQuery = supabase
         .from('characters')
         .select(`
-          id, user_id, anonymous_id, name, character_class, level, experience, avatar_url, is_anonymous, created_at, updated_at,
-          character_ability_scores!character_ability_scores_character_id_fkey (
-            id, strength, dexterity, constitution, intelligence, wisdom, charisma, updated_at
-          ),
-          character_current_stats!character_current_stats_character_id_fkey (
-            id, current_hp, max_hp, temporary_hp, current_hit_dice, total_hit_dice, hit_die_type, armor_class, initiative_bonus, speed, extra_data, updated_at
-          ),
-          character_currency!character_currency_character_id_fkey (
-            id, copper, silver, electrum, gp, platinum, updated_at
-          ),
-          character_saving_throws!character_saving_throws_character_id_fkey (
-            id, ability, is_proficient, updated_at
-          ),
-          character_skill_proficiencies!character_skill_proficiencies_character_id_fkey (
-            id, skill_name, proficiency_level, updated_at
-          ),
-          character_combat_actions!character_combat_actions_character_id_fkey (
-            id, name, category, current_uses, max_uses, is_custom, default_item_id, created_at, updated_at
-          )
+          *,
+          character_ability_scores(*),
+          character_current_stats(*),
+          character_currency(*),
+          character_saving_throws(*),
+          character_skill_proficiencies(*),
+          character_combat_actions(*)
         `)
         .eq('id', characterId)
       
@@ -228,18 +216,51 @@ export class DetailedCharacterService {
 
       // 提取嵌套的資料（來自 JOIN）
       const character = characterResult.data
-      const abilityScores = Array.isArray(character.character_ability_scores) && character.character_ability_scores.length > 0
-        ? character.character_ability_scores[0]
+      
+      console.log('🔍 查詢返回的完整資料結構:', {
+        hasAbilityScores: !!character.character_ability_scores,
+        abilityScoresType: Array.isArray(character.character_ability_scores) ? 'array' : typeof character.character_ability_scores,
+        abilityScoresLength: Array.isArray(character.character_ability_scores) ? character.character_ability_scores.length : 'N/A',
+        rawData: character.character_ability_scores
+      })
+      
+      // 處理一對一關係：如果是 object 直接使用，如果是 array 取第一個
+      const abilityScores = character.character_ability_scores
+        ? (Array.isArray(character.character_ability_scores) 
+            ? character.character_ability_scores[0] 
+            : character.character_ability_scores)
         : null
-      const currentStats = Array.isArray(character.character_current_stats) && character.character_current_stats.length > 0
-        ? character.character_current_stats[0]
+      
+      console.log('📊 讀取到的能力值資料:', { 
+        hasData: !!abilityScores,
+        abilityScores: abilityScores
+      })
+      
+      // 處理其他一對一關係
+      const currentStats = character.character_current_stats
+        ? (Array.isArray(character.character_current_stats)
+            ? character.character_current_stats[0]
+            : character.character_current_stats)
         : null
-      const currency = Array.isArray(character.character_currency) && character.character_currency.length > 0
-        ? character.character_currency[0]
+        
+      const currency = character.character_currency
+        ? (Array.isArray(character.character_currency)
+            ? character.character_currency[0]
+            : character.character_currency)
         : null
-      const savingThrows = character.character_saving_throws || []
-      const skillProficiencies = character.character_skill_proficiencies || []
-      const combatActions = character.character_combat_actions || []
+        
+      // 一對多關係保持 array
+      const savingThrows = Array.isArray(character.character_saving_throws) 
+        ? character.character_saving_throws 
+        : (character.character_saving_throws ? [character.character_saving_throws] : [])
+        
+      const skillProficiencies = Array.isArray(character.character_skill_proficiencies)
+        ? character.character_skill_proficiencies
+        : (character.character_skill_proficiencies ? [character.character_skill_proficiencies] : [])
+        
+      const combatActions = Array.isArray(character.character_combat_actions)
+        ? character.character_combat_actions
+        : (character.character_combat_actions ? [character.character_combat_actions] : [])
 
       // 移除嵌套數據，只保留角色基本信息
       const { 
@@ -403,20 +424,25 @@ export class DetailedCharacterService {
         return false
       }
 
-      const { error } = await supabase
+      console.log('📝 準備更新能力值到資料庫:', { characterId, scores })
+      
+      const { data, error } = await supabase
         .from('character_ability_scores')
         .upsert(
           { character_id: characterId, ...scores, updated_at: new Date().toISOString() },
           { onConflict: 'character_id' }
         )
+        .select() // 添加 select 以確認寫入
 
       if (error) {
-        console.error('更新能力值失敗:', error)
+        console.error('❌ 更新能力值失敗:', error)
         return false
       }
+      
+      console.log('✅ 能力值已寫入資料庫:', data)
       return true
     } catch (error) {
-      console.error('更新能力值失敗:', error)
+      console.error('❌ 更新能力值異常:', error)
       return false
     }
   }
@@ -482,20 +508,27 @@ export class DetailedCharacterService {
   // 專門更新 extra_data 的方法
   static async updateExtraData(characterId: string, extraData: any): Promise<boolean> {
     try {
+      console.log('🔧 updateExtraData 開始:', { characterId, extraData })
+      
       // 驗證 characterId
       if (!characterId || characterId.trim() === '' || characterId.length < 32) {
-        console.error('updateExtraData: 無效的 characterId:', characterId)
+        console.error('❌ updateExtraData: 無效的 characterId:', characterId)
         return false
       }
 
       // 先查詢現有記錄，如果不存在則創建基本記錄
-      const { data: existingStats } = await supabase
+      const { data: existingStats, error: queryError } = await supabase
         .from('character_current_stats')
         .select('*')
         .eq('character_id', characterId)
         .single()
 
+      if (queryError) {
+        console.error('❌ 查詢現有狀態失敗:', queryError)
+      }
+
       if (existingStats) {
+        console.log('📝 記錄存在，更新 extra_data')
         // 記錄存在，只更新 extra_data
         const { error } = await supabase
           .from('character_current_stats')
@@ -503,10 +536,12 @@ export class DetailedCharacterService {
           .eq('character_id', characterId)
 
         if (error) {
-          console.error('更新額外數據失敗:', error)
+          console.error('❌ 更新額外數據失敗:', error)
           return false
         }
+        console.log('✅ extra_data 更新成功')
       } else {
+        console.log('➕ 記錄不存在，創建新記錄')
         // 記錄不存在，創建新記錄with預設值
         const { error } = await supabase
           .from('character_current_stats')
@@ -526,14 +561,15 @@ export class DetailedCharacterService {
           })
 
         if (error) {
-          console.error('創建角色狀態記錄失敗:', error)
+          console.error('❌ 創建角色狀態記錄失敗:', error)
           return false
         }
+        console.log('✅ 新記錄創建成功')
       }
 
       return true
     } catch (error) {
-      console.error('更新額外數據失敗:', error)
+      console.error('❌ 更新額外數據失敗:', error)
       return false
     }
   }
