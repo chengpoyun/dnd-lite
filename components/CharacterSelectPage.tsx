@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import type { Character } from '../lib/supabase'
 import { HybridDataManager } from '../services/hybridDataManager'
 import { AuthService } from '../services/auth'
-import { PageContainer, Card, Button, Input, Loading, Title, Subtitle, Avatar, BackButton } from './ui'
+import { PageContainer, Card, Button, Input, Loading, Title, Subtitle, Avatar, BackButton, Modal } from './ui'
 import { ConfirmDeleteModal } from './ConfirmDeleteModal'
 import { STYLES, combineStyles } from '../styles/common'
 import { formatDate } from '../utils/common'
@@ -26,6 +26,7 @@ export const CharacterSelectPage: React.FC<CharacterSelectPageProps> = ({
   const [isSigningIn, setIsSigningIn] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [characterToDelete, setCharacterToDelete] = useState<Character | null>(null)
+  const [showSignOutConfirm, setShowSignOutConfirm] = useState(false)
 
   useEffect(() => {
     loadCharacters()
@@ -115,10 +116,8 @@ export const CharacterSelectPage: React.FC<CharacterSelectPageProps> = ({
   }
 
   const handleSignOut = async () => {
-    if (confirm('確定要登出嗎？')) {
-      await AuthService.signOut()
-      onBack()
-    }
+    await AuthService.signOut()
+    onBack()
   }
 
   const handleSignIn = async () => {
@@ -167,7 +166,7 @@ export const CharacterSelectPage: React.FC<CharacterSelectPageProps> = ({
         {userMode === 'authenticated' && (
           <Button
             variant="ghost"
-            onClick={handleSignOut}
+            onClick={() => setShowSignOutConfirm(true)}
             className="text-red-400 hover:text-red-300"
           >
             登出
@@ -335,6 +334,32 @@ export const CharacterSelectPage: React.FC<CharacterSelectPageProps> = ({
             setCharacterToDelete(null)
           }}
         />
+        
+        {/* 確認登出 Modal */}
+        <Modal isOpen={showSignOutConfirm} onClose={() => setShowSignOutConfirm(false)}>
+          <div className="text-center">
+            <div className="text-4xl mb-4">🚪</div>
+            <h2 className="text-xl font-bold mb-4">確定要登出嗎？</h2>
+            <p className="text-slate-400 mb-6">登出後將返回歡迎頁面</p>
+            <div className="flex gap-3 justify-center">
+              <Button
+                variant="ghost"
+                onClick={() => setShowSignOutConfirm(false)}
+              >
+                取消
+              </Button>
+              <Button
+                variant="danger"
+                onClick={() => {
+                  setShowSignOutConfirm(false)
+                  handleSignOut()
+                }}
+              >
+                確定登出
+              </Button>
+            </div>
+          </div>
+        </Modal>
     </PageContainer>
   )
 }
