@@ -67,6 +67,7 @@ const AuthenticatedApp: React.FC = () => {
   const [isCharacterDataReady, setIsCharacterDataReady] = useState(false) // 角色資料是否已載入完成
   const [isSaving, setIsSaving] = useState(false) // 添加保存狀態
   const [isInitialized, setIsInitialized] = useState(false) // 防止重複初始化
+  const [initError, setInitError] = useState<string | null>(null) // 初始化錯誤訊息
 
   // 初始化狀態 - 等待AuthContext確認狀態後才執行
   useEffect(() => {
@@ -86,12 +87,34 @@ const AuthenticatedApp: React.FC = () => {
       setIsLoading(true)
       setIsInitialized(true)
       
-      // 暫時移除超時機制，讓資料庫查詢完成
-      // const timeoutId = setTimeout(() => {
-      //   console.error('⏰ 初始化超時，強制進入歡迎頁面')
-      //   setAppState('welcome')
-      //   setIsLoading(false)
-      // }, 20000) // 延長至20秒超時
+      // 定義帶自動重試的載入函數
+      const loadWithRetry = async (loadFn: () => Promise<void>, maxRetries = 1) => {
+        let lastError: any = null
+        
+        for (let attempt = 0; attempt <= maxRetries; attempt++) {
+          try {
+            if (attempt > 0) {
+              console.log(`🔄 自動重試第 ${attempt} 次...`)
+              await new Promise(resolve => setTimeout(resolve, 1000))
+            }
+            
+            await loadFn()
+            return // 成功，直接返回
+            
+          } catch (error) {
+            lastError = error
+            console.warn(`⚠️ 載入失敗 (嘗試 ${attempt + 1}/${maxRetries + 1}):`, error?.message)
+            
+            // 如果還有重試機會，繼續循環
+            if (attempt < maxRetries) {
+              continue
+            }
+          }
+        }
+        
+        // 所有重試都失敗，拋出最後的錯誤
+        throw lastError
+      }
       
       try {
         // 静默初始化，只在錯誤時輸出
@@ -100,7 +123,7 @@ const AuthenticatedApp: React.FC = () => {
         if (user) {
           setUserMode('authenticated')
           
-          try {
+          await loadWithRetry(async () => {
             // 傳入認證用戶上下文
             const userContext = {
               isAuthenticated: true,
@@ -128,17 +151,14 @@ const AuthenticatedApp: React.FC = () => {
               setCurrentCharacter(characterToLoad)
               setAppState('main')
             } else {
-              // 沒有角色，進入選擇頁面
+              // 真的沒有角色，進入選擇頁面創建
+              console.log('✅ 用戶沒有角色，進入選擇頁面')
               setAppState('characterSelect')
             }
-          } catch (error) {
-            console.error('❌ 載入角色失敗:', error?.message)
-            // 即使載入失敗也進入選擇頁面
-            setAppState('characterSelect')
-          }
+          })
         } else {
           // 匿名用戶模式
-          try {
+          await loadWithRetry(async () => {
             await AnonymousService.init()
             
             // 傳入匿名用戶上下文
@@ -153,21 +173,19 @@ const AuthenticatedApp: React.FC = () => {
               setCurrentCharacter(characters[0])
               setAppState('main')
             } else {
+              // 匿名用戶確實沒有角色
+              console.log('✅ 匿名用戶沒有角色，進入歡迎頁面')
               setAppState('welcome')
             }
-          } catch (error) {
-            console.error('❌ 匿名用戶初始化失敗:', error?.message)
-            setAppState('welcome')
-          }
+          })
         }
       } catch (error) {
-        console.error('😨 初始化失敗:', error)
-        // 在出錯時進入歡迎頁面
+        console.error('❌ 初始化失敗（已自動重試）:', error?.message)
+        // 所有重試都失敗後，才設置錯誤狀態
+        setInitError('載入失敗，可能是網路問題。請點擊重試。')
         setAppState('welcome')
       } finally {
-        // clearTimeout(timeoutId) // 清理超時定時器
         setIsLoading(false)
-        // 初始化完成
       }
     }
 
@@ -730,10 +748,19 @@ const AuthenticatedApp: React.FC = () => {
     setAppState('welcome')
     setUserMode('anonymous')
     setCurrentCharacter(null)
+    setInitError(null) // 清除錯誤訊息
     // 清除最後使用的角色記錄
     if (userMode === 'authenticated') {
       await UserSettingsService.setLastCharacterId(null)
     }
+  }
+
+  // 重試初始化
+  const handleRetryInit = async () => {
+    setInitError(null)
+    setIsInitialized(false) // 重置初始化狀態
+    setIsLoading(true)
+    // useEffect 會自動重新觸發初始化
   }
 
   // 渲染邏輯
@@ -750,7 +777,7 @@ const AuthenticatedApp: React.FC = () => {
 
   // 歡迎頁面
   if (appState === 'welcome') {
-    return <WelcomePage onNext={handleWelcomeNext} />
+    return <WelcomePage onNext={handleWelcomeNext} initError={initError} onRetry={handleRetryInit} />
   }
 
   // 角色轉換頁面

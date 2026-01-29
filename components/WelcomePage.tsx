@@ -8,9 +8,11 @@ import { ToastContainer } from './Toast'
 
 interface WelcomePageProps {
   onNext: (mode: 'authenticated' | 'anonymous') => void
+  initError?: string | null // 初始化錯誤訊息
+  onRetry?: () => void // 重試函數
 }
 
-export const WelcomePage: React.FC<WelcomePageProps> = ({ onNext }) => {
+export const WelcomePage: React.FC<WelcomePageProps> = ({ onNext, initError, onRetry }) => {
   const [isSigningIn, setIsSigningIn] = useState(false)
   const { toasts, showSuccess, showError, removeToast } = useToast()
 
@@ -60,6 +62,28 @@ export const WelcomePage: React.FC<WelcomePageProps> = ({ onNext }) => {
       STYLES.spacing.pageX
     )}>
       <Card className="max-w-md w-full">
+        {/* 錯誤提示 */}
+        {initError && (
+          <div className="mb-6 p-4 bg-red-900/30 border border-red-700 rounded-lg">
+            <div className="flex items-start gap-3">
+              <span className="text-red-400 text-xl">⚠️</span>
+              <div className="flex-1">
+                <p className="text-red-300 text-sm mb-3">{initError}</p>
+                {onRetry && (
+                  <Button
+                    onClick={onRetry}
+                    variant="secondary"
+                    size="small"
+                    className="w-full"
+                  >
+                    🔄 重新載入
+                  </Button>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+        
         {/* 標題 */}
         <div className="text-center mb-6">
           <div className="text-4xl sm:text-5xl mb-3">🎲</div>
