@@ -238,12 +238,13 @@ export const CharacterSelectPage: React.FC<CharacterSelectPageProps> = ({
             <Button
               variant="secondary"
               onClick={() => setShowCreateForm(true)}
-              className="gap-2"
             >
-              <svg className={STYLES.icon.small} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-              創建新角色
+              <span className="flex items-center gap-2">
+                <svg className={STYLES.icon.small} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+                創建新角色
+              </span>
             </Button>
           )}
           
