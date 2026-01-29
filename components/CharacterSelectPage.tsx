@@ -3,6 +3,7 @@ import type { Character } from '../lib/supabase'
 import { HybridDataManager } from '../services/hybridDataManager'
 import { AuthService } from '../services/auth'
 import { PageContainer, Card, Button, Input, Loading, Title, Subtitle, Avatar, BackButton } from './ui'
+import { ConfirmDeleteModal } from './ConfirmDeleteModal'
 import { STYLES, combineStyles } from '../styles/common'
 import { formatDate } from '../utils/common'
 
@@ -23,6 +24,8 @@ export const CharacterSelectPage: React.FC<CharacterSelectPageProps> = ({
   const [newCharacterName, setNewCharacterName] = useState('')
   const [showCreateForm, setShowCreateForm] = useState(false)
   const [isSigningIn, setIsSigningIn] = useState(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [characterToDelete, setCharacterToDelete] = useState<Character | null>(null)
 
   useEffect(() => {
     loadCharacters()
@@ -92,12 +95,19 @@ export const CharacterSelectPage: React.FC<CharacterSelectPageProps> = ({
     }
   }
 
-  const handleDeleteCharacter = async (characterId: string) => {
-    if (!confirm('確定要刪除這個角色嗎？此操作無法復原。')) return
+  const handleDeleteClick = (character: Character) => {
+    setCharacterToDelete(character)
+    setShowDeleteConfirm(true)
+  }
+
+  const handleDeleteConfirm = async () => {
+    if (!characterToDelete) return
     
     try {
-      await HybridDataManager.deleteCharacter(characterId)
-      setCharacters(prev => prev.filter(c => c.id !== characterId))
+      await HybridDataManager.deleteCharacter(characterToDelete.id)
+      setCharacters(prev => prev.filter(c => c.id !== characterToDelete.id))
+      setShowDeleteConfirm(false)
+      setCharacterToDelete(null)
     } catch (error) {
       console.error('刪除角色失敗:', error)
       alert('刪除角色失敗，請稍後再試')
@@ -168,7 +178,7 @@ export const CharacterSelectPage: React.FC<CharacterSelectPageProps> = ({
       {/* 角色列表 */}
       <div className={combineStyles(STYLES.layout.grid, STYLES.spacing.marginBottomSmall)}>
         {characters.map((character) => (
-          <Card key={character.id} hover padding="small">
+          <Card key={character.id} hover padding="small" className="group">
             <div className={STYLES.layout.flexBetween}>
               <div className={combineStyles(STYLES.layout.flexCenter, STYLES.spacing.gap, 'flex-1 min-w-0')}>
                 <Avatar emoji="🎭" size="medium" />
@@ -194,8 +204,8 @@ export const CharacterSelectPage: React.FC<CharacterSelectPageProps> = ({
                 {userMode === 'authenticated' && (
                   <Button
                     variant="icon"
-                    onClick={() => handleDeleteCharacter(character.id)}
-                    className="opacity-0 group-hover:opacity-100"
+                    onClick={() => handleDeleteClick(character)}
+                    className="text-red-400 hover:text-red-300 opacity-70 hover:opacity-100 transition-opacity"
                   >
                     <svg className={STYLES.icon.small} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -313,6 +323,17 @@ export const CharacterSelectPage: React.FC<CharacterSelectPageProps> = ({
             </div>
           </Card>
         )}
+        
+        {/* 確認刪除 Modal */}
+        <ConfirmDeleteModal
+          isOpen={showDeleteConfirm}
+          characterName={characterToDelete?.name || ''}
+          onConfirm={handleDeleteConfirm}
+          onCancel={() => {
+            setShowDeleteConfirm(false)
+            setCharacterToDelete(null)
+          }}
+        />
     </PageContainer>
   )
 }

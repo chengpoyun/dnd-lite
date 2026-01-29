@@ -1099,6 +1099,57 @@ export class DetailedCharacterService {
     if (error) throw error
   }
 
+  // === 刪除角色 ===
+
+  /**
+   * 刪除角色及其所有關聯資料
+   * @param characterId 角色ID
+   * @returns 是否成功刪除
+   */
+  static async deleteCharacter(characterId: string): Promise<boolean> {
+    try {
+      console.log('🗑️ 開始刪除角色:', characterId)
+      
+      // 驗證 characterId
+      if (!characterId || characterId.trim() === '' || characterId.length < 32) {
+        console.error('❌ deleteCharacter: 無效的 characterId:', characterId)
+        return false
+      }
+
+      // 檢查角色是否存在並驗證權限
+      const { data: character, error: fetchError } = await supabase
+        .from('characters')
+        .select('id, user_id, anonymous_id')
+        .eq('id', characterId)
+        .single()
+
+      if (fetchError || !character) {
+        console.error('❌ 角色不存在或無權限刪除:', fetchError)
+        return false
+      }
+
+      // 刪除角色（ON DELETE CASCADE 會自動刪除所有關聯資料）
+      const { error: deleteError } = await supabase
+        .from('characters')
+        .delete()
+        .eq('id', characterId)
+
+      if (deleteError) {
+        console.error('❌ 刪除角色失敗:', deleteError)
+        return false
+      }
+
+      // 清除緩存
+      this.clearCharacterCache(characterId)
+      console.log('✅ 角色刪除成功:', characterId)
+      
+      return true
+    } catch (error) {
+      console.error('❌ 刪除角色時發生錯誤:', error)
+      return false
+    }
+  }
+
   // === 匿名用戶轉換 ===
 
   // 將匿名用戶的角色轉換為登入用戶的角色

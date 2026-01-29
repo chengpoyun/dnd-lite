@@ -347,12 +347,20 @@ export class HybridDataManager {
    */
   static async deleteCharacter(characterId: string): Promise<boolean> {
     try {
-      console.log(`刪除角色: ${characterId}`)
+      console.log(`🗑️ 刪除角色: ${characterId}`)
       
-      // TODO: 實作 DetailedCharacterService.deleteCharacter 方法
-      console.log(`角色 ${characterId} 標記為刪除（DB 刪除功能待實作）`)
+      // 調用 DetailedCharacterService 刪除角色及所有關聯資料
+      const success = await DetailedCharacterService.deleteCharacter(characterId)
       
-      return true
+      if (success) {
+        console.log(`✅ 角色 ${characterId} 已從資料庫刪除`)
+        // 清除緩存
+        DetailedCharacterService.clearCharacterCache(characterId)
+      } else {
+        console.error(`❌ 角色 ${characterId} 刪除失敗`)
+      }
+      
+      return success
     } catch (error) {
       console.error('刪除角色失敗:', error)
       return false
