@@ -123,41 +123,52 @@ const AuthenticatedApp: React.FC = () => {
         await DatabaseInitService.initializeTables()
         
         if (user) {
-          setUserMode('authenticated')
+          // 先檢查是否有匿名角色需要轉換
+          const hasAnonymousChars = await DetailedCharacterService.hasAnonymousCharactersToConvert()
           
-          await loadWithRetry(async () => {
-            // 傳入認證用戶上下文
-            const userContext = {
-              isAuthenticated: true,
-              userId: user.id
-            }
-            const characters = await HybridDataManager.getUserCharacters(userContext)
+          if (hasAnonymousChars) {
+            console.log('🔄 檢測到匿名角色，準備轉換')
+            setUserMode('anonymous') // 保持匿名模式以觸發轉換流程
+            setNeedsConversion(true)
+            setAppState('conversion')
+          } else {
+            // 沒有匿名角色需要轉換，設定為認證模式
+            setUserMode('authenticated')
             
-            if (characters.length > 0) {
-              // 載入最後使用的角色
-              let characterToLoad = characters[0]
-              
-              try {
-                const lastCharacterId = await UserSettingsService.getLastCharacterId()
-                if (lastCharacterId) {
-                  const lastCharacter = characters.find(c => c.id === lastCharacterId)
-                  if (lastCharacter) {
-                    characterToLoad = lastCharacter
-                  }
-                }
-                await UserSettingsService.setLastCharacterId(characterToLoad.id)
-              } catch (settingsError) {
-                // 靜默處理設定錯誤
+            await loadWithRetry(async () => {
+              // 傳入認證用戶上下文
+              const userContext = {
+                isAuthenticated: true,
+                userId: user.id
               }
+              const characters = await HybridDataManager.getUserCharacters(userContext)
               
-              setCurrentCharacter(characterToLoad)
-              setAppState('main')
-            } else {
-              // 真的沒有角色，進入選擇頁面創建
-              console.log('✅ 用戶沒有角色，進入選擇頁面')
-              setAppState('characterSelect')
-            }
-          })
+              if (characters.length > 0) {
+                // 載入最後使用的角色
+                let characterToLoad = characters[0]
+                
+                try {
+                  const lastCharacterId = await UserSettingsService.getLastCharacterId()
+                  if (lastCharacterId) {
+                    const lastCharacter = characters.find(c => c.id === lastCharacterId)
+                    if (lastCharacter) {
+                      characterToLoad = lastCharacter
+                    }
+                  }
+                  await UserSettingsService.setLastCharacterId(characterToLoad.id)
+                } catch (settingsError) {
+                  // 靜默處理設定錯誤
+                }
+                
+                setCurrentCharacter(characterToLoad)
+                setAppState('main')
+              } else {
+                // 真的沒有角色，進入選擇頁面創建
+                console.log('✅ 用戶沒有角色，進入選擇頁面')
+                setAppState('characterSelect')
+              }
+            })
+          }
         } else {
           // 匿名用戶模式
           await loadWithRetry(async () => {
