@@ -242,8 +242,8 @@ export class MulticlassService {
 
       const newPools = calculateHitDiceTotals(classInfos)
 
-      // 更新資料庫
-      await supabase
+      // 更新資料庫 - 使用 upsert 自動處理新增/更新
+      const { error } = await supabase
         .from('character_hit_dice_pools')
         .upsert({
           character_id: characterId,
@@ -255,10 +255,46 @@ export class MulticlassService {
           d8_total: newPools.d8.total,
           d6_current: Math.min(newPools.d6.current, newPools.d6.total),
           d6_total: newPools.d6.total
+        }, {
+          onConflict: 'character_id'
         })
+        
+      if (error) {
+        console.error('生命骰池更新失敗:', error)
+      }
 
     } catch (error) {
       console.error('重新計算生命骰池失敗:', error)
+    }
+  }
+
+  /**
+   * 保存生命骰池狀態（短休使用生命骰後）
+   */
+  static async saveHitDicePools(
+    characterId: string,
+    pools: HitDicePools
+  ): Promise<boolean> {
+    try {
+      const { error } = await supabase
+        .from('character_hit_dice_pools')
+        .update({
+          d12_current: pools.d12.current,
+          d10_current: pools.d10.current,
+          d8_current: pools.d8.current,
+          d6_current: pools.d6.current
+        })
+        .eq('character_id', characterId)
+
+      if (error) {
+        console.error('保存生命骰池失敗:', error)
+        return false
+      }
+
+      return true
+    } catch (error) {
+      console.error('保存生命骰池異常:', error)
+      return false
     }
   }
 

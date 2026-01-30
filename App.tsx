@@ -924,6 +924,7 @@ const AuthenticatedApp: React.FC = () => {
                 <CharacterSheet
                   stats={stats}
                   setStats={setStats}
+                  characterId={currentCharacter?.id}
                   onSaveSkillProficiency={saveSkillProficiency}
                   onSaveSavingThrowProficiencies={saveSavingThrowProficiencies}
                   onSaveCharacterBasicInfo={saveCharacterBasicInfo}

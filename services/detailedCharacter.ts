@@ -185,7 +185,9 @@ export class DetailedCharacterService {
           character_currency(*),
           character_saving_throws(*),
           character_skill_proficiencies(*),
-          character_combat_actions(*)
+          character_combat_actions(*),
+          character_classes(*),
+          character_hit_dice_pools(*)
         `)
         .eq('id', characterId)
       
@@ -261,6 +263,20 @@ export class DetailedCharacterService {
       const combatActions = Array.isArray(character.character_combat_actions)
         ? character.character_combat_actions
         : (character.character_combat_actions ? [character.character_combat_actions] : [])
+        
+      // 處理多職業資料（一對多關係）
+      const classes = Array.isArray(character.character_classes)
+        ? character.character_classes
+        : (character.character_classes ? [character.character_classes] : [])
+        
+      // 處理生命骰池資料（一對一關係）
+      const hitDicePools = character.character_hit_dice_pools
+        ? (Array.isArray(character.character_hit_dice_pools)
+            ? character.character_hit_dice_pools[0]
+            : character.character_hit_dice_pools)
+        : null
+
+
 
       // 移除嵌套數據，只保留角色基本信息
       const { 
@@ -270,6 +286,8 @@ export class DetailedCharacterService {
         character_saving_throws, 
         character_skill_proficiencies,
         character_combat_actions,
+        character_classes,
+        character_hit_dice_pools,
         ...characterData 
       } = character
 
@@ -280,7 +298,9 @@ export class DetailedCharacterService {
         skillProficiencies: skillProficiencies,
         currentStats: currentStats || this.getDefaultCurrentStats(),
         currency: currency || this.getDefaultCurrency(),
-        combatActions: combatActions
+        combatActions: combatActions,
+        classes: classes.length > 0 ? classes : undefined,
+        hitDicePools: hitDicePools || undefined
       }
       
       // 存入緩存

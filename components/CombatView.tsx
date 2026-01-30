@@ -3,6 +3,7 @@ import { CharacterStats } from '../types';
 import { evaluateValue, getModifier, setNormalValue, handleValueInput } from '../utils/helpers';
 import { formatHitDicePools, getTotalCurrentHitDice, useHitDie, recoverHitDiceOnLongRest } from '../utils/classUtils';
 import { HybridDataManager } from '../services/hybridDataManager';
+import { MulticlassService } from '../services/multiclassService';
 import { PageContainer, Card, Button, Title, Subtitle, Input } from './ui';
 import { Modal, ModalButton, ModalInput } from './ui/Modal';
 import { STYLES } from '../styles/common';
@@ -689,7 +690,7 @@ export const CombatView: React.FC<CombatViewProps> = ({
   };
 
   // Multiclass hit die rolling
-  const rollMulticlassHitDie = (dieType: 'd12' | 'd10' | 'd8' | 'd6') => {
+  const rollMulticlassHitDie = async (dieType: 'd12' | 'd10' | 'd8' | 'd6') => {
     if (!stats.hitDicePools || stats.hitDicePools[dieType].current <= 0) return;
     
     const sides = parseInt(dieType.replace('d', ''));
@@ -712,11 +713,19 @@ export const CombatView: React.FC<CombatViewProps> = ({
       // 保存HP到資料庫
       if (onSaveHP) {
         onSaveHP(newCurrentHP).catch(error => {
-          console.error('❌ 多職生命骰恢復後HP保存失敗:', error);
+          console.error('多職生命骰恢復後HP保存失敗:', error);
         });
       }
+
+      // 保存生命骰池狀態到資料庫
+      if (characterId) {
+        const saveSuccess = await MulticlassService.saveHitDicePools(characterId, updatedPools);
+        if (!saveSuccess) {
+          console.error('生命骰池狀態保存失敗');
+        }
+      }
     } catch (error) {
-      console.error('Failed to use hit die:', error);
+      console.error('使用生命骰失敗:', error);
     }
   };
 

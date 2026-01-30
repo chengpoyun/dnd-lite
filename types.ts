@@ -92,15 +92,16 @@ export const DND_CLASSES = {
   '野蠻人': { hitDie: 'd12' as const },
   '戰士': { hitDie: 'd10' as const },
   '聖騎士': { hitDie: 'd10' as const },
-  '騎兵': { hitDie: 'd10' as const },
+  '遊俠': { hitDie: 'd10' as const },
   '牧師': { hitDie: 'd8' as const },
   '德魯伊': { hitDie: 'd8' as const },
-  '遊俠': { hitDie: 'd8' as const },
+  '武僧': { hitDie: 'd8' as const },
+  '遊蕩者': { hitDie: 'd8' as const },
   '術士': { hitDie: 'd8' as const },
-  '邪術師': { hitDie: 'd8' as const },
-  '盜賊': { hitDie: 'd8' as const },
   '吟遊詩人': { hitDie: 'd8' as const },
-  '法師': { hitDie: 'd6' as const }
+  '奇械師': { hitDie: 'd8' as const },
+  '法師': { hitDie: 'd6' as const },
+  '咒術師': { hitDie: 'd6' as const }
 } as const;
 
 export type DndClassName = keyof typeof DND_CLASSES;

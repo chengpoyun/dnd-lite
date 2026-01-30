@@ -8,6 +8,7 @@ import { STYLES, combineStyles } from '../styles/common';
 interface CharacterSheetProps {
   stats: CharacterStats;
   setStats: React.Dispatch<React.SetStateAction<CharacterStats>>;
+  characterId?: string;
   onSaveSkillProficiency?: (skillName: string, level: number) => Promise<boolean>;
   onSaveSavingThrowProficiencies?: (proficiencies: string[]) => Promise<boolean>;
   onSaveCharacterBasicInfo?: (name: string, characterClass: string, level: number) => Promise<boolean>;
@@ -37,7 +38,8 @@ const ABILITY_KEYS: (keyof CharacterStats['abilityScores'])[] = ['str', 'dex', '
 
 export const CharacterSheet: React.FC<CharacterSheetProps> = ({ 
   stats, 
-  setStats, 
+  setStats,
+  characterId,
   onSaveSkillProficiency, 
   onSaveSavingThrowProficiencies,
   onSaveCharacterBasicInfo,
@@ -498,6 +500,11 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
   const saveInfoWithClasses = async () => {
     if (editClasses.length === 0) return;
     
+    if (!characterId) {
+      console.error('characterId 不存在，無法保存多職業資料');
+      return;
+    }
+    
     // 驗證所有等級為有效數字
     const validClasses = editClasses.map(c => ({
       ...c,
@@ -508,38 +515,70 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
     const totalLevel = validClasses.reduce((sum, c) => sum + c.level, 0);
     const primaryClass = validClasses.find(c => c.isPrimary) || validClasses[0];
     
-    // 同時保存基本信息和多職業資料
-    const basicInfoPromise = onSaveCharacterBasicInfo ? 
-      onSaveCharacterBasicInfo(editInfo.name, primaryClass.name, totalLevel) : 
-      Promise.resolve(true);
-      
-    const multiclassPromise = onSaveExtraData ? 
-      onSaveExtraData({ ...stats.extraData, classes: validClasses }) : 
-      Promise.resolve(true);
-    
     try {
-      const [basicSuccess, extraSuccess] = await Promise.all([basicInfoPromise, multiclassPromise]);
-      
-      if (basicSuccess && extraSuccess) {
-        console.log('✅ 角色資料保存成功');
-        // 更新本地狀態
-        setStats(prev => ({ 
-          ...prev, 
-          name: editInfo.name,
-          class: primaryClass.name,
-          level: totalLevel,
-          classes: validClasses.map(c => ({
-            id: c.id,
-            name: c.name,
-            level: c.level,
-            hitDie: getClassHitDie(c.name),
-            isPrimary: c.isPrimary
-          }))
-        }));
-        setActiveModal(null);
-      } else {
-        console.error('❌ 角色資料保存失敗', { basicSuccess, extraSuccess });
+      // 1. 保存基本信息（角色名稱、主職業、總等級）
+      const basicSuccess = onSaveCharacterBasicInfo ? 
+        await onSaveCharacterBasicInfo(editInfo.name, primaryClass.name, totalLevel) : 
+        true;
+        
+      if (!basicSuccess) {
+        console.error('基本信息保存失敗');
+        return;
       }
+      
+      // 2. 使用 MulticlassService 保存多職業數據到專用表
+      const { MulticlassService } = await import('../services/multiclassService');
+      
+      // 先刪除所有現有職業
+      const { supabase } = await import('../lib/supabase');
+      await supabase
+        .from('character_classes')
+        .delete()
+        .eq('character_id', characterId);
+      
+      // 保存每個職業
+      for (const classInfo of validClasses) {
+        const { error } = await supabase
+          .from('character_classes')
+          .insert({
+            character_id: characterId,
+            class_name: classInfo.name,
+            class_level: classInfo.level,
+            hit_die: getClassHitDie(classInfo.name),
+            is_primary: classInfo.isPrimary
+          });
+          
+        if (error) {
+          console.error('職業保存失敗:', classInfo.name, error);
+        }
+      }
+      
+      // 3. 重新計算並保存生命骰池
+      await MulticlassService.recalculateHitDicePools(characterId);
+      
+      // 4. 更新本地狀態
+      setStats(prev => ({ 
+        ...prev, 
+        name: editInfo.name,
+        class: primaryClass.name,
+        level: totalLevel,
+        classes: validClasses.map(c => ({
+          id: c.id,
+          name: c.name,
+          level: c.level,
+          hitDie: getClassHitDie(c.name),
+          isPrimary: c.isPrimary
+        }))
+      }));
+      
+      setActiveModal(null);
+      
+      // 5. 重新載入角色數據以獲取最新的 hitDicePools
+      if (onSaveExtraData) {
+        // 觸發一次額外數據保存以刷新狀態
+        await onSaveExtraData({ ...stats.extraData });
+      }
+      
     } catch (error) {
       console.error('❌ 角色資料保存錯誤:', error);
     }

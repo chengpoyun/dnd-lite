@@ -165,8 +165,8 @@ export interface FullCharacterData {
   currentStats: CharacterCurrentStats
   currency: CharacterCurrency
   combatActions: CharacterCombatAction[]
-  classes: CharacterClass[]  // 新增：職業列表
-  hitDicePools: CharacterHitDicePools  // 新增：生命骰池
+  classes?: CharacterClass[]  // 新增：職業列表（可選，向後兼容）
+  hitDicePools?: CharacterHitDicePools  // 新增：生命骰池（可選，向後兼容）
 }
 
 // 更新專用類型：用於部分更新角色資料
