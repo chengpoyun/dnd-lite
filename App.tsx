@@ -7,10 +7,12 @@ import { DiceRoller } from './components/DiceRoller';
 import { CombatView } from './components/CombatView';
 import { ConversionPage } from './components/ConversionPage';
 import { SessionExpiredModal } from './components/SessionExpiredModal';
+import { SpellsPage } from './components/SpellsPage';
 
 import { CharacterStats } from './types';
 import { getModifier } from './utils/helpers';
 import { formatClassDisplay, getPrimaryClass, getTotalLevel, getClassHitDie } from './utils/classUtils';
+import { isSpellcaster } from './utils/spellUtils';
 import { migrateLegacyCharacterStats, needsMulticlassMigration, ensureDisplayClass } from './utils/migrationHelpers';
 import { HybridDataManager } from './services/hybridDataManager';
 import { AuthService } from './services/auth';
@@ -23,6 +25,7 @@ import type { Character, CharacterAbilityScores, CharacterCurrentStats, Characte
 enum Tab {
   CHARACTER = 'character',
   COMBAT = 'combat',
+  SPELLS = 'spells',
   DICE = 'dice'
 }
 
@@ -888,6 +891,9 @@ const AuthenticatedApp: React.FC = () => {
             {[
               { id: Tab.CHARACTER, label: '角色', icon: '👤' },
               { id: Tab.COMBAT, label: '戰鬥', icon: '⚔️' },
+              ...(isSpellcaster(stats.classes?.map(c => c.class_name) || []) 
+                ? [{ id: Tab.SPELLS, label: '法術', icon: '✨' }] 
+                : []),
               { id: Tab.DICE, label: '骰子', icon: '🎲' }
             ].map((tab) => (
               <button
@@ -951,6 +957,14 @@ const AuthenticatedApp: React.FC = () => {
               onSaveHP={saveHP}
               onSaveAC={saveAC}
               onSaveInitiative={saveInitiative}
+            />
+          )}
+
+          {activeTab === Tab.SPELLS && currentCharacter && (
+            <SpellsPage
+              characterId={currentCharacter.id}
+              characterClasses={stats.classes || []}
+              intelligence={stats.abilityScores.int}
             />
           )}
 
