@@ -188,7 +188,7 @@ export const SpellsPage: React.FC<SpellsPageProps> = ({
   return (
     <div className="flex flex-col h-full overflow-y-auto p-4 pb-24">
       {/* 頂部統計 */}
-      <div className="bg-slate-800/30 rounded-xl p-4 mb-4 border border-slate-700">
+      <div className="bg-slate-800/30 rounded-xl p-4 mb-4 border border-slate-700 relative">
         <div className="flex justify-between items-center mb-2">
           <h2 className="text-xl font-bold text-amber-500">我的法術書</h2>
           <div className="text-[14px] text-slate-400">
@@ -210,9 +210,13 @@ export const SpellsPage: React.FC<SpellsPageProps> = ({
           )}
         </div>
 
-        <div className="text-[12px] text-slate-500 mt-2">
-          可準備數量 = 智力調整值({Math.floor((intelligence - 10) / 2)}) + 施法職業等級({spellcasterLevel})
-        </div>
+        {/* 學習新法術小按鈕 */}
+        <button
+          onClick={() => setIsLearnModalOpen(true)}
+          className="absolute right-3 bottom-3 px-3 py-1.5 rounded-lg bg-amber-600 text-white text-[13px] font-bold active:bg-amber-700"
+        >
+          + 學習新法術
+        </button>
       </div>
 
       {/* 法術列表 */}
@@ -220,12 +224,7 @@ export const SpellsPage: React.FC<SpellsPageProps> = ({
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
             <div className="text-slate-500 text-lg mb-4">尚未學習任何法術</div>
-            <button
-              onClick={() => setIsLearnModalOpen(true)}
-              className="px-6 py-3 rounded-lg bg-amber-600 text-white font-bold active:bg-amber-700"
-            >
-              學習新法術
-            </button>
+            <div className="text-slate-600 text-sm">點擊上方「學習新法術」按鈕開始</div>
           </div>
         </div>
       ) : (
@@ -250,18 +249,6 @@ export const SpellsPage: React.FC<SpellsPageProps> = ({
               </div>
             </div>
           ))}
-        </div>
-      )}
-
-      {/* 學習新法術按鈕（固定在底部） */}
-      {characterSpells.length > 0 && (
-        <div className="fixed bottom-20 left-0 right-0 p-4 bg-gradient-to-t from-slate-950 to-transparent pointer-events-none">
-          <button
-            onClick={() => setIsLearnModalOpen(true)}
-            className="w-full py-4 rounded-xl bg-amber-600 text-white font-bold text-lg shadow-lg active:bg-amber-700 pointer-events-auto"
-          >
-            + 學習新法術
-          </button>
         </div>
       )}
 

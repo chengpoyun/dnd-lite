@@ -150,48 +150,86 @@ export const SpellFormModal: React.FC<SpellFormModalProps> = ({
           <div className="grid grid-cols-3 gap-3">
             <div>
               <label className="block text-[14px] text-slate-400 mb-2">施法時間 *</label>
-              <input
-                type="text"
+              <select
                 value={formData.casting_time}
                 onChange={(e) => setFormData({ ...formData, casting_time: e.target.value })}
                 className="w-full bg-slate-800 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500"
-                placeholder="1動作"
-              />
+              >
+                <option value="動作">動作</option>
+                <option value="附贈動作">附贈動作</option>
+                <option value="反應">反應</option>
+                <option value="1分鐘">1分鐘</option>
+                <option value="10分鐘">10分鐘</option>
+                <option value="1小時">1小時</option>
+                <option value="8小時">8小時</option>
+                <option value="12小時">12小時</option>
+                <option value="24小時">24小時</option>
+              </select>
             </div>
 
             <div>
               <label className="block text-[14px] text-slate-400 mb-2">持續時間 *</label>
-              <input
-                type="text"
+              <select
                 value={formData.duration}
                 onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
                 className="w-full bg-slate-800 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500"
-                placeholder="即效"
-              />
+              >
+                <option value="即效">即效</option>
+                <option value="一回合">一回合</option>
+                <option value="1分鐘">1分鐘</option>
+                <option value="10分鐘">10分鐘</option>
+                <option value="1小時">1小時</option>
+                <option value="8小時">8小時</option>
+                <option value="24小時">24小時</option>
+                <option value="直到取消">直到取消</option>
+                <option value="其他">其他</option>
+              </select>
             </div>
 
             <div>
               <label className="block text-[14px] text-slate-400 mb-2">射程 *</label>
-              <input
-                type="text"
+              <select
                 value={formData.range}
                 onChange={(e) => setFormData({ ...formData, range: e.target.value })}
                 className="w-full bg-slate-800 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500"
-                placeholder="150呎"
-              />
+              >
+                <option value="自身">自身</option>
+                <option value="觸碰">觸碰</option>
+                <option value="5尺">5尺</option>
+                <option value="10尺">10尺</option>
+                <option value="30尺">30尺</option>
+                <option value="60尺">60尺</option>
+                <option value="90尺">90尺</option>
+                <option value="120尺">120尺</option>
+                <option value="150尺">150尺</option>
+                <option value="300尺">300尺</option>
+                <option value="其他">其他</option>
+              </select>
             </div>
           </div>
 
           {/* 來源 */}
           <div>
             <label className="block text-[14px] text-slate-400 mb-2">來源 *</label>
-            <input
-              type="text"
+            <select
               value={formData.source}
               onChange={(e) => setFormData({ ...formData, source: e.target.value })}
               className="w-full bg-slate-800 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500"
-              placeholder="PHB"
-            />
+            >
+              <option value="PHB">PHB</option>
+              <option value="PHB'24">PHB'24</option>
+              <option value="AI">AI</option>
+              <option value="IDRotF">IDRotF</option>
+              <option value="TCE">TCE</option>
+              <option value="XGE">XGE</option>
+              <option value="AAG">AAG</option>
+              <option value="BMT">BMT</option>
+              <option value="EFA">EFA</option>
+              <option value="FRHoF">FRHoF</option>
+              <option value="FTD">FTD</option>
+              <option value="SatO">SatO</option>
+              <option value="SCC">SCC</option>
+            </select>
           </div>
 
           {/* 專注 */}

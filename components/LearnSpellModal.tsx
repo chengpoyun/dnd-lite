@@ -178,7 +178,7 @@ export const LearnSpellModal: React.FC<LearnSpellModalProps> = ({
             }}
             className="flex-1 py-3 rounded-lg bg-blue-600 text-white font-bold active:bg-blue-700"
           >
-            + 新增法術到資料庫
+            + 新增法術
           </button>
         </div>
       </div>
