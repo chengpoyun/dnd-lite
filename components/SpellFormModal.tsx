@@ -73,7 +73,6 @@ export const SpellFormModal: React.FC<SpellFormModalProps> = ({
     // 驗證必填欄位
     if (!formData.name || !formData.casting_time || !formData.duration || 
         !formData.range || !formData.source || !formData.description) {
-      alert('請填寫所有必填欄位');
       return;
     }
 
@@ -83,7 +82,6 @@ export const SpellFormModal: React.FC<SpellFormModalProps> = ({
       onClose();
     } catch (error) {
       console.error('提交法術失敗:', error);
-      alert('提交失敗，請稍後再試');
     } finally {
       setIsSubmitting(false);
     }
@@ -131,10 +129,18 @@ export const SpellFormModal: React.FC<SpellFormModalProps> = ({
               <select
                 value={formData.school}
                 onChange={(e) => setFormData({ ...formData, school: e.target.value as any })}
-                className="w-full bg-slate-800 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500"
+                className={`w-full bg-slate-800 rounded-lg border border-slate-700 p-3 font-bold focus:outline-none focus:border-amber-500 ${
+                  SPELL_SCHOOLS[formData.school as keyof typeof SPELL_SCHOOLS]?.text || 'text-slate-200'
+                }`}
               >
-                {Object.keys(SPELL_SCHOOLS).map(school => (
-                  <option key={school} value={school}>{school}</option>
+                {Object.entries(SPELL_SCHOOLS).map(([school, colors]) => (
+                  <option 
+                    key={school} 
+                    value={school}
+                    className="bg-slate-800 text-slate-200 font-bold"
+                  >
+                    {school}
+                  </option>
                 ))}
               </select>
             </div>

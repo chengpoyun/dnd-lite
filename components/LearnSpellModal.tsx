@@ -76,7 +76,6 @@ export const LearnSpellModal: React.FC<LearnSpellModalProps> = ({
       setSpells(prev => prev.filter(s => s.id !== spellId));
     } catch (error) {
       console.error('學習法術失敗:', error);
-      alert('學習法術失敗，請稍後再試');
     }
   };
 

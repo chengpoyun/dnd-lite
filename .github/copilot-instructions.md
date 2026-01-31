@@ -188,10 +188,17 @@ const saveAllStats = async (stats: CharacterStats) => Promise<boolean>
 - **🎯 手機優先 (Mobile-First)** - 主要目標為手機瀏覽器使用
 - **📱 響應式設計 (RWD)** - 確保各種裝置都能良好顯示
 - **觸控友善** - 按鈕大小適合手指操作
-- **🚫 禁止使用 `alert()`、`confirm()`、`prompt()`** - 所有用戶確認操作都必須使用 Modal 組件
-  - ✅ 正確：使用 `<ConfirmDeleteModal>` 等自定義 Modal 組件
-  - ❌ 錯誤：`if (confirm('確定刪除？'))` 或 `alert('操作成功')`
-  - **原因：** 原生對話框無法客製化樣式、不支援 RWD、體驗較差
+- **🚫🚫🚫 嚴格禁止使用 `alert()`、`confirm()`、`prompt()` (最高優先級)** - 所有用戶訊息和確認操作都必須使用專案內的組件
+  - ✅ 正確做法：
+    - 確認操作 → 使用 `<ConfirmDeleteModal>` 等自定義 Modal 組件
+    - 訊息提示 → 使用 Toast 組件 (`useToast` hook)
+    - 錯誤訊息 → 在 UI 中顯示或使用 Toast
+  - ❌ 絕對禁止：
+    - `alert('操作成功')` - 應使用 Toast
+    - `if (confirm('確定刪除？'))` - 應使用確認 Modal
+    - `prompt('請輸入名稱')` - 應使用自定義表單 Modal
+  - **原因：** 原生對話框無法客製化樣式、不支援 RWD、破壞用戶體驗、與專案設計風格不符
+  - **⚠️ AI 助理特別注意：** 實作任何新功能時，絕對不得使用原生對話框，必須優先考慮使用現有的 Modal 或 Toast 組件
 
 ### 檔案組織
 - Services 放在 `services/` 目錄

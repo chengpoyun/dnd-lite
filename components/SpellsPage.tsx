@@ -96,7 +96,6 @@ export const SpellsPage: React.FC<SpellsPageProps> = ({
       setCharacterSpells(prev => prev.filter(cs => cs.spell?.id !== spellId));
     } catch (error) {
       console.error('遺忘法術失敗:', error);
-      alert('遺忘法術失敗，請稍後再試');
     }
   };
 
@@ -112,14 +111,12 @@ export const SpellsPage: React.FC<SpellsPageProps> = ({
       );
     } catch (error) {
       console.error('切換準備狀態失敗:', error);
-      alert('切換準備狀態失敗，請稍後再試');
     }
   };
 
   const handleCreateSpell = async (data: CreateSpellData) => {
     try {
       await createSpell(data);
-      alert('法術已新增到資料庫！');
       setIsFormModalOpen(false);
     } catch (error) {
       console.error('新增法術失敗:', error);
@@ -134,7 +131,6 @@ export const SpellsPage: React.FC<SpellsPageProps> = ({
       await updateSpell(editingSpell.id, data);
       // 重新載入法術列表以更新資料
       await loadCharacterSpells();
-      alert('法術已更新！');
       setIsFormModalOpen(false);
       setEditingSpell(null);
     } catch (error) {
