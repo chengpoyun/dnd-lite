@@ -42,32 +42,40 @@ export const SpellCard: React.FC<SpellCardProps> = ({
   return (
     <div className={`bg-slate-800/30 rounded-xl border ${characterSpell.is_prepared ? 'border-amber-500/50' : 'border-slate-700'} overflow-hidden`}>
       {/* 收合狀態 */}
-      <div 
-        className="p-4 cursor-pointer active:bg-slate-700/30"
-        onClick={() => setIsExpanded(!isExpanded)}
-      >
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3 flex-1 min-w-0">
-            {/* 準備 Checkbox */}
-            {!isCantrip && (
-              <input
-                type="checkbox"
-                checked={characterSpell.is_prepared}
-                onChange={(e) => {
-                  e.stopPropagation();
-                  handleTogglePrepared();
-                }}
-                className="w-5 h-5 rounded border-2 border-slate-600 bg-slate-900 checked:bg-amber-500 checked:border-amber-500 cursor-pointer flex-shrink-0"
-              />
-            )}
-            
-            {/* 法術名稱 */}
+      <div className="flex items-center">
+        {/* 準備狀態圓點 */}
+        {!isCantrip && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleTogglePrepared();
+            }}
+            className="flex-shrink-0 p-4 active:bg-slate-700/30"
+          >
+            <div className={`w-4 h-4 rounded-full border-2 transition-all ${
+              characterSpell.is_prepared 
+                ? 'bg-emerald-500 border-emerald-500' 
+                : 'border-slate-500'
+            }`} />
+          </button>
+        )}
+        
+        <div 
+          className="flex-1 p-4 cursor-pointer active:bg-slate-700/30"
+          onClick={() => setIsExpanded(!isExpanded)}
+        >
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3 flex-1 min-w-0">
+              {/* 法術名稱 */}
             <div className="flex-1 min-w-0">
               <h3 className="text-[16px] font-bold text-slate-200 truncate">{spell.name}</h3>
               <div className="flex items-center gap-2 mt-1">
                 <span className="text-[14px] text-slate-500">{getSpellLevelText(spell.level)}</span>
                 {spell.concentration && (
                   <span className="text-[12px] px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400 font-bold">專注</span>
+                )}
+                {spell.ritual && (
+                  <span className="text-[12px] px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-400 font-bold">儀式</span>
                 )}
               </div>
             </div>
@@ -82,6 +90,7 @@ export const SpellCard: React.FC<SpellCardProps> = ({
           <div className="text-slate-500 flex-shrink-0">
             {isExpanded ? '▼' : '▶'}
           </div>
+        </div>
         </div>
       </div>
 

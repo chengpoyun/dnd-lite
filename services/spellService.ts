@@ -7,6 +7,7 @@ export interface Spell {
   casting_time: string;
   school: '塑能' | '惑控' | '預言' | '咒法' | '變化' | '防護' | '死靈' | '幻術';
   concentration: boolean;
+  ritual: boolean;
   duration: string;
   range: string;
   source: string;
@@ -39,6 +40,7 @@ export interface CreateSpellData {
   casting_time: string;
   school: Spell['school'];
   concentration: boolean;
+  ritual: boolean;
   duration: string;
   range: string;
   source: string;

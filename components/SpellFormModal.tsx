@@ -22,6 +22,7 @@ export const SpellFormModal: React.FC<SpellFormModalProps> = ({
     casting_time: '',
     school: '塑能',
     concentration: false,
+    ritual: false,
     duration: '',
     range: '',
     source: '',
@@ -40,6 +41,7 @@ export const SpellFormModal: React.FC<SpellFormModalProps> = ({
         casting_time: editingSpell.casting_time,
         school: editingSpell.school,
         concentration: editingSpell.concentration,
+        ritual: editingSpell.ritual,
         duration: editingSpell.duration,
         range: editingSpell.range,
         source: editingSpell.source,
@@ -232,16 +234,29 @@ export const SpellFormModal: React.FC<SpellFormModalProps> = ({
             </select>
           </div>
 
-          {/* 專注 */}
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              id="concentration"
-              checked={formData.concentration}
-              onChange={(e) => setFormData({ ...formData, concentration: e.target.checked })}
-              className="w-5 h-5 rounded border-2 border-slate-600 bg-slate-900 checked:bg-amber-500 checked:border-amber-500 cursor-pointer"
-            />
-            <label htmlFor="concentration" className="text-[14px] text-slate-300 cursor-pointer">需要專注</label>
+          {/* 專注與儀式 */}
+          <div className="flex gap-6">
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="concentration"
+                checked={formData.concentration}
+                onChange={(e) => setFormData({ ...formData, concentration: e.target.checked })}
+                className="w-5 h-5 rounded border-2 border-slate-600 bg-slate-900 checked:bg-amber-500 checked:border-amber-500 cursor-pointer"
+              />
+              <label htmlFor="concentration" className="text-[14px] text-slate-300 cursor-pointer">需要專注</label>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="ritual"
+                checked={formData.ritual}
+                onChange={(e) => setFormData({ ...formData, ritual: e.target.checked })}
+                className="w-5 h-5 rounded border-2 border-slate-600 bg-slate-900 checked:bg-amber-500 checked:border-amber-500 cursor-pointer"
+              />
+              <label htmlFor="ritual" className="text-[14px] text-slate-300 cursor-pointer">儀式</label>
+            </div>
           </div>
 
           {/* 成分 */}
