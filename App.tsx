@@ -891,7 +891,7 @@ const AuthenticatedApp: React.FC = () => {
             {[
               { id: Tab.CHARACTER, label: '角色', icon: '👤' },
               { id: Tab.COMBAT, label: '戰鬥', icon: '⚔️' },
-              ...(isSpellcaster(stats.classes?.map(c => c.class_name) || []) 
+              ...(isSpellcaster(stats.classes?.map(c => c.name) || [stats.class]) 
                 ? [{ id: Tab.SPELLS, label: '法術', icon: '✨' }] 
                 : []),
               { id: Tab.DICE, label: '骰子', icon: '🎲' }
@@ -963,7 +963,14 @@ const AuthenticatedApp: React.FC = () => {
           {activeTab === Tab.SPELLS && currentCharacter && (
             <SpellsPage
               characterId={currentCharacter.id}
-              characterClasses={stats.classes || []}
+              characterClasses={stats.classes || [
+                { 
+                  name: stats.class, 
+                  level: stats.level, 
+                  hitDie: getClassHitDie(stats.class) as any,
+                  isPrimary: true 
+                }
+              ]}
               intelligence={stats.abilityScores.int}
             />
           )}

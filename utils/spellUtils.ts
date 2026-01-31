@@ -129,9 +129,9 @@ export function canPrepareMoreSpells(currentPrepared: number, maxPrepared: numbe
  * @param classes 角色的職業列表
  * @returns 施法職業的總等級
  */
-export function getSpellcasterLevel(classes: { class_name: string; level: number }[]): number {
+export function getSpellcasterLevel(classes: { name: string; level: number }[]): number {
   const spellcasterClasses = classes.filter(c => 
-    SPELLCASTER_CLASSES.includes(c.class_name as any)
+    SPELLCASTER_CLASSES.includes(c.name as any)
   );
   
   if (spellcasterClasses.length === 0) return 0;

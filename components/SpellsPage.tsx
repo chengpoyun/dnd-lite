@@ -19,10 +19,11 @@ import {
   getSpellcasterLevel,
   getSpellLevelText 
 } from '../utils/spellUtils';
+import { ClassInfo } from '../types';
 
 interface SpellsPageProps {
   characterId: string;
-  characterClasses: { class_name: string; level: number }[];
+  characterClasses: ClassInfo[];
   intelligence: number;
 }
 
