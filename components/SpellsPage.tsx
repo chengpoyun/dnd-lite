@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { SpellCard } from './SpellCard';
+import { SpellDetailModal } from './SpellDetailModal';
 import { LearnSpellModal } from './LearnSpellModal';
 import { SpellFormModal } from './SpellFormModal';
 import { 
@@ -12,10 +13,12 @@ import {
   togglePrepared,
   createSpell,
   updateSpell,
-  getPreparedSpellsCount
+  getPreparedSpellsCount,
+  getPreparedCantripsCount
 } from '../services/spellService';
 import { 
-  calculateMaxPrepared, 
+  calculateMaxPrepared,
+  calculateMaxCantrips,
   getSpellcasterLevel,
   getSpellLevelText 
 } from '../utils/spellUtils';
@@ -35,9 +38,12 @@ export const SpellsPage: React.FC<SpellsPageProps> = ({
   const [characterSpells, setCharacterSpells] = useState<CharacterSpell[]>([]);
   const [isLearnModalOpen, setIsLearnModalOpen] = useState(false);
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [selectedSpell, setSelectedSpell] = useState<Spell | null>(null);
   const [editingSpell, setEditingSpell] = useState<Spell | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [preparedCount, setPreparedCount] = useState(0);
+  const [preparedCantripsCount, setPreparedCantripsCount] = useState(0);
 
   // 計算施法職業等級和可準備數量
   const spellcasterLevel = useMemo(() => 
@@ -48,6 +54,11 @@ export const SpellsPage: React.FC<SpellsPageProps> = ({
   const maxPrepared = useMemo(() => 
     calculateMaxPrepared(intelligence, spellcasterLevel),
     [intelligence, spellcasterLevel]
+  );
+
+  const maxCantrips = useMemo(() => 
+    calculateMaxCantrips(spellcasterLevel),
+    [spellcasterLevel]
   );
 
   useEffect(() => {
@@ -74,6 +85,8 @@ export const SpellsPage: React.FC<SpellsPageProps> = ({
     try {
       const count = await getPreparedSpellsCount(characterId);
       setPreparedCount(count);
+      const cantripsCount = await getPreparedCantripsCount(characterId);
+      setPreparedCantripsCount(cantripsCount);
     } catch (error) {
       console.error('更新已準備法術數量失敗:', error);
     }
@@ -175,7 +188,10 @@ export const SpellsPage: React.FC<SpellsPageProps> = ({
   }, [characterSpells]);
 
   const canPrepareMore = preparedCount < maxPrepared;
+  const canPrepareMoreCantrips = preparedCantripsCount < maxCantrips;
   const learnedSpellIds = characterSpells.map(cs => cs.spell?.id).filter(Boolean) as string[];
+  // 計算已學習法術數量（不含戲法）
+  const learnedSpellsCount = characterSpells.filter(cs => cs.spell && cs.spell.level > 0).length;
 
   if (isLoading) {
     return (
@@ -192,22 +208,32 @@ export const SpellsPage: React.FC<SpellsPageProps> = ({
         <div className="flex justify-between items-center mb-2">
           <h2 className="text-xl font-bold text-amber-500">我的法術書</h2>
           <div className="text-[14px] text-slate-400">
-            已學習 <span className="text-amber-400 font-bold">{characterSpells.length}</span> 個法術
+            已學習 <span className="text-amber-400 font-bold">{learnedSpellsCount}</span> 個法術
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <span className="text-[14px] text-slate-400">已準備:</span>
-          <span className={`text-[16px] font-bold ${preparedCount > maxPrepared ? 'text-rose-400' : 'text-emerald-400'}`}>
-            {preparedCount}
-          </span>
-          <span className="text-[14px] text-slate-500">/</span>
-          <span className="text-[16px] font-bold text-slate-400">{maxPrepared}</span>
-          {preparedCount > maxPrepared && (
-            <span className="text-[12px] px-2 py-1 rounded bg-rose-500/20 text-rose-400 ml-2">
-              超過可準備數量！
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <span className="text-[14px] text-slate-400">戲法已準備:</span>
+            <span className={`text-[16px] font-bold ${preparedCantripsCount > maxCantrips ? 'text-rose-400' : 'text-emerald-400'}`}>
+              {preparedCantripsCount}
             </span>
-          )}
+            <span className="text-[14px] text-slate-500">/</span>
+            <span className="text-[16px] font-bold text-slate-400">{maxCantrips}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-[14px] text-slate-400">法術已準備:</span>
+            <span className={`text-[16px] font-bold ${preparedCount > maxPrepared ? 'text-rose-400' : 'text-emerald-400'}`}>
+              {preparedCount}
+            </span>
+            <span className="text-[14px] text-slate-500">/</span>
+            <span className="text-[16px] font-bold text-slate-400">{maxPrepared}</span>
+            {preparedCount > maxPrepared && (
+              <span className="text-[12px] px-2 py-1 rounded bg-rose-500/20 text-rose-400 ml-2">
+                超過可準備數量！
+              </span>
+            )}
+          </div>
         </div>
 
         {/* 學習新法術小按鈕 */}
@@ -240,9 +266,11 @@ export const SpellsPage: React.FC<SpellsPageProps> = ({
                     key={cs.id}
                     characterSpell={cs}
                     onTogglePrepared={handleTogglePrepared}
-                    onForget={handleForgetSpell}
-                    onEdit={handleEditSpell}
-                    canPrepareMore={canPrepareMore}
+                    onClick={() => {
+                      setSelectedSpell(cs.spell!);
+                      setIsDetailModalOpen(true);
+                    }}
+                    canPrepareMore={level === 0 ? canPrepareMoreCantrips : canPrepareMore}
                     isCantrip={level === 0}
                   />
                 ))}
@@ -253,6 +281,17 @@ export const SpellsPage: React.FC<SpellsPageProps> = ({
       )}
 
       {/* Modals */}
+      <SpellDetailModal
+        isOpen={isDetailModalOpen}
+        onClose={() => {
+          setIsDetailModalOpen(false);
+          setSelectedSpell(null);
+        }}
+        spell={selectedSpell}
+        onEdit={handleEditSpell}
+        onForget={handleForgetSpell}
+      />
+
       <LearnSpellModal
         isOpen={isLearnModalOpen}
         onClose={() => setIsLearnModalOpen(false)}

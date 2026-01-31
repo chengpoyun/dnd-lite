@@ -217,3 +217,25 @@ export async function getPreparedSpellsCount(characterId: string): Promise<numbe
 
   return data?.length || 0;
 }
+
+/**
+ * 取得角色已準備的戲法數量
+ */
+export async function getPreparedCantripsCount(characterId: string): Promise<number> {
+  const { data, error } = await supabase
+    .from('character_spells')
+    .select(`
+      is_prepared,
+      spell:spells!inner(level)
+    `)
+    .eq('character_id', characterId)
+    .eq('is_prepared', true)
+    .eq('spell.level', 0); // 只計算戲法
+
+  if (error) {
+    console.error('取得已準備戲法數量失敗:', error);
+    return 0;
+  }
+
+  return data?.length || 0;
+}

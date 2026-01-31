@@ -139,3 +139,19 @@ export function getSpellcasterLevel(classes: { name: string; level: number }[]):
   // 返回最高的施法職業等級
   return Math.max(...spellcasterClasses.map(c => c.level));
 }
+
+/**
+ * 計算法師可準備的戲法數量
+ * 1-3等: 3個
+ * 4-9等: 4個
+ * 10等+: 5個
+ * 
+ * @param wizardLevel 法師等級
+ * @returns 可準備戲法數量
+ */
+export function calculateMaxCantrips(wizardLevel: number): number {
+  if (wizardLevel === 0) return 0;
+  if (wizardLevel <= 3) return 3;
+  if (wizardLevel <= 9) return 4;
+  return 5;
+}
