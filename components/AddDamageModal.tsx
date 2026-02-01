@@ -230,8 +230,8 @@ const AddDamageModal: React.FC<AddDamageModalProps> = ({
               </div>
 
               {/* 第二列：抗性類型 Checkbox */}
-              <div className="flex items-center gap-2 text-sm pl-2">
-                <label className={`flex items-center gap-1 cursor-pointer px-2 py-1 rounded transition-all ${
+              <div className="flex items-center gap-1 text-sm">
+                <label className={`flex items-center gap-1 cursor-pointer px-1.5 py-1 rounded transition-all ${
                   entry.resistanceType === 'resistant' 
                     ? 'border-2 border-red-500 bg-red-500/10' 
                     : 'border-2 border-transparent'
@@ -245,7 +245,7 @@ const AddDamageModal: React.FC<AddDamageModalProps> = ({
                   <span className="text-red-500">↓抗性</span>
                 </label>
 
-                <label className={`flex items-center gap-1 cursor-pointer px-2 py-1 rounded transition-all ${
+                <label className={`flex items-center gap-1 cursor-pointer px-1.5 py-1 rounded transition-all ${
                   entry.resistanceType === 'vulnerable' 
                     ? 'border-2 border-green-500 bg-green-500/10' 
                     : 'border-2 border-transparent'
@@ -259,7 +259,7 @@ const AddDamageModal: React.FC<AddDamageModalProps> = ({
                   <span className="text-green-500">↑易傷</span>
                 </label>
 
-                <label className={`flex items-center gap-1 cursor-pointer px-2 py-1 rounded transition-all ${
+                <label className={`flex items-center gap-1 cursor-pointer px-1.5 py-1 rounded transition-all ${
                   entry.resistanceType === 'immune' 
                     ? 'border-2 border-blue-500 bg-blue-500/10' 
                     : 'border-2 border-transparent'
