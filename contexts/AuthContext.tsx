@@ -1,9 +1,11 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
 import { AuthService, type AuthUser } from '../services/auth'
 import { UserSettingsService } from '../services/userSettings'
+import { AnonymousService } from '../services/anonymous'
 
 interface AuthContextType {
   user: AuthUser | null
+  anonymousId: string
   isLoading: boolean
   signIn: () => Promise<void>
   signOut: () => Promise<void>
@@ -27,6 +29,7 @@ interface AuthProviderProps {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<AuthUser | null>(null)
+  const [anonymousId, setAnonymousId] = useState<string>('')
   const [isLoading, setIsLoading] = useState(true)
   const [sessionExpired, setSessionExpired] = useState(false)
 
@@ -34,6 +37,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // 初始化認證狀態
     const initAuth = async () => {
       try {
+        // 初始化匿名 ID
+        await AnonymousService.init()
+        setAnonymousId(AnonymousService.getAnonymousId())
+        
         const currentUser = await AuthService.getCurrentUser()
         setUser(currentUser)
         
@@ -102,7 +109,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, signIn, signOut, sessionExpired, clearSessionExpired }}>
+    <AuthContext.Provider value={{ user, anonymousId, isLoading, signIn, signOut, sessionExpired, clearSessionExpired }}>
       {children}
     </AuthContext.Provider>
   )
