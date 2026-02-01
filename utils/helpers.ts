@@ -60,6 +60,55 @@ export const setNormalValue = (value: string, minValue: number = 1, allowZero: b
 };
 
 /**
+ * 小數值處理函數 - 專門處理允許小數點的數值（如金幣）
+ * @param value 輸入值
+ * @param currentValue 當前數值
+ * @param options 配置選項
+ * @returns 處理結果
+ */
+export const handleDecimalInput = (
+  value: string,
+  currentValue?: number,
+  options: {
+    minValue?: number;
+    maxValue?: number;
+    allowZero?: boolean;
+    allowNegative?: boolean;
+    decimalPlaces?: number; // 保留小數位數，預設2位
+  } = {}
+): { isValid: boolean, numericValue: number } => {
+  const {
+    minValue = 0,
+    maxValue,
+    allowZero = true,
+    allowNegative = false,
+    decimalPlaces = 2
+  } = options;
+
+  // 解析為浮點數
+  const numericValue = parseFloat(value);
+
+  if (isNaN(numericValue)) {
+    return { isValid: false, numericValue: 0 };
+  }
+
+  // 四捨五入到指定小數位數
+  const roundedValue = Math.round(numericValue * Math.pow(10, decimalPlaces)) / Math.pow(10, decimalPlaces);
+
+  // 檢查範圍
+  const effectiveMin = allowNegative ? minValue : (allowZero ? 0 : minValue);
+  let isValid = roundedValue >= effectiveMin;
+  if (maxValue !== undefined) {
+    isValid = isValid && roundedValue <= maxValue;
+  }
+
+  return {
+    isValid,
+    numericValue: isValid ? roundedValue : 0
+  };
+};
+
+/**
  * 統一數值處理函數 - 整合純數值驗證和運算表達式兩種模式
  * @param value 輸入值（純數字或運算表達式）
  * @param currentValue 當前數值（運算模式時需要）
