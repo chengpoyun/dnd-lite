@@ -54,12 +54,13 @@ const AdjustACModal: React.FC<AdjustACModalProps> = ({
       return;
     }
 
+    setIsSubmitting(true);
+
     // 檢查版本衝突
     if (await onConflict()) {
+      setIsSubmitting(false);
       return;
     }
-
-    setIsSubmitting(true);
 
     const result = await CombatService.updateACRange(monsterId, roll, isHit);
 
@@ -115,7 +116,7 @@ const AdjustACModal: React.FC<AdjustACModalProps> = ({
               type="number"
               value={attackRoll}
               onChange={(e) => setAttackRoll(e.target.value)}
-              placeholder="ex：18"
+              placeholder="18"
               className={`flex-1 ${INPUT_CLASS} text-center text-2xl font-mono`}
               min="1"
               max="99"
