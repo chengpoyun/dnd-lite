@@ -130,8 +130,26 @@ describe('CombatView - 預設項目保護功能測試', () => {
     expect(deleteButton).toBeNull();
   });
 
-  it('應該為名稱匹配預設項目名稱的項目隱藏刪除按鈕', async () => {
-    mockHybridDataManager.getCombatItems.mockResolvedValue(mockCombatItems);
+  it('應該為有 default_item_id 的項目隱藏刪除按鈕', async () => {
+    // 創建一個有 default_item_id 的項目（即使 is_default 為 false）
+    const itemsWithDefaultId = [
+      ...mockCombatItems.filter(item => item.name !== '藥水'), // 移除原有的藥水
+      {
+        id: 'db-uuid-5',
+        character_id: 'test-character-123',
+        category: 'bonus_action',
+        name: '藥水',
+        icon: '🧪',
+        current_uses: 1,
+        max_uses: 1,
+        recovery_type: 'turn',
+        is_default: false,
+        is_custom: false,
+        default_item_id: 'potion-default-id' // 有 default_item_id 就是預設項目
+      }
+    ];
+
+    mockHybridDataManager.getCombatItems.mockResolvedValue(itemsWithDefaultId);
     
     render(<CombatView {...defaultProps} />);
     
@@ -235,32 +253,32 @@ describe('CombatView - 預設項目保護功能測試', () => {
     expect(testCases).toBeDefined();
   });
 
-  it('應該正確處理名稱變體的預設項目識別', async () => {
-    // 測試名稱變體的預設項目（如疾走vs疾跑）
+  it('應該優先檢查 default_item_id 而非 is_default 標記', async () => {
+    // 測試即使 is_default 為 false，只要有 default_item_id 就視為預設項目
     const variantItems = [
       {
         id: 'db-uuid-5',
         character_id: 'test-character-123',
         category: 'action',
-        name: '疾走', // 變體名稱
+        name: '疾走',
         icon: '🏃',
         current_uses: 1,
         max_uses: 1,
         recovery_type: 'turn',
-        is_default: false,
+        is_default: false, // 標記為 false
         is_custom: false,
-        default_item_id: null
+        default_item_id: 'dash-default-id' // 但有 default_item_id，應該被視為預設項目
       },
       {
         id: 'db-uuid-6',
         character_id: 'test-character-123',
         category: 'action',
-        name: '隱匿', // 變體名稱
+        name: '躲藏',
         icon: '👤',
         current_uses: 1,
         max_uses: 1,
         recovery_type: 'turn',
-        is_default: false,
+        is_default: true, // 使用 is_default，沒有 default_item_id
         is_custom: false,
         default_item_id: null
       }
@@ -278,7 +296,7 @@ describe('CombatView - 預設項目保護功能測試', () => {
     const editButton = screen.getByText('⚙️');
     fireEvent.click(editButton);
 
-    // 檢查變體名稱的預設項目也不應該有刪除按鈕
+    // 兩個項目都應該被視為預設項目，不應該有刪除按鈕
     const dashVariantItem = screen.getByText('疾走').closest('button');
     if (dashVariantItem) {
       const container = dashVariantItem.parentElement;
@@ -286,7 +304,7 @@ describe('CombatView - 預設項目保護功能測試', () => {
       expect(deleteButton).toBeNull();
     }
 
-    const hideVariantItem = screen.getByText('隱匿').closest('button');
+    const hideVariantItem = screen.getByText('躲藏').closest('button');
     if (hideVariantItem) {
       const container = hideVariantItem.parentElement;
       const deleteButton = container?.querySelector('button[class*="bg-rose-600"]');

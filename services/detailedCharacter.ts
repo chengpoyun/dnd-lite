@@ -402,6 +402,9 @@ export class DetailedCharacterService {
           await this.createSkillProficiencies(characterId, characterData.stats.proficiencies)
         }
 
+        // 創建預設戰鬥項目
+        await this.createDefaultCombatActions(characterId)
+
         return {
           character,
           abilityScores,
@@ -1313,6 +1316,53 @@ export class DetailedCharacterService {
     } catch (error) {
       console.error('轉換匿名角色失敗:', error)
       return false
+    }
+  }
+
+  // 創建預設戰鬥項目
+  private static async createDefaultCombatActions(characterId: string): Promise<void> {
+    const defaultActions = [
+      // 動作 (Action)
+      { name: '攻擊', icon: '⚔️', category: 'action', recovery_type: 'turn' },
+      { name: '疾跑', icon: '🏃', category: 'action', recovery_type: 'turn' },
+      { name: '撤離', icon: '💨', category: 'action', recovery_type: 'turn' },
+      { name: '閃避', icon: '🛡️', category: 'action', recovery_type: 'turn' },
+      { name: '幫助', icon: '🤝', category: 'action', recovery_type: 'turn' },
+      { name: '躲藏', icon: '👤', category: 'action', recovery_type: 'turn' },
+      { name: '搜尋', icon: '🔍', category: 'action', recovery_type: 'turn' },
+      { name: '準備動作', icon: '⏳', category: 'action', recovery_type: 'turn' },
+      { name: '使用物品', icon: '🎒', category: 'action', recovery_type: 'turn' },
+      // 附贈動作 (Bonus Action)
+      { name: '副手攻擊', icon: '🗡️', category: 'bonus_action', recovery_type: 'turn' },
+      { name: '藥水', icon: '🧪', category: 'bonus_action', recovery_type: 'turn' },
+      // 反應 (Reaction)
+      { name: '藉機攻擊', icon: '❗', category: 'reaction', recovery_type: 'turn' }
+    ]
+
+    try {
+      const insertData = defaultActions.map(action => ({
+        character_id: characterId,
+        name: action.name,
+        icon: action.icon,
+        category: action.category,
+        current_uses: 1,
+        max_uses: 1,
+        recovery_type: action.recovery_type,
+        is_default: true,
+        is_custom: false
+      }))
+
+      const { error } = await supabase
+        .from('character_combat_actions')
+        .insert(insertData)
+
+      if (error) {
+        console.error('創建預設戰鬥項目失敗:', error)
+      } else {
+        console.log(`✅ 成功創建 ${defaultActions.length} 個預設戰鬥項目`)
+      }
+    } catch (error) {
+      console.error('創建預設戰鬥項目時發生錯誤:', error)
     }
   }
 

@@ -29,52 +29,6 @@ interface CombatItem {
   save_dc?: number;        // 救難DC
 }
 
-const DEFAULT_ACTIONS: CombatItem[] = [
-  { id: 'attack', name: '攻擊', icon: '⚔️', current: 1, max: 1, recovery: 'round' },
-  { id: 'dash', name: '疾跑', icon: '🏃', current: 1, max: 1, recovery: 'round' },
-  { id: 'disengage', name: '撤離', icon: '💨', current: 1, max: 1, recovery: 'round' },
-  { id: 'dodge', name: '閃避', icon: '🛡️', current: 1, max: 1, recovery: 'round' },
-  { id: 'help', name: '幫助', icon: '🤝', current: 1, max: 1, recovery: 'round' },
-  { id: 'hide', name: '躲藏', icon: '👤', current: 1, max: 1, recovery: 'round' },
-  { id: 'search', name: '搜尋', icon: '🔍', current: 1, max: 1, recovery: 'round' },
-  { id: 'ready', name: '準備動作', icon: '⏳', current: 1, max: 1, recovery: 'round' },
-  { id: 'use_object', name: '使用物品', icon: '🎒', current: 1, max: 1, recovery: 'round' }
-];
-
-const DEFAULT_BONUS_ACTIONS: CombatItem[] = [
-  { id: 'offhand_attack', name: '副手攻擊', icon: '🗡️', current: 1, max: 1, recovery: 'round' },
-  { id: 'healing_potion', name: '藥水', icon: '🧪', current: 1, max: 1, recovery: 'round' }
-];
-
-const DEFAULT_REACTIONS: CombatItem[] = [
-  { id: 'opportunity', name: '藉機攻擊', icon: '❗', current: 1, max: 1, recovery: 'round' }
-];
-
-const DEFAULT_RESOURCES: CombatItem[] = [];
-
-// 預設項目名稱列表 - 用於判斷是否為預設項目
-const DEFAULT_ITEM_NAMES = new Set([
-  '攻擊', '疾跑', '疾走', '撤離', '閃避', '幫助', '躲藏', '隱匿', '搜尋', '搜索', '準備動作', '準備', '使用物品',
-  '副手攻擊', '藥水',
-  '藉機攻擊'
-]);
-
-// 檢查是否為預設項目
-const isDefaultItem = (item: CombatItem): boolean => {
-  return item.is_default || 
-         DEFAULT_ITEM_NAMES.has(item.name) || 
-         DEFAULT_ITEM_IDS.action.includes(item.id) ||
-         DEFAULT_ITEM_IDS.bonus.includes(item.id) ||
-         DEFAULT_ITEM_IDS.reaction.includes(item.id);
-};
-
-// 預設項目ID列表 - 這些項目不能被刪除
-const DEFAULT_ITEM_IDS = {
-  action: ['attack', 'dash', 'disengage', 'dodge', 'help', 'hide', 'search', 'ready', 'use_object'],
-  bonus: ['offhand_attack', 'healing_potion'],
-  reaction: ['opportunity']
-};
-
 const STORAGE_KEYS = {
 
 };
@@ -135,10 +89,10 @@ export const CombatView: React.FC<CombatViewProps> = ({
   });
   
   // 狀態管理 - 從資料庫載入
-  const [actions, setActions] = useState<CombatItem[]>(DEFAULT_ACTIONS);
-  const [bonusActions, setBonusActions] = useState<CombatItem[]>(DEFAULT_BONUS_ACTIONS);
-  const [reactions, setReactions] = useState<CombatItem[]>(DEFAULT_REACTIONS);
-  const [resources, setResources] = useState<CombatItem[]>(DEFAULT_RESOURCES);
+  const [actions, setActions] = useState<CombatItem[]>([]);
+  const [bonusActions, setBonusActions] = useState<CombatItem[]>([]);
+  const [reactions, setReactions] = useState<CombatItem[]>([]);
+  const [resources, setResources] = useState<CombatItem[]>([]);
   
   // 資料載入狀態
   const [isLoading, setIsLoading] = useState(true);
@@ -178,65 +132,41 @@ export const CombatView: React.FC<CombatViewProps> = ({
   const [formMax, setFormMax] = useState('1');
   const [formRecovery, setFormRecovery] = useState<'round' | 'short' | 'long'>('round');
 
-  // 資料庫初始化和遷移
+  // 從資料庫載入戰鬥項目
   useEffect(() => {
-    const initializeData = async () => {
+    const loadData = async () => {
       try {
         setIsLoading(true);
-        setError(null); // 清除之前的錯誤
+        setError(null);
         
-        // 從資料庫載入資料
-        try {
-          const combatItems = await HybridDataManager.getCombatItems(characterId);
-          
-          // 將資料庫中的數據按類別分組
-          const actionItems = combatItems.filter(item => item.category === 'action');
-          const bonusItems = combatItems.filter(item => item.category === 'bonus_action');
-          const reactionItems = combatItems.filter(item => item.category === 'reaction');
-          const resourceItems = combatItems.filter(item => item.category === 'resource');
-          
-          // 如果資料庫中沒有資料，使用預設資料並保存到資料庫
-          if (combatItems.length === 0) {
-            console.log('資料庫中沒有資料，使用預設資料');
-            await initializeDefaultItems();
-          } else {
-            // 轉換資料庫格式到組件格式
-            const convertedActions = actionItems.map(convertDbItemToLocal);
-            const convertedBonusActions = bonusItems.map(convertDbItemToLocal);
-            const convertedReactions = reactionItems.map(convertDbItemToLocal);
-            const convertedResources = resourceItems.map(convertDbItemToLocal);
-            
-            setActions(convertedActions);
-            setBonusActions(convertedBonusActions);
-            setReactions(convertedReactions);
-            setResources(convertedResources);
-          }
-        } catch (dbError) {
-          console.error('資料庫載入失敗:', dbError);
-          setError(`資料載入失敗：${dbError instanceof Error ? dbError.message : '未知錯誤'}`);
-          
-          // fallback 到預設資料
-          console.log('使用預設戰鬥資料');
-          setActions(DEFAULT_ACTIONS);
-          setBonusActions(DEFAULT_BONUS_ACTIONS);
-          setReactions(DEFAULT_REACTIONS);
-          setResources(DEFAULT_RESOURCES);
-        }
+        const combatItems = await HybridDataManager.getCombatItems(characterId);
         
+        // 將資料庫中的數據按類別分組
+        const actionItems = combatItems.filter(item => item.category === 'action');
+        const bonusItems = combatItems.filter(item => item.category === 'bonus_action');
+        const reactionItems = combatItems.filter(item => item.category === 'reaction');
+        const resourceItems = combatItems.filter(item => item.category === 'resource');
+        
+        // 轉換資料庫格式到組件格式
+        const convertedActions = actionItems.map(convertDbItemToLocal);
+        const convertedBonusActions = bonusItems.map(convertDbItemToLocal);
+        const convertedReactions = reactionItems.map(convertDbItemToLocal);
+        const convertedResources = resourceItems.map(convertDbItemToLocal);
+        
+        setActions(convertedActions);
+        setBonusActions(convertedBonusActions);
+        setReactions(convertedReactions);
+        setResources(convertedResources);
       } catch (error) {
-        console.error('資料初始化失敗:', error);
-        // fallback 到預設資料
-        setActions(DEFAULT_ACTIONS);
-        setBonusActions(DEFAULT_BONUS_ACTIONS);
-        setReactions(DEFAULT_REACTIONS);
-        setResources(DEFAULT_RESOURCES);
+        console.error('載入戰鬥資料失敗:', error);
+        setError(`資料載入失敗：${error instanceof Error ? error.message : '未知錯誤'}`);
       } finally {
         setIsLoading(false);
       }
     };
 
-    initializeData();
-  }, [characterId]); // 只依賴characterId，遷移狀態由內部邏輯控制
+    loadData();
+  }, [characterId]);
 
   // 分類映射 - 前端到資料庫
   const mapCategoryToDb = (category: ItemCategory): string => {
@@ -282,81 +212,33 @@ export const CombatView: React.FC<CombatViewProps> = ({
   };
 
   // 將資料庫項目轉換為本地格式
-  const convertDbItemToLocal = (dbItem: DatabaseCombatItem): CombatItem => ({
-    id: dbItem.default_item_id || dbItem.id, // 優先使用原始ID，否則使用資料庫ID
-    name: dbItem.name,
-    icon: dbItem.icon,
-    current: dbItem.current_uses,
-    max: dbItem.max_uses,
-    recovery: mapRecoveryFromDb(dbItem.recovery_type),
-    character_id: dbItem.character_id,
-    category: mapCategoryFromDb(dbItem.category),
-    item_id: dbItem.id, // 保存資料庫 ID 作為 item_id
-    created_at: dbItem.created_at,
-    is_default: dbItem.is_default, // 傳遞預設標記
-    // D&D 5E 進階屬性
-    description: dbItem.description,
-    action_type: dbItem.action_type as 'attack' | 'spell' | 'ability' | 'item',
-    damage_formula: dbItem.damage_formula,
-    attack_bonus: dbItem.attack_bonus,
-    save_dc: dbItem.save_dc
-  });
-
-  // 初始化預設項目到資料庫
-  const initializeDefaultItems = async () => {
-    try {
-      console.log('初始化預設戰鬥項目，角色ID:', characterId);
-      
-      const defaultItems = [
-        ...DEFAULT_ACTIONS.map(item => ({ ...item, category: 'action' })),
-        ...DEFAULT_BONUS_ACTIONS.map(item => ({ ...item, category: 'bonus_action' })),
-        ...DEFAULT_REACTIONS.map(item => ({ ...item, category: 'reaction' })),
-        ...DEFAULT_RESOURCES.map(item => ({ ...item, category: 'resource' }))
-      ];
-
-      const createdItems = [];
-      for (const item of defaultItems) {
-        try {
-          const newItem = await HybridDataManager.createCombatItem({
-            character_id: characterId,
-            category: item.category,
-            name: item.name,
-            icon: item.icon,
-            current_uses: item.current,
-            max_uses: item.max,
-            recovery_type: mapRecoveryToDb(item.recovery),
-            is_default: true,
-            is_custom: false,
-            default_item_id: item.id // 設置原始ID
-          });
-          
-          if (newItem) {
-            createdItems.push(newItem);
-            console.log(`成功創建預設項目: ${item.name}`);
-          }
-        } catch (itemError) {
-          console.error(`創建項目 "${item.name}" 失敗:`, itemError);
-          // 繼續創建其他項目，不因一個失敗而停止
-        }
-      }
-      
-      console.log(`成功創建 ${createdItems.length}/${defaultItems.length} 個預設項目`);
-      
-      // 使用成功創建的項目更新狀態
-      const actionItems = createdItems.filter(item => item.category === 'action');
-      const bonusItems = createdItems.filter(item => item.category === 'bonus_action');
-      const reactionItems = createdItems.filter(item => item.category === 'reaction');
-      const resourceItems = createdItems.filter(item => item.category === 'resource');
-      
-      setActions(actionItems.map(convertDbItemToLocal));
-      setBonusActions(bonusItems.map(convertDbItemToLocal));
-      setReactions(reactionItems.map(convertDbItemToLocal));
-      setResources(resourceItems.map(convertDbItemToLocal));
-      
-    } catch (error) {
-      console.error('初始化預設項目失敗:', error);
-      throw error; // 重新拋出錯誤以便上層處理
-    }
+  const convertDbItemToLocal = (dbItem: DatabaseCombatItem): CombatItem => {
+    // 優先使用 default_item_id，否則使用資料庫 ID
+    const itemId = dbItem.default_item_id || dbItem.id;
+    
+    // 判斷是否為預設項目：只要有 default_item_id 就是預設項目
+    // （因為只有系統預設項目才會有這個欄位）
+    const finalIsDefault = dbItem.is_default || !!dbItem.default_item_id;
+    
+    return {
+      id: itemId,
+      name: dbItem.name,
+      icon: dbItem.icon,
+      current: dbItem.current_uses,
+      max: dbItem.max_uses,
+      recovery: mapRecoveryFromDb(dbItem.recovery_type),
+      character_id: dbItem.character_id,
+      category: mapCategoryFromDb(dbItem.category),
+      item_id: dbItem.id, // 保存資料庫 ID 作為 item_id
+      created_at: dbItem.created_at,
+      is_default: finalIsDefault,
+      // D&D 5E 進階屬性
+      description: dbItem.description,
+      action_type: dbItem.action_type as 'attack' | 'spell' | 'ability' | 'item',
+      damage_formula: dbItem.damage_formula,
+      attack_bonus: dbItem.attack_bonus,
+      save_dc: dbItem.save_dc
+    };
   };
 
   // 保存狀態到本地 localStorage (保留原有的戰鬥狀態同步)
@@ -907,7 +789,6 @@ export const CombatView: React.FC<CombatViewProps> = ({
         onRemove={(id) => removeItem('action', id)}
         categoryUsage={categoryUsages.action}
         onEditCategoryUsage={() => handleOpenCategoryUsageModal('action')}
-        defaultItemIds={DEFAULT_ITEM_IDS.action}
       />
 
       <ActionList 
@@ -921,7 +802,6 @@ export const CombatView: React.FC<CombatViewProps> = ({
         onRemove={(id) => removeItem('bonus', id)}
         categoryUsage={categoryUsages.bonus}
         onEditCategoryUsage={() => handleOpenCategoryUsageModal('bonus')}
-        defaultItemIds={DEFAULT_ITEM_IDS.bonus}
       />
 
       <ActionList 
@@ -935,7 +815,6 @@ export const CombatView: React.FC<CombatViewProps> = ({
         onRemove={(id) => removeItem('reaction', id)}
         categoryUsage={categoryUsages.reaction}
         onEditCategoryUsage={() => handleOpenCategoryUsageModal('reaction')}
-        defaultItemIds={DEFAULT_ITEM_IDS.reaction}
       />
 
       {/* 統一的新增/編輯項目彈窗 */}
@@ -1422,10 +1301,9 @@ interface ActionListProps {
   isTwoCol?: boolean;
   categoryUsage?: { current: number; max: number };
   onEditCategoryUsage?: () => void;
-  defaultItemIds?: string[];
 }
 
-const ActionList: React.FC<ActionListProps> = ({ title, category, items, colorClass, onAdd, isEditMode, onRemove, onUse, isTwoCol = false, categoryUsage, onEditCategoryUsage, defaultItemIds = [] }) => {
+const ActionList: React.FC<ActionListProps> = ({ title, category, items, colorClass, onAdd, isEditMode, onRemove, onUse, isTwoCol = false, categoryUsage, onEditCategoryUsage }) => {
   const isCategoryDisabled = categoryUsage && categoryUsage.current <= 0;
   
   return (
@@ -1494,7 +1372,7 @@ const ActionList: React.FC<ActionListProps> = ({ title, category, items, colorCl
                   </>
                 )}
               </button>
-              {isEditMode && !isDefaultItem(item) && (
+              {isEditMode && !item.is_default && (
                 <button 
                   onClick={(e) => { e.stopPropagation(); onRemove(item.id); }}
                   className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-rose-600 text-white rounded-full flex items-center justify-center text-[16px] font-black border border-slate-950 shadow-lg z-10 active:scale-75 transition-transform"
