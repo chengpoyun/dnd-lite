@@ -85,9 +85,14 @@ export class CombatService {
         .from('combat_sessions')
         .select('*')
         .eq('session_code', sessionCode)
-        .single();
+        .maybeSingle();
 
-      if (error || !data) {
+      if (error) {
+        console.error('查詢戰鬥會話失敗:', error);
+        return { success: false, error: '查詢失敗' };
+      }
+
+      if (!data) {
         return { success: false, error: '戰鬥代碼不存在' };
       }
 
@@ -118,9 +123,14 @@ export class CombatService {
         .from('combat_sessions')
         .select('*')
         .eq('session_code', sessionCode)
-        .single();
+        .maybeSingle();
 
-      if (sessionError || !session) {
+      if (sessionError) {
+        console.error('查詢戰鬥會話失敗:', sessionError);
+        return { success: false, error: '查詢失敗' };
+      }
+
+      if (!session) {
         return { success: false, error: '戰鬥會話不存在' };
       }
 
@@ -173,11 +183,16 @@ export class CombatService {
     localLastUpdated: string
   ): Promise<{ hasConflict: boolean; latestTimestamp?: string; isActive?: boolean; endedAt?: string | null }> {
     try {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('combat_sessions')
         .select('last_updated, is_active, ended_at')
         .eq('session_code', sessionCode)
-        .single();
+        .maybeSingle();
+
+      if (error) {
+        console.error('查詢版本衝突失敗:', error);
+        return { hasConflict: true };
+      }
 
       if (!data) {
         return { hasConflict: true };
