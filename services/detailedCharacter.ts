@@ -78,24 +78,19 @@ export class DetailedCharacterService {
     userId?: string,
     anonymousId?: string
   }): Promise<Character[]> {
-    // 重試邏輯：處理 Supabase 冷啟動
-    const maxRetries = 3 // 增加到3次
+    // 重試邏輯：處理 Supabase 冷啟動問題
+    const maxRetries = 2
     let lastError: any = null
     
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
         if (attempt > 1) {
-          console.log(`🔄 getUserCharacters 重試第 ${attempt} 次...`)
-          const waitTime = attempt === 2 ? 2000 : 3000
-          await new Promise(resolve => setTimeout(resolve, waitTime))
+          console.log(`🔄 重試第 ${attempt} 次...`)
+          await new Promise(resolve => setTimeout(resolve, 1000))
         }
         
-        let context
-        if (userContext) {
-          context = userContext
-        } else {
-          context = await this.getCurrentUserContext()
-        }
+        // 使用傳入的上下文或獲取新的
+        const context = userContext || await this.getCurrentUserContext()
         
         let query = supabase
           .from('characters')
@@ -108,32 +103,20 @@ export class DetailedCharacterService {
           query = query.eq('anonymous_id', context.anonymousId)
         }
         
-        // 添加超時保護
-        const timeoutPromise = new Promise<never>((_, reject) => {
-          setTimeout(() => reject(new Error('查詢超時')), 15000)
-        })
-        
-        const dbQueryStart = performance.now()
-        const { data, error } = await Promise.race([query, timeoutPromise]) as any
-        const dbQueryTime = performance.now() - dbQueryStart
+        const { data, error } = await query
         
         if (error) {
-          // 檢查是否為值得重試的錯誤
-          const errorMessage = error.message || ''
-          if (attempt < maxRetries && (
-            errorMessage.includes('CORS') || 
-            errorMessage.includes('520') || 
-            errorMessage.includes('502') || 
-            errorMessage.includes('503') ||
-            errorMessage.includes('Failed to fetch') ||
-            errorMessage.includes('超時') ||
-            errorMessage.includes('timeout')
-          )) {
-            console.warn(`⚠️ 查詢錯誤（${errorMessage}），將重試`)
-            lastError = error
-            continue
+          // 檢查是否為網路/伺服器錯誤（值得重試）
+          if (attempt < maxRetries) {
+            const errorMessage = error.message || ''
+            if (errorMessage.includes('CORS') || errorMessage.includes('520') || 
+                errorMessage.includes('502') || errorMessage.includes('503') ||
+                errorMessage.includes('Failed to fetch')) {
+              console.warn(`⚠️ 網路錯誤，將重試`)
+              lastError = error
+              continue
+            }
           }
-          
           console.warn('⚠️ 載入角色列表失敗:', error.message)
           return []
         }
@@ -142,6 +125,16 @@ export class DetailedCharacterService {
         
       } catch (error) {
         lastError = error
+        // 檢查是否為網路錯誤（值得重試）
+        if (attempt < maxRetries) {
+          const errorMessage = error?.message || ''
+          if (errorMessage.includes('CORS') || errorMessage.includes('520') || 
+              errorMessage.includes('502') || errorMessage.includes('503') ||
+              errorMessage.includes('Failed to fetch')) {
+            console.warn(`⚠️ 網路錯誤，將重試`)
+            continue
+          }
+        }
       }
     }
     

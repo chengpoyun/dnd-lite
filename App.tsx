@@ -130,11 +130,15 @@ const AuthenticatedApp: React.FC = () => {
       
       try {
         // 静默初始化，只在錯誤時輸出
+        const dbInitStart = performance.now()
         await DatabaseInitService.initializeTables()
+        console.log(`⏱️ DatabaseInit: ${(performance.now() - dbInitStart).toFixed(1)}ms`)
         
         if (user) {
           // 先檢查是否有匿名角色需要轉換
+          const conversionCheckStart = performance.now()
           const hasAnonymousChars = await DetailedCharacterService.hasAnonymousCharactersToConvert()
+          console.log(`⏱️ 轉換檢查: ${(performance.now() - conversionCheckStart).toFixed(1)}ms`)
           
           if (hasAnonymousChars) {
             console.log('🔄 檢測到匿名角色，準備轉換')
@@ -158,7 +162,9 @@ const AuthenticatedApp: React.FC = () => {
                 let characterToLoad = characters[0]
                 
                 try {
+                  const settingsStart = performance.now()
                   const lastCharacterId = await UserSettingsService.getLastCharacterId()
+                  console.log(`⏱️ 讀取設定: ${(performance.now() - settingsStart).toFixed(1)}ms`)
                   if (lastCharacterId) {
                     const lastCharacter = characters.find(c => c.id === lastCharacterId)
                     if (lastCharacter) {
@@ -189,7 +195,9 @@ const AuthenticatedApp: React.FC = () => {
         } else {
           // 匿名用戶模式
           await loadWithRetry(async () => {
+            const anonInitStart = performance.now()
             await AnonymousService.init()
+            console.log(`⏱️ 匿名服務初始化: ${(performance.now() - anonInitStart).toFixed(1)}ms`)
             
             // 傳入匿名用戶上下文
             const userContext = {
@@ -872,9 +880,10 @@ const AuthenticatedApp: React.FC = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-        <div className="text-center">
+        <div className="text-center px-4">
           <div className="animate-spin rounded-full h-12 w-12 border-4 border-amber-400 border-t-transparent mx-auto mb-4"></div>
-          <p className="text-slate-400">載入中...</p>
+          <p className="text-slate-300 mb-2">正在連接資料庫...</p>
+          <p className="text-slate-500 text-sm">初次載入可能需要 5-10 秒</p>
         </div>
       </div>
     )

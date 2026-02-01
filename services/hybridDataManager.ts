@@ -12,7 +12,8 @@ export class HybridDataManager {
   private static cachedCharacters: Character[] | null = null
   private static cacheTimestamp: number = 0
   private static connectionTestCache = { lastTest: 0, isConnected: false }
-  private static CACHE_DURATION = 10000 // 10秒緩存
+  private static CACHE_DURATION = 60000 // 60秒緩存（提升到 1 分鐘）
+  private static isPreloading = false // 防止重複預載
   
   /**
    * 清除所有緩存（用於緊急重置）
@@ -96,12 +97,13 @@ export class HybridDataManager {
       // 檢查緩存是否有效
       const cacheCheckStart = performance.now()
       if (this.cachedCharacters && (now - this.cacheTimestamp) < this.CACHE_DURATION) {
+        const cacheAge = ((now - this.cacheTimestamp) / 1000).toFixed(1)
         const cacheTime = performance.now() - cacheCheckStart
-        console.log(`⚡ 使用緩存: ${cacheTime.toFixed(1)}ms`)
+        console.log(`⚡ 使用緩存 (${cacheAge}秒前): ${cacheTime.toFixed(1)}ms`)
         return this.cachedCharacters
       }
       const cacheTime = performance.now() - cacheCheckStart
-      console.log(`⏱️ 緩存檢查: ${cacheTime.toFixed(1)}ms`)
+      console.log(`⏱️ 緩存檢查: ${cacheTime.toFixed(1)}ms${this.cachedCharacters ? ' (已過期)' : ' (無緩存)'}`)
       
       // 傳入用戶上下文，避免重複認證檢查
       const serviceCallStart = performance.now()

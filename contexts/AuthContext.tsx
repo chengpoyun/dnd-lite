@@ -44,9 +44,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         const currentUser = await AuthService.getCurrentUser()
         setUser(currentUser)
         
-        // 如果有用戶，檢查或建立 session（不強制）
+        // 如果有用戶，檢查或建立 session（傳入 userId 避免重複調用 auth.getUser()）
         if (currentUser) {
-          await UserSettingsService.createSession(false)
+          await UserSettingsService.createSession(false, currentUser.id)
         }
       } catch (error) {
         console.error('初始化認證失敗:', error)
@@ -65,7 +65,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // 只在真正登入時（SIGNED_IN 事件）強制建立新 session
       if (authUser && event === 'SIGNED_IN') {
         console.log('🔐 偵測到登入事件，建立新 session')
-        await UserSettingsService.createSession(true)
+        await UserSettingsService.createSession(true, authUser.id)
       }
     })
 

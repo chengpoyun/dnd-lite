@@ -203,14 +203,21 @@ export class UserSettingsService {
   /**
    * 建立新的 session
    * @param force 是否強制建立新 session（忽略現有 session）
+   * @param userId 可選的用戶 ID，避免重複調用 auth.getUser()
    * @returns session token
    */
-  static async createSession(force: boolean = false): Promise<string | null> {
+  static async createSession(force: boolean = false, userId?: string): Promise<string | null> {
     try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) {
-        console.warn('未找到已認證用戶，無法建立 session')
-        return null
+      let currentUserId = userId
+      
+      // 只有在沒有傳入 userId 時才調用 auth.getUser()
+      if (!currentUserId) {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) {
+          console.warn('未找到已認證用戶，無法建立 session')
+          return null
+        }
+        currentUserId = user.id
       }
 
       // 如果不是強制建立，檢查現有 session 是否有效
@@ -230,7 +237,7 @@ export class UserSettingsService {
       const { error } = await supabase
         .from('user_settings')
         .upsert({
-          user_id: user.id,
+          user_id: currentUserId,
           active_session_token: sessionToken,
           session_started_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
