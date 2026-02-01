@@ -29,24 +29,15 @@ export default function ItemDetailModal({
         <h2 className="text-xl font-bold mb-5">道具詳情</h2>
         
         <div className="space-y-3">
-          {/* 名稱 */}
-          <div className="flex items-center gap-2">
-            <label className="text-sm font-medium text-slate-300 w-20 shrink-0">名稱</label>
-            <div className="text-lg font-bold text-white">{item.name}</div>
-          </div>
-
-          {/* 類別 */}
-          <div className="flex items-center gap-2">
-            <label className="text-sm font-medium text-slate-300 w-20 shrink-0">類別</label>
-            <div className="px-3 py-1.5 bg-amber-900/30 border border-amber-700 text-amber-400 rounded-lg inline-block font-medium">
+          {/* 名稱 類別 數量 */}
+          <div className="flex items-center justify-between gap-3 py-2">
+            <div className="flex items-center gap-2">
+              <span className="text-lg font-bold text-white">{item.name}</span>
+              <span className="text-amber-400 font-bold">×{item.quantity}</span>
+            </div>
+            <div className="px-3 py-1.5 bg-amber-900/30 border border-amber-700 text-amber-400 rounded-lg font-medium">
               {item.category}
             </div>
-          </div>
-
-          {/* 數量 */}
-          <div className="flex items-center gap-2">
-            <label className="text-sm font-medium text-slate-300 w-20 shrink-0">數量</label>
-            <div className="text-lg font-bold text-white">× {item.quantity}</div>
           </div>
 
           {/* 詳細訊息 */}
@@ -58,17 +49,6 @@ export default function ItemDetailModal({
               </div>
             </div>
           )}
-
-          {/* 時間資訊 */}
-          <div className="text-xs text-slate-500 border-t border-slate-700 pt-3">
-            建立時間：{new Date(item.created_at).toLocaleString('zh-TW')}
-            {item.updated_at && item.updated_at !== item.created_at && (
-              <>
-                <br />
-                更新時間：{new Date(item.updated_at).toLocaleString('zh-TW')}
-              </>
-            )}
-          </div>
 
           {/* 操作按鈕 */}
           <div className="flex gap-3 pt-2">
