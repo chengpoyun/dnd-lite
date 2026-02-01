@@ -100,7 +100,7 @@ const AdjustACModal: React.FC<AdjustACModalProps> = ({
           </div>
         )}
 
-        <h2 className="text-xl font-bold mb-4">🎯 怪物 #{monsterNumber} - 調整 AC 範圍</h2>
+        <h2 className="text-xl font-bold mb-4">🎯 怪物 #{monsterNumber} - 調整 AC </h2>
 
         {/* 目前範圍 */}
         <div className="mb-4 p-3 bg-slate-900 rounded-lg">
@@ -120,44 +120,43 @@ const AdjustACModal: React.FC<AdjustACModalProps> = ({
           💡 輸入攻擊骰結果（包含所有加值後的總和），選擇命中或未命中，系統會自動縮小 AC 範圍
         </div>
 
-        {/* 攻擊骰輸入 */}
-        <div className="mb-4">
-          <label className="block text-sm text-slate-400 mb-2">攻擊骰結果（含加值）</label>
-          <input
-            type="number"
-            value={attackRoll}
-            onChange={(e) => setAttackRoll(e.target.value)}
-            placeholder="例如：18"
-            className={`${INPUT_CLASS} text-center text-2xl font-mono`}
-            min="1"
-            max="99"
-          />
-        </div>
-
-        {/* 命中選擇 */}
+        {/* 攻擊骰輸入 + 命中選擇 */}
         <div className="mb-6">
-          <label className="block text-sm text-slate-400 mb-2">結果</label>
-          <div className="flex gap-3">
-            <button
-              onClick={() => setIsHit(true)}
-              className={`flex-1 px-4 py-3 rounded-lg font-medium transition-colors ${
-                isHit === true
-                  ? 'bg-green-600 text-white'
-                  : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
-              }`}
-            >
-              ✅ 命中
-            </button>
-            <button
-              onClick={() => setIsHit(false)}
-              className={`flex-1 px-4 py-3 rounded-lg font-medium transition-colors ${
-                isHit === false
-                  ? 'bg-red-600 text-white'
-                  : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
-              }`}
-            >
-              ❌ 未命中
-            </button>
+          <label className="block text-sm text-slate-400 mb-2">攻擊骰結果（含加值）</label>
+          <div className="flex items-center gap-2">
+            <input
+              type="number"
+              value={attackRoll}
+              onChange={(e) => setAttackRoll(e.target.value)}
+              placeholder="例如：18"
+              className={`flex-1 ${INPUT_CLASS} text-center text-2xl font-mono`}
+              min="1"
+              max="99"
+            />
+            <div className="flex gap-2 shrink-0">
+              <button
+                onClick={() => setIsHit(true)}
+                className={`w-12 h-12 rounded-lg text-2xl transition-colors ${
+                  isHit === true
+                    ? 'bg-green-600 text-white'
+                    : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                }`}
+                title="命中"
+              >
+                ✅
+              </button>
+              <button
+                onClick={() => setIsHit(false)}
+                className={`w-12 h-12 rounded-lg text-2xl transition-colors ${
+                  isHit === false
+                    ? 'bg-red-600 text-white'
+                    : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                }`}
+                title="未命中"
+              >
+                ❌
+              </button>
+            </div>
           </div>
         </div>
 
