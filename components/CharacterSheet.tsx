@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { CharacterStats, CustomRecord } from '../types';
-import { getModifier, getProfBonus, evaluateValue, handleValueInput, handleDecimalInput } from '../utils/helpers';
+import { getModifier, getProfBonus, evaluateValue, handleValueInput, handleDecimalInput, formatDecimal } from '../utils/helpers';
 import { getAvailableClasses, getClassHitDie, formatClassDisplay } from '../utils/classUtils';
 import { PageContainer, Card, Button, Title, Subtitle, Input, BackButton } from './ui';
 import { STYLES, combineStyles } from '../styles/common';
@@ -1095,7 +1095,7 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
             <div className="flex flex-col">
               <span className="text-base font-bold text-slate-300">金幣</span>
             </div>
-            <span className="text-lg font-mono font-black text-amber-500">{stats.currency.gp.toFixed(2)} <span className="text-sm text-slate-500 font-normal">GP</span></span>
+            <span className="text-lg font-mono font-black text-amber-500">{formatDecimal(stats.currency.gp)} <span className="text-sm text-slate-500 font-normal">GP</span></span>
           </div>
           <div onClick={openExpModal} className="flex items-center justify-between bg-slate-800/50 p-2 rounded border border-slate-700/50 active:bg-slate-700 transition-colors cursor-pointer">
             <div className="flex flex-col">
@@ -1407,13 +1407,13 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
             <div className="space-y-6">
               <div className="space-y-4">
                 <label className="text-[14px] font-black text-amber-500 uppercase ml-1">持有金幣 (GP)</label>
-                <input type="text" value={tempGPValue} onChange={(e) => setTempGPValue(e.target.value)} className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-3xl font-mono text-center text-amber-500 focus:outline-none" placeholder={stats.currency.gp.toFixed(2)} autoFocus />
+                <input type="text" value={tempGPValue} onChange={(e) => setTempGPValue(e.target.value)} className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-3xl font-mono text-center text-amber-500 focus:outline-none" placeholder={formatDecimal(stats.currency.gp)} autoFocus />
                 <div className="text-center mt-2">
                   <span className="text-[14px] text-slate-500 uppercase font-black tracking-widest">計算結果</span>
                   <div className="flex items-center justify-center gap-3 text-lg font-bold">
-                    <span className="text-slate-400 font-[14px]">{stats.currency.gp.toFixed(2)}</span>
+                    <span className="text-slate-400 font-[14px]">{formatDecimal(stats.currency.gp)}</span>
                     <span className="text-slate-600">→</span>
-                    <span className="text-amber-500 text-2xl">{gpPreview.toFixed(2)}</span>
+                    <span className="text-amber-500 text-2xl">{formatDecimal(gpPreview)}</span>
                   </div>
                 </div>
               </div>

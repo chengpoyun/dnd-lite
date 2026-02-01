@@ -38,6 +38,49 @@ export const evaluateValue = (input: string, current: number, max?: number): num
 };
 
 /**
+ * 解析字串運算（支援小數點），支援 "+5.5", "-2.25", "100.5+10.25" 等格式
+ * 用於金幣等允許小數點的數值運算
+ */
+export const evaluateDecimalValue = (input: string, current: number, max?: number, decimalPlaces: number = 2): number => {
+  const text = input.replace(/\s+/g, '');
+  if (!text) return current;
+  
+  let tokens = text.startsWith('+') || text.startsWith('-') 
+    ? (current.toString() + text).split(/([\+\-])/) 
+    : text.split(/([\+\-])/);
+    
+  const cleanTokens = tokens.filter(t => t !== '');
+  if (cleanTokens.length === 0) return current;
+  
+  let result = parseFloat(cleanTokens[0]) || 0;
+  for (let i = 1; i < cleanTokens.length; i += 2) {
+    const op = cleanTokens[i];
+    const val = parseFloat(cleanTokens[i + 1]) || 0;
+    if (op === '+') result += val; 
+    else if (op === '-') result -= val;
+  }
+  
+  // 四捨五入到指定小數位數
+  result = Math.round(result * Math.pow(10, decimalPlaces)) / Math.pow(10, decimalPlaces);
+  result = Math.max(0, result);
+  if (max !== undefined) result = Math.min(max, result);
+  return result;
+};
+
+/**
+ * 格式化數值，自動移除尾隨零
+ * @param value 數值
+ * @param decimalPlaces 小數位數，預設 2
+ * @returns 格式化後的字串
+ * @example 512.00 -> "512", 500.20 -> "500.2", 410.25 -> "410.25"
+ */
+export const formatDecimal = (value: number, decimalPlaces: number = 2): string => {
+  const fixed = value.toFixed(decimalPlaces);
+  // parseFloat 會自動移除尾隨零，toString() 轉回字串
+  return parseFloat(fixed).toString();
+};
+
+/**
  * 通用數值設定函數 - 允許空字串輸入，在驗證時轉換為有效數字
  * 參考角色頁面屬性值的處理方式
  * @param value 字串輸入值
@@ -85,26 +128,36 @@ export const handleDecimalInput = (
     decimalPlaces = 2
   } = options;
 
-  // 解析為浮點數
-  const numericValue = parseFloat(value);
-
-  if (isNaN(numericValue)) {
-    return { isValid: false, numericValue: 0 };
+  // 檢查是否為運算表達式
+  const isCalculation = value.includes('+') || value.includes('-');
+  
+  let numericValue: number;
+  
+  if (isCalculation && currentValue !== undefined) {
+    // 使用 evaluateDecimalValue 處理運算表達式
+    numericValue = evaluateDecimalValue(value, currentValue, maxValue, decimalPlaces);
+  } else {
+    // 解析為浮點數
+    numericValue = parseFloat(value);
+    
+    if (isNaN(numericValue)) {
+      return { isValid: false, numericValue: 0 };
+    }
+    
+    // 四捨五入到指定小數位數
+    numericValue = Math.round(numericValue * Math.pow(10, decimalPlaces)) / Math.pow(10, decimalPlaces);
   }
-
-  // 四捨五入到指定小數位數
-  const roundedValue = Math.round(numericValue * Math.pow(10, decimalPlaces)) / Math.pow(10, decimalPlaces);
 
   // 檢查範圍
   const effectiveMin = allowNegative ? minValue : (allowZero ? 0 : minValue);
-  let isValid = roundedValue >= effectiveMin;
+  let isValid = numericValue >= effectiveMin;
   if (maxValue !== undefined) {
-    isValid = isValid && roundedValue <= maxValue;
+    isValid = isValid && numericValue <= maxValue;
   }
 
   return {
     isValid,
-    numericValue: isValid ? roundedValue : 0
+    numericValue: isValid ? numericValue : 0
   };
 };
 
