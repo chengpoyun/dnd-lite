@@ -167,7 +167,7 @@ const MonsterCard: React.FC<MonsterCardProps> = ({
           ➕ 新增傷害
         </button>
         {/* 當AC未確定時顯示調整AC按鈕 */}
-        {ac_max === null || (ac_min + 1 !== ac_max) && (
+        {(ac_max === null || ac_min + 1 !== ac_max) && (
           <button
             onClick={onAdjustAC}
             className="flex-1 px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg font-medium transition-colors"
