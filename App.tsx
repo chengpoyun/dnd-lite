@@ -8,6 +8,7 @@ import { CombatView } from './components/CombatView';
 import { ConversionPage } from './components/ConversionPage';
 import { SessionExpiredModal } from './components/SessionExpiredModal';
 import { SpellsPage } from './components/SpellsPage';
+import MonstersPage from './components/MonstersPage';
 
 import { CharacterStats } from './types';
 import { getModifier } from './utils/helpers';
@@ -25,6 +26,7 @@ import type { Character, CharacterAbilityScores, CharacterCurrentStats, Characte
 enum Tab {
   CHARACTER = 'character',
   COMBAT = 'combat',
+  MONSTERS = 'monsters',
   SPELLS = 'spells',
   DICE = 'dice'
 }
@@ -895,6 +897,7 @@ const AuthenticatedApp: React.FC = () => {
             {[
               { id: Tab.CHARACTER, label: '角色', icon: '👤' },
               { id: Tab.COMBAT, label: '戰鬥', icon: '⚔️' },
+              { id: Tab.MONSTERS, label: '怪物', icon: '👹' },
               ...(isSpellcaster(stats.classes?.map(c => c.name) || [stats.class]) 
                 ? [{ id: Tab.SPELLS, label: '法術', icon: '✨' }] 
                 : []),
@@ -963,6 +966,8 @@ const AuthenticatedApp: React.FC = () => {
               onSaveInitiative={saveInitiative}
             />
           )}
+
+          {activeTab === Tab.MONSTERS && <MonstersPage />}
 
           {activeTab === Tab.SPELLS && currentCharacter && (
             <SpellsPage

@@ -1,0 +1,411 @@
+import { supabase } from '../lib/supabase';
+import type { 
+  CombatSession, 
+  CombatMonster, 
+  CombatDamageLog, 
+  CombatMonsterWithLogs,
+  ResistanceType 
+} from '../lib/supabase';
+
+/**
+ * 戰鬥追蹤服務
+ * 負責多人協作的怪物戰鬥追蹤功能
+ */
+export class CombatService {
+  /**
+   * 生成隨機 3 位數戰鬥代碼
+   */
+  static generateSessionCode(): string {
+    return Math.floor(100 + Math.random() * 900).toString();
+  }
+
+  /**
+   * 創建新戰鬥會話
+   */
+  static async createSession(userContext: { 
+    isAuthenticated: boolean; 
+    userId?: string;
+    anonymousId?: string;
+  }): Promise<{ success: boolean; sessionCode?: string; error?: string }> {
+    try {
+      // 生成唯一代碼（最多嘗試 10 次）
+      let sessionCode = this.generateSessionCode();
+      let attempts = 0;
+      
+      while (attempts < 10) {
+        const { data: existing } = await supabase
+          .from('combat_sessions')
+          .select('session_code')
+          .eq('session_code', sessionCode)
+          .eq('is_active', true)
+          .single();
+        
+        if (!existing) break;
+        sessionCode = this.generateSessionCode();
+        attempts++;
+      }
+
+      if (attempts >= 10) {
+        return { success: false, error: '無法生成唯一戰鬥代碼' };
+      }
+
+      // 創建戰鬥會話
+      const { data, error } = await supabase
+        .from('combat_sessions')
+        .insert({
+          session_code: sessionCode,
+          user_id: userContext.isAuthenticated ? userContext.userId : null,
+          anonymous_id: userContext.isAuthenticated ? null : userContext.anonymousId,
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error('創建戰鬥會話失敗:', error);
+        return { success: false, error: error.message };
+      }
+
+      return { success: true, sessionCode: data.session_code };
+    } catch (error) {
+      console.error('創建戰鬥會話異常:', error);
+      return { success: false, error: String(error) };
+    }
+  }
+
+  /**
+   * 加入現有戰鬥會話（驗證代碼是否存在）
+   */
+  static async joinSession(sessionCode: string): Promise<{ 
+    success: boolean; 
+    session?: CombatSession;
+    error?: string 
+  }> {
+    try {
+      const { data, error } = await supabase
+        .from('combat_sessions')
+        .select('*')
+        .eq('session_code', sessionCode)
+        .eq('is_active', true)
+        .single();
+
+      if (error || !data) {
+        return { success: false, error: '戰鬥代碼不存在或已結束' };
+      }
+
+      return { success: true, session: data };
+    } catch (error) {
+      console.error('加入戰鬥會話異常:', error);
+      return { success: false, error: String(error) };
+    }
+  }
+
+  /**
+   * 獲取戰鬥會話資訊（包含所有怪物和傷害記錄）
+   */
+  static async getCombatData(sessionCode: string): Promise<{
+    success: boolean;
+    session?: CombatSession;
+    monsters?: CombatMonsterWithLogs[];
+    error?: string;
+  }> {
+    try {
+      // 獲取會話資訊
+      const { data: session, error: sessionError } = await supabase
+        .from('combat_sessions')
+        .select('*')
+        .eq('session_code', sessionCode)
+        .eq('is_active', true)
+        .single();
+
+      if (sessionError || !session) {
+        return { success: false, error: '戰鬥會話不存在' };
+      }
+
+      // 獲取所有怪物
+      const { data: monsters, error: monstersError } = await supabase
+        .from('combat_monsters')
+        .select('*')
+        .eq('session_code', sessionCode)
+        .eq('is_dead', false)
+        .order('monster_number', { ascending: true });
+
+      if (monstersError) {
+        return { success: false, error: monstersError.message };
+      }
+
+      // 獲取所有傷害記錄
+      const monsterIds = monsters?.map(m => m.id) || [];
+      const { data: damageLogs, error: logsError } = await supabase
+        .from('combat_damage_logs')
+        .select('*')
+        .in('monster_id', monsterIds)
+        .order('created_at', { ascending: true });
+
+      if (logsError) {
+        return { success: false, error: logsError.message };
+      }
+
+      // 組合數據
+      const monstersWithLogs: CombatMonsterWithLogs[] = (monsters || []).map(monster => ({
+        ...monster,
+        damage_logs: (damageLogs || []).filter(log => log.monster_id === monster.id)
+      }));
+
+      return { 
+        success: true, 
+        session,
+        monsters: monstersWithLogs 
+      };
+    } catch (error) {
+      console.error('獲取戰鬥數據異常:', error);
+      return { success: false, error: String(error) };
+    }
+  }
+
+  /**
+   * 檢查版本衝突
+   */
+  static async checkVersionConflict(
+    sessionCode: string, 
+    localLastUpdated: string
+  ): Promise<{ hasConflict: boolean; latestTimestamp?: string }> {
+    try {
+      const { data } = await supabase
+        .from('combat_sessions')
+        .select('last_updated')
+        .eq('session_code', sessionCode)
+        .single();
+
+      if (!data) {
+        return { hasConflict: true };
+      }
+
+      const dbTimestamp = new Date(data.last_updated).getTime();
+      const localTimestamp = new Date(localLastUpdated).getTime();
+
+      return { 
+        hasConflict: dbTimestamp > localTimestamp,
+        latestTimestamp: data.last_updated
+      };
+    } catch (error) {
+      console.error('檢查版本衝突異常:', error);
+      return { hasConflict: true };
+    }
+  }
+
+  /**
+   * 新增怪物
+   */
+  static async addMonster(sessionCode: string): Promise<{ 
+    success: boolean; 
+    monster?: CombatMonster;
+    error?: string 
+  }> {
+    try {
+      // 獲取當前最大怪物編號
+      const { data: existing } = await supabase
+        .from('combat_monsters')
+        .select('monster_number')
+        .eq('session_code', sessionCode)
+        .order('monster_number', { ascending: false })
+        .limit(1);
+
+      const nextNumber = existing && existing.length > 0 
+        ? existing[0].monster_number + 1 
+        : 1;
+
+      // 創建新怪物
+      const { data, error } = await supabase
+        .from('combat_monsters')
+        .insert({
+          session_code: sessionCode,
+          monster_number: nextNumber,
+          ac_min: 0,
+          ac_max: null,
+          total_damage: 0,
+          is_dead: false
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error('新增怪物失敗:', error);
+        return { success: false, error: error.message };
+      }
+
+      return { success: true, monster: data };
+    } catch (error) {
+      console.error('新增怪物異常:', error);
+      return { success: false, error: String(error) };
+    }
+  }
+
+  /**
+   * 刪除怪物（標記為死亡）
+   */
+  static async deleteMonster(monsterId: string): Promise<{ 
+    success: boolean; 
+    error?: string 
+  }> {
+    try {
+      const { error } = await supabase
+        .from('combat_monsters')
+        .update({ is_dead: true })
+        .eq('id', monsterId);
+
+      if (error) {
+        console.error('刪除怪物失敗:', error);
+        return { success: false, error: error.message };
+      }
+
+      return { success: true };
+    } catch (error) {
+      console.error('刪除怪物異常:', error);
+      return { success: false, error: String(error) };
+    }
+  }
+
+  /**
+   * 更新 AC 範圍
+   */
+  static async updateACRange(
+    monsterId: string,
+    attackRoll: number,
+    isHit: boolean
+  ): Promise<{ success: boolean; newRange?: { min: number; max: number | null }; error?: string }> {
+    try {
+      // 獲取當前 AC 範圍
+      const { data: monster } = await supabase
+        .from('combat_monsters')
+        .select('ac_min, ac_max')
+        .eq('id', monsterId)
+        .single();
+
+      if (!monster) {
+        return { success: false, error: '怪物不存在' };
+      }
+
+      // 計算新範圍
+      let newMin = monster.ac_min;
+      let newMax = monster.ac_max;
+
+      if (isHit) {
+        // 命中 → AC <= 攻擊骰
+        newMax = newMax === null ? attackRoll : Math.min(newMax, attackRoll);
+      } else {
+        // 未命中 → AC > 攻擊骰
+        newMin = Math.max(newMin, attackRoll);
+      }
+
+      // 驗證範圍合法性
+      if (newMax !== null && newMin > newMax) {
+        return { success: false, error: 'AC 範圍衝突，請檢查輸入' };
+      }
+
+      // 更新資料庫
+      const { error } = await supabase
+        .from('combat_monsters')
+        .update({ ac_min: newMin, ac_max: newMax })
+        .eq('id', monsterId);
+
+      if (error) {
+        console.error('更新 AC 範圍失敗:', error);
+        return { success: false, error: error.message };
+      }
+
+      return { success: true, newRange: { min: newMin, max: newMax } };
+    } catch (error) {
+      console.error('更新 AC 範圍異常:', error);
+      return { success: false, error: String(error) };
+    }
+  }
+
+  /**
+   * 新增傷害記錄
+   */
+  static async addDamage(
+    monsterId: string,
+    damages: Array<{
+      value: number;
+      type: string;
+      resistanceType: ResistanceType;
+    }>
+  ): Promise<{ success: boolean; error?: string }> {
+    try {
+      // 計算總傷害
+      const totalDamage = damages.reduce((sum, d) => sum + d.value, 0);
+
+      // 獲取當前累計傷害
+      const { data: monster } = await supabase
+        .from('combat_monsters')
+        .select('total_damage')
+        .eq('id', monsterId)
+        .single();
+
+      if (!monster) {
+        return { success: false, error: '怪物不存在' };
+      }
+
+      // 插入傷害記錄
+      const logsToInsert = damages.map(d => ({
+        monster_id: monsterId,
+        damage_value: d.value,
+        damage_type: d.type,
+        resistance_type: d.resistanceType
+      }));
+
+      const { error: logsError } = await supabase
+        .from('combat_damage_logs')
+        .insert(logsToInsert);
+
+      if (logsError) {
+        console.error('插入傷害記錄失敗:', logsError);
+        return { success: false, error: logsError.message };
+      }
+
+      // 更新累計傷害
+      const { error: updateError } = await supabase
+        .from('combat_monsters')
+        .update({ total_damage: monster.total_damage + totalDamage })
+        .eq('id', monsterId);
+
+      if (updateError) {
+        console.error('更新累計傷害失敗:', updateError);
+        return { success: false, error: updateError.message };
+      }
+
+      return { success: true };
+    } catch (error) {
+      console.error('新增傷害異常:', error);
+      return { success: false, error: String(error) };
+    }
+  }
+
+  /**
+   * 結束戰鬥（刪除所有相關數據）
+   */
+  static async endCombat(sessionCode: string): Promise<{ 
+    success: boolean; 
+    error?: string 
+  }> {
+    try {
+      // 標記戰鬥會話為非活躍（CASCADE 會自動刪除怪物和傷害記錄）
+      const { error } = await supabase
+        .from('combat_sessions')
+        .delete()
+        .eq('session_code', sessionCode);
+
+      if (error) {
+        console.error('結束戰鬥失敗:', error);
+        return { success: false, error: error.message };
+      }
+
+      return { success: true };
+    } catch (error) {
+      console.error('結束戰鬥異常:', error);
+      return { success: false, error: String(error) };
+    }
+  }
+}
+
+export default CombatService;

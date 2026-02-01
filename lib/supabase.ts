@@ -194,5 +194,43 @@ export interface CharacterUpdateData {
   combatActions?: CharacterCombatAction[]
 }
 
+// 戰鬥追蹤系統類型定義
+export interface CombatSession {
+  id: string
+  session_code: string
+  user_id: string | null
+  anonymous_id: string | null
+  created_at: string
+  last_updated: string
+  is_active: boolean
+}
+
+export interface CombatMonster {
+  id: string
+  session_code: string
+  monster_number: number
+  ac_min: number
+  ac_max: number | null
+  total_damage: number
+  is_dead: boolean
+  created_at: string
+}
+
+export type ResistanceType = 'normal' | 'resistant' | 'vulnerable' | 'immune'
+
+export interface CombatDamageLog {
+  id: string
+  monster_id: string
+  damage_value: number
+  damage_type: string
+  resistance_type: ResistanceType
+  created_at: string
+}
+
+// 組合類型：包含傷害記錄的怪物
+export interface CombatMonsterWithLogs extends CombatMonster {
+  damage_logs: CombatDamageLog[]
+}
+
 // 從現有類型導入（向後相容）
 import type { CharacterStats } from '../types'
