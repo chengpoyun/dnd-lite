@@ -102,26 +102,13 @@ const AdjustACModal: React.FC<AdjustACModalProps> = ({
 
         <h2 className="text-xl font-bold mb-4">🎯 怪物 #{monsterNumber} - 調整 AC </h2>
 
-        {/* 目前範圍 */}
-        <div className="mb-4 p-3 bg-slate-900 rounded-lg">
-          <span className="text-slate-400 text-sm">目前範圍：</span>
-          <span className="ml-2 text-lg font-mono text-blue-400">
-            {currentACRange.max === null
-              ? `${currentACRange.min} < AC`
-              : currentACRange.min + 1 === currentACRange.max
-              ? `AC = ${currentACRange.max}`
-              : `${currentACRange.min} < AC <= ${currentACRange.max}`
-            }
-          </span>
-        </div>
-
         {/* 說明 */}
         <div className={INFO_BOX_CLASS}>
           💡 輸入攻擊骰結果（包含所有加值後的總和），選擇命中或未命中，系統會自動縮小 AC 範圍
         </div>
 
         {/* 攻擊骰輸入 + 命中選擇 */}
-        <div className="mt-4 mb-6">
+        <div className="mt-4 mb-3">
           <label className="block text-sm text-slate-400 mb-2">攻擊骰結果（含加值）</label>
           <div className="flex items-center gap-2">
             <input
@@ -158,6 +145,21 @@ const AdjustACModal: React.FC<AdjustACModalProps> = ({
               </button>
             </div>
           </div>
+        </div>
+
+        {/* 目前範圍 */}
+        <div className="mb-6 p-3 bg-slate-900 rounded-lg">
+          <span className="text-slate-400 text-sm">目前範圍：</span>
+          <span className="ml-2 text-lg font-mono text-blue-400">
+            {currentACRange.min === 0 && currentACRange.max === 99
+              ? '?'
+              : currentACRange.max === null
+              ? `${currentACRange.min} < AC`
+              : currentACRange.min + 1 === currentACRange.max
+              ? `AC = ${currentACRange.max}`
+              : `${currentACRange.min} < AC <= ${currentACRange.max}`
+            }
+          </span>
         </div>
 
         {/* 操作按鈕 */}
