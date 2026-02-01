@@ -55,7 +55,17 @@ const AddDamageModal: React.FC<AddDamageModalProps> = ({
 
   // 新增傷害條目
   const addEntry = () => {
-    setEntries([...entries, { originalValue: '', type: 'slashing', resistanceType: 'normal' }]);
+    // 找到第一個未使用的傷害類型
+    const usedTypes = entries.map(e => e.type);
+    const availableType = DAMAGE_TYPES.find(dt => !usedTypes.includes(dt.value));
+    
+    // 如果所有類型都已使用，則無法新增
+    if (!availableType) {
+      showError('所有傷害類型已使用完畢');
+      return;
+    }
+    
+    setEntries([...entries, { originalValue: '', type: availableType.value, resistanceType: 'normal' }]);
   };
 
   // 移除傷害條目
@@ -190,7 +200,7 @@ const AddDamageModal: React.FC<AddDamageModalProps> = ({
         </div>
 
         {/* 傷害條目列表 */}
-        <div className="max-h-96 overflow-y-auto">
+        <div className="space-y-2">
           {calculatedEntries.map((entry, index) => (
             <div key={index} className="p-3 bg-slate-900 rounded-lg">
               {/* 第一列：傷害值 + 類型 + 刪除按鈕 */}
@@ -200,7 +210,7 @@ const AddDamageModal: React.FC<AddDamageModalProps> = ({
                   type="number"
                   value={entry.originalValue}
                   onChange={(e) => updateEntry(index, 'originalValue', e.target.value)}
-                  placeholder="原始"
+                  placeholder=""
                   className="w-20 px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-center focus:outline-none focus:border-amber-500"
                   min="0"
                 />
@@ -211,11 +221,15 @@ const AddDamageModal: React.FC<AddDamageModalProps> = ({
                   onChange={(e) => updateEntry(index, 'type', e.target.value)}
                   className="flex-1 px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg focus:outline-none focus:border-amber-500"
                 >
-                  {DAMAGE_TYPES.map(dt => (
-                    <option key={dt.value} value={dt.value}>
-                      {dt.emoji} {dt.label}
-                    </option>
-                  ))}
+                  {DAMAGE_TYPES.map(dt => {
+                    // 檢查此類型是否已被其他條目使用
+                    const isUsedByOthers = entries.some((e, i) => i !== index && e.type === dt.value);
+                    return (
+                      <option key={dt.value} value={dt.value} disabled={isUsedByOthers}>
+                        {dt.emoji} {dt.label}
+                      </option>
+                    );
+                  })}
                 </select>
 
                 {/* 移除按鈕 */}
@@ -231,7 +245,7 @@ const AddDamageModal: React.FC<AddDamageModalProps> = ({
 
               {/* 第二列：抗性類型 Checkbox */}
               <div className="flex items-center gap-1 text-sm">
-                <label className={`flex items-center gap-1 cursor-pointer px-1.5 py-1 rounded transition-all ${
+                <label className={`flex items-center gap-0.5 cursor-pointer px-0.5 py-0.5 rounded transition-all ${
                   entry.resistanceType === 'resistant' 
                     ? 'border-2 border-red-500 bg-red-500/10' 
                     : 'border-2 border-transparent'
@@ -245,7 +259,7 @@ const AddDamageModal: React.FC<AddDamageModalProps> = ({
                   <span className="text-red-500">↓抗性</span>
                 </label>
 
-                <label className={`flex items-center gap-1 cursor-pointer px-1.5 py-1 rounded transition-all ${
+                <label className={`flex items-center gap-0.5 cursor-pointer px-0.5 py-0.5 rounded transition-all ${
                   entry.resistanceType === 'vulnerable' 
                     ? 'border-2 border-green-500 bg-green-500/10' 
                     : 'border-2 border-transparent'
@@ -259,7 +273,7 @@ const AddDamageModal: React.FC<AddDamageModalProps> = ({
                   <span className="text-green-500">↑易傷</span>
                 </label>
 
-                <label className={`flex items-center gap-1 cursor-pointer px-1.5 py-1 rounded transition-all ${
+                <label className={`flex items-center gap-0.5 cursor-pointer px-0.5 py-0.5 rounded transition-all ${
                   entry.resistanceType === 'immune' 
                     ? 'border-2 border-blue-500 bg-blue-500/10' 
                     : 'border-2 border-transparent'
@@ -287,7 +301,8 @@ const AddDamageModal: React.FC<AddDamageModalProps> = ({
         {/* 複合傷害按鈕 */}
         <button
           onClick={addEntry}
-          className="w-full mt-4 mb-4 px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg font-medium transition-colors"
+          className="w-full mt-4 mb-4 px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled={entries.length >= DAMAGE_TYPES.length}
         >
           ➕ 複合傷害
         </button>
