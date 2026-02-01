@@ -29,9 +29,9 @@ import type { Character, CharacterAbilityScores, CharacterCurrentStats, Characte
 enum Tab {
   CHARACTER = 'character',
   COMBAT = 'combat',
+  SPELLS = 'spells',
   MONSTERS = 'monsters',
   ITEMS = 'items',
-  SPELLS = 'spells',
   DICE = 'dice'
 }
 
@@ -949,11 +949,11 @@ const AuthenticatedApp: React.FC = () => {
             {[
               { id: Tab.CHARACTER, label: '角色', icon: '👤' },
               { id: Tab.COMBAT, label: '戰鬥', icon: '⚔️' },
-              { id: Tab.MONSTERS, label: '怪物', icon: '👹' },
-              { id: Tab.ITEMS, label: '道具', icon: '📦' },
               ...(isSpellcaster(stats.classes?.map(c => c.name) || [stats.class]) 
                 ? [{ id: Tab.SPELLS, label: '法術', icon: '✨' }] 
                 : []),
+              { id: Tab.MONSTERS, label: '怪物', icon: '👹' },
+              { id: Tab.ITEMS, label: '道具', icon: '📦' },
               { id: Tab.DICE, label: '骰子', icon: '🎲' }
             ].map((tab) => (
               <button
@@ -1054,6 +1054,8 @@ const AuthenticatedApp: React.FC = () => {
               <ItemsPage />
             </Suspense>
           )}
+
+
 
           {activeTab === Tab.SPELLS && currentCharacter && (
             <Suspense fallback={
