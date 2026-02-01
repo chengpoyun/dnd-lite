@@ -140,6 +140,35 @@ const saveAllStats = async (stats: CharacterStats) => Promise<boolean>
 - 優先使用 async/await 而非 Promise.then()
 - **CSS 重用原則** - 相似 UI 元件共用 CSS 代碼（使用 Tailwind 或共用樣式類），避免每個元件獨立樣式，便於統一維護和修改
 
+### 🎨 UI 樣式統一規範 (必須遵守)
+**🎯 確保整體用戶體驗的一致性**
+
+**Modal 組件統一標準：**
+- **設計參考** - 所有 Modal 組件必須遵循 `AddMonsterModal` 的樣式標準
+- **按鈕尺寸** - 統一使用 `px-6 py-3`（更適合觸控操作）
+  - ✅ 正確：`<button className="px-6 py-3 bg-blue-600">`
+  - ❌ 錯誤：`<button className="px-4 py-2 bg-blue-600">` (舊尺寸)
+- **集中管理** - 使用 `styles/common.ts` 的 `modalStyles` 統一管理樣式
+- **Tailwind 優先** - 優先使用 Tailwind utility classes，避免內聯樣式
+
+**實施原則：**
+1. **新增 Modal** - 參考 `AddMonsterModal` 的結構和樣式
+2. **修改現有 Modal** - 確保與標準一致（按鈕大小、間距、配色）
+3. **響應式設計** - 確保觸控目標夠大（建議最小 44x44px）
+4. **樣式維護** - 需要全域修改時，優先更新 `styles/common.ts`
+
+**檢查清單：**
+- [ ] Modal 按鈕使用 `px-6 py-3`？
+- [ ] 樣式是否從 `modalStyles` 引入？
+- [ ] 配色和間距是否與 `AddMonsterModal` 一致？
+- [ ] 觸控目標是否夠大（手機友善）？
+
+**參考範例：**
+- `components/AddMonsterModal.tsx` - 標準範本
+- `components/ItemFormModal.tsx` - 已統一
+- `components/ConfirmDeleteModal.tsx` - 已統一
+- `styles/common.ts` - 集中管理的樣式定義
+
 ### 資料庫操作
 - 永遠使用 Database，避免 localStorage
 - 所有資料操作都要有錯誤處理
