@@ -73,9 +73,11 @@ const MonsterCard: React.FC<MonsterCardProps> = ({
       >
         <span className="text-slate-400 text-sm">AC 範圍：</span>
         <span className="ml-2 text-lg font-mono text-blue-400">
-          {ac_max === null 
+          {ac_min === 0 && ac_max === 99
+            ? '?'
+            : ac_max === null 
             ? `${ac_min} < AC`
-            : ac_min === ac_max
+            : ac_min + 1 === ac_max
             ? `AC = ${ac_max}`
             : `${ac_min} < AC <= ${ac_max}`
           }
