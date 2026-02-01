@@ -108,9 +108,13 @@ const MonstersPage: React.FC = () => {
 
     const result = await CombatService.checkVersionConflict(sessionCode, localLastUpdated);
     
-    // 檢查戰鬥是否已結束
-    if (result.isActive === false) {
-      setCombatEndedModalOpen(true);
+    // 檢查戰鬥是否已被其他玩家結束
+    if (result.isActive === false || result.endedAt) {
+      showError('戰鬥已被其他玩家結束');
+      // 自動執行結束戰鬥操作
+      setTimeout(() => {
+        handleEndCombat();
+      }, 1500);
       return true;
     }
     

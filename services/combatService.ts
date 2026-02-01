@@ -171,11 +171,11 @@ export class CombatService {
   static async checkVersionConflict(
     sessionCode: string, 
     localLastUpdated: string
-  ): Promise<{ hasConflict: boolean; latestTimestamp?: string; isActive?: boolean }> {
+  ): Promise<{ hasConflict: boolean; latestTimestamp?: string; isActive?: boolean; endedAt?: string | null }> {
     try {
       const { data } = await supabase
         .from('combat_sessions')
-        .select('last_updated, is_active')
+        .select('last_updated, is_active, ended_at')
         .eq('session_code', sessionCode)
         .single();
 
@@ -189,7 +189,8 @@ export class CombatService {
       return { 
         hasConflict: dbTimestamp > localTimestamp,
         latestTimestamp: data.last_updated,
-        isActive: data.is_active
+        isActive: data.is_active,
+        endedAt: data.ended_at
       };
     } catch (error) {
       console.error('檢查版本衝突異常:', error);
