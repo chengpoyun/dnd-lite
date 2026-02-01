@@ -225,6 +225,57 @@ const saveAllStats = async (stats: CharacterStats) => Promise<boolean>
 - ✅ 使用 `COALESCE` 處理 NULL 值
 - ✅ 分階段遷移：先添加，後遷移資料，最後清理
 
+### 📊 資料庫索引最佳實踐 (必須遵守)
+**🎯 確保查詢效能和資料完整性**
+
+**強制規則：**
+1. **外鍵必須有索引** - 所有 `REFERENCES` 外鍵都應該建立索引
+   ```sql
+   -- ✅ 正確：外鍵有對應索引
+   CREATE TABLE child_table (
+     parent_id UUID REFERENCES parent_table(id) ON DELETE CASCADE
+   );
+   CREATE INDEX idx_child_table_parent_id ON child_table(parent_id);
+   
+   -- ❌ 錯誤：外鍵沒有索引（會導致效能問題）
+   CREATE TABLE child_table (
+     parent_id UUID REFERENCES parent_table(id) ON DELETE CASCADE
+   );
+   ```
+
+2. **常用過濾欄位應該有索引** - WHERE 子句常用的欄位
+   - `user_id` - 用戶資料過濾
+   - `is_active`, `is_anonymous` - 布林值過濾
+   - `created_at`, `updated_at` - 時間範圍查詢
+
+3. **複合索引順序** - 按選擇性從高到低排列
+   ```sql
+   -- ✅ 正確：選擇性高的欄位在前
+   CREATE INDEX idx_table_user_status ON table(user_id, is_active);
+   
+   -- ❌ 錯誤：布林值在前（選擇性低）
+   CREATE INDEX idx_table_status_user ON table(is_active, user_id);
+   ```
+
+**索引命名規範：**
+- 單欄位：`idx_表名_欄位名`
+- 多欄位：`idx_表名_欄位1_欄位2`
+- 條件索引：`idx_表名_欄位_條件描述`
+
+**避免過度索引：**
+- ⚠️ 索引會增加寫入成本和儲存空間
+- ⚠️ 只為實際使用的查詢建立索引
+- ⚠️ 定期檢查未使用的索引（Supabase Database Linter）
+
+**檢查清單：**
+- [ ] 所有外鍵都有對應索引？
+- [ ] RLS 政策中的過濾欄位有索引？
+- [ ] 常用的 ORDER BY 欄位有索引？
+- [ ] 索引命名是否遵循規範？
+
+**參考資源：**
+- 專案範例：`supabase/migrations/20260201223148_add_combat_sessions_user_id_index.sql`
+
 ### Migration 標準流程 (遠端 Supabase)
 1. **安全性評估** → 檢查 Migration 是否會損毀資料
 2. **建立 migration 文件** → 創建新的 `.sql` 檔案
