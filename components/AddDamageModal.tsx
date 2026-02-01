@@ -230,7 +230,7 @@ const AddDamageModal: React.FC<AddDamageModalProps> = ({
               </div>
 
               {/* 第二列：抗性類型 Checkbox */}
-              <div className="flex items-center gap-4 text-sm pl-2">
+              <div className="flex items-center gap-2 text-sm pl-2">
                 <label className="flex items-center gap-1 cursor-pointer">
                   <input
                     type="checkbox"
