@@ -146,6 +146,63 @@ const saveAllStats = async (stats: CharacterStats) => Promise<boolean>
 - 使用 Supabase 的 RLS 政策確保安全性
 - **🔑 狀態持久化黃金原則：每個用戶操作的狀態變更都必須有對應的數據庫保存機制**
 
+### 🔐 RLS 政策最佳實踐 (必須遵守)
+**🎯 創建高效能且簡潔的 Row Level Security 政策**
+
+**效能優化原則：**
+1. **使用子查詢包裝 auth.uid()** - 避免每行重新計算
+   ```sql
+   -- ✅ 正確：使用子查詢
+   (select auth.uid()) IS NOT NULL AND user_id = (select auth.uid())
+   
+   -- ❌ 錯誤：直接調用會導致每行都重新計算
+   auth.uid() IS NOT NULL AND user_id = auth.uid()
+   ```
+
+2. **合併為單一 FOR ALL 政策** - 避免多個 permissive 政策
+   ```sql
+   -- ✅ 正確：單一政策涵蓋所有操作
+   CREATE POLICY "table_name_policy" ON table_name FOR ALL USING (
+     condition_here
+   );
+   
+   -- ❌ 錯誤：多個政策造成重複檢查
+   CREATE POLICY "can_select" ON table_name FOR SELECT USING (...);
+   CREATE POLICY "can_insert" ON table_name FOR INSERT WITH CHECK (...);
+   CREATE POLICY "can_update" ON table_name FOR UPDATE USING (...);
+   CREATE POLICY "can_delete" ON table_name FOR DELETE USING (...);
+   ```
+
+3. **子表政策模式** - 通過主表檢查權限
+   ```sql
+   -- ✅ 推薦：通過 characters 表檢查權限
+   CREATE POLICY "character_stats_policy" ON character_stats FOR ALL USING (
+     EXISTS (
+       SELECT 1 FROM characters 
+       WHERE characters.id = character_stats.character_id 
+       AND (
+         ((select auth.uid()) IS NOT NULL AND characters.user_id = (select auth.uid())) OR 
+         ((select auth.uid()) IS NULL AND characters.is_anonymous = true)
+       )
+     )
+   );
+   ```
+
+**政策命名規範：**
+- 使用簡潔的英文命名：`table_name_policy`
+- 避免過長的中文描述（除非有特殊需求）
+- 每個表只需一個政策名稱
+
+**檢查清單：**
+- [ ] 是否使用 `(select auth.uid())` 而非直接 `auth.uid()`？
+- [ ] 是否合併為單一 `FOR ALL` 政策而非多個？
+- [ ] 子表是否通過主表 EXISTS 檢查權限？
+- [ ] 政策命名是否簡潔明確？
+
+**參考資源：**
+- [Supabase RLS 最佳實踐](https://supabase.com/docs/guides/database/postgres/row-level-security#call-functions-with-select)
+- 專案範例：`supabase/migrations/20260201222424_optimize_rls_policies.sql`
+
 ### 🛢️ 資料庫遷移安全原則 (必須遵守)
 **🚨 所有 DB Migration 都必須確保原有資料不會損毀**
 
