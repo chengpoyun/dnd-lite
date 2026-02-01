@@ -65,14 +65,11 @@ const JoinCombatModal: React.FC<JoinCombatModalProps> = ({
               setCode(value);
             }}
             onKeyPress={handleKeyPress}
-            placeholder="例如：527"
+            placeholder=""
             className={`${INPUT_FULL_WIDTH_CLASS} text-center text-3xl font-mono tracking-wider`}
             maxLength={3}
             autoFocus
           />
-          <div className="mt-2 text-xs text-slate-500 text-center">
-            {code.length}/3 位數字
-          </div>
         </div>
 
         {/* 操作按鈕 */}
