@@ -30,6 +30,8 @@ const MonstersPage: React.FC = () => {
   const [settingsModalOpen, setSettingsModalOpen] = useState(false);
   const [endCombatModalOpen, setEndCombatModalOpen] = useState(false);
   const [combatEndedModalOpen, setCombatEndedModalOpen] = useState(false);
+  const [errorModalOpen, setErrorModalOpen] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
   const [selectedMonsterId, setSelectedMonsterId] = useState<string>('');
 
   /**
@@ -66,11 +68,12 @@ const MonstersPage: React.FC = () => {
       setSessionCode(code);
       showSuccess('已加入戰鬥！');
       await refreshCombatData(code);
+      setJoinModalOpen(false);
     } else {
-      showError(result.error || '加入戰鬥失敗');
+      setErrorMessage(result.error || '加入戰鬥失敗');
+      setErrorModalOpen(true);
     }
     setIsLoading(false);
-    setJoinModalOpen(false);
   };
 
   /**
@@ -87,11 +90,7 @@ const MonstersPage: React.FC = () => {
       // 檢查戰鬥是否已結束
       if (!result.session.is_active) {
         setIsLoading(false);
-        showError('戰鬥已被其他玩家結束');
-        // 自動執行結束戰鬥操作
-        setTimeout(() => {
-          handleEndCombat();
-        }, 1500);
+        setCombatEndedModalOpen(true);
         return;
       }
       
@@ -99,7 +98,14 @@ const MonstersPage: React.FC = () => {
       setMonsters(result.monsters);
       showSuccess('戰鬥數據已更新');
     } else {
+      setIsLoading(false);
+      // 如果查詢失敗且錯誤是「戰鬥會話不存在」，可能是戰鬥已結束被 RLS 過濾
+      if (result.error === '戰鬥會話不存在') {
+        setCombatEndedModalOpen(true);
+        return;
+      }
       showError(result.error || '更新失敗');
+      return;
     }
     setIsLoading(false);
   };
@@ -114,11 +120,7 @@ const MonstersPage: React.FC = () => {
     
     // 檢查戰鬥是否已被其他玩家結束
     if (result.isActive === false || result.endedAt) {
-      showError('戰鬥已被其他玩家結束');
-      // 自動執行結束戰鬥操作
-      setTimeout(() => {
-        handleEndCombat();
-      }, 1500);
+      setCombatEndedModalOpen(true);
       return true;
     }
     
@@ -240,6 +242,7 @@ const MonstersPage: React.FC = () => {
       showError(result.error || '結束戰鬥失敗');
     }
     setEndCombatModalOpen(false);
+    setCombatEndedModalOpen(false);
   };
 
   /**
@@ -436,7 +439,8 @@ const MonstersPage: React.FC = () => {
 
       <CombatEndedModal
         isOpen={combatEndedModalOpen}
-        onClose={(viewFinal) => handleCombatEnded(viewFinal)}
+        onClose={() => setCombatEndedModalOpen(false)}
+        onConfirm={handleEndCombat}
       />
 
       <ConfirmDeleteModal
@@ -446,6 +450,15 @@ const MonstersPage: React.FC = () => {
         title="結束戰鬥"
         message="確定要結束當前戰鬥嗎？這將刪除所有怪物和傷害記錄，此操作無法復原。"
         confirmText="結束戰鬥"
+      />
+
+      {/* 錯誤提示 Modal */}
+      <CombatEndedModal
+        isOpen={errorModalOpen}
+        onClose={() => setErrorModalOpen(false)}
+        onConfirm={() => setErrorModalOpen(false)}
+        title="❌ 加入失敗"
+        message={errorMessage}
       />
     </div>
   );
