@@ -323,7 +323,7 @@ export const SpellFormModal: React.FC<SpellFormModalProps> = ({
             <button
               type="submit"
               disabled={isSubmitting}
-              className="flex-1 py-3 rounded-lg bg-amber-600 text-white font-bold active:bg-amber-700 disabled:opacity-50"
+              className="flex-1 px-6 py-3 rounded-lg bg-amber-600 text-white font-bold active:bg-amber-700 disabled:opacity-50"
             >
               {isSubmitting ? '處理中...' : (editingSpell ? '儲存變更' : '新增法術')}
             </button>

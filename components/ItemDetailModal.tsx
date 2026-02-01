@@ -71,13 +71,13 @@ export default function ItemDetailModal({
           <div className="flex gap-3 pt-4 border-t border-slate-800">
             <button
               onClick={onEdit}
-              className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-bold"
+              className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-bold"
             >
               編輯
             </button>
             <button
               onClick={onDelete}
-              className="flex-1 px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-bold"
+              className="flex-1 px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-bold"
             >
               刪除
             </button>

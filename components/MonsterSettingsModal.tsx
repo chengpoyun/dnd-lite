@@ -242,14 +242,14 @@ const MonsterSettingsModal: React.FC<MonsterSettingsModalProps> = ({
         <div className="flex gap-3">
           <button
             onClick={handleClose}
-            className="flex-1 px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg font-medium transition-colors"
+            className="flex-1 px-6 py-3 bg-slate-700 hover:bg-slate-600 rounded-lg font-medium transition-colors"
             disabled={isSubmitting}
           >
             取消
           </button>
           <button
             onClick={handleSubmit}
-            className="flex-1 px-4 py-2 bg-amber-600 hover:bg-amber-700 rounded-lg font-medium transition-colors disabled:opacity-50"
+            className="flex-1 px-6 py-3 bg-amber-600 hover:bg-amber-700 rounded-lg font-medium transition-colors disabled:opacity-50"
             disabled={isSubmitting}
           >
             確認更新

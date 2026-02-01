@@ -185,7 +185,7 @@ export class CombatService {
     try {
       const { data, error } = await supabase
         .from('combat_sessions')
-        .select('last_updated, is_active, ended_at')
+        .select('last_updated, is_active')
         .eq('session_code', sessionCode)
         .maybeSingle();
 
@@ -204,8 +204,7 @@ export class CombatService {
       return { 
         hasConflict: dbTimestamp > localTimestamp,
         latestTimestamp: data.last_updated,
-        isActive: data.is_active,
-        endedAt: data.ended_at
+        isActive: data.is_active
       };
     } catch (error) {
       console.error('檢查版本衝突異常:', error);

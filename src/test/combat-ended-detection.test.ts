@@ -2,7 +2,7 @@
  * 戰鬥結束檢測機制測試
  * 
  * 測試範圍：
- * 1. CombatService.checkVersionConflict 返回 ended_at
+ * 1. CombatService.checkVersionConflict 返回 isActive 狀態
  * 2. CombatService.getCombatData 處理已結束的戰鬥
  * 3. CombatService.joinSession 處理已結束的戰鬥
  */
@@ -29,38 +29,12 @@ describe('戰鬥結束檢測機制', () => {
   });
 
   describe('checkVersionConflict', () => {
-    it('應該返回 ended_at 欄位', async () => {
-      const { supabase } = await import('../../lib/supabase');
-      const mockMaybeSingle = vi.fn().mockResolvedValue({
-        data: {
-          last_updated: '2026-01-01T12:00:00Z',
-          is_active: false,
-          ended_at: '2026-01-01T12:00:00Z'
-        },
-        error: null
-      });
-
-      vi.mocked(supabase.from).mockReturnValue({
-        select: vi.fn().mockReturnValue({
-          eq: vi.fn().mockReturnValue({
-            maybeSingle: mockMaybeSingle
-          })
-        })
-      } as any);
-
-      const result = await CombatService.checkVersionConflict('123', '2026-01-01T11:00:00Z');
-
-      expect(result.endedAt).toBeDefined();
-      expect(result.isActive).toBe(false);
-    });
-
     it('當戰鬥已結束時應該返回 isActive = false', async () => {
       const { supabase } = await import('../../lib/supabase');
       const mockMaybeSingle = vi.fn().mockResolvedValue({
         data: {
           last_updated: '2026-01-01T12:00:00Z',
-          is_active: false,
-          ended_at: '2026-01-01T12:00:00Z'
+          is_active: false
         },
         error: null
       });
@@ -76,6 +50,29 @@ describe('戰鬥結束檢測機制', () => {
       const result = await CombatService.checkVersionConflict('123', '2026-01-01T11:00:00Z');
 
       expect(result.isActive).toBe(false);
+    });
+
+    it('當戰鬥仍在進行時應該返回 isActive = true', async () => {
+      const { supabase } = await import('../../lib/supabase');
+      const mockMaybeSingle = vi.fn().mockResolvedValue({
+        data: {
+          last_updated: '2026-01-01T12:00:00Z',
+          is_active: true
+        },
+        error: null
+      });
+
+      vi.mocked(supabase.from).mockReturnValue({
+        select: vi.fn().mockReturnValue({
+          eq: vi.fn().mockReturnValue({
+            maybeSingle: mockMaybeSingle
+          })
+        })
+      } as any);
+
+      const result = await CombatService.checkVersionConflict('123', '2026-01-01T11:00:00Z');
+
+      expect(result.isActive).toBe(true);
       expect(result.hasConflict).toBe(true);
     });
   });
