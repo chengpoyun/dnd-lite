@@ -23,11 +23,9 @@ export const SpellDetailModal: React.FC<SpellDetailModalProps> = ({
   const schoolColor = getSchoolColor(spell.school);
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose}>
-      <div className="bg-slate-900 rounded-2xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        {/* 標題 */}
-        <div className="mb-6">
-          <h2 className="text-[28px] font-bold text-amber-500 mb-2">{spell.name}</h2>
+    <Modal isOpen={isOpen} onClose={onClose} title={spell.name} size="2xl">
+      {/* 法術等級和學派 */}
+      <div className="mb-6">
           <div className="flex items-center gap-3 flex-wrap">
             <span className="text-[16px] text-slate-400">{getSpellLevelText(spell.level)}</span>
             <div className={`px-3 py-1 rounded-lg ${schoolColor.bgLight} ${schoolColor.text} text-[16px] font-bold`}>
@@ -118,7 +116,6 @@ export const SpellDetailModal: React.FC<SpellDetailModalProps> = ({
             關閉
           </button>
         </div>
-      </div>
     </Modal>
   );
 };

@@ -15,7 +15,7 @@ import * as ItemService from '../services/itemService';
 import type { Item, ItemCategory } from '../services/itemService';
 import ItemFormModal from './ItemFormModal';
 import ItemDetailModal from './ItemDetailModal';
-import ConfirmDeleteModal from './ConfirmDeleteModal';
+import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 
 const CATEGORIES: { label: string; value: ItemCategory | 'all' }[] = [
   { label: '全部', value: 'all' },

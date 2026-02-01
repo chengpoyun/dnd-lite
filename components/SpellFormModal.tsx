@@ -91,13 +91,13 @@ export const SpellFormModal: React.FC<SpellFormModalProps> = ({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose}>
-      <div className="bg-slate-900 rounded-2xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <h2 className="text-2xl font-bold text-amber-500 mb-4">
-          {editingSpell ? '編輯法術' : '新增法術'}
-        </h2>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
+    <Modal 
+      isOpen={isOpen} 
+      onClose={onClose}
+      title={editingSpell ? '編輯法術' : '新增法術'}
+      size="2xl"
+    >
+      <form onSubmit={handleSubmit} className="space-y-4">
           {/* 法術名稱 */}
           <div>
             <label className="block text-[14px] text-slate-400 mb-2">法術名稱 *</label>
@@ -328,8 +328,7 @@ export const SpellFormModal: React.FC<SpellFormModalProps> = ({
               {isSubmitting ? '處理中...' : (editingSpell ? '儲存變更' : '新增法術')}
             </button>
           </div>
-        </form>
-      </div>
+      </form>
     </Modal>
   );
 };

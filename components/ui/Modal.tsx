@@ -5,7 +5,7 @@ interface ModalProps {
   onClose: () => void;
   title?: string;
   children: React.ReactNode;
-  size?: 'xs' | 'sm' | 'md' | 'lg';
+  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl';
   className?: string;
 }
 
@@ -13,7 +13,10 @@ const sizeClasses = {
   xs: 'max-w-xs',
   sm: 'max-w-sm',
   md: 'max-w-md',
-  lg: 'max-w-lg'
+  lg: 'max-w-lg',
+  xl: 'max-w-xl',
+  '2xl': 'max-w-2xl',
+  '3xl': 'max-w-3xl'
 };
 
 export const Modal: React.FC<ModalProps> = ({ 
@@ -21,7 +24,7 @@ export const Modal: React.FC<ModalProps> = ({
   onClose, 
   title, 
   children, 
-  size = 'xs',
+  size = 'md',
   className = '' 
 }) => {
   if (!isOpen) return null;
@@ -29,11 +32,11 @@ export const Modal: React.FC<ModalProps> = ({
   return (
     <div className="fixed inset-0 z-[120] flex items-center justify-center px-6">
       <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-sm" onClick={onClose} />
-      <div className={`relative bg-slate-900 border border-slate-700 w-full ${sizeClasses[size]} rounded-2xl p-3 shadow-2xl animate-in fade-in zoom-in duration-150 overflow-y-auto max-h-[90vh] ${className}`}>
+      <div className={`relative bg-slate-900 border border-slate-700 rounded-2xl p-6 w-full ${sizeClasses[size]} max-h-[90vh] overflow-y-auto shadow-2xl animate-in fade-in zoom-in duration-150 ${className}`}>
         {title && (
-          <h3 className="text-base font-fantasy text-amber-500 mb-4 border-b border-slate-800 pb-2">
+          <h2 className="text-2xl font-bold text-amber-500 mb-4">
             {title}
-          </h3>
+          </h2>
         )}
         {children}
       </div>
