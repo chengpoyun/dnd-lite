@@ -39,7 +39,6 @@ export const CharacterSelectPage: React.FC<CharacterSelectPageProps> = ({
   }, [])
 
   const loadCharacters = async () => {
-    console.log('[DEBUG] CharacterSelectPage 載入角色列表')
     setIsLoading(true)
     try {
       const userCharacters = await HybridDataManager.getUserCharacters(userContext)

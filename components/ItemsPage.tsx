@@ -44,9 +44,6 @@ export default function ItemsPage() {
 
   // 載入道具
   const loadItems = async () => {
-    const startTime = performance.now();
-    console.log('[DEBUG] 開始載入道具...', { user: !!user, anonymousId });
-    
     setIsLoading(true);
     const userContext = {
       isAuthenticated: !!user,
@@ -58,15 +55,11 @@ export default function ItemsPage() {
     
     if (result.success && result.items) {
       setItems(result.items);
-      console.log(`[DEBUG] ✅ 成功載入 ${result.items.length} 個道具`);
     } else {
       showError(result.error || '載入道具失敗');
       setItems([]);
-      console.log('[DEBUG] ❌ 載入道具失敗:', result.error);
     }
     
-    const endTime = performance.now();
-    console.log(`[DEBUG] ⏱️ 道具載入耗時: ${(endTime - startTime).toFixed(1)}ms`);
     setIsLoading(false);
   };
 
@@ -76,7 +69,6 @@ export default function ItemsPage() {
   useEffect(() => {
     // 只在第一次有效的用戶上下文時載入
     if (!hasLoadedRef.current && (user || anonymousId)) {
-      console.log('[DEBUG] ItemsPage 首次載入道具');
       hasLoadedRef.current = true;
       loadItems();
     }

@@ -30,7 +30,6 @@ export const CharacterSelector: React.FC<CharacterSelectorProps> = ({
 
   useEffect(() => {
     if (!hasLoadedRef.current && (user || userContext)) {
-      console.log('[DEBUG] CharacterSelector 首次載入')
       hasLoadedRef.current = true
       loadCharacters()
     }
