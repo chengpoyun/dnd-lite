@@ -38,7 +38,7 @@ export class CombatService {
           .select('session_code')
           .eq('session_code', sessionCode)
           .eq('is_active', true)
-          .single();
+          .maybeSingle();  // 使用 maybeSingle 避免找不到時報錯
         
         if (!existing) break;
         sessionCode = this.generateSessionCode();
@@ -85,11 +85,15 @@ export class CombatService {
         .from('combat_sessions')
         .select('*')
         .eq('session_code', sessionCode)
-        .eq('is_active', true)
         .single();
 
       if (error || !data) {
-        return { success: false, error: '戰鬥代碼不存在或已結束' };
+        return { success: false, error: '戰鬥代碼不存在' };
+      }
+
+      // 檢查戰鬥是否已結束
+      if (!data.is_active) {
+        return { success: false, error: '該戰鬥已結束' };
       }
 
       return { success: true, session: data };
@@ -109,12 +113,11 @@ export class CombatService {
     error?: string;
   }> {
     try {
-      // 獲取會話資訊
+      // 獲取會話資訊（不過濾 is_active，讓調用方判斷）
       const { data: session, error: sessionError } = await supabase
         .from('combat_sessions')
         .select('*')
         .eq('session_code', sessionCode)
-        .eq('is_active', true)
         .single();
 
       if (sessionError || !session) {
@@ -168,11 +171,11 @@ export class CombatService {
   static async checkVersionConflict(
     sessionCode: string, 
     localLastUpdated: string
-  ): Promise<{ hasConflict: boolean; latestTimestamp?: string }> {
+  ): Promise<{ hasConflict: boolean; latestTimestamp?: string; isActive?: boolean }> {
     try {
       const { data } = await supabase
         .from('combat_sessions')
-        .select('last_updated')
+        .select('last_updated, is_active')
         .eq('session_code', sessionCode)
         .single();
 
@@ -185,7 +188,8 @@ export class CombatService {
 
       return { 
         hasConflict: dbTimestamp > localTimestamp,
-        latestTimestamp: data.last_updated
+        latestTimestamp: data.last_updated,
+        isActive: data.is_active
       };
     } catch (error) {
       console.error('檢查版本衝突異常:', error);
@@ -194,11 +198,24 @@ export class CombatService {
   }
 
   /**
-   * 新增怪物
+   * 批次新增怪物
+   * @param sessionCode 戰鬥代碼
+   * @param name 怪物名稱
+   * @param count 數量
+   * @param knownAC 已知 AC（null 表示未知）
+   * @param maxHP 已知最大 HP（null 表示未知）
+   * @param resistances 已知抗性
    */
-  static async addMonster(sessionCode: string): Promise<{ 
+  static async addMonsters(
+    sessionCode: string, 
+    name: string, 
+    count: number, 
+    knownAC: number | null,
+    maxHP: number | null,
+    resistances?: Record<string, ResistanceType>
+  ): Promise<{ 
     success: boolean; 
-    monster?: CombatMonster;
+    monsters?: CombatMonster[];
     error?: string 
   }> {
     try {
@@ -210,34 +227,54 @@ export class CombatService {
         .order('monster_number', { ascending: false })
         .limit(1);
 
-      const nextNumber = existing && existing.length > 0 
+      const startNumber = existing && existing.length > 0 
         ? existing[0].monster_number + 1 
         : 1;
 
-      // 創建新怪物
+      // 準備批次插入的數據
+      const monstersToInsert = Array.from({ length: count }, (_, i) => ({
+        session_code: sessionCode,
+        monster_number: startNumber + i,
+        name,
+        ac_min: knownAC ?? 0, // 如果已知 AC，ac_min 和 ac_max 相同
+        ac_max: knownAC ?? 99, // 未知 AC 時預設範圍為 0-99
+        max_hp: maxHP, // 已知最大HP或 null
+        total_damage: 0,
+        is_dead: false,
+        resistances: resistances || {}
+      }));
+
+      // 批次插入
       const { data, error } = await supabase
         .from('combat_monsters')
-        .insert({
-          session_code: sessionCode,
-          monster_number: nextNumber,
-          ac_min: 0,
-          ac_max: null,
-          total_damage: 0,
-          is_dead: false
-        })
-        .select()
-        .single();
+        .insert(monstersToInsert)
+        .select();
 
       if (error) {
-        console.error('新增怪物失敗:', error);
+        console.error('批次新增怪物失敗:', error);
         return { success: false, error: error.message };
       }
 
-      return { success: true, monster: data };
+      return { success: true, monsters: data };
     } catch (error) {
-      console.error('新增怪物異常:', error);
+      console.error('批次新增怪物異常:', error);
       return { success: false, error: String(error) };
     }
+  }
+
+  /**
+   * 新增單隻怪物（向後兼容）
+   */
+  static async addMonster(sessionCode: string): Promise<{ 
+    success: boolean; 
+    monster?: CombatMonster;
+    error?: string 
+  }> {
+    const result = await this.addMonsters(sessionCode, '怪物', 1, null, null, {});
+    if (result.success && result.monsters && result.monsters.length > 0) {
+      return { success: true, monster: result.monsters[0] };
+    }
+    return { success: false, error: result.error };
   }
 
   /**
@@ -274,10 +311,10 @@ export class CombatService {
     isHit: boolean
   ): Promise<{ success: boolean; newRange?: { min: number; max: number | null }; error?: string }> {
     try {
-      // 獲取當前 AC 範圍
+      // 獲取當前 AC 範圍和怪物名稱
       const { data: monster } = await supabase
         .from('combat_monsters')
-        .select('ac_min, ac_max')
+        .select('ac_min, ac_max, name, session_code')
         .eq('id', monsterId)
         .single();
 
@@ -302,11 +339,12 @@ export class CombatService {
         return { success: false, error: 'AC 範圍衝突，請檢查輸入' };
       }
 
-      // 更新資料庫
+      // 更新同名的所有怪物
       const { error } = await supabase
         .from('combat_monsters')
         .update({ ac_min: newMin, ac_max: newMax })
-        .eq('id', monsterId);
+        .eq('session_code', monster.session_code)
+        .eq('name', monster.name);
 
       if (error) {
         console.error('更新 AC 範圍失敗:', error);
@@ -316,6 +354,44 @@ export class CombatService {
       return { success: true, newRange: { min: newMin, max: newMax } };
     } catch (error) {
       console.error('更新 AC 範圍異常:', error);
+      return { success: false, error: String(error) };
+    }
+  }
+
+  /**
+   * 更新怪物最大 HP
+   */
+  static async updateMaxHP(
+    monsterId: string,
+    maxHP: number | null
+  ): Promise<{ success: boolean; error?: string }> {
+    try {
+      // 獲取怪物資訊用於同步
+      const { data: monster, error: fetchError } = await supabase
+        .from('combat_monsters')
+        .select('name, session_code')
+        .eq('id', monsterId)
+        .single();
+
+      if (fetchError || !monster) {
+        return { success: false, error: '找不到怪物資料' };
+      }
+
+      // 更新所有同名怪物的 max_hp
+      const { error: updateError } = await supabase
+        .from('combat_monsters')
+        .update({ max_hp: maxHP })
+        .eq('session_code', monster.session_code)
+        .eq('name', monster.name);
+
+      if (updateError) {
+        console.error('更新最大 HP 失敗:', updateError);
+        return { success: false, error: updateError.message };
+      }
+
+      return { success: true };
+    } catch (error) {
+      console.error('更新最大 HP 異常:', error);
       return { success: false, error: String(error) };
     }
   }
@@ -377,6 +453,52 @@ export class CombatService {
       return { success: true };
     } catch (error) {
       console.error('新增傷害異常:', error);
+      return { success: false, error: String(error) };
+    }
+  }
+
+  /**
+   * 更新怪物抗性
+   * @param monsterId 怪物ID
+   * @param resistances 要更新的抗性（key: 傷害類型, value: 抗性類型）
+   */
+  static async updateMonsterResistances(
+    monsterId: string,
+    resistances: Record<string, ResistanceType>
+  ): Promise<{ success: boolean; error?: string }> {
+    try {
+      // 先獲取當前抗性和怪物名稱
+      const { data: monster, error: fetchError } = await supabase
+        .from('combat_monsters')
+        .select('resistances, name, session_code')
+        .eq('id', monsterId)
+        .single();
+
+      if (fetchError || !monster) {
+        return { success: false, error: '怪物不存在' };
+      }
+
+      // 合併抗性（新發現的會覆蓋舊的）
+      const updatedResistances = {
+        ...(monster.resistances || {}),
+        ...resistances
+      };
+
+      // 更新同名的所有怪物
+      const { error: updateError } = await supabase
+        .from('combat_monsters')
+        .update({ resistances: updatedResistances })
+        .eq('session_code', monster.session_code)
+        .eq('name', monster.name);
+
+      if (updateError) {
+        console.error('更新怪物抗性失敗:', updateError);
+        return { success: false, error: updateError.message };
+      }
+
+      return { success: true };
+    } catch (error) {
+      console.error('更新怪物抗性異常:', error);
       return { success: false, error: String(error) };
     }
   }

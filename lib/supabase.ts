@@ -209,10 +209,13 @@ export interface CombatMonster {
   id: string
   session_code: string
   monster_number: number
+  name: string
   ac_min: number
   ac_max: number | null
+  max_hp: number | null
   total_damage: number
   is_dead: boolean
+  resistances: Record<string, ResistanceType>
   created_at: string
 }
 

@@ -2,11 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../hooks/useToast';
 import CombatService from '../services/combatService';
-import type { CombatSession, CombatMonsterWithLogs } from '../lib/supabase';
+import type { CombatSession, CombatMonsterWithLogs, ResistanceType } from '../lib/supabase';
 import MonsterCard from './MonsterCard';
 import AddDamageModal from './AddDamageModal';
+import AddMonsterModal from './AddMonsterModal';
 import AdjustACModal from './AdjustACModal';
+import MonsterSettingsModal from './MonsterSettingsModal';
 import JoinCombatModal from './JoinCombatModal';
+import CombatEndedModal from './CombatEndedModal';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 
 const MonstersPage: React.FC = () => {
@@ -21,9 +24,12 @@ const MonstersPage: React.FC = () => {
 
   // Modal 狀態
   const [joinModalOpen, setJoinModalOpen] = useState(false);
+  const [addMonsterModalOpen, setAddMonsterModalOpen] = useState(false);
   const [damageModalOpen, setDamageModalOpen] = useState(false);
   const [acModalOpen, setAcModalOpen] = useState(false);
+  const [settingsModalOpen, setSettingsModalOpen] = useState(false);
   const [endCombatModalOpen, setEndCombatModalOpen] = useState(false);
+  const [combatEndedModalOpen, setCombatEndedModalOpen] = useState(false);
   const [selectedMonsterId, setSelectedMonsterId] = useState<string>('');
 
   /**
@@ -40,9 +46,6 @@ const MonstersPage: React.FC = () => {
     if (result.success && result.sessionCode) {
       setSessionCode(result.sessionCode);
       showSuccess(`戰鬥已開始！代碼：${result.sessionCode}`);
-      
-      // 自動新增第一隻怪物
-      await handleAddMonster(result.sessionCode);
       
       // 載入數據
       await refreshCombatData(result.sessionCode);
@@ -81,6 +84,13 @@ const MonstersPage: React.FC = () => {
     const result = await CombatService.getCombatData(targetCode);
 
     if (result.success && result.session && result.monsters) {
+      // 檢查戰鬥是否已結束
+      if (!result.session.is_active) {
+        setIsLoading(false);
+        setCombatEndedModalOpen(true);
+        return;
+      }
+      
       setLocalLastUpdated(result.session.last_updated);
       setMonsters(result.monsters);
       showSuccess('戰鬥數據已更新');
@@ -98,6 +108,12 @@ const MonstersPage: React.FC = () => {
 
     const result = await CombatService.checkVersionConflict(sessionCode, localLastUpdated);
     
+    // 檢查戰鬥是否已結束
+    if (result.isActive === false) {
+      setCombatEndedModalOpen(true);
+      return true;
+    }
+    
     if (result.hasConflict) {
       showError('戰鬥數據已被其他玩家更新，正在刷新...');
       await refreshCombatData();
@@ -108,7 +124,7 @@ const MonstersPage: React.FC = () => {
   };
 
   /**
-   * 新增怪物
+   * 新增怪物 (舊版 - 保留向後兼容)
    */
   const handleAddMonster = async (code?: string) => {
     const targetCode = code || sessionCode;
@@ -128,10 +144,41 @@ const MonstersPage: React.FC = () => {
   };
 
   /**
-   * 刪除怪物
+   * 批次新增怪物
+   */
+  const handleAddMonsters = async (name: string, count: number, knownAC: number | null, maxHP: number | null, resistances: Record<string, ResistanceType>) => {
+    if (!sessionCode) return;
+
+    // 檢查衝突
+    if (await checkConflict()) {
+      setAddMonsterModalOpen(false);
+      return;
+    }
+
+    const result = await CombatService.addMonsters(sessionCode, name, count, knownAC, maxHP, resistances);
+    
+    if (result.success) {
+      showSuccess(`已新增 ${count} 隻 ${name}`);
+      await refreshCombatData();
+      setAddMonsterModalOpen(false);
+    } else {
+      showError(result.error || '新增怪物失敗');
+    }
+  };
+
+  /**
+   * 刪除怪物（標記死亡）
    */
   const handleDeleteMonster = async (monsterId: string) => {
     if (await checkConflict()) return;
+
+    // 找到該怪物資料
+    const monster = monsters.find(m => m.id === monsterId);
+    
+    // 如果 max_hp 未知，設定為負數的 total_damage 表示 "<=total_damage"
+    if (monster && monster.max_hp === null && monster.total_damage > 0) {
+      await CombatService.updateMaxHP(monsterId, -monster.total_damage);
+    }
 
     const result = await CombatService.deleteMonster(monsterId);
     
@@ -160,6 +207,14 @@ const MonstersPage: React.FC = () => {
   };
 
   /**
+   * 打開設定 Modal
+   */
+  const openSettingsModal = (monsterId: string) => {
+    setSelectedMonsterId(monsterId);
+    setSettingsModalOpen(true);
+  };
+
+  /**
    * 結束戰鬥
    */
   const handleEndCombat = async () => {
@@ -177,6 +232,22 @@ const MonstersPage: React.FC = () => {
       showError(result.error || '結束戰鬥失敗');
     }
     setEndCombatModalOpen(false);
+  };
+
+  /**
+   * 處理戰鬥已結束的情況
+   */
+  const handleCombatEnded = (viewFinal: boolean) => {
+    if (viewFinal) {
+      // 保持當前頁面，讓用戶查看最終狀態
+      setCombatEndedModalOpen(false);
+    } else {
+      // 清除狀態並返回首頁
+      setSessionCode('');
+      setLocalLastUpdated('');
+      setMonsters([]);
+      setCombatEndedModalOpen(false);
+    }
   };
 
   // 初始載入
@@ -231,7 +302,7 @@ const MonstersPage: React.FC = () => {
                   <span className="text-[16px]">🔄</span>
                 </button>
                 <button
-                  onClick={() => handleAddMonster()}
+                  onClick={() => setAddMonsterModalOpen(true)}
                   disabled={isLoading}
                   className="h-8 w-8 flex items-center justify-center bg-green-600 hover:bg-green-700 border border-green-500 rounded-lg active:bg-green-800 shadow-sm transition-colors disabled:opacity-50"
                 >
@@ -278,6 +349,7 @@ const MonstersPage: React.FC = () => {
                 monster={monster}
                 onAddDamage={() => openDamageModal(monster.id)}
                 onAdjustAC={() => openACModal(monster.id)}
+                onAdjustSettings={() => openSettingsModal(monster.id)}
                 onDelete={() => handleDeleteMonster(monster.id)}
               />
             ))}
@@ -301,11 +373,18 @@ const MonstersPage: React.FC = () => {
         onJoin={handleJoinCombat}
       />
 
+      <AddMonsterModal
+        isOpen={addMonsterModalOpen}
+        onClose={() => setAddMonsterModalOpen(false)}
+        onConfirm={handleAddMonsters}
+      />
+
       <AddDamageModal
         isOpen={damageModalOpen}
         onClose={() => setDamageModalOpen(false)}
         monsterId={selectedMonsterId}
         monsterNumber={monsters.find(m => m.id === selectedMonsterId)?.monster_number || 0}
+        monsterResistances={monsters.find(m => m.id === selectedMonsterId)?.resistances || {}}
         onSuccess={() => refreshCombatData()}
         onConflict={() => checkConflict()}
       />
@@ -325,6 +404,31 @@ const MonstersPage: React.FC = () => {
         }
         onSuccess={() => refreshCombatData()}
         onConflict={() => checkConflict()}
+      />
+
+      <MonsterSettingsModal
+        isOpen={settingsModalOpen}
+        onClose={() => setSettingsModalOpen(false)}
+        monsterId={selectedMonsterId}
+        monsterNumber={monsters.find(m => m.id === selectedMonsterId)?.monster_number || 0}
+        monsterName={monsters.find(m => m.id === selectedMonsterId)?.name || '怪物'}
+        currentACRange={
+          monsters.find(m => m.id === selectedMonsterId) 
+            ? { 
+                min: monsters.find(m => m.id === selectedMonsterId)!.ac_min, 
+                max: monsters.find(m => m.id === selectedMonsterId)!.ac_max
+              }
+            : { min: 0, max: null }
+        }
+        currentMaxHP={monsters.find(m => m.id === selectedMonsterId)?.max_hp || null}
+        currentResistances={monsters.find(m => m.id === selectedMonsterId)?.resistances || {}}
+        onSuccess={() => refreshCombatData()}
+        onConflict={() => checkConflict()}
+      />
+
+      <CombatEndedModal
+        isOpen={combatEndedModalOpen}
+        onClose={(viewFinal) => handleCombatEnded(viewFinal)}
       />
 
       <ConfirmDeleteModal
