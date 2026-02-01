@@ -169,7 +169,7 @@ const AddDamageModal: React.FC<AddDamageModalProps> = ({
 
   return (
     <Modal isOpen={isOpen} onClose={handleClose}>
-      <div className="bg-slate-800 rounded-xl p-6 max-w-md w-full relative">
+      <div className="bg-slate-800 rounded-xl px-3 py-3 max-w-md w-full relative">
         {/* Loading 蓋版 */}
         {isSubmitting && (
           <div className="absolute inset-0 bg-black/50 backdrop-blur-sm z-[130] rounded-xl flex items-center justify-center">
