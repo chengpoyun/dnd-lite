@@ -3,6 +3,7 @@
  */
 
 import React from 'react';
+import ReactMarkdown from 'react-markdown';
 import { Modal } from './ui/Modal';
 import type { Item } from '../services/itemService';
 
@@ -44,8 +45,19 @@ export default function ItemDetailModal({
           {item.description && (
             <div className="mb-4">
               <label className="block text-sm font-medium text-slate-300 mb-2">詳細訊息</label>
-              <div className="text-slate-300 whitespace-pre-wrap bg-slate-700/50 border border-slate-600 p-3 rounded-lg">
-                {item.description}
+              <div className="bg-slate-700/50 border border-slate-600 p-3 rounded-lg text-slate-300">
+                <ReactMarkdown 
+                  components={{
+                    p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+                    strong: ({ children }) => <strong className="font-bold text-slate-50">{children}</strong>,
+                    em: ({ children }) => <em className="italic text-slate-200">{children}</em>,
+                    ul: ({ children }) => <ul className="list-disc list-inside mb-2 space-y-1">{children}</ul>,
+                    ol: ({ children }) => <ol className="list-decimal list-inside mb-2 space-y-1">{children}</ol>,
+                    li: ({ children }) => <li className="text-slate-300">{children}</li>,
+                  }}
+                >
+                  {item.description}
+                </ReactMarkdown>
               </div>
             </div>
           )}

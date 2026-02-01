@@ -1,4 +1,5 @@
 import React from 'react';
+import ReactMarkdown from 'react-markdown';
 import { Modal } from './ui/Modal';
 import { Spell } from '../services/spellService';
 import { getSpellLevelText, getSchoolColor } from '../utils/spellUtils';
@@ -87,8 +88,19 @@ export const SpellDetailModal: React.FC<SpellDetailModalProps> = ({
         {/* 法術效果 - 放大字體 */}
         <div className="mb-6">
           <div className="text-[14px] text-slate-500 mb-2 font-semibold">法術效果</div>
-          <div className="text-[20px] text-slate-100 leading-relaxed whitespace-pre-wrap">
-            {spell.description}
+          <div className="text-[20px] text-slate-100 leading-relaxed">
+            <ReactMarkdown 
+              components={{
+                p: ({ children }) => <p className="mb-3 last:mb-0">{children}</p>,
+                strong: ({ children }) => <strong className="font-bold text-slate-50">{children}</strong>,
+                em: ({ children }) => <em className="italic text-slate-200">{children}</em>,
+                ul: ({ children }) => <ul className="list-disc list-inside mb-3 space-y-1">{children}</ul>,
+                ol: ({ children }) => <ol className="list-decimal list-inside mb-3 space-y-1">{children}</ol>,
+                li: ({ children }) => <li className="text-slate-100">{children}</li>,
+              }}
+            >
+              {spell.description}
+            </ReactMarkdown>
           </div>
         </div>
 
