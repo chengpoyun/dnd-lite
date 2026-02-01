@@ -1,15 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { WelcomePage } from './components/WelcomePage';
 import { CharacterSelectPage } from './components/CharacterSelectPage';
 import { CharacterSheet } from './components/CharacterSheet';
-import { DiceRoller } from './components/DiceRoller';
-import { CombatView } from './components/CombatView';
-import { ConversionPage } from './components/ConversionPage';
 import { SessionExpiredModal } from './components/SessionExpiredModal';
-import { SpellsPage } from './components/SpellsPage';
-import MonstersPage from './components/MonstersPage';
-import ItemsPage from './components/ItemsPage';
+
+// 延遲載入非關鍵頁面
+const DiceRoller = lazy(() => import('./components/DiceRoller').then(m => ({ default: m.DiceRoller })));
+const CombatView = lazy(() => import('./components/CombatView').then(m => ({ default: m.CombatView })));
+const ConversionPage = lazy(() => import('./components/ConversionPage').then(m => ({ default: m.ConversionPage })));
+const SpellsPage = lazy(() => import('./components/SpellsPage').then(m => ({ default: m.SpellsPage })));
+const MonstersPage = lazy(() => import('./components/MonstersPage'));
+const ItemsPage = lazy(() => import('./components/ItemsPage'));
 
 import { CharacterStats } from './types';
 import { getModifier } from './utils/helpers';
@@ -871,10 +873,19 @@ const AuthenticatedApp: React.FC = () => {
   // 角色轉換頁面
   if (appState === 'conversion' && user) {
     return (
-      <ConversionPage 
-        userId={user.id} 
-        onComplete={handleConversionComplete} 
-      />
+      <Suspense fallback={
+        <div className="flex items-center justify-center h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-500 mx-auto mb-4"></div>
+            <p className="text-slate-400">載入轉換頁面...</p>
+          </div>
+        </div>
+      }>
+        <ConversionPage 
+          userId={user.id} 
+          onComplete={handleConversionComplete} 
+        />
+      </Suspense>
     )
   }
 
@@ -960,36 +971,87 @@ const AuthenticatedApp: React.FC = () => {
             </>
           )}
           {activeTab === Tab.COMBAT && (
-            <CombatView 
-              stats={stats} 
-              setStats={setStats} 
-              characterId={currentCharacter?.id}
-              onSaveHP={saveHP}
-              onSaveAC={saveAC}
-              onSaveInitiative={saveInitiative}
-            />
+            <Suspense fallback={
+              <div className="flex items-center justify-center h-64">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-500 mx-auto mb-4"></div>
+                  <p className="text-slate-400">載入戰鬥頁面...</p>
+                </div>
+              </div>
+            }>
+              <CombatView 
+                stats={stats} 
+                setStats={setStats} 
+                characterId={currentCharacter?.id}
+                onSaveHP={saveHP}
+                onSaveAC={saveAC}
+                onSaveInitiative={saveInitiative}
+              />
+            </Suspense>
           )}
 
-          {activeTab === Tab.MONSTERS && <MonstersPage />}
+          {activeTab === Tab.MONSTERS && (
+            <Suspense fallback={
+              <div className="flex items-center justify-center h-64">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-500 mx-auto mb-4"></div>
+                  <p className="text-slate-400">載入怪物頁面...</p>
+                </div>
+              </div>
+            }>
+              <MonstersPage />
+            </Suspense>
+          )}
 
-          {activeTab === Tab.ITEMS && <ItemsPage />}
+          {activeTab === Tab.ITEMS && (
+            <Suspense fallback={
+              <div className="flex items-center justify-center h-64">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-500 mx-auto mb-4"></div>
+                  <p className="text-slate-400">載入道具頁面...</p>
+                </div>
+              </div>
+            }>
+              <ItemsPage />
+            </Suspense>
+          )}
 
           {activeTab === Tab.SPELLS && currentCharacter && (
-            <SpellsPage
-              characterId={currentCharacter.id}
-              characterClasses={stats.classes || [
-                { 
-                  name: stats.class, 
-                  level: stats.level, 
-                  hitDie: getClassHitDie(stats.class) as any,
-                  isPrimary: true 
-                }
-              ]}
-              intelligence={stats.abilityScores.int}
-            />
+            <Suspense fallback={
+              <div className="flex items-center justify-center h-64">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-500 mx-auto mb-4"></div>
+                  <p className="text-slate-400">載入法術頁面...</p>
+                </div>
+              </div>
+            }>
+              <SpellsPage
+                characterId={currentCharacter.id}
+                characterClasses={stats.classes || [
+                  { 
+                    name: stats.class, 
+                    level: stats.level, 
+                    hitDie: getClassHitDie(stats.class) as any,
+                    isPrimary: true 
+                  }
+                ]}
+                intelligence={stats.abilityScores.int}
+              />
+            </Suspense>
           )}
 
-          {activeTab === Tab.DICE && <DiceRoller />}
+          {activeTab === Tab.DICE && (
+            <Suspense fallback={
+              <div className="flex items-center justify-center h-64">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-500 mx-auto mb-4"></div>
+                  <p className="text-slate-400">載入骰子頁面...</p>
+                </div>
+              </div>
+            }>
+              <DiceRoller />
+            </Suspense>
+          )}
         </main>
       </div>
     )

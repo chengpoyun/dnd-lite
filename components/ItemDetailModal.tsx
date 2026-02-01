@@ -24,40 +24,43 @@ export default function ItemDetailModal({
   if (!item) return null;
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="道具詳情" size="lg">
-      <div className="space-y-4">
+    <Modal isOpen={isOpen} onClose={onClose}>
+      <div className="bg-slate-800 rounded-xl px-3 py-3 max-w-md w-full">
+        <h2 className="text-xl font-bold mb-5">道具詳情</h2>
+        
+        <div className="space-y-3">
           {/* 名稱 */}
-          <div>
-            <div className="text-[14px] text-slate-400 mb-1">名稱</div>
-            <div className="text-lg font-bold text-slate-200">{item.name}</div>
+          <div className="flex items-center gap-2">
+            <label className="text-sm font-medium text-slate-300 w-20 shrink-0">名稱</label>
+            <div className="text-lg font-bold text-white">{item.name}</div>
           </div>
 
-          {/* 類別和數量 */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <div className="text-[14px] text-slate-400 mb-1">類別</div>
-              <div className="px-3 py-1.5 bg-amber-900/30 border border-amber-700 text-amber-400 rounded-lg inline-block font-medium">
-                {item.category}
-              </div>
+          {/* 類別 */}
+          <div className="flex items-center gap-2">
+            <label className="text-sm font-medium text-slate-300 w-20 shrink-0">類別</label>
+            <div className="px-3 py-1.5 bg-amber-900/30 border border-amber-700 text-amber-400 rounded-lg inline-block font-medium">
+              {item.category}
             </div>
-            <div>
-              <div className="text-[14px] text-slate-400 mb-1">數量</div>
-              <div className="text-lg font-bold text-slate-200">× {item.quantity}</div>
-            </div>
+          </div>
+
+          {/* 數量 */}
+          <div className="flex items-center gap-2">
+            <label className="text-sm font-medium text-slate-300 w-20 shrink-0">數量</label>
+            <div className="text-lg font-bold text-white">× {item.quantity}</div>
           </div>
 
           {/* 詳細訊息 */}
           {item.description && (
-            <div>
-              <div className="text-[14px] text-slate-400 mb-1">詳細訊息</div>
-              <div className="text-slate-300 whitespace-pre-wrap bg-slate-800 border border-slate-700 p-3 rounded-lg">
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-slate-300 mb-2">詳細訊息</label>
+              <div className="text-slate-300 whitespace-pre-wrap bg-slate-700/50 border border-slate-600 p-3 rounded-lg">
                 {item.description}
               </div>
             </div>
           )}
 
           {/* 時間資訊 */}
-          <div className="text-xs text-slate-500 border-t border-slate-800 pt-3">
+          <div className="text-xs text-slate-500 border-t border-slate-700 pt-3">
             建立時間：{new Date(item.created_at).toLocaleString('zh-TW')}
             {item.updated_at && item.updated_at !== item.created_at && (
               <>
@@ -68,20 +71,21 @@ export default function ItemDetailModal({
           </div>
 
           {/* 操作按鈕 */}
-          <div className="flex gap-3 pt-4 border-t border-slate-800">
+          <div className="flex gap-3 pt-2">
             <button
               onClick={onEdit}
-              className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-bold"
+              className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
             >
               編輯
             </button>
             <button
               onClick={onDelete}
-              className="flex-1 px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-bold"
+              className="flex-1 px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
             >
               刪除
             </button>
           </div>
+        </div>
       </div>
     </Modal>
   );

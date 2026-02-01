@@ -17,14 +17,16 @@ export class DatabaseInitService {
       }
 
       // 使用重試機制檢查資料庫表結構
-      const maxRetries = 2
+      const maxRetries = 3 // 增加到3次重試
       let lastError: any = null
       
       for (let attempt = 1; attempt <= maxRetries; attempt++) {
         try {
           if (attempt > 1) {
             console.log(`🔄 資料庫初始化重試第 ${attempt} 次...`)
-            await new Promise(resolve => setTimeout(resolve, 1000))
+            // 冷啟動可能需要更長時間，逐漸增加等待時間
+            const waitTime = attempt === 2 ? 2000 : 3000
+            await new Promise(resolve => setTimeout(resolve, waitTime))
           }
           
           await this.ensureCharactersTable()
@@ -34,12 +36,15 @@ export class DatabaseInitService {
         } catch (error) {
           lastError = error
           const errorMessage = error?.message || ''
+          // 檢測值得重試的錯誤（網路問題、伺服器錯誤、冷啟動）
           if (attempt < maxRetries && (
             errorMessage.includes('CORS') || 
             errorMessage.includes('520') || 
             errorMessage.includes('502') || 
             errorMessage.includes('503') ||
-            errorMessage.includes('Failed to fetch')
+            errorMessage.includes('Failed to fetch') ||
+            errorMessage.includes('連接超時') ||
+            errorMessage.includes('timeout')
           )) {
             console.warn(`⚠️ 資料庫初始化失敗，將重試: ${errorMessage}`)
             continue
@@ -62,7 +67,7 @@ export class DatabaseInitService {
   private static async ensureCharactersTable(): Promise<void> {
     try {
       const timeoutPromise = new Promise<never>((_, reject) => {
-        setTimeout(() => reject(new Error('資料庫連接超時')), 10000)
+        setTimeout(() => reject(new Error('資料庫連接超時')), 15000) // 增加到15秒
       })
       
       const checkPromise = supabase

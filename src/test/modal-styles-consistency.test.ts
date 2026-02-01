@@ -85,11 +85,11 @@ describe('Modal 樣式統一性測試', () => {
     });
 
     it('所有按鈕應該使用相同的 padding', () => {
-      const padding = 'px-4 py-2';
-      expect(BUTTON_PRIMARY_CLASS).toContain('px-4');
-      expect(BUTTON_PRIMARY_CLASS).toContain('py-2');
-      expect(BUTTON_SECONDARY_CLASS).toContain('px-4');
-      expect(BUTTON_SECONDARY_CLASS).toContain('py-2');
+      const padding = 'px-6 py-3';
+      expect(BUTTON_PRIMARY_CLASS).toContain('px-6');
+      expect(BUTTON_PRIMARY_CLASS).toContain('py-3');
+      expect(BUTTON_SECONDARY_CLASS).toContain('px-6');
+      expect(BUTTON_SECONDARY_CLASS).toContain('py-3');
     });
 
     it('所有互動元素應該有 transition 效果', () => {
