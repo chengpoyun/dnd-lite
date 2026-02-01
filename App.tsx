@@ -9,6 +9,7 @@ import { ConversionPage } from './components/ConversionPage';
 import { SessionExpiredModal } from './components/SessionExpiredModal';
 import { SpellsPage } from './components/SpellsPage';
 import MonstersPage from './components/MonstersPage';
+import ItemsPage from './components/ItemsPage';
 
 import { CharacterStats } from './types';
 import { getModifier } from './utils/helpers';
@@ -27,6 +28,7 @@ enum Tab {
   CHARACTER = 'character',
   COMBAT = 'combat',
   MONSTERS = 'monsters',
+  ITEMS = 'items',
   SPELLS = 'spells',
   DICE = 'dice'
 }
@@ -898,6 +900,7 @@ const AuthenticatedApp: React.FC = () => {
               { id: Tab.CHARACTER, label: '角色', icon: '👤' },
               { id: Tab.COMBAT, label: '戰鬥', icon: '⚔️' },
               { id: Tab.MONSTERS, label: '怪物', icon: '👹' },
+              { id: Tab.ITEMS, label: '道具', icon: '📦' },
               ...(isSpellcaster(stats.classes?.map(c => c.name) || [stats.class]) 
                 ? [{ id: Tab.SPELLS, label: '法術', icon: '✨' }] 
                 : []),
@@ -968,6 +971,8 @@ const AuthenticatedApp: React.FC = () => {
           )}
 
           {activeTab === Tab.MONSTERS && <MonstersPage />}
+
+          {activeTab === Tab.ITEMS && <ItemsPage />}
 
           {activeTab === Tab.SPELLS && currentCharacter && (
             <SpellsPage
