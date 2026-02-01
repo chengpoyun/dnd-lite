@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Modal } from './ui/Modal';
 import {
   MODAL_CONTAINER_CLASS,
-  INPUT_CLASS,
+  INPUT_FULL_WIDTH_CLASS,
   BUTTON_PRIMARY_CLASS,
   BUTTON_SECONDARY_CLASS,
   INFO_BOX_CLASS
@@ -66,7 +66,7 @@ const JoinCombatModal: React.FC<JoinCombatModalProps> = ({
             }}
             onKeyPress={handleKeyPress}
             placeholder="例如：527"
-            className={`${INPUT_CLASS} text-center text-3xl font-mono tracking-wider`}
+            className={`${INPUT_FULL_WIDTH_CLASS} text-center text-3xl font-mono tracking-wider`}
             maxLength={3}
             autoFocus
           />
