@@ -94,6 +94,7 @@ const AuthenticatedApp: React.FC = () => {
         return
       }
       
+      const startTime = performance.now()
       console.log('🚀 開始應用初始化...')
       setIsLoading(true)
       setIsInitialized(true)
@@ -214,6 +215,8 @@ const AuthenticatedApp: React.FC = () => {
         setInitError('載入失敗，可能是網路問題。請點擊重試。')
         setAppState('welcome')
       } finally {
+        const endTime = performance.now()
+        console.log(`⏱️ 應用初始化總耗時: ${(endTime - startTime).toFixed(1)}ms`)
         setIsLoading(false)
       }
     }
