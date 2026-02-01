@@ -7,26 +7,39 @@ interface CharacterSelectorProps {
   currentCharacterId: string | null
   onCharacterChange: (character: Character) => void
   onCreateCharacter: () => void
+  userContext?: {
+    isAuthenticated: boolean
+    userId?: string
+    anonymousId?: string
+  }
 }
 
 export const CharacterSelector: React.FC<CharacterSelectorProps> = ({
   currentCharacterId,
   onCharacterChange,
-  onCreateCharacter
+  onCreateCharacter,
+  userContext
 }) => {
   const { user } = useAuth()
   const [characters, setCharacters] = useState<Character[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
 
+  // 防止重複載入
+  const hasLoadedRef = React.useRef(false)
+
   useEffect(() => {
-    loadCharacters()
-  }, [user])
+    if (!hasLoadedRef.current && (user || userContext)) {
+      console.log('[DEBUG] CharacterSelector 首次載入')
+      hasLoadedRef.current = true
+      loadCharacters()
+    }
+  }, [user, userContext])
 
   const loadCharacters = async () => {
     try {
       setIsLoading(true)
-      const userCharacters = await DetailedCharacterService.getUserCharacters()
+      const userCharacters = await DetailedCharacterService.getUserCharacters(userContext)
       setCharacters(userCharacters)
     } catch (error) {
       console.error('載入角色清單失敗:', error)

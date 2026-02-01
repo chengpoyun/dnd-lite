@@ -11,12 +11,18 @@ interface CharacterSelectPageProps {
   userMode: 'authenticated' | 'anonymous'
   onCharacterSelect: (character: Character) => void
   onBack: () => void
+  userContext?: {
+    isAuthenticated: boolean
+    userId?: string
+    anonymousId?: string
+  }
 }
 
 export const CharacterSelectPage: React.FC<CharacterSelectPageProps> = ({
   userMode,
   onCharacterSelect,
-  onBack
+  onBack,
+  userContext
 }) => {
   const [characters, setCharacters] = useState<Character[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -33,9 +39,10 @@ export const CharacterSelectPage: React.FC<CharacterSelectPageProps> = ({
   }, [])
 
   const loadCharacters = async () => {
+    console.log('[DEBUG] CharacterSelectPage 載入角色列表')
     setIsLoading(true)
     try {
-      const userCharacters = await HybridDataManager.getUserCharacters()
+      const userCharacters = await HybridDataManager.getUserCharacters(userContext)
       setCharacters(userCharacters)
       
       // 如果是匿名用戶且沒有角色，直接顯示創建表單

@@ -1,11 +1,11 @@
 import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { WelcomePage } from './components/WelcomePage';
-import { CharacterSelectPage } from './components/CharacterSelectPage';
 import { CharacterSheet } from './components/CharacterSheet';
 import { SessionExpiredModal } from './components/SessionExpiredModal';
 
 // 延遲載入非關鍵頁面
+const CharacterSelectPage = lazy(() => import('./components/CharacterSelectPage').then(m => ({ default: m.CharacterSelectPage })));
 const DiceRoller = lazy(() => import('./components/DiceRoller').then(m => ({ default: m.DiceRoller })));
 const CombatView = lazy(() => import('./components/CombatView').then(m => ({ default: m.CombatView })));
 const ConversionPage = lazy(() => import('./components/ConversionPage').then(m => ({ default: m.ConversionPage })));
@@ -911,11 +911,21 @@ const AuthenticatedApp: React.FC = () => {
 
   // 角色選擇頁面
   if (appState === 'characterSelect') {
+    // 準備 userContext
+    const selectPageUserContext = user ? {
+      isAuthenticated: true,
+      userId: user.id
+    } : {
+      isAuthenticated: false,
+      anonymousId: AnonymousService.getAnonymousId()
+    }
+    
     return (
       <CharacterSelectPage
         userMode={userMode}
         onCharacterSelect={handleCharacterSelect}
         onBack={handleBackToWelcome}
+        userContext={selectPageUserContext}
       />
     )
   }
