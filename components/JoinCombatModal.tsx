@@ -1,5 +1,12 @@
 import React, { useState } from 'react';
 import { Modal } from './ui/Modal';
+import {
+  MODAL_CONTAINER_CLASS,
+  INPUT_CLASS,
+  BUTTON_PRIMARY_CLASS,
+  BUTTON_SECONDARY_CLASS,
+  INFO_BOX_CLASS
+} from '../styles/modalStyles';
 
 interface JoinCombatModalProps {
   isOpen: boolean;
@@ -39,16 +46,16 @@ const JoinCombatModal: React.FC<JoinCombatModalProps> = ({
 
   return (
     <Modal isOpen={isOpen} onClose={handleClose}>
-      <div className="bg-slate-800 rounded-xl p-6 max-w-md w-full">
+      <div className={MODAL_CONTAINER_CLASS}>
         <h2 className="text-xl font-bold mb-4">🚪 加入戰鬥</h2>
 
         {/* 說明 */}
-        <div className="mb-4 p-3 bg-blue-900/30 border border-blue-700 rounded-lg text-sm text-blue-300">
+        <div className={INFO_BOX_CLASS}>
           💡 輸入隊友分享的 3 位數戰鬥代碼，即可加入同一場戰鬥並共同編輯怪物資訊
         </div>
 
         {/* 輸入框 */}
-        <div className="mb-6">
+        <div className="mt-4 mb-6">
           <label className="block text-sm text-slate-400 mb-2">戰鬥 ID（3位數字）</label>
           <input
             type="text"
@@ -59,7 +66,7 @@ const JoinCombatModal: React.FC<JoinCombatModalProps> = ({
             }}
             onKeyPress={handleKeyPress}
             placeholder="例如：527"
-            className="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-lg text-center text-3xl font-mono tracking-wider focus:outline-none focus:border-amber-500"
+            className={`${INPUT_CLASS} text-center text-3xl font-mono tracking-wider`}
             maxLength={3}
             autoFocus
           />
@@ -72,13 +79,13 @@ const JoinCombatModal: React.FC<JoinCombatModalProps> = ({
         <div className="flex gap-3">
           <button
             onClick={handleClose}
-            className="flex-1 px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg font-medium transition-colors"
+            className={BUTTON_SECONDARY_CLASS}
           >
             取消
           </button>
           <button
             onClick={handleSubmit}
-            className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg font-medium transition-colors disabled:opacity-50"
+            className={BUTTON_PRIMARY_CLASS}
             disabled={code.length !== 3}
           >
             加入戰鬥
