@@ -162,11 +162,18 @@ const AuthenticatedApp: React.FC = () => {
                     const lastCharacter = characters.find(c => c.id === lastCharacterId)
                     if (lastCharacter) {
                       characterToLoad = lastCharacter
+                    } else {
+                      // 清理不存在的角色 ID
+                      console.warn('⚠️ 上次使用的角色已不存在，已清理')
+                      await UserSettingsService.setLastCharacterId(characterToLoad.id)
                     }
+                  } else {
+                    // 儲存第一個角色為預設
+                    await UserSettingsService.setLastCharacterId(characterToLoad.id)
                   }
-                  await UserSettingsService.setLastCharacterId(characterToLoad.id)
                 } catch (settingsError) {
                   // 靜默處理設定錯誤
+                  console.warn('設定服務錯誤:', settingsError)
                 }
                 
                 setCurrentCharacter(characterToLoad)
@@ -264,6 +271,16 @@ const AuthenticatedApp: React.FC = () => {
         anonymousId: AnonymousService.getAnonymousId()
       }
       const characterData = await HybridDataManager.getCharacter(currentCharacter.id, userContext)
+      
+      if (!characterData || !characterData.character) {
+        console.error('❌ 角色不存在，清理並返回角色選擇頁面')
+        // 清理不存在的角色 ID
+        await UserSettingsService.setLastCharacterId('')
+        setCurrentCharacter(null)
+        setAppState('characterSelect')
+        setIsLoadingCharacter(false)
+        return
+      }
       
       if (characterData && characterData.character) {
         // 從完整角色數據中提取 CharacterStats
