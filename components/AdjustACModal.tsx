@@ -2,6 +2,15 @@ import React, { useState } from 'react';
 import { Modal } from './ui/Modal';
 import CombatService from '../services/combatService';
 import { useToast } from '../hooks/useToast';
+import {
+  MODAL_CONTAINER_CLASS,
+  INPUT_CLASS,
+  BUTTON_PRIMARY_CLASS,
+  BUTTON_SECONDARY_CLASS,
+  LOADING_OVERLAY_CLASS,
+  LOADING_BOX_CLASS,
+  INFO_BOX_CLASS
+} from '../styles/modalStyles';
 
 interface AdjustACModalProps {
   isOpen: boolean;
@@ -78,11 +87,11 @@ const AdjustACModal: React.FC<AdjustACModalProps> = ({
 
   return (
     <Modal isOpen={isOpen} onClose={handleClose}>
-      <div className="bg-slate-800 rounded-xl p-6 max-w-md w-full relative">
+      <div className={MODAL_CONTAINER_CLASS}>
         {/* Loading 蓋版 */}
         {isSubmitting && (
-          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm z-[130] rounded-xl flex items-center justify-center">
-            <div className="bg-slate-800 px-6 py-4 rounded-lg shadow-2xl border border-slate-700">
+          <div className={LOADING_OVERLAY_CLASS}>
+            <div className={LOADING_BOX_CLASS}>
               <div className="flex items-center gap-3">
                 <div className="animate-spin rounded-full h-5 w-5 border-2 border-amber-500 border-t-transparent"></div>
                 <span className="font-medium">更新中...</span>
@@ -107,7 +116,7 @@ const AdjustACModal: React.FC<AdjustACModalProps> = ({
         </div>
 
         {/* 說明 */}
-        <div className="mb-4 p-3 bg-blue-900/30 border border-blue-700 rounded-lg text-sm text-blue-300">
+        <div className={INFO_BOX_CLASS}>
           💡 輸入攻擊骰結果（包含所有加值後的總和），選擇命中或未命中，系統會自動縮小 AC 範圍
         </div>
 
@@ -119,7 +128,7 @@ const AdjustACModal: React.FC<AdjustACModalProps> = ({
             value={attackRoll}
             onChange={(e) => setAttackRoll(e.target.value)}
             placeholder="例如：18"
-            className="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-lg text-center text-2xl font-mono focus:outline-none focus:border-amber-500"
+            className={`${INPUT_CLASS} text-center text-2xl font-mono`}
             min="1"
             max="99"
           />
@@ -156,14 +165,14 @@ const AdjustACModal: React.FC<AdjustACModalProps> = ({
         <div className="flex gap-3">
           <button
             onClick={handleClose}
-            className="flex-1 px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg font-medium transition-colors"
+            className={BUTTON_SECONDARY_CLASS}
             disabled={isSubmitting}
           >
             取消
           </button>
           <button
             onClick={handleSubmit}
-            className="flex-1 px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg font-medium transition-colors disabled:opacity-50"
+            className={BUTTON_PRIMARY_CLASS}
             disabled={isSubmitting || !attackRoll || isHit === null}
           >
             更新範圍
