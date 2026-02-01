@@ -121,14 +121,14 @@ const AdjustACModal: React.FC<AdjustACModalProps> = ({
         </div>
 
         {/* 攻擊骰輸入 + 命中選擇 */}
-        <div className="mb-6">
+        <div className="mt-4 mb-6">
           <label className="block text-sm text-slate-400 mb-2">攻擊骰結果（含加值）</label>
           <div className="flex items-center gap-2">
             <input
               type="number"
               value={attackRoll}
               onChange={(e) => setAttackRoll(e.target.value)}
-              placeholder="例如：18"
+              placeholder="ex：18"
               className={`flex-1 ${INPUT_CLASS} text-center text-2xl font-mono`}
               min="1"
               max="99"
