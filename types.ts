@@ -64,6 +64,25 @@ export interface CharacterStats {
   };
   avatarUrl?: string;
   customRecords: CustomRecord[];
+  // 額外資料：屬性和調整值加成
+  extraData?: {
+    abilityBonuses?: {
+      str?: number;
+      dex?: number;
+      con?: number;
+      int?: number;
+      wis?: number;
+      cha?: number;
+    };
+    modifierBonuses?: {
+      str?: number;
+      dex?: number;
+      con?: number;
+      int?: number;
+      wis?: number;
+      cha?: number;
+    };
+  };
 }
 
 export interface DieResult {

@@ -31,6 +31,20 @@ export interface CharacterAbilityScores {
   intelligence: number
   wisdom: number
   charisma: number
+  // 屬性值額外加成（裝備/魔法效果）
+  strength_bonus?: number
+  dexterity_bonus?: number
+  constitution_bonus?: number
+  intelligence_bonus?: number
+  wisdom_bonus?: number
+  charisma_bonus?: number
+  // 調整值額外加成（裝備/魔法效果）
+  strength_modifier_bonus?: number
+  dexterity_modifier_bonus?: number
+  constitution_modifier_bonus?: number
+  intelligence_modifier_bonus?: number
+  wisdom_modifier_bonus?: number
+  charisma_modifier_bonus?: number
   updated_at?: string
 }
 

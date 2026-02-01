@@ -358,6 +358,10 @@ const AuthenticatedApp: React.FC = () => {
           renown: characterData.currentStats?.extra_data?.renown || INITIAL_STATS.renown,
           prestige: characterData.currentStats?.extra_data?.prestige || INITIAL_STATS.prestige,
           customRecords: characterData.currentStats?.extra_data?.customRecords || INITIAL_STATS.customRecords,
+          extraData: {
+            abilityBonuses: characterData.currentStats?.extra_data?.abilityBonuses || {},
+            modifierBonuses: characterData.currentStats?.extra_data?.modifierBonuses || {}
+          },
           attacks: characterData.currentStats?.extra_data?.attacks || INITIAL_STATS.attacks,
           // 載入生命骰資料
           hitDice: {

@@ -467,6 +467,104 @@ export class DetailedCharacterService {
     }
   }
 
+  // 保存基礎屬性值（獨立函數）
+  static async saveAbilityBaseValue(
+    characterId: string,
+    ability: 'strength' | 'dexterity' | 'constitution' | 'intelligence' | 'wisdom' | 'charisma',
+    value: number
+  ): Promise<boolean> {
+    try {
+      if (!characterId || characterId.trim() === '' || characterId.length < 32) {
+        console.error('saveAbilityBaseValue: 無效的 characterId:', characterId)
+        return false
+      }
+
+      const { error } = await supabase
+        .from('character_ability_scores')
+        .upsert(
+          { character_id: characterId, [ability]: value, updated_at: new Date().toISOString() },
+          { onConflict: 'character_id' }
+        )
+
+      if (error) {
+        console.error(`❌ 保存 ${ability} 基礎值失敗:`, error)
+        return false
+      }
+      
+      console.log(`✅ 已保存 ${ability} 基礎值: ${value}`)
+      return true
+    } catch (error) {
+      console.error(`❌ 保存 ${ability} 基礎值異常:`, error)
+      return false
+    }
+  }
+
+  // 保存屬性裝備加成（獨立函數）
+  static async saveAbilityBonus(
+    characterId: string,
+    ability: 'strength' | 'dexterity' | 'constitution' | 'intelligence' | 'wisdom' | 'charisma',
+    bonus: number
+  ): Promise<boolean> {
+    try {
+      if (!characterId || characterId.trim() === '' || characterId.length < 32) {
+        console.error('saveAbilityBonus: 無效的 characterId:', characterId)
+        return false
+      }
+
+      const bonusField = `${ability}_bonus`
+      const { error } = await supabase
+        .from('character_ability_scores')
+        .upsert(
+          { character_id: characterId, [bonusField]: bonus, updated_at: new Date().toISOString() },
+          { onConflict: 'character_id' }
+        )
+
+      if (error) {
+        console.error(`❌ 保存 ${ability} 裝備加成失敗:`, error)
+        return false
+      }
+      
+      console.log(`✅ 已保存 ${ability} 裝備加成: ${bonus}`)
+      return true
+    } catch (error) {
+      console.error(`❌ 保存 ${ability} 裝備加成異常:`, error)
+      return false
+    }
+  }
+
+  // 保存調整值額外加成（獨立函數）
+  static async saveModifierBonus(
+    characterId: string,
+    ability: 'strength' | 'dexterity' | 'constitution' | 'intelligence' | 'wisdom' | 'charisma',
+    bonus: number
+  ): Promise<boolean> {
+    try {
+      if (!characterId || characterId.trim() === '' || characterId.length < 32) {
+        console.error('saveModifierBonus: 無效的 characterId:', characterId)
+        return false
+      }
+
+      const bonusField = `${ability}_modifier_bonus`
+      const { error } = await supabase
+        .from('character_ability_scores')
+        .upsert(
+          { character_id: characterId, [bonusField]: bonus, updated_at: new Date().toISOString() },
+          { onConflict: 'character_id' }
+        )
+
+      if (error) {
+        console.error(`❌ 保存 ${ability} 調整值加成失敗:`, error)
+        return false
+      }
+      
+      console.log(`✅ 已保存 ${ability} 調整值加成: ${bonus}`)
+      return true
+    } catch (error) {
+      console.error(`❌ 保存 ${ability} 調整值加成異常:`, error)
+      return false
+    }
+  }
+
   // 更新當前狀態（血量、護甲值等）
   static async updateCurrentStats(characterId: string, stats: Partial<CharacterCurrentStats>): Promise<boolean> {
     try {

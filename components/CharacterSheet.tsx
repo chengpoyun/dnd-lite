@@ -68,6 +68,8 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
   const [editAbilities, setEditAbilities] = useState(
     Object.fromEntries(Object.entries(stats.abilityScores).map(([k, v]) => [k, v.toString()]))
   );
+  const [editAbilityBonuses, setEditAbilityBonuses] = useState<Record<string, string>>({});
+  const [editModifierBonuses, setEditModifierBonuses] = useState<Record<string, string>>({});
   const [editSavingProfs, setEditSavingProfs] = useState<(keyof CharacterStats['abilityScores'])[]>([]);
   const [tempGPValue, setTempGPValue] = useState('');
   const [tempExpValue, setTempExpValue] = useState('');
@@ -132,6 +134,14 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
   const openAbilitiesModal = () => {
     setEditAbilities(
       Object.fromEntries(Object.entries(stats.abilityScores).map(([k, v]) => [k, v.toString()]))
+    );
+    // 初始化屬性加成（從 extraData 讀取或預設為 0）
+    setEditAbilityBonuses(
+      Object.fromEntries(ABILITY_KEYS.map(k => [k, (stats.extraData?.abilityBonuses?.[k] || 0).toString()]))
+    );
+    // 初始化調整值加成
+    setEditModifierBonuses(
+      Object.fromEntries(ABILITY_KEYS.map(k => [k, (stats.extraData?.modifierBonuses?.[k] || 0).toString()]))
     );
     setEditSavingProfs([...(stats.savingProficiencies || [])]);
     setActiveModal('abilities');
@@ -591,9 +601,10 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
     
     for (const key in editAbilities) {
       const result = handleValueInput(editAbilities[key], undefined, {
-        minValue: 1,
+        minValue: -99,
         maxValue: 99,
-        allowZero: false
+        allowZero: true,
+        allowNegative: true
       });
       
       if (!result.isValid) {
@@ -606,6 +617,28 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
     if (hasInvalidValue) {
       setActiveModal(null);
       return;
+    }
+
+    // 處理加成數據
+    const abilityBonuses: Record<string, number> = {};
+    const modifierBonuses: Record<string, number> = {};
+    
+    for (const key of ABILITY_KEYS) {
+      const bonusResult = handleValueInput(editAbilityBonuses[key] || '0', undefined, { 
+        minValue: -99,
+        maxValue: 99,
+        allowZero: true, 
+        allowNegative: true 
+      });
+      const modBonusResult = handleValueInput(editModifierBonuses[key] || '0', undefined, { 
+        minValue: -99,
+        maxValue: 99,
+        allowZero: true, 
+        allowNegative: true 
+      });
+      
+      abilityBonuses[key] = bonusResult.isValid ? bonusResult.numericValue : 0;
+      modifierBonuses[key] = modBonusResult.isValid ? modBonusResult.numericValue : 0;
     }
 
     // 立即保存豁免熟練度到資料庫
@@ -628,8 +661,32 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
       }
     }
     
+    // 保存加成數據到 extraData
+    if (onSaveExtraData) {
+      const newExtraData = {
+        ...stats.extraData,
+        abilityBonuses,
+        modifierBonuses
+      };
+      const success = await onSaveExtraData(newExtraData);
+      if (success) {
+        console.log('✅ 屬性加成保存成功');
+      } else {
+        console.error('❌ 屬性加成保存失敗');
+      }
+    }
+    
     // 更新本地狀態
-    setStats(prev => ({ ...prev, abilityScores: abilities, savingProficiencies: [...editSavingProfs] })); 
+    setStats(prev => ({ 
+      ...prev, 
+      abilityScores: abilities, 
+      savingProficiencies: [...editSavingProfs],
+      extraData: {
+        ...prev.extraData,
+        abilityBonuses,
+        modifierBonuses
+      }
+    })); 
     setActiveModal(null); 
   };
   const toggleSavingProf = (key: keyof CharacterStats['abilityScores']) => { setEditSavingProfs(prev => prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]); };
@@ -955,8 +1012,15 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
 
       <div onClick={openAbilitiesModal} className="grid grid-cols-2 gap-1.5 cursor-pointer">
         {ABILITY_KEYS.map(key => {
-          const score = stats.abilityScores[key];
-          const mod = getModifier(score);
+          // 計算最終值：基礎值 + 屬性加成
+          const baseScore = stats.abilityScores[key];
+          const abilityBonus = stats.extraData?.abilityBonuses?.[key] || 0;
+          const score = baseScore + abilityBonus;
+          
+          // 計算最終調整值：floor((總值-10)/2) + 調整值額外加成
+          const modifierBonus = stats.extraData?.modifierBonuses?.[key] || 0;
+          const mod = getModifier(score) + modifierBonus;
+          
           const isSaveProf = (stats.savingProficiencies || []).includes(key);
           const saveBonus = isSaveProf ? mod + profBonus : mod;
           return (
@@ -987,7 +1051,13 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
         <div className="grid grid-cols-3 gap-1.5">
           {SKILLS_MAP.map((skill) => {
             const profLevel = stats.proficiencies[skill.name] || 0;
-            const bonus = getModifier(stats.abilityScores[skill.base]) + (profLevel * profBonus);
+            // 計算最終調整值：包含基礎值、屬性加成和調整值加成
+            const baseScore = stats.abilityScores[skill.base];
+            const abilityBonus = stats.extraData?.abilityBonuses?.[skill.base] || 0;
+            const finalScore = baseScore + abilityBonus;
+            const modifierBonus = stats.extraData?.modifierBonuses?.[skill.base] || 0;
+            const finalModifier = getModifier(finalScore) + modifierBonus;
+            const bonus = finalModifier + (profLevel * profBonus);
             return (
               <Button
                 key={skill.name}
@@ -1109,23 +1179,71 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
             <h3 className="text-base font-fantasy text-amber-500 mb-4 border-b border-slate-800 pb-2">編輯屬性</h3>
             <div className="grid grid-cols-2 gap-2">
               {ABILITY_KEYS.map(key => {
-                const result = handleValueInput(editAbilities[key], undefined, { allowZero: true });
-                const abilityValue = result.isValid ? result.numericValue : 0;
-                const modifier = getModifier(abilityValue);
+                // 基礎值
+                const baseResult = handleValueInput(editAbilities[key], undefined, { allowZero: true });
+                const baseValue = baseResult.isValid ? baseResult.numericValue : 0;
+                const baseMod = getModifier(baseValue);
+                
+                // 屬性加成
+                const bonusResult = handleValueInput(editAbilityBonuses[key] || '0', undefined, { allowZero: true, allowNegative: true });
+                const bonusValue = bonusResult.isValid ? bonusResult.numericValue : 0;
+                
+                // 調整值額外加成
+                const modBonusResult = handleValueInput(editModifierBonuses[key] || '0', undefined, { allowZero: true, allowNegative: true });
+                const modBonusValue = modBonusResult.isValid ? modBonusResult.numericValue : 0;
+                
+                // 總值 = 基礎值 + 屬性加成
+                const totalValue = baseValue + bonusValue;
+                // 最終調整值 = floor((總值-10)/2) + 調整值額外加成
+                const totalMod = getModifier(totalValue) + modBonusValue;
+                
                 const isProf = editSavingProfs.includes(key);
                 return (
-                  <div key={key} className="bg-slate-800/60 border border-slate-700 rounded-xl p-2.5 flex flex-col gap-2 shadow-inner">
+                  <div key={key} className="bg-slate-800/60 border border-slate-700 rounded-xl p-2.5 flex flex-col gap-1.5 shadow-inner">
                     <div className="flex justify-between items-center">
                       <span className="text-[14px] font-black text-slate-500 uppercase tracking-tighter">{STAT_LABELS[key as keyof typeof STAT_LABELS]}</span>
                       <button onClick={() => toggleSavingProf(key)} className={`w-5 h-5 rounded-full border flex items-center justify-center transition-all ${isProf ? 'bg-amber-500 border-amber-400 text-slate-950' : 'bg-slate-900 border-slate-700 text-transparent'}`}><span className="text-[10px] font-black">✓</span></button>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <input type="text" value={editAbilities[key]} onChange={(e) => setEditAbilities({ ...editAbilities, [key]: e.target.value })} className="w-full bg-slate-700/50 border border-slate-600 rounded-lg py-1 text-white text-center font-mono text-xl outline-none" />
-                      <div className="flex flex-col items-center shrink-0 w-8">
-                        <span className="text-[14px] text-slate-600 font-bold uppercase leading-none mb-0.5">MOD</span>
-                        <span className="text-sm font-bold text-amber-500/80 leading-none">{modifier >= 0 ? '+' : ''}{modifier}</span>
+                    
+                    {/* 基礎值和基礎調整值 */}
+                    <div className="flex items-center gap-1.5">
+                      <input 
+                        type="text" 
+                        value={editAbilities[key]} 
+                        onChange={(e) => setEditAbilities({ ...editAbilities, [key]: e.target.value })} 
+                        className="w-full bg-slate-700/50 border border-slate-600 rounded-lg py-0.5 text-white text-center font-mono text-lg outline-none" 
+                        placeholder="10"
+                      />
+                      <div className="flex flex-col items-center shrink-0 w-10">
+                        <span className="text-[11px] text-slate-600 font-bold uppercase leading-none mb-0.5">MOD</span>
+                        <span className="text-sm font-bold text-amber-500/80 leading-none">{baseMod >= 0 ? '+' : ''}{baseMod}</span>
                       </div>
                     </div>
+                    
+                    {/* 分隔線 */}
+                    <div className="text-[11px] text-slate-600 font-bold uppercase tracking-wider text-center border-t border-slate-700 pt-1">額外：</div>
+                    
+                    {/* 額外加成和額外調整值 */}
+                    <div className="flex items-center gap-1.5">
+                      <input 
+                        type="text" 
+                        value={editAbilityBonuses[key]} 
+                        onChange={(e) => setEditAbilityBonuses({ ...editAbilityBonuses, [key]: e.target.value })} 
+                        className="w-full bg-slate-700/50 border border-slate-600 rounded-lg py-0.5 text-white text-center font-mono text-lg outline-none" 
+                        placeholder="+0"
+                      />
+                      <div className="flex flex-col items-center shrink-0 w-10">
+                        <span className="text-[11px] text-slate-600 font-bold uppercase leading-none mb-0.5">MOD</span>
+                        <input 
+                          type="text" 
+                          value={editModifierBonuses[key]} 
+                          onChange={(e) => setEditModifierBonuses({ ...editModifierBonuses, [key]: e.target.value })} 
+                          className="w-full bg-slate-700/50 border border-slate-600 rounded-sm py-0.5 text-white text-center font-mono text-xs outline-none" 
+                          placeholder="+0"
+                        />
+                      </div>
+                    </div>
+                    
                   </div>
                 );
               })}
