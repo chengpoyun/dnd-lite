@@ -80,7 +80,9 @@ export const LearnSpellModal: React.FC<LearnSpellModalProps> = ({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="學習法術" size="3xl" className="flex flex-col">
+    <Modal isOpen={isOpen} onClose={onClose} size="3xl" className="flex flex-col">
+      <div className="bg-slate-800 rounded-xl px-3 py-3 max-w-3xl w-full relative flex flex-col">
+        <h2 className="text-xl font-bold mb-5">學習法術</h2>
 
         {/* 篩選區 */}
         <div className="space-y-3 mb-4">
@@ -178,6 +180,7 @@ export const LearnSpellModal: React.FC<LearnSpellModalProps> = ({
           >
             + 新增法術
           </button>
+      </div>
       </div>
     </Modal>
   );

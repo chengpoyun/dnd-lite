@@ -821,10 +821,12 @@ export const CombatView: React.FC<CombatViewProps> = ({
       <Modal 
         isOpen={isItemEditModalOpen} 
         onClose={() => setIsItemEditModalOpen(false)}
-        title={editingItemId ? '編輯項目' : '新增項目'}
         size="xs"
       >
-        <div className="space-y-4">
+        <div className="bg-slate-800 rounded-xl px-3 py-3 max-w-md w-full relative">
+          <h2 className="text-xl font-bold mb-5">{editingItemId ? '編輯項目' : '新增項目'}</h2>
+          
+          <div className="space-y-4">
           <div className="grid grid-cols-[64px_1fr_1fr] gap-3">
             <ModalInput 
               value={formIcon} 
@@ -878,16 +880,19 @@ export const CombatView: React.FC<CombatViewProps> = ({
             </ModalButton>
           </div>
         </div>
+        </div>
       </Modal>
 
       {/* 分類使用次數編輯彈窗 */}
       <Modal 
         isOpen={isCategoryUsageModalOpen && !!editingCategory} 
         onClose={() => setIsCategoryUsageModalOpen(false)}
-        title={editingCategory === 'action' ? '動作使用次數' : editingCategory === 'bonus' ? '附贈動作使用次數' : '反應使用次數'}
         size="xs"
       >
-        <div className="space-y-4">
+        <div className="bg-slate-800 rounded-xl px-3 py-3 max-w-md w-full relative">
+          <h2 className="text-xl font-bold mb-5">{editingCategory === 'action' ? '動作使用次數' : editingCategory === 'bonus' ? '附贈動作使用次數' : '反應使用次數'}</h2>
+          
+          <div className="space-y-4">
           <div className="grid grid-cols-2 gap-3">
             <div>
               <span className="text-[16px] text-slate-500 font-black block mb-1 uppercase tracking-widest text-center">剩餘次數</span>
@@ -914,6 +919,7 @@ export const CombatView: React.FC<CombatViewProps> = ({
               儲存
             </ModalButton>
           </div>
+        </div>
         </div>
       </Modal>
 
@@ -1043,42 +1049,44 @@ export const CombatView: React.FC<CombatViewProps> = ({
       <Modal 
         isOpen={isHPModalOpen} 
         onClose={() => setIsHPModalOpen(false)}
-        title="修改生命值"
         size="sm"
       >
-        <div className="space-y-4">
-          <div>
-            <span className="text-[16px] text-slate-500 font-black block mb-2 uppercase tracking-widest">當前HP</span>
-            <ModalInput 
-              value={tempHPValue} 
-              onChange={setTempHPValue} 
-              placeholder={stats.hp.current.toString()} 
-              className="text-3xl font-mono text-center" 
-              autoFocus 
-            />
-          </div>
+        <div className="bg-slate-800 rounded-xl px-3 py-3 max-w-md w-full relative">
+          <h2 className="text-xl font-bold mb-5">修改生命值</h2>
           
-          <div>
-            <span className="text-[16px] text-slate-500 font-black block mb-2 uppercase tracking-widest">最大HP</span>
-            <ModalInput 
-              value={tempMaxHPValue} 
-              onChange={setTempMaxHPValue} 
-              placeholder={stats.hp.max.toString()} 
-              className="text-3xl font-mono text-center" 
-            />
+          <div className="space-y-4">
+            <div>
+              <span className="text-[16px] text-slate-500 font-black block mb-2 uppercase tracking-widest">當前HP</span>
+              <ModalInput 
+                value={tempHPValue} 
+                onChange={setTempHPValue} 
+                placeholder={stats.hp.current.toString()} 
+                className="text-3xl font-mono text-center" 
+                autoFocus 
+              />
+            </div>
+            
+            <div>
+              <span className="text-[16px] text-slate-500 font-black block mb-2 uppercase tracking-widest">最大HP</span>
+              <ModalInput 
+                value={tempMaxHPValue} 
+                onChange={setTempMaxHPValue} 
+                placeholder={stats.hp.max.toString()} 
+                className="text-3xl font-mono text-center" 
+              />
+            </div>
           </div>
-        </div>
-        <div className="flex gap-2 mt-6">
-          <ModalButton variant="secondary" onClick={() => {
-            setIsHPModalOpen(false);
-            setTempHPValue('');
-            setTempMaxHPValue('');
-          }}>
-            取消
-          </ModalButton>
-          <ModalButton 
-            variant="primary" 
-            onClick={() => { 
+          <div className="flex gap-2 mt-6">
+            <ModalButton variant="secondary" onClick={() => {
+              setIsHPModalOpen(false);
+              setTempHPValue('');
+              setTempMaxHPValue('');
+            }}>
+              取消
+            </ModalButton>
+            <ModalButton 
+              variant="primary" 
+              onClick={() => { 
               console.log('Current HP Input:', tempHPValue);
               console.log('Max HP Input:', tempMaxHPValue);
               
@@ -1153,6 +1161,7 @@ export const CombatView: React.FC<CombatViewProps> = ({
           >
             套用
           </ModalButton>
+        </div>
         </div>
       </Modal>
 
