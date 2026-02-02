@@ -964,6 +964,7 @@ const AuthenticatedApp: React.FC = () => {
     if (userMode === 'authenticated') {
       await UserSettingsService.setLastCharacterId(character.id)
     }
+    setActiveTab(Tab.CHARACTER) // 選擇角色後切換到角色頁面
     setAppState('main')
   }
 
