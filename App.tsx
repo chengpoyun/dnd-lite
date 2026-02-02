@@ -72,6 +72,11 @@ const AuthenticatedApp: React.FC = () => {
   const [needsConversion, setNeedsConversion] = useState(false)
   const [showSessionExpired, setShowSessionExpired] = useState(false)
   
+  // 滑動切換 Tab 狀態
+  const [touchStartX, setTouchStartX] = useState<number>(0)
+  const [touchStartY, setTouchStartY] = useState<number>(0)
+  const [isSwiping, setIsSwiping] = useState(false)
+  
   // 角色數據
   const [currentCharacter, setCurrentCharacter] = useState<Character | null>(null)
   const [stats, setStats] = useState<CharacterStats>(INITIAL_STATS)
@@ -943,6 +948,71 @@ const AuthenticatedApp: React.FC = () => {
 
   // 主應用程式
   if (appState === 'main' && currentCharacter) {
+    // 動態生成可用的 tabs 列表
+    const availableTabs = [
+      Tab.CHARACTER,
+      Tab.ABILITIES,
+      ...(isSpellcaster(stats.classes?.map(c => c.name) || [stats.class]) ? [Tab.SPELLS] : []),
+      Tab.COMBAT,
+      Tab.MONSTERS,
+      Tab.ITEMS,
+      Tab.DICE
+    ]
+
+    // 滑動處理函數
+    const handleTouchStart = (e: React.TouchEvent) => {
+      setTouchStartX(e.touches[0].clientX)
+      setTouchStartY(e.touches[0].clientY)
+      setIsSwiping(true)
+    }
+
+    const handleTouchMove = (e: React.TouchEvent) => {
+      if (!isSwiping) return
+      
+      const touchEndX = e.touches[0].clientX
+      const touchEndY = e.touches[0].clientY
+      const deltaX = touchEndX - touchStartX
+      const deltaY = touchEndY - touchStartY
+      
+      // 判斷是否為主要水平滑動（避免與垂直滾動衝突）
+      if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 10) {
+        // 防止頁面滾動
+        e.preventDefault()
+      }
+    }
+
+    const handleTouchEnd = (e: React.TouchEvent) => {
+      if (!isSwiping) return
+      setIsSwiping(false)
+      
+      const touchEndX = e.changedTouches[0].clientX
+      const touchEndY = e.changedTouches[0].clientY
+      const deltaX = touchEndX - touchStartX
+      const deltaY = touchEndY - touchStartY
+      
+      // 判斷是否為水平滑動
+      if (Math.abs(deltaX) < Math.abs(deltaY)) return
+      
+      // 最小滑動距離
+      const minSwipeDistance = 50
+      
+      if (Math.abs(deltaX) > minSwipeDistance) {
+        const currentIndex = availableTabs.indexOf(activeTab)
+        
+        if (deltaX > 0) {
+          // 右滑 - 切換到上一個 tab
+          if (currentIndex > 0) {
+            setActiveTab(availableTabs[currentIndex - 1])
+          }
+        } else {
+          // 左滑 - 切換到下一個 tab
+          if (currentIndex < availableTabs.length - 1) {
+            setActiveTab(availableTabs[currentIndex + 1])
+          }
+        }
+      }
+    }
+
     return (
       <div className="min-h-screen bg-slate-950 text-slate-100">
         {/* 分頁導航 */}
@@ -986,7 +1056,12 @@ const AuthenticatedApp: React.FC = () => {
         </nav>
 
         {/* 主要內容 */}
-        <main className="p-6">
+        <main 
+          className="p-6"
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
           {activeTab === Tab.CHARACTER && (
             <>
               {isCharacterDataReady ? (
