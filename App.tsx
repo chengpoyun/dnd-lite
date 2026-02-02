@@ -1231,7 +1231,7 @@ const AuthenticatedApp: React.FC = () => {
                 onSaveSpeed={saveSpeed}
                 onSaveSpellAttackBonus={saveSpellAttackBonus}
                 onSaveSpellSaveDC={saveSpellSaveDC}
-                showSpellStats={activeTab === Tab.SPELLS}
+                showSpellStats={isSpellcaster(stats.classes?.map(c => c.name) || [stats.class])}
               />
             </Suspense>
           )}
