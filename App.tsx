@@ -984,6 +984,13 @@ const AuthenticatedApp: React.FC = () => {
 
     // 滑動處理函數
     const handleTouchStart = (e: React.TouchEvent) => {
+      // 檢查是否有 modal 開啟（檢查是否點擊在 fixed overlay 上）
+      const target = e.target as HTMLElement;
+      const isModalOpen = document.querySelector('.fixed.inset-0.z-\\[120\\]') !== null;
+      
+      // 如果有 modal 開啟，不處理滑動
+      if (isModalOpen) return;
+      
       setTouchStartX(e.touches[0].clientX)
       setTouchStartY(e.touches[0].clientY)
       setIsSwiping(true)
