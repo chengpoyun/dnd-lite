@@ -42,6 +42,7 @@ interface CombatViewProps {
   onSaveHP?: (currentHP: number, maxHP?: number) => Promise<boolean>;
   onSaveAC?: (ac: number) => Promise<boolean>;
   onSaveInitiative?: (initiative: number) => Promise<boolean>;
+  onSaveSpeed?: (speed: number) => Promise<boolean>;
 }
 
 export const CombatView: React.FC<CombatViewProps> = ({ 
@@ -50,7 +51,8 @@ export const CombatView: React.FC<CombatViewProps> = ({
   characterId: propCharacterId,
   onSaveHP,
   onSaveAC, 
-  onSaveInitiative
+  onSaveInitiative,
+  onSaveSpeed
 }) => {
   // 角色 ID 管理 - 優先使用從 props 傳入的 ID，否則從 localStorage 獲取
   const [characterId] = useState(() => {
@@ -105,6 +107,7 @@ export const CombatView: React.FC<CombatViewProps> = ({
   const [isHPModalOpen, setIsHPModalOpen] = useState(false);
   const [isACModalOpen, setIsACModalOpen] = useState(false);
   const [isInitiativeModalOpen, setIsInitiativeModalOpen] = useState(false);
+  const [isSpeedModalOpen, setIsSpeedModalOpen] = useState(false);
   const [isEndCombatConfirmOpen, setIsEndCombatConfirmOpen] = useState(false);
   const [isItemEditModalOpen, setIsItemEditModalOpen] = useState(false);
   const [isCategoryUsageModalOpen, setIsCategoryUsageModalOpen] = useState(false);
@@ -122,6 +125,7 @@ export const CombatView: React.FC<CombatViewProps> = ({
   const [tempMaxHPValue, setTempMaxHPValue] = useState('');
   const [tempACValue, setTempACValue] = useState('');
   const [tempInitiativeValue, setTempInitiativeValue] = useState('');
+  const [tempSpeedValue, setTempSpeedValue] = useState('');
   
   const [tempCategoryCurrent, setTempCategoryCurrent] = useState('0');
   const [tempCategoryMax, setTempCategoryMax] = useState('1');
@@ -753,14 +757,14 @@ export const CombatView: React.FC<CombatViewProps> = ({
           <span className={`text-[16px] font-fantasy leading-none ${hpColors.text}`}>{stats.hp.current}/{stats.hp.max}</span>
         </div>
         <div onClick={() => { setTempACValue(stats.ac.toString()); setIsACModalOpen(true); }} className="flex flex-col items-center justify-center bg-slate-900 rounded-xl border border-amber-900/30 active:bg-slate-800 transition-colors cursor-pointer shadow-sm">
-          <span className="text-[16px] font-black text-amber-500/80 uppercase mb-1 tracking-tighter">防禦</span>
+          <span className="text-[16px] font-black text-amber-500/80 uppercase mb-1 tracking-tighter">AC</span>
           <span className="text-[16px] font-fantasy text-white leading-none">{stats.ac}</span>
         </div>
         <div onClick={() => { setTempInitiativeValue(stats.initiative.toString()); setIsInitiativeModalOpen(true); }} className="flex flex-col items-center justify-center bg-slate-900 rounded-xl border border-indigo-900/30 active:bg-slate-800 transition-colors cursor-pointer shadow-sm">
           <span className="text-[16px] font-black text-indigo-400/80 uppercase mb-1 tracking-tighter">先攻</span>
           <span className="text-[16px] font-fantasy text-white leading-none">+{stats.initiative}</span>
         </div>
-        <div className="flex flex-col items-center justify-center bg-slate-900 rounded-xl border border-cyan-900/30 shadow-sm">
+        <div onClick={() => { setTempSpeedValue(stats.speed.toString()); setIsSpeedModalOpen(true); }} className="flex flex-col items-center justify-center bg-slate-900 rounded-xl border border-cyan-900/30 active:bg-slate-800 transition-colors cursor-pointer shadow-sm">
           <span className="text-[16px] font-black text-cyan-400/80 uppercase mb-1 tracking-tighter">速度</span>
           <span className="text-[16px] font-fantasy text-white leading-none">{stats.speed}</span>
         </div>
@@ -1217,7 +1221,7 @@ export const CombatView: React.FC<CombatViewProps> = ({
       <Modal 
         isOpen={isInitiativeModalOpen} 
         onClose={() => setIsInitiativeModalOpen(false)}
-        title="修改先攻修正"
+        title="修改先攻調整值"
         size="xs"
       >
         <ModalInput 
@@ -1270,6 +1274,69 @@ export const CombatView: React.FC<CombatViewProps> = ({
             setIsInitiativeModalOpen(false); 
             setTempInitiativeValue(''); 
           }} className="bg-indigo-600 hover:bg-indigo-500">
+            套用
+          </ModalButton>
+        </div>
+      </Modal>
+
+      {/* 速度編輯彈窗 */}
+      <Modal 
+        isOpen={isSpeedModalOpen} 
+        onClose={() => setIsSpeedModalOpen(false)}
+        title="修改速度"
+        size="xs"
+      >
+        <ModalInput 
+          value={tempSpeedValue} 
+          onChange={setTempSpeedValue} 
+          placeholder={stats.speed.toString()} 
+          className="text-3xl font-mono text-center mb-4" 
+          autoFocus 
+        />
+        <div className="flex gap-2">
+          <ModalButton variant="secondary" onClick={() => setIsSpeedModalOpen(false)}>
+            取消
+          </ModalButton>
+          <ModalButton variant="primary" onClick={() => { 
+            // 如果輸入純數字，直接設定為該值
+            // 如果輸入運算表達式（如+5），則基於當前值計算
+            let finalValue;
+            const isCalculationInput = tempSpeedValue.includes('+') || tempSpeedValue.includes('-');
+            
+            if (isCalculationInput) {
+              // 運算模式
+              const result = handleValueInput(tempSpeedValue, stats.speed, {
+                minValue: 0,
+                allowZero: true
+              });
+              finalValue = result.isValid ? result.numericValue : stats.speed;
+            } else {
+              // 純數字模式 - 直接設定
+              const numericValue = parseInt(tempSpeedValue);
+              if (!isNaN(numericValue) && numericValue >= 0) {
+                finalValue = numericValue;
+              } else {
+                finalValue = stats.speed; // 無效輸入時保持原值
+              }
+            }
+            
+            console.log('Setting speed from', stats.speed, 'to', finalValue);
+            setStats(prev => ({ ...prev, speed: finalValue }));
+
+            // 保存速度值到資料庫
+            if (onSaveSpeed) {
+              onSaveSpeed(finalValue).then(success => {
+                if (!success) {
+                  console.error('❌ 速度值保存失敗');
+                }
+              }).catch(error => {
+                console.error('❌ 速度值保存錯誤:', error);
+              });
+            }
+
+            setIsSpeedModalOpen(false); 
+            setTempSpeedValue(''); 
+          }} className="bg-cyan-600 hover:bg-cyan-500">
             套用
           </ModalButton>
         </div>

@@ -740,6 +740,36 @@ const AuthenticatedApp: React.FC = () => {
     }
   }
 
+  // 保存速度值
+  const saveSpeed = async (speed: number) => {
+    if (!currentCharacter || isSaving) return false
+    
+    // 驗證 session
+    if (!await validateSessionBeforeSave()) return false
+    
+    setIsSaving(true)
+    try {
+      console.log('🏃 保存速度值:', speed)
+      const characterUpdate: CharacterUpdateData = {
+        currentStats: {
+          character_id: currentCharacter.id,
+          speed: speed
+        } as Partial<CharacterCurrentStats>
+      }
+      
+      const success = await HybridDataManager.updateCharacter(currentCharacter.id, characterUpdate)
+      if (success) {
+        console.log('✅ 速度值保存成功')
+      }
+      return success
+    } catch (error) {
+      console.error('❌ 速度值保存失敗:', error)
+      return false
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
   // 保存貨幣和經驗值
   const saveCurrencyAndExp = async (gp: number, exp: number) => {
     if (!currentCharacter || isSaving) return false
@@ -1126,6 +1156,7 @@ const AuthenticatedApp: React.FC = () => {
                 onSaveHP={saveHP}
                 onSaveAC={saveAC}
                 onSaveInitiative={saveInitiative}
+                onSaveSpeed={saveSpeed}
               />
             </Suspense>
           )}
