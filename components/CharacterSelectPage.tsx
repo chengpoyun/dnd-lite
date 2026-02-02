@@ -159,14 +159,11 @@ export const CharacterSelectPage: React.FC<CharacterSelectPageProps> = ({
     <PageContainer>
       {/* 標題欄 */}
       <div className={combineStyles(STYLES.layout.flexBetween, STYLES.spacing.marginBottomSmall)}>
-        <div className={combineStyles(STYLES.layout.flexCenter, STYLES.spacing.gap)}>
-          <BackButton onClick={onBack} />
-          <div>
-            <Title className="mb-1">角色選擇</Title>
-            <Subtitle>
-              {userMode === 'anonymous' ? '匿名模式 - 僅限一個角色' : '選擇或創建角色'}
-            </Subtitle>
-          </div>
+        <div>
+          <Title className="mb-1">角色選擇</Title>
+          <Subtitle>
+            {userMode === 'anonymous' ? '匿名模式 - 僅限一個角色' : '選擇或創建角色'}
+          </Subtitle>
         </div>
 
         {userMode === 'authenticated' && (
