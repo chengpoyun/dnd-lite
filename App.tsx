@@ -974,10 +974,10 @@ const AuthenticatedApp: React.FC = () => {
       const deltaX = touchEndX - touchStartX
       const deltaY = touchEndY - touchStartY
       
-      // 判斷是否為主要水平滑動（避免與垂直滾動衝突）
+      // 判斷是否為主要水平滑動
+      // 注意：不使用 preventDefault，改用 CSS touch-action 控制
       if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 10) {
-        // 防止頁面滾動
-        e.preventDefault()
+        // 標記為水平滑動中
       }
     }
 
@@ -1058,6 +1058,7 @@ const AuthenticatedApp: React.FC = () => {
         {/* 主要內容 */}
         <main 
           className="p-6"
+          style={{ touchAction: 'pan-y' }}
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
