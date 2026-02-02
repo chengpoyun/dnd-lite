@@ -177,7 +177,12 @@ export default function ItemsPage({ characterId }: ItemsPageProps) {
         </div>
 
         {/* 類別篩選 */}
-        <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
+        <div 
+          className="flex gap-2 mb-6 overflow-x-auto pb-2"
+          onTouchStart={(e) => e.stopPropagation()}
+          onTouchMove={(e) => e.stopPropagation()}
+          onTouchEnd={(e) => e.stopPropagation()}
+        >
           {CATEGORIES.map((cat) => (
             <button
               key={cat.value}
