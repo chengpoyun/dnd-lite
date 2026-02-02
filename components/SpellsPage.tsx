@@ -39,7 +39,7 @@ export const SpellsPage: React.FC<SpellsPageProps> = ({
   const [isLearnModalOpen, setIsLearnModalOpen] = useState(false);
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
-  const [selectedSpell, setSelectedSpell] = useState<Spell | null>(null);
+  const [selectedCharacterSpell, setSelectedCharacterSpell] = useState<CharacterSpell | null>(null);
   const [editingSpell, setEditingSpell] = useState<Spell | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [preparedCount, setPreparedCount] = useState(0);
@@ -152,9 +152,12 @@ export const SpellsPage: React.FC<SpellsPageProps> = ({
     }
   };
 
-  const handleEditSpell = (spell: Spell) => {
-    setEditingSpell(spell);
-    setIsFormModalOpen(true);
+  const handleEditSpell = (characterSpell: CharacterSpell) => {
+    // 編輯全域 Spell（需要確認）
+    if (characterSpell.spell) {
+      setEditingSpell(characterSpell.spell);
+      setIsFormModalOpen(true);
+    }
   };
 
   const handleCloseFormModal = () => {
@@ -267,7 +270,7 @@ export const SpellsPage: React.FC<SpellsPageProps> = ({
                     characterSpell={cs}
                     onTogglePrepared={handleTogglePrepared}
                     onClick={() => {
-                      setSelectedSpell(cs.spell!);
+                      setSelectedCharacterSpell(cs);
                       setIsDetailModalOpen(true);
                     }}
                     canPrepareMore={level === 0 ? canPrepareMoreCantrips : canPrepareMore}
@@ -285,9 +288,9 @@ export const SpellsPage: React.FC<SpellsPageProps> = ({
         isOpen={isDetailModalOpen}
         onClose={() => {
           setIsDetailModalOpen(false);
-          setSelectedSpell(null);
+          setSelectedCharacterSpell(null);
         }}
-        spell={selectedSpell}
+        characterSpell={selectedCharacterSpell}
         onEdit={handleEditSpell}
         onForget={handleForgetSpell}
       />

@@ -26,6 +26,17 @@ export interface Item {
   category: ItemCategory;
   created_at: string;
   updated_at: string;
+  // Override 欄位（角色專屬客製化）
+  name_override?: string | null;
+  description_override?: string | null;
+  category_override?: ItemCategory | null;
+}
+
+// 帶有 display helper 的 Item 類型
+export interface ItemWithDetails extends Item {
+  displayName: string;
+  displayDescription: string;
+  displayCategory: ItemCategory;
 }
 
 export interface CreateItemData {
@@ -278,4 +289,42 @@ export async function getItemById(itemId: string): Promise<{
     console.error('❌ 取得道具詳情異常:', error);
     return { success: false, error: '取得道具詳情時發生錯誤' };
   }
+}
+
+/**
+ * 更新角色專屬物品（使用 override 欄位）
+ * 不影響 items 表的全域資料（如果未來有全域物品庫的話）
+ */
+export async function updateCharacterItem(
+  itemId: string,
+  updates: Partial<Omit<Item, 'id' | 'user_id' | 'anonymous_id' | 'created_at' | 'updated_at'>>
+): Promise<{success: boolean; error?: string}> {
+  try {
+    const { error } = await supabase
+      .from('items')
+      .update(updates)
+      .eq('id', itemId);
+
+    if (error) {
+      console.error('❌ 更新角色物品失敗:', error);
+      return { success: false, error: error.message };
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error('❌ 更新角色物品異常:', error);
+    return { success: false, error: '更新物品時發生錯誤' };
+  }
+}
+
+/**
+ * 獲取物品的顯示值（優先使用 override 值，否則使用原始值）
+ */
+export function getDisplayValues(item: Item): ItemWithDetails {
+  return {
+    ...item,
+    displayName: item.name_override ?? item.name,
+    displayDescription: item.description_override ?? item.description,
+    displayCategory: item.category_override ?? item.category
+  };
 }

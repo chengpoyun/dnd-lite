@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase';
 export interface Spell {
   id: string;
   name: string;
+  name_en?: string;
   level: number;
   casting_time: string;
   school: '塑能' | '惑控' | '預言' | '咒法' | '變化' | '防護' | '死靈' | '幻術';
@@ -25,7 +26,41 @@ export interface CharacterSpell {
   spell_id: string;
   is_prepared: boolean;
   created_at: string;
-  spell?: Spell; // JOIN 查詢時會包含完整法術資料
+  // Override 欄位（角色專屬客製化）
+  name_override?: string | null;
+  name_en_override?: string | null;
+  level_override?: number | null;
+  casting_time_override?: string | null;
+  school_override?: Spell['school'] | null;
+  concentration_override?: boolean | null;
+  ritual_override?: boolean | null;
+  duration_override?: string | null;
+  range_override?: string | null;
+  source_override?: string | null;
+  verbal_override?: boolean | null;
+  somatic_override?: boolean | null;
+  material_override?: string | null;
+  description_override?: string | null;
+  // JOIN 查詢時會包含完整法術資料
+  spell?: Spell;
+}
+
+// 帶有 display helper 的 CharacterSpell 類型
+export interface CharacterSpellWithDetails extends CharacterSpell {
+  displayName: string;
+  displayNameEn?: string;
+  displayLevel: number;
+  displayCastingTime: string;
+  displaySchool: Spell['school'];
+  displayConcentration: boolean;
+  displayRitual: boolean;
+  displayDuration: string;
+  displayRange: string;
+  displaySource: string;
+  displayVerbal: boolean;
+  displaySomatic: boolean;
+  displayMaterial: string;
+  displayDescription: string;
 }
 
 export interface SpellFilters {
@@ -238,4 +273,55 @@ export async function getPreparedCantripsCount(characterId: string): Promise<num
   }
 
   return data?.length || 0;
+}
+
+/**
+ * 更新角色專屬法術（使用 override 欄位）
+ * 不影響 spells 表的全域資料
+ */
+export async function updateCharacterSpell(
+  characterSpellId: string,
+  updates: Partial<Omit<CharacterSpell, 'id' | 'character_id' | 'spell_id' | 'created_at' | 'spell'>>
+): Promise<{success: boolean; error?: string}> {
+  try {
+    const { error } = await supabase
+      .from('character_spells')
+      .update(updates)
+      .eq('id', characterSpellId);
+
+    if (error) {
+      console.error('更新角色法術失敗:', error);
+      return { success: false, error: error.message };
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error('更新角色法術異常:', error);
+    return { success: false, error: '更新法術時發生錯誤' };
+  }
+}
+
+/**
+ * 獲取法術的顯示值（優先使用 override 值，否則使用原始值）
+ */
+export function getDisplayValues(characterSpell: CharacterSpell): CharacterSpellWithDetails {
+  const spell = characterSpell.spell;
+  
+  return {
+    ...characterSpell,
+    displayName: characterSpell.name_override ?? spell?.name ?? '',
+    displayNameEn: characterSpell.name_en_override ?? spell?.name_en,
+    displayLevel: characterSpell.level_override ?? spell?.level ?? 0,
+    displayCastingTime: characterSpell.casting_time_override ?? spell?.casting_time ?? '',
+    displaySchool: characterSpell.school_override ?? spell?.school ?? '塑能',
+    displayConcentration: characterSpell.concentration_override ?? spell?.concentration ?? false,
+    displayRitual: characterSpell.ritual_override ?? spell?.ritual ?? false,
+    displayDuration: characterSpell.duration_override ?? spell?.duration ?? '',
+    displayRange: characterSpell.range_override ?? spell?.range ?? '',
+    displaySource: characterSpell.source_override ?? spell?.source ?? '',
+    displayVerbal: characterSpell.verbal_override ?? spell?.verbal ?? false,
+    displaySomatic: characterSpell.somatic_override ?? spell?.somatic ?? false,
+    displayMaterial: characterSpell.material_override ?? spell?.material ?? '',
+    displayDescription: characterSpell.description_override ?? spell?.description ?? ''
+  };
 }

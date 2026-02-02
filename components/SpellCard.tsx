@@ -1,5 +1,5 @@
 import React from 'react';
-import { CharacterSpell } from '../services/spellService';
+import { CharacterSpell, getDisplayValues } from '../services/spellService';
 import { getSpellLevelText, getSchoolColor } from '../utils/spellUtils';
 
 interface SpellCardProps {
@@ -17,8 +17,8 @@ export const SpellCard: React.FC<SpellCardProps> = ({
   canPrepareMore,
   isCantrip
 }) => {
-  const spell = characterSpell.spell!;
-  const schoolColor = getSchoolColor(spell.school);
+  const display = getDisplayValues(characterSpell);
+  const schoolColor = getSchoolColor(display.displaySchool);
 
   const handleTogglePrepared = () => {
     if (!characterSpell.is_prepared && !canPrepareMore && !isCantrip) {
@@ -27,7 +27,7 @@ export const SpellCard: React.FC<SpellCardProps> = ({
         return;
       }
     }
-    onTogglePrepared(spell.id, !characterSpell.is_prepared);
+    onTogglePrepared(characterSpell.spell?.id || characterSpell.spell_id, !characterSpell.is_prepared);
   };
 
   return (
@@ -56,12 +56,12 @@ export const SpellCard: React.FC<SpellCardProps> = ({
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-3 flex-1 min-w-0">
               <div className="flex-1 min-w-0">
-                <h3 className="text-[20px] font-bold text-slate-200 truncate">{spell.name}</h3>
+                <h3 className="text-[20px] font-bold text-slate-200 truncate">{display.displayName}</h3>
                 <div className="flex items-center gap-2 mt-1">
-                  {spell.concentration && (
+                  {display.displayConcentration && (
                     <span className="text-[12px] px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400 font-bold">專注</span>
                   )}
-                  {spell.ritual && (
+                  {display.displayRitual && (
                     <span className="text-[12px] px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-400 font-bold">儀式</span>
                   )}
                 </div>
@@ -69,7 +69,7 @@ export const SpellCard: React.FC<SpellCardProps> = ({
 
               {/* 學派標籤 */}
               <div className={`px-3 py-1 rounded-lg ${schoolColor.bgLight} ${schoolColor.text} text-[14px] font-bold flex-shrink-0`}>
-                {spell.school}
+                {display.displaySchool}
               </div>
             </div>
 

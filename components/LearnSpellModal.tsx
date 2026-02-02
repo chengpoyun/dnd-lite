@@ -57,11 +57,12 @@ export const LearnSpellModal: React.FC<LearnSpellModalProps> = ({
       filtered = filtered.filter(spell => spell.level === selectedLevel);
     }
 
-    // 文字搜尋
+    // 文字搜尋（支援中英文）
     if (searchText) {
       const search = searchText.toLowerCase();
       filtered = filtered.filter(spell => 
         spell.name.toLowerCase().includes(search) ||
+        (spell.name_en?.toLowerCase().includes(search)) ||
         spell.description.toLowerCase().includes(search)
       );
     }
@@ -105,12 +106,12 @@ export const LearnSpellModal: React.FC<LearnSpellModalProps> = ({
 
           {/* 搜尋框 */}
           <div>
-            <label className="block text-[14px] text-slate-400 mb-2">搜尋法術</label>
+            <label className="block text-[14px] text-slate-400 mb-2">搜尋法術（支援中英文）</label>
             <input
               type="text"
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
-              placeholder="輸入法術名稱..."
+              placeholder="輸入中文或英文名稱..."
               className="w-full bg-slate-800 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500"
             />
           </div>

@@ -1,44 +1,45 @@
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Modal } from './ui/Modal';
-import { Spell } from '../services/spellService';
+import { CharacterSpell, getDisplayValues } from '../services/spellService';
 import { getSpellLevelText, getSchoolColor } from '../utils/spellUtils';
 
 interface SpellDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
-  spell: Spell | null;
-  onEdit: (spell: Spell) => void;
+  characterSpell: CharacterSpell | null;
+  onEdit: (characterSpell: CharacterSpell) => void;
   onForget: (spellId: string) => void;
 }
 
 export const SpellDetailModal: React.FC<SpellDetailModalProps> = ({
   isOpen,
   onClose,
-  spell,
+  characterSpell,
   onEdit,
   onForget
 }) => {
-  if (!spell) return null;
+  if (!characterSpell) return null;
 
-  const schoolColor = getSchoolColor(spell.school);
+  const display = getDisplayValues(characterSpell);
+  const schoolColor = getSchoolColor(display.displaySchool);
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="2xl">
       <div className="bg-slate-800 rounded-xl px-3 py-3 max-w-2xl w-full relative">
-        <h2 className="text-xl font-bold mb-5">{spell.name}</h2>
+        <h2 className="text-xl font-bold mb-5">{display.displayName}</h2>
         
         {/* 法術等級和學派 */}
       <div className="mb-6">
           <div className="flex items-center gap-3 flex-wrap">
-            <span className="text-[16px] text-slate-400">{getSpellLevelText(spell.level)}</span>
+            <span className="text-[16px] text-slate-400">{getSpellLevelText(display.displayLevel)}</span>
             <div className={`px-3 py-1 rounded-lg ${schoolColor.bgLight} ${schoolColor.text} text-[16px] font-bold`}>
-              {spell.school}
+              {display.displaySchool}
             </div>
-            {spell.concentration && (
+            {display.displayConcentration && (
               <span className="text-[14px] px-2 py-1 rounded bg-blue-500/20 text-blue-400 font-bold">專注</span>
             )}
-            {spell.ritual && (
+            {display.displayRitual && (
               <span className="text-[14px] px-2 py-1 rounded bg-purple-500/20 text-purple-400 font-bold">儀式</span>
             )}
           </div>
@@ -49,19 +50,19 @@ export const SpellDetailModal: React.FC<SpellDetailModalProps> = ({
           <div className="grid grid-cols-4 gap-3 text-center">
             <div>
               <div className="text-[12px] text-slate-500 mb-0.5">施法時間</div>
-              <div className="text-[14px] text-slate-200 font-medium">{spell.casting_time}</div>
+              <div className="text-[14px] text-slate-200 font-medium">{display.displayCastingTime}</div>
             </div>
             <div>
               <div className="text-[12px] text-slate-500 mb-0.5">持續時間</div>
-              <div className="text-[14px] text-slate-200 font-medium">{spell.duration}</div>
+              <div className="text-[14px] text-slate-200 font-medium">{display.displayDuration}</div>
             </div>
             <div>
               <div className="text-[12px] text-slate-500 mb-0.5">射程</div>
-              <div className="text-[14px] text-slate-200 font-medium">{spell.range}</div>
+              <div className="text-[14px] text-slate-200 font-medium">{display.displayRange}</div>
             </div>
             <div>
               <div className="text-[12px] text-slate-500 mb-0.5">來源</div>
-              <div className="text-[14px] text-slate-200 font-medium">{spell.source}</div>
+              <div className="text-[14px] text-slate-200 font-medium">{display.displaySource}</div>
             </div>
           </div>
         </div>
@@ -70,16 +71,16 @@ export const SpellDetailModal: React.FC<SpellDetailModalProps> = ({
         <div className="mb-4">
           <div className="flex gap-2 flex-wrap items-center">
             <span className="text-[12px] text-slate-500">成分:</span>
-            {spell.verbal && (
+            {display.displayVerbal && (
               <span className="text-[13px] text-slate-300 bg-slate-800 px-2 py-0.5 rounded">V</span>
             )}
-            {spell.somatic && (
+            {display.displaySomatic && (
               <span className="text-[13px] text-slate-300 bg-slate-800 px-2 py-0.5 rounded">S</span>
             )}
-            {spell.material && (
+            {display.displayMaterial && (
               <>
                 <span className="text-[13px] text-slate-300 bg-slate-800 px-2 py-0.5 rounded">M</span>
-                <span className="text-[13px] text-slate-400">({spell.material})</span>
+                <span className="text-[13px] text-slate-400">({display.displayMaterial})</span>
               </>
             )}
           </div>
@@ -99,7 +100,7 @@ export const SpellDetailModal: React.FC<SpellDetailModalProps> = ({
                 li: ({ children }) => <li className="text-slate-100">{children}</li>,
               }}
             >
-              {spell.description}
+              {display.displayDescription}
             </ReactMarkdown>
           </div>
         </div>
@@ -108,7 +109,7 @@ export const SpellDetailModal: React.FC<SpellDetailModalProps> = ({
         <div className="flex gap-3 pt-4 border-t border-slate-700">
           <button
             onClick={() => {
-              onEdit(spell);
+              onEdit(characterSpell);
               onClose();
             }}
             className="flex-1 px-6 py-3 rounded-lg bg-blue-600 text-white text-[16px] font-bold active:bg-blue-700"
@@ -117,7 +118,7 @@ export const SpellDetailModal: React.FC<SpellDetailModalProps> = ({
           </button>
           <button
             onClick={() => {
-              onForget(spell.id);
+              onForget(characterSpell.spell?.id || characterSpell.spell_id);
               onClose();
             }}
             className="flex-1 px-6 py-3 rounded-lg bg-rose-600 text-white text-[16px] font-bold active:bg-rose-700"
