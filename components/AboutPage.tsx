@@ -15,7 +15,7 @@ export const AboutPage: React.FC<AboutPageProps> = ({
   const { user } = useAuth();
   
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
+    <div className="max-w-2xl mx-auto space-y-6 px-4">
       {/* App 資訊 */}
       <div className="bg-slate-800 border border-slate-700 rounded-lg p-6">
         <div className="flex items-center gap-4 mb-6">
@@ -29,15 +29,11 @@ export const AboutPage: React.FC<AboutPageProps> = ({
         <div className="space-y-3 text-sm">
           <div className="flex justify-between py-2 border-b border-slate-700">
             <span className="text-slate-400">版本</span>
-            <span className="text-slate-200 font-mono">v0.0.0</span>
-          </div>
-          <div className="flex justify-between py-2 border-b border-slate-700">
-            <span className="text-slate-400">遊戲系統</span>
-            <span className="text-slate-200">D&D 5E</span>
+            <span className="text-slate-200 font-mono">v1.0.0</span>
           </div>
           <div className="flex justify-between py-2">
-            <span className="text-slate-400">開發者</span>
-            <span className="text-slate-200">Barry</span>
+            <span className="text-slate-400">遊戲系統</span>
+            <span className="text-slate-200">D&D 5E</span>
           </div>
         </div>
       </div>
@@ -80,37 +76,6 @@ export const AboutPage: React.FC<AboutPageProps> = ({
             <span>登出</span>
           </button>
         )}
-      </div>
-
-      {/* 功能說明 */}
-      <div className="bg-slate-800 border border-slate-700 rounded-lg p-6">
-        <h2 className="text-xl font-bold text-amber-500 mb-4">功能特色</h2>
-        <ul className="space-y-2 text-slate-300">
-          <li className="flex items-start gap-2">
-            <span className="text-amber-500">•</span>
-            <span>完整的 D&D 5E 角色管理系統</span>
-          </li>
-          <li className="flex items-start gap-2">
-            <span className="text-amber-500">•</span>
-            <span>支援多角色管理與切換</span>
-          </li>
-          <li className="flex items-start gap-2">
-            <span className="text-amber-500">•</span>
-            <span>戰鬥追蹤與怪物管理</span>
-          </li>
-          <li className="flex items-start gap-2">
-            <span className="text-amber-500">•</span>
-            <span>法術、能力與物品系統</span>
-          </li>
-          <li className="flex items-start gap-2">
-            <span className="text-amber-500">•</span>
-            <span>內建骰子工具</span>
-          </li>
-          <li className="flex items-start gap-2">
-            <span className="text-amber-500">•</span>
-            <span>雲端同步與匿名模式</span>
-          </li>
-        </ul>
       </div>
 
       {/* 版權資訊 */}
