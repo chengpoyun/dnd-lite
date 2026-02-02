@@ -211,9 +211,10 @@ export const SpellsPage: React.FC<SpellsPageProps> = ({
   }
 
   return (
-    <div className="flex flex-col h-full overflow-y-auto p-4 pb-24">
+    <div className="min-h-screen bg-slate-900 text-slate-100">
+      <div className="max-w-4xl mx-auto p-4 pb-24">
       {/* 頂部統計 */}
-      <div className="bg-slate-800/30 rounded-xl p-4 mb-4 border border-slate-700 relative">
+      <div className="bg-slate-800 rounded-lg p-4 mb-4 border border-slate-700 relative">
         <div className="flex justify-between items-center mb-2">
           <h2 className="text-xl font-bold text-amber-500">我的法術書</h2>
           <div className="text-[14px] text-slate-400">
@@ -248,7 +249,7 @@ export const SpellsPage: React.FC<SpellsPageProps> = ({
         {/* 學習新法術小按鈕 */}
         <button
           onClick={() => setIsLearnModalOpen(true)}
-          className="absolute right-3 bottom-3 px-3 py-1.5 rounded-lg bg-amber-600 text-white text-[13px] font-bold active:bg-amber-700"
+          className="absolute right-3 bottom-3 px-4 py-2 rounded-lg bg-amber-600 text-white font-bold hover:bg-amber-700 transition-colors shadow-md"
         >
           + 學習新法術
         </button>
@@ -256,20 +257,24 @@ export const SpellsPage: React.FC<SpellsPageProps> = ({
 
       {/* 法術列表 */}
       {spellsByLevel.length === 0 ? (
-        <div className="flex-1 flex items-center justify-center">
-          <div className="text-center">
-            <div className="text-slate-500 text-lg mb-4">尚未學習任何法術</div>
-            <div className="text-slate-600 text-sm">點擊上方「學習新法術」按鈕開始</div>
-          </div>
+        <div className="text-center py-12 bg-slate-800 border border-slate-700 rounded-lg">
+          <div className="text-slate-500 text-4xl mb-3">📜</div>
+          <div className="text-slate-400">還沒有學習任何法術</div>
+          <button
+            onClick={() => setIsLearnModalOpen(true)}
+            className="mt-4 px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors font-bold"
+          >
+            學習第一個法術
+          </button>
         </div>
       ) : (
-        <div className="space-y-6">
+        <div className="space-y-3">
           {spellsByLevel.map(({ level, spells }) => (
             <div key={level}>
-              <h3 className="text-lg font-bold text-slate-300 mb-3 border-b border-slate-700 pb-2">
+              <h3 className="text-lg font-bold text-amber-500 mb-2 border-b border-slate-700 pb-2">
                 {getSpellLevelText(level)} ({spells.length})
               </h3>
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {spells.map(cs => (
                   <SpellCard
                     key={cs.id}
@@ -288,6 +293,7 @@ export const SpellsPage: React.FC<SpellsPageProps> = ({
           ))}
         </div>
       )}
+      </div>
 
       {/* Modals */}
       <SpellDetailModal
