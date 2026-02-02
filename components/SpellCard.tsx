@@ -4,7 +4,7 @@ import { getSpellLevelText, getSchoolColor } from '../utils/spellUtils';
 
 interface SpellCardProps {
   characterSpell: CharacterSpell;
-  onTogglePrepared: (spellId: string, isPrepared: boolean) => void;
+  onTogglePrepared: (spellId: string, isPrepared: boolean, needsWarning: boolean) => void;
   onClick: () => void;
   canPrepareMore: boolean;
   isCantrip: boolean;
@@ -21,13 +21,8 @@ export const SpellCard: React.FC<SpellCardProps> = ({
   const schoolColor = getSchoolColor(display.displaySchool);
 
   const handleTogglePrepared = () => {
-    if (!characterSpell.is_prepared && !canPrepareMore && !isCantrip) {
-      // 無法準備更多時顯示警告（但仍允許操作）
-      if (!confirm('已達到可準備法術數量上限，確定要準備此法術嗎？')) {
-        return;
-      }
-    }
-    onTogglePrepared(characterSpell.spell?.id || characterSpell.spell_id, !characterSpell.is_prepared);
+    const needsWarning = !characterSpell.is_prepared && !canPrepareMore && !isCantrip;
+    onTogglePrepared(characterSpell.spell?.id || characterSpell.spell_id, !characterSpell.is_prepared, needsWarning);
   };
 
   return (

@@ -4,6 +4,7 @@ import { SpellDetailModal } from './SpellDetailModal';
 import { LearnSpellModal } from './LearnSpellModal';
 import { SpellFormModal } from './SpellFormModal';
 import { CharacterSpellEditModal } from './CharacterSpellEditModal';
+import { Modal, ModalButton } from './ui/Modal';
 import { 
   CharacterSpell, 
   Spell,
@@ -41,6 +42,8 @@ export const SpellsPage: React.FC<SpellsPageProps> = ({
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [isOverLimitWarningOpen, setIsOverLimitWarningOpen] = useState(false);
+  const [pendingPrepareSpell, setPendingPrepareSpell] = useState<{ spellId: string, isPrepared: boolean } | null>(null);
   const [selectedCharacterSpell, setSelectedCharacterSpell] = useState<CharacterSpell | null>(null);
   const [editingCharacterSpell, setEditingCharacterSpell] = useState<CharacterSpell | null>(null);
   const [editingSpell, setEditingSpell] = useState<Spell | null>(null);
@@ -128,6 +131,25 @@ export const SpellsPage: React.FC<SpellsPageProps> = ({
     } catch (error) {
       console.error('切換準備狀態失敗:', error);
     }
+  };
+
+  const handleTogglePreparedWithWarning = (spellId: string, isPrepared: boolean, needsWarning: boolean) => {
+    if (needsWarning && !isPrepared) {
+      // 顯示警告 modal
+      setPendingPrepareSpell({ spellId, isPrepared });
+      setIsOverLimitWarningOpen(true);
+    } else {
+      // 直接執行
+      handleTogglePrepared(spellId, isPrepared);
+    }
+  };
+
+  const handleConfirmOverLimit = () => {
+    if (pendingPrepareSpell) {
+      handleTogglePrepared(pendingPrepareSpell.spellId, pendingPrepareSpell.isPrepared);
+      setPendingPrepareSpell(null);
+    }
+    setIsOverLimitWarningOpen(false);
   };
 
   const handleCreateSpell = async (data: CreateSpellData) => {
@@ -279,7 +301,7 @@ export const SpellsPage: React.FC<SpellsPageProps> = ({
                   <SpellCard
                     key={cs.id}
                     characterSpell={cs}
-                    onTogglePrepared={handleTogglePrepared}
+                    onTogglePrepared={handleTogglePreparedWithWarning}
                     onClick={() => {
                       setSelectedCharacterSpell(cs);
                       setIsDetailModalOpen(true);
@@ -332,6 +354,38 @@ export const SpellsPage: React.FC<SpellsPageProps> = ({
         characterSpell={editingCharacterSpell}
         onSuccess={loadCharacterSpells}
       />
+
+      {/* 超出準備數量警告 Modal */}
+      <Modal
+        isOpen={isOverLimitWarningOpen}
+        onClose={() => {
+          setIsOverLimitWarningOpen(false);
+          setPendingPrepareSpell(null);
+        }}
+        title="準備法術數量超過上限"
+        size="xs"
+      >
+        <p className="text-slate-400 text-[16px] text-center mb-6">
+          已達到可準備法術數量上限，確定要準備此法術嗎？
+        </p>
+        <div className="flex gap-3">
+          <ModalButton 
+            variant="secondary" 
+            onClick={() => {
+              setIsOverLimitWarningOpen(false);
+              setPendingPrepareSpell(null);
+            }}
+          >
+            取消
+          </ModalButton>
+          <ModalButton 
+            variant="primary" 
+            onClick={handleConfirmOverLimit}
+          >
+            確定
+          </ModalButton>
+        </div>
+      </Modal>
     </div>
   );
 };
