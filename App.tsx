@@ -13,6 +13,7 @@ const SpellsPage = lazy(() => import('./components/SpellsPage').then(m => ({ def
 const MonstersPage = lazy(() => import('./components/MonstersPage'));
 const ItemsPage = lazy(() => import('./components/ItemsPage'));
 const AbilitiesPage = lazy(() => import('./components/AbilitiesPage'));
+const AboutPage = lazy(() => import('./components/AboutPage'));
 
 import { CharacterStats } from './types';
 import { getModifier } from './utils/helpers';
@@ -34,7 +35,8 @@ enum Tab {
   SPELLS = 'spells',
   MONSTERS = 'monsters',
   ITEMS = 'items',
-  DICE = 'dice'
+  DICE = 'dice',
+  ABOUT = 'about'
 }
 
 type AppState = 'welcome' | 'conversion' | 'characterSelect' | 'main'
@@ -868,6 +870,13 @@ const AuthenticatedApp: React.FC = () => {
     setAppState('characterSelect')
   }
 
+  const handleLogout = async () => {
+    await signOut()
+    setAppState('welcome')
+    setUserMode('anonymous')
+    setCurrentCharacter(null)
+  }
+
   const handleBackToWelcome = async () => {
     setAppState('welcome')
     setUserMode('anonymous')
@@ -969,7 +978,8 @@ const AuthenticatedApp: React.FC = () => {
       Tab.COMBAT,
       Tab.MONSTERS,
       Tab.ITEMS,
-      Tab.DICE
+      Tab.DICE,
+      Tab.ABOUT
     ]
 
     // 滑動處理函數
@@ -1040,7 +1050,8 @@ const AuthenticatedApp: React.FC = () => {
               { id: Tab.COMBAT, label: '戰鬥', icon: '⚔️' },
               { id: Tab.MONSTERS, label: '怪物', icon: '👹' },
               { id: Tab.ITEMS, label: '道具', icon: '📦' },
-              { id: Tab.DICE, label: '骰子', icon: '🎲' }
+              { id: Tab.DICE, label: '骰子', icon: '🎲' },
+              { id: Tab.ABOUT, label: '關於', icon: 'ℹ️' }
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -1056,16 +1067,6 @@ const AuthenticatedApp: React.FC = () => {
                 {tab.label}
               </button>
             ))}
-            
-
-            {/* 角色切換按鈕 */}
-            <button
-              onClick={handleBackToCharacterSelect}
-              className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-slate-400 hover:text-slate-200 transition-colors whitespace-nowrap ml-auto"
-            >
-              <span className="text-base">🔄</span>
-              切換角色
-            </button>
           </div>
         </nav>
 
@@ -1195,6 +1196,23 @@ const AuthenticatedApp: React.FC = () => {
               </div>
             }>
               <DiceRoller />
+            </Suspense>
+          )}
+
+          {activeTab === Tab.ABOUT && (
+            <Suspense fallback={
+              <div className="flex items-center justify-center h-64">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-500 mx-auto mb-4"></div>
+                  <p className="text-slate-400">載入關於頁面...</p>
+                </div>
+              </div>
+            }>
+              <AboutPage
+                userMode={userMode}
+                onSwitchCharacter={handleBackToCharacterSelect}
+                onLogout={handleLogout}
+              />
             </Suspense>
           )}
         </main>
