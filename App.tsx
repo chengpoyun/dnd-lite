@@ -12,6 +12,8 @@ const ConversionPage = lazy(() => import('./components/ConversionPage').then(m =
 const SpellsPage = lazy(() => import('./components/SpellsPage').then(m => ({ default: m.SpellsPage })));
 const MonstersPage = lazy(() => import('./components/MonstersPage'));
 const ItemsPage = lazy(() => import('./components/ItemsPage'));
+const AbilitiesPage = lazy(() => import('./components/AbilitiesPage'));
+const AbilitiesPage = lazy(() => import('./components/AbilitiesPage'));
 
 import { CharacterStats } from './types';
 import { getModifier } from './utils/helpers';
@@ -28,6 +30,7 @@ import type { Character, CharacterAbilityScores, CharacterCurrentStats, Characte
 
 enum Tab {
   CHARACTER = 'character',
+  ABILITIES = 'abilities',
   COMBAT = 'combat',
   SPELLS = 'spells',
   MONSTERS = 'monsters',
@@ -948,10 +951,11 @@ const AuthenticatedApp: React.FC = () => {
           <div className="flex overflow-x-auto">
             {[
               { id: Tab.CHARACTER, label: '角色', icon: '👤' },
-              { id: Tab.COMBAT, label: '戰鬥', icon: '⚔️' },
+              { id: Tab.ABILITIES, label: '能力', icon: '⚡' },
               ...(isSpellcaster(stats.classes?.map(c => c.name) || [stats.class]) 
                 ? [{ id: Tab.SPELLS, label: '法術', icon: '✨' }] 
                 : []),
+              { id: Tab.COMBAT, label: '戰鬥', icon: '⚔️' },
               { id: Tab.MONSTERS, label: '怪物', icon: '👹' },
               { id: Tab.ITEMS, label: '道具', icon: '📦' },
               { id: Tab.DICE, label: '骰子', icon: '🎲' }
@@ -1055,7 +1059,18 @@ const AuthenticatedApp: React.FC = () => {
             </Suspense>
           )}
 
-
+          {activeTab === Tab.ABILITIES && currentCharacter && (
+            <Suspense fallback={
+              <div className="flex items-center justify-center h-64">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-500 mx-auto mb-4"></div>
+                  <p className="text-slate-400">載入特殊能力頁面...</p>
+                </div>
+              </div>
+            }>
+              <AbilitiesPage characterId={currentCharacter.id} />
+            </Suspense>
+          )}
 
           {activeTab === Tab.SPELLS && currentCharacter && (
             <Suspense fallback={

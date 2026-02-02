@@ -230,6 +230,33 @@ export interface CombatDamageLog {
   created_at: string
 }
 
+// 特殊能力系統類型定義
+export interface Ability {
+  id: string
+  name: string
+  name_en: string
+  description: string
+  source: '種族' | '職業' | '專長' | '背景' | '其他'
+  recovery_type: '常駐' | '短休' | '長休'
+  created_at?: string
+  updated_at?: string
+}
+
+export interface CharacterAbility {
+  id: string
+  character_id: string
+  ability_id: string
+  current_uses: number
+  max_uses: number
+  created_at?: string
+  updated_at?: string
+}
+
+// 組合類型：包含能力詳情的角色能力
+export interface CharacterAbilityWithDetails extends CharacterAbility {
+  ability: Ability
+}
+
 // 組合類型：包含傷害記錄的怪物
 export interface CombatMonsterWithLogs extends CombatMonster {
   damage_logs: CombatDamageLog[]

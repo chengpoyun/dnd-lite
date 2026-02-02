@@ -4,6 +4,7 @@ import { evaluateValue, getModifier, setNormalValue, handleValueInput } from '..
 import { formatHitDicePools, getTotalCurrentHitDice, useHitDie, recoverHitDiceOnLongRest } from '../utils/classUtils';
 import { HybridDataManager } from '../services/hybridDataManager';
 import { MulticlassService } from '../services/multiclassService';
+import * as AbilityService from '../services/abilityService';
 import { PageContainer, Card, Button, Title, Subtitle, Input } from './ui';
 import { Modal, ModalButton, ModalInput } from './ui/Modal';
 import { STYLES } from '../styles/common';
@@ -510,6 +511,13 @@ export const CombatView: React.FC<CombatViewProps> = ({
       bonus: { ...prev.bonus, current: prev.bonus.max },
       reaction: { ...prev.reaction, current: prev.reaction.max }
     }));
+    
+    // 恢復特殊能力
+    if (propCharacterId) {
+      AbilityService.resetAbilityUses(propCharacterId, '短休')
+        .then(() => console.log('✅ 短休：特殊能力已恢復'))
+        .catch(err => console.error('❌ 特殊能力恢復失敗:', err));
+    }
   };
 
   const handleLongRest = () => {
@@ -546,6 +554,13 @@ export const CombatView: React.FC<CombatViewProps> = ({
     setCombatSeconds(0);
     setIsLongRestConfirmOpen(false);
     setIsRestOptionsOpen(false);
+    
+    // 恢復特殊能力
+    if (propCharacterId) {
+      AbilityService.resetAbilityUses(propCharacterId, '長休')
+        .then(() => console.log('✅ 長休：特殊能力已恢復'))
+        .catch(err => console.error('❌ 特殊能力恢復失敗:', err));
+    }
   };
 
   const rollHitDie = () => {
