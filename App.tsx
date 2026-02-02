@@ -1,4 +1,4 @@
-import React, { useState, useEffect, lazy, Suspense } from 'react';
+import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { WelcomePage } from './components/WelcomePage';
 import { CharacterSheet } from './components/CharacterSheet';
@@ -76,6 +76,8 @@ const AuthenticatedApp: React.FC = () => {
   const [touchStartX, setTouchStartX] = useState<number>(0)
   const [touchStartY, setTouchStartY] = useState<number>(0)
   const [isSwiping, setIsSwiping] = useState(false)
+  const navContainerRef = useRef<HTMLDivElement>(null)
+  const activeTabRef = useRef<HTMLButtonElement>(null)
   
   // 角色數據
   const [currentCharacter, setCurrentCharacter] = useState<Character | null>(null)
@@ -1013,11 +1015,22 @@ const AuthenticatedApp: React.FC = () => {
       }
     }
 
+    // 當 activeTab 改變時，自動滾動到對應的 tab 按鈕
+    useEffect(() => {
+      if (activeTabRef.current && navContainerRef.current) {
+        activeTabRef.current.scrollIntoView({
+          behavior: 'smooth',
+          block: 'nearest',
+          inline: 'center'
+        })
+      }
+    }, [activeTab])
+
     return (
       <div className="min-h-screen bg-slate-950 text-slate-100">
         {/* 分頁導航 */}
         <nav className="sticky top-0 z-50 bg-slate-900/95 backdrop-blur-sm border-b border-slate-800 shadow-lg">
-          <div className="flex overflow-x-auto">
+          <div ref={navContainerRef} className="flex overflow-x-auto">
             {[
               { id: Tab.CHARACTER, label: '角色', icon: '👤' },
               { id: Tab.ABILITIES, label: '能力', icon: '⚡' },
@@ -1031,6 +1044,7 @@ const AuthenticatedApp: React.FC = () => {
             ].map((tab) => (
               <button
                 key={tab.id}
+                ref={activeTab === tab.id ? activeTabRef : null}
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors whitespace-nowrap ${
                   activeTab === tab.id
