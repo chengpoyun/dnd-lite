@@ -32,6 +32,7 @@ export const SpellFormModal: React.FC<SpellFormModalProps> = ({
     description: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   useEffect(() => {
     if (editingSpell) {
@@ -79,16 +80,59 @@ export const SpellFormModal: React.FC<SpellFormModalProps> = ({
       return;
     }
 
+    // 如果是新增法術，先顯示確認畫面
+    if (!editingSpell) {
+      setShowConfirm(true);
+      return;
+    }
+
+    // 編輯模式直接提交
+    await performSubmit();
+  };
+
+  const performSubmit = async () => {
     setIsSubmitting(true);
     try {
       await onSubmit(formData);
       onClose();
+      setShowConfirm(false);
     } catch (error) {
       console.error('提交法術失敗:', error);
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  // 確認畫面
+  if (showConfirm) {
+    return (
+      <Modal isOpen={isOpen} onClose={onClose} size="md">
+        <div className="bg-slate-800 rounded-xl px-3 py-3 max-w-md w-full">
+          <h2 className="text-xl font-bold mb-5">確認新增法術</h2>
+          <p className="text-slate-300 mb-6">
+            是否確定新增 <span className="text-amber-400 font-semibold">{formData.name}</span> 到資料庫？該法術會能被其他玩家獲取。
+          </p>
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={() => setShowConfirm(false)}
+              className="flex-1 px-6 py-3 rounded-lg bg-slate-700 text-slate-300 font-bold active:bg-slate-600"
+            >
+              返回編輯
+            </button>
+            <button
+              type="button"
+              onClick={performSubmit}
+              disabled={isSubmitting}
+              className="flex-1 px-6 py-3 rounded-lg bg-red-600 text-white font-bold active:bg-red-700 disabled:opacity-50"
+            >
+              {isSubmitting ? '新增中...' : '確認新增'}
+            </button>
+          </div>
+        </div>
+      </Modal>
+    );
+  }
 
   return (
     <Modal 
@@ -323,7 +367,11 @@ export const SpellFormModal: React.FC<SpellFormModalProps> = ({
             <button
               type="submit"
               disabled={isSubmitting}
-              className="flex-1 px-6 py-3 rounded-lg bg-amber-600 text-white font-bold active:bg-amber-700 disabled:opacity-50"
+              className={`flex-1 px-6 py-3 rounded-lg font-bold ${
+                editingSpell 
+                  ? 'bg-blue-600 text-white active:bg-blue-700' 
+                  : 'bg-red-600 text-white active:bg-red-700'
+              } disabled:opacity-50`}
             >
               {isSubmitting ? '處理中...' : (editingSpell ? '儲存變更' : '新增法術')}
             </button>

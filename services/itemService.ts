@@ -1,309 +1,236 @@
 /**
- * ItemService - 道具管理服務
+ * ItemService - 道具管理服務（重構版）
+ * 
+ * 架構：
+ * - global_items: 全域物品庫（類似 spells）
+ * - character_items: 角色物品關聯表（類似 character_spells），包含 override 欄位
  * 
  * 功能：
- * - 取得用戶道具列表
- * - 依類別篩選道具
- * - 新增/更新/刪除道具
+ * - 取得全域物品庫
+ * - 取得角色物品列表（含 display values）
+ * - 獲得物品（從全域庫添加到角色）
+ * - 新增/更新/刪除物品
+ * - Override 欄位支援（角色專屬客製化）
  * 
  * 資料隔離：
- * - 使用 RLS 政策確保用戶只能操作自己的道具
- * - 支援認證用戶和匿名用戶
+ * - 使用 RLS 政策確保用戶只能操作自己的角色物品
  */
 
 import { supabase } from '../lib/supabase';
-import type { UserContext } from './auth';
 
 export type ItemCategory = '裝備' | '魔法物品' | '藥水' | '素材' | '雜項';
 
-export interface Item {
+// 全域物品（global_items 表）
+export interface GlobalItem {
   id: string;
-  user_id?: string;
-  anonymous_id?: string;
   name: string;
+  name_en?: string;
   description: string;
-  quantity: number;
   category: ItemCategory;
   created_at: string;
   updated_at: string;
-  // Override 欄位（角色專屬客製化）
+}
+
+// 角色物品（character_items 表）
+export interface CharacterItem {
+  id: string;
+  character_id: string;
+  item_id: string;
+  quantity: number;
+  
+  // Override 欄位
   name_override?: string | null;
   description_override?: string | null;
   category_override?: ItemCategory | null;
+  
+  created_at: string;
+  updated_at: string;
+  
+  // JOIN 的物品資料
+  item?: GlobalItem;
 }
 
-// 帶有 display helper 的 Item 類型
-export interface ItemWithDetails extends Item {
+// 帶有 display helper 的 CharacterItem 類型
+export interface CharacterItemWithDetails extends CharacterItem {
   displayName: string;
   displayDescription: string;
   displayCategory: ItemCategory;
 }
 
-export interface CreateItemData {
+export interface CreateGlobalItemData {
   name: string;
+  name_en?: string;
   description?: string;
-  quantity?: number;
   category: ItemCategory;
 }
 
-export interface UpdateItemData {
-  name?: string;
-  description?: string;
+export interface UpdateCharacterItemData {
   quantity?: number;
-  category?: ItemCategory;
+  name_override?: string | null;
+  description_override?: string | null;
+  category_override?: ItemCategory | null;
 }
 
 /**
- * 取得用戶所有道具
+ * 取得全域物品庫（所有 global_items）
+ * 用於 LearnItemModal 讓用戶選擇要獲得的物品
  */
-export async function getUserItems(userContext: UserContext): Promise<{
+export async function getGlobalItems(): Promise<{
   success: boolean;
-  items?: Item[];
+  items?: GlobalItem[];
   error?: string;
 }> {
   try {
-    let query = supabase
-      .from('items')
-      .select('id, user_id, anonymous_id, name, description, quantity, category, created_at, updated_at')
-      .order('created_at', { ascending: false });
-
-    // 根據用戶類型篩選
-    if (userContext.isAuthenticated && userContext.userId) {
-      query = query.eq('user_id', userContext.userId);
-    } else if (userContext.anonymousId) {
-      query = query.eq('anonymous_id', userContext.anonymousId);
-    } else {
-      return { success: false, error: '無效的用戶身份' };
-    }
-
-    const { data, error } = await query;
+    const { data, error } = await supabase
+      .from('global_items')
+      .select('*')
+      .order('name', { ascending: true });
 
     if (error) {
-      console.error('❌ 取得道具失敗:', error);
+      console.error('❌ 取得全域物品失敗:', error);
       return { success: false, error: error.message };
     }
 
     return { success: true, items: data || [] };
   } catch (error) {
-    console.error('❌ 取得道具異常:', error);
-    return { success: false, error: '取得道具時發生錯誤' };
+    console.error('❌ 取得全域物品異常:', error);
+    return { success: false, error: '取得全域物品時發生錯誤' };
   }
 }
 
 /**
- * 依類別篩選道具
+ * 取得角色所有物品（包含 override 欄位和全域物品資料）
  */
-export async function getItemsByCategory(
-  userContext: UserContext,
-  category: ItemCategory
-): Promise<{
+export async function getCharacterItems(characterId: string): Promise<{
   success: boolean;
-  items?: Item[];
+  items?: CharacterItem[];
   error?: string;
 }> {
   try {
-    let query = supabase
-      .from('items')
-      .select('id, user_id, anonymous_id, name, description, quantity, category, created_at, updated_at')
-      .eq('category', category)
+    if (!characterId) {
+      return { success: false, error: '角色 ID 無效' };
+    }
+
+    const { data, error } = await supabase
+      .from('character_items')
+      .select(`
+        *,
+        item:global_items(*)
+      `)
+      .eq('character_id', characterId)
       .order('created_at', { ascending: false });
 
-    // 根據用戶類型篩選
-    if (userContext.isAuthenticated && userContext.userId) {
-      query = query.eq('user_id', userContext.userId);
-    } else if (userContext.anonymousId) {
-      query = query.eq('anonymous_id', userContext.anonymousId);
-    } else {
-      return { success: false, error: '無效的用戶身份' };
-    }
-
-    const { data, error } = await query;
-
     if (error) {
-      console.error('❌ 取得道具失敗:', error);
+      console.error('❌ 取得角色物品失敗:', error);
       return { success: false, error: error.message };
     }
 
-    return { success: true, items: data || [] };
+    // 處理 JOIN 返回的數據結構
+    const items = data?.map(row => ({
+      ...row,
+      item: Array.isArray(row.item) && row.item.length > 0 
+        ? row.item[0] 
+        : (typeof row.item === 'object' ? row.item : undefined)
+    })) || [];
+
+    return { success: true, items };
   } catch (error) {
-    console.error('❌ 取得道具異常:', error);
-    return { success: false, error: '取得道具時發生錯誤' };
+    console.error('❌ 取得角色物品異常:', error);
+    return { success: false, error: '取得角色物品時發生錯誤' };
   }
 }
 
 /**
- * 新增道具
+ * 獲得物品（從全域庫添加到角色）
  */
-export async function createItem(
-  itemData: CreateItemData,
-  userContext: UserContext
-): Promise<{
-  success: boolean;
-  item?: Item;
-  error?: string;
-}> {
-  try {
-    // 驗證必填欄位
-    if (!itemData.name || !itemData.category) {
-      return { success: false, error: '名稱和類別為必填欄位' };
-    }
-
-    // 準備資料
-    const newItem: any = {
-      name: itemData.name,
-      description: itemData.description || '',
-      quantity: itemData.quantity || 1,
-      category: itemData.category
-    };
-
-    // 設定擁有者
-    if (userContext.isAuthenticated && userContext.userId) {
-      newItem.user_id = userContext.userId;
-    } else if (userContext.anonymousId) {
-      newItem.anonymous_id = userContext.anonymousId;
-    } else {
-      return { success: false, error: '無效的用戶身份' };
-    }
-
-    const { data, error } = await supabase
-      .from('items')
-      .insert(newItem)
-      .select()
-      .single();
-
-    if (error) {
-      console.error('❌ 新增道具失敗:', error);
-      return { success: false, error: error.message };
-    }
-
-    return { success: true, item: data };
-  } catch (error) {
-    console.error('❌ 新增道具異常:', error);
-    return { success: false, error: '新增道具時發生錯誤' };
-  }
-}
-
-/**
- * 更新道具
- */
-export async function updateItem(
-  itemId: string,
-  updates: UpdateItemData
-): Promise<{
-  success: boolean;
-  item?: Item;
-  error?: string;
-}> {
-  try {
-    // 驗證 itemId
-    if (!itemId) {
-      return { success: false, error: '道具 ID 無效' };
-    }
-
-    // 過濾空值更新
-    const cleanUpdates: any = {};
-    if (updates.name !== undefined) cleanUpdates.name = updates.name;
-    if (updates.description !== undefined) cleanUpdates.description = updates.description;
-    if (updates.quantity !== undefined) cleanUpdates.quantity = updates.quantity;
-    if (updates.category !== undefined) cleanUpdates.category = updates.category;
-
-    if (Object.keys(cleanUpdates).length === 0) {
-      return { success: false, error: '沒有要更新的資料' };
-    }
-
-    const { data, error } = await supabase
-      .from('items')
-      .update(cleanUpdates)
-      .eq('id', itemId)
-      .select()
-      .single();
-
-    if (error) {
-      console.error('❌ 更新道具失敗:', error);
-      return { success: false, error: error.message };
-    }
-
-    return { success: true, item: data };
-  } catch (error) {
-    console.error('❌ 更新道具異常:', error);
-    return { success: false, error: '更新道具時發生錯誤' };
-  }
-}
-
-/**
- * 刪除道具
- */
-export async function deleteItem(itemId: string): Promise<{
+export async function learnItem(characterId: string, itemId: string): Promise<{
   success: boolean;
   error?: string;
 }> {
   try {
-    // 驗證 itemId
-    if (!itemId) {
-      return { success: false, error: '道具 ID 無效' };
+    if (!characterId || !itemId) {
+      return { success: false, error: '角色 ID 或物品 ID 無效' };
     }
 
     const { error } = await supabase
-      .from('items')
-      .delete()
-      .eq('id', itemId);
+      .from('character_items')
+      .insert({
+        character_id: characterId,
+        item_id: itemId,
+        quantity: 1
+      });
 
     if (error) {
-      console.error('❌ 刪除道具失敗:', error);
+      // 檢查是否是重複獲得
+      if (error.code === '23505') {
+        return { success: false, error: '已經擁有此物品' };
+      }
+      console.error('❌ 獲得物品失敗:', error);
       return { success: false, error: error.message };
     }
 
     return { success: true };
   } catch (error) {
-    console.error('❌ 刪除道具異常:', error);
-    return { success: false, error: '刪除道具時發生錯誤' };
+    console.error('❌ 獲得物品異常:', error);
+    return { success: false, error: '獲得物品時發生錯誤' };
   }
 }
 
 /**
- * 取得單一道具詳情
+ * 創建全域物品（添加到 global_items）
  */
-export async function getItemById(itemId: string): Promise<{
+export async function createGlobalItem(data: CreateGlobalItemData): Promise<{
   success: boolean;
-  item?: Item;
+  item?: GlobalItem;
   error?: string;
 }> {
   try {
-    if (!itemId) {
-      return { success: false, error: '道具 ID 無效' };
+    if (!data.name || !data.category) {
+      return { success: false, error: '名稱和類別為必填欄位' };
     }
 
-    const { data, error } = await supabase
-      .from('items')
-      .select('*')
-      .eq('id', itemId)
+    const { data: item, error } = await supabase
+      .from('global_items')
+      .insert({
+        name: data.name,
+        name_en: data.name_en,
+        description: data.description || '',
+        category: data.category
+      })
+      .select()
       .single();
 
     if (error) {
-      console.error('❌ 取得道具詳情失敗:', error);
+      console.error('❌ 創建全域物品失敗:', error);
       return { success: false, error: error.message };
     }
 
-    return { success: true, item: data };
+    return { success: true, item };
   } catch (error) {
-    console.error('❌ 取得道具詳情異常:', error);
-    return { success: false, error: '取得道具詳情時發生錯誤' };
+    console.error('❌ 創建全域物品異常:', error);
+    return { success: false, error: '創建物品時發生錯誤' };
   }
 }
 
 /**
- * 更新角色專屬物品（使用 override 欄位）
- * 不影響 items 表的全域資料（如果未來有全域物品庫的話）
+ * 更新角色物品（支援數量和 override 欄位）
  */
 export async function updateCharacterItem(
-  itemId: string,
-  updates: Partial<Omit<Item, 'id' | 'user_id' | 'anonymous_id' | 'created_at' | 'updated_at'>>
-): Promise<{success: boolean; error?: string}> {
+  characterItemId: string,
+  updates: UpdateCharacterItemData
+): Promise<{
+  success: boolean;
+  error?: string;
+}> {
   try {
+    if (!characterItemId) {
+      return { success: false, error: '物品 ID 無效' };
+    }
+
     const { error } = await supabase
-      .from('items')
+      .from('character_items')
       .update(updates)
-      .eq('id', itemId);
+      .eq('id', characterItemId);
 
     if (error) {
       console.error('❌ 更新角色物品失敗:', error);
@@ -318,13 +245,42 @@ export async function updateCharacterItem(
 }
 
 /**
+ * 刪除角色物品
+ */
+export async function deleteCharacterItem(characterItemId: string): Promise<{
+  success: boolean;
+  error?: string;
+}> {
+  try {
+    if (!characterItemId) {
+      return { success: false, error: '物品 ID 無效' };
+    }
+
+    const { error } = await supabase
+      .from('character_items')
+      .delete()
+      .eq('id', characterItemId);
+
+    if (error) {
+      console.error('❌ 刪除角色物品失敗:', error);
+      return { success: false, error: error.message };
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error('❌ 刪除角色物品異常:', error);
+    return { success: false, error: '刪除物品時發生錯誤' };
+  }
+}
+
+/**
  * 獲取物品的顯示值（優先使用 override 值，否則使用原始值）
  */
-export function getDisplayValues(item: Item): ItemWithDetails {
+export function getDisplayValues(characterItem: CharacterItem): CharacterItemWithDetails {
   return {
-    ...item,
-    displayName: item.name_override ?? item.name,
-    displayDescription: item.description_override ?? item.description,
-    displayCategory: item.category_override ?? item.category
+    ...characterItem,
+    displayName: characterItem.name_override ?? characterItem.item?.name ?? '',
+    displayDescription: characterItem.description_override ?? characterItem.item?.description ?? '',
+    displayCategory: (characterItem.category_override ?? characterItem.item?.category ?? '雜項') as ItemCategory
   };
 }

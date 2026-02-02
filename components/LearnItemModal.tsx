@@ -1,0 +1,177 @@
+import React, { useState, useEffect } from 'react';
+import { Modal } from './ui/Modal';
+import { GlobalItem, getGlobalItems } from '../services/itemService';
+import type { ItemCategory } from '../services/itemService';
+
+interface LearnItemModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onLearnItem: (itemId: string) => Promise<void>;
+  onCreateNew: () => void;
+  learnedItemIds: string[];
+}
+
+export const LearnItemModal: React.FC<LearnItemModalProps> = ({
+  isOpen,
+  onClose,
+  onLearnItem,
+  onCreateNew,
+  learnedItemIds
+}) => {
+  const [items, setItems] = useState<GlobalItem[]>([]);
+  const [filteredItems, setFilteredItems] = useState<Item[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<ItemCategory | 'all'>('all');
+  const [searchText, setSearchText] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  const categories: ItemCategory[] = ['裝備', '魔法物品', '藥水', '素材', '雜項'];
+
+  useEffect(() => {
+    if (isOpen) {
+      loadItems();
+    }
+  }, [isOpen]);
+
+  useEffect(() => {
+    filterItems();
+  }, [items, selectedCategory, searchText, learnedItemIds]);
+
+  const loadItems = async () => {
+    setIsLoading(true);
+    try {
+      const result = await getGlobalItems();
+      if (result.success && result.items) {
+        setItems(result.items);
+      } else {
+        console.error('載入物品列表失敗:', result.error);
+      }
+    } catch (error) {
+      console.error('載入物品列表失敗:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const filterItems = () => {
+    let filtered = items;
+
+    // 排除已獲得的物品
+    filtered = filtered.filter(item => !learnedItemIds.includes(item.id));
+
+    // 類別篩選
+    if (selectedCategory !== 'all') {
+      filtered = filtered.filter(item => item.category === selectedCategory);
+    }
+
+    // 文字搜尋（支援中文）
+    if (searchText) {
+      const search = searchText.toLowerCase();
+      filtered = filtered.filter(item => 
+        item.name.toLowerCase().includes(search) ||
+        item.description.toLowerCase().includes(search)
+      );
+    }
+
+    setFilteredItems(filtered);
+  };
+
+  const handleLearnItem = async (itemId: string) => {
+    try {
+      await onLearnItem(itemId);
+      // 從列表中移除已獲得的物品
+      setItems(prev => prev.filter(i => i.id !== itemId));
+    } catch (error) {
+      console.error('獲得物品失敗:', error);
+    }
+  };
+
+  return (
+    <Modal isOpen={isOpen} onClose={onClose} size="3xl" className="flex flex-col">
+      <div className="bg-slate-800 rounded-xl px-3 py-3 max-w-3xl w-full relative flex flex-col">
+        <h2 className="text-xl font-bold mb-5">獲得物品</h2>
+
+        {/* 篩選區 */}
+        <div className="space-y-3 mb-4">
+          {/* 類別篩選 */}
+          <div>
+            <label className="block text-[14px] text-slate-400 mb-2">類別篩選</label>
+            <select
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value as ItemCategory | 'all')}
+              className="w-full bg-slate-800 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500"
+            >
+              <option value="all">全部類別</option>
+              {categories.map(category => (
+                <option key={category} value={category}>{category}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* 文字搜尋 */}
+          <div>
+            <label className="block text-[14px] text-slate-400 mb-2">搜尋物品</label>
+            <input
+              type="text"
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              placeholder="輸入名稱或描述..."
+              className="w-full bg-slate-800 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500"
+            />
+          </div>
+        </div>
+
+        {/* 物品列表 */}
+        <div className="flex-1 overflow-y-auto min-h-0 max-h-[50vh] mb-4 space-y-2">
+          {isLoading ? (
+            <div className="text-center py-8 text-slate-400">載入中...</div>
+          ) : filteredItems.length === 0 ? (
+            <div className="text-center py-8 text-slate-400">
+              {searchText || selectedCategory !== 'all' ? '沒有符合條件的物品' : '尚無可獲得的物品'}
+            </div>
+          ) : (
+            filteredItems.map(item => (
+              <div
+                key={item.id}
+                className="bg-slate-700/50 rounded-lg p-4 border border-slate-600"
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <h3 className="text-[16px] font-bold text-amber-400">{item.name}</h3>
+                      <span className="px-2 py-0.5 rounded text-[12px] bg-slate-600 text-slate-300">
+                        {item.category}
+                      </span>
+                    </div>
+                    <p className="text-[14px] text-slate-300 line-clamp-2">{item.description}</p>
+                  </div>
+                  <button
+                    onClick={() => handleLearnItem(item.id)}
+                    className="ml-3 px-4 py-2 rounded-lg bg-green-600 text-white text-[14px] font-bold active:bg-green-700 whitespace-nowrap"
+                  >
+                    獲得
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* 底部按鈕 */}
+        <div className="flex gap-3">
+          <button
+            onClick={onClose}
+            className="flex-1 px-6 py-3 rounded-lg bg-slate-700 text-slate-300 font-bold active:bg-slate-600"
+          >
+            取消
+          </button>
+          <button
+            onClick={onCreateNew}
+            className="flex-1 px-6 py-3 rounded-lg bg-red-600 text-white font-bold active:bg-red-700"
+          >
+            新增到資料庫
+          </button>
+        </div>
+      </div>
+    </Modal>
+  );
+};

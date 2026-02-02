@@ -5,24 +5,26 @@
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Modal } from './ui/Modal';
-import type { Item } from '../services/itemService';
+import { CharacterItem, getDisplayValues } from '../services/itemService';
 
 interface ItemDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
-  item: Item | null;
-  onEdit: () => void;
+  characterItem: CharacterItem | null;
+  onEdit: (characterItem: CharacterItem) => void;
   onDelete: () => void;
 }
 
 export default function ItemDetailModal({
   isOpen,
   onClose,
-  item,
+  characterItem,
   onEdit,
   onDelete
 }: ItemDetailModalProps) {
-  if (!item) return null;
+  if (!characterItem) return null;
+
+  const display = getDisplayValues(characterItem);
 
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
@@ -33,16 +35,16 @@ export default function ItemDetailModal({
           {/* 名稱 類別 數量 */}
           <div className="flex items-center justify-between gap-3 py-2">
             <div className="flex items-center gap-2">
-              <span className="text-lg font-bold text-white">{item.name}</span>
-              <span className="text-amber-400 font-bold">×{item.quantity}</span>
+              <span className="text-lg font-bold text-white">{display.displayName}</span>
+              <span className="text-amber-400 font-bold">×{characterItem.quantity}</span>
             </div>
             <div className="px-3 py-1.5 bg-amber-900/30 border border-amber-700 text-amber-400 rounded-lg font-medium">
-              {item.category}
+              {display.displayCategory}
             </div>
           </div>
 
           {/* 詳細訊息 */}
-          {item.description && (
+          {display.displayDescription && (
             <div className="mb-4">
               <label className="block text-sm font-medium text-slate-300 mb-2">詳細訊息</label>
               <div className="bg-slate-700/50 border border-slate-600 p-3 rounded-lg text-slate-300">
@@ -56,7 +58,7 @@ export default function ItemDetailModal({
                     li: ({ children }) => <li className="text-slate-300">{children}</li>,
                   }}
                 >
-                  {item.description}
+                  {display.displayDescription}
                 </ReactMarkdown>
               </div>
             </div>
@@ -65,7 +67,7 @@ export default function ItemDetailModal({
           {/* 操作按鈕 */}
           <div className="flex gap-3 pt-2">
             <button
-              onClick={onEdit}
+              onClick={() => onEdit(characterItem)}
               className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
             >
               編輯

@@ -1,19 +1,22 @@
 /**
- * ItemsPage - 道具管理頁面
+ * ItemsPage - 道具管理頁面（重構版）
  * 
  * 功能：
- * - 顯示用戶所有道具
+ * - 顯示角色所有物品（從 character_items 表）
  * - 類別篩選
- * - 新增/編輯/刪除道具
- * - 查看道具詳情
+ * - 從全域物品庫獲得物品
+ * - 編輯角色專屬物品（override 欄位）
+ * - 刪除角色物品
+ * - 新增到全域物品庫
  */
 
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../hooks/useToast';
 import * as ItemService from '../services/itemService';
-import type { Item, ItemCategory } from '../services/itemService';
-import ItemFormModal from './ItemFormModal';
+import type { CharacterItem, ItemCategory, CreateGlobalItemData, UpdateCharacterItemData } from '../services/itemService';
+import { LearnItemModal } from './LearnItemModal';
+import { GlobalItemFormModal } from './GlobalItemFormModal';
+import { CharacterItemEditModal } from './CharacterItemEditModal';
 import ItemDetailModal from './ItemDetailModal';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 
@@ -26,32 +29,31 @@ const CATEGORIES: { label: string; value: ItemCategory | 'all' }[] = [
   { label: '雜項', value: '雜項' }
 ];
 
-export default function ItemsPage() {
-  const { user, anonymousId } = useAuth();
+interface ItemsPageProps {
+  characterId: string;
+}
+
+export default function ItemsPage({ characterId }: ItemsPageProps) {
   const { showSuccess, showError } = useToast();
 
-  const [items, setItems] = useState<Item[]>([]);
-  const [filteredItems, setFilteredItems] = useState<Item[]>([]);
+  const [items, setItems] = useState<CharacterItem[]>([]);
+  const [filteredItems, setFilteredItems] = useState<CharacterItem[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<ItemCategory | 'all'>('all');
   const [isLoading, setIsLoading] = useState(true);
 
   // Modal 狀態
+  const [isLearnModalOpen, setIsLearnModalOpen] = useState(false);
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [selectedItem, setSelectedItem] = useState<Item | null>(null);
-  const [editingItem, setEditingItem] = useState<Item | null>(null);
+  const [selectedItem, setSelectedItem] = useState<CharacterItem | null>(null);
+  const [editingItem, setEditingItem] = useState<CharacterItem | null>(null);
 
   // 載入道具
   const loadItems = async () => {
     setIsLoading(true);
-    const userContext = {
-      isAuthenticated: !!user,
-      userId: user?.id,
-      anonymousId
-    };
-
-    const result = await ItemService.getUserItems(userContext);
+    const result = await ItemService.getCharacterItems(characterId);
     
     if (result.success && result.items) {
       setItems(result.items);
@@ -63,90 +65,91 @@ export default function ItemsPage() {
     setIsLoading(false);
   };
 
-  // 初始載入 - 使用 ref 追蹤是否已載入
-  const hasLoadedRef = React.useRef(false);
-  
+  // 初始載入
   useEffect(() => {
-    // 只在第一次有效的用戶上下文時載入
-    if (!hasLoadedRef.current && (user || anonymousId)) {
-      hasLoadedRef.current = true;
+    if (characterId) {
       loadItems();
     }
-  }, [user, anonymousId]);
+  }, [characterId]);
 
-  // 類別篩選
+  // 類別篩選（使用 display values）
   useEffect(() => {
     if (selectedCategory === 'all') {
       setFilteredItems(items);
     } else {
-      setFilteredItems(items.filter(item => item.category === selectedCategory));
+      setFilteredItems(items.filter(item => {
+        const display = ItemService.getDisplayValues(item);
+        return display.displayCategory === selectedCategory;
+      }));
     }
   }, [items, selectedCategory]);
 
-  // 新增道具
-  const handleCreate = async (data: ItemService.CreateItemData) => {
-    const userContext = {
-      isAuthenticated: !!user,
-      userId: user?.id,
-      anonymousId
-    };
-
-    const result = await ItemService.createItem(data, userContext);
+  // 獲得物品（從全域庫）
+  const handleLearnItem = async (itemId: string) => {
+    const result = await ItemService.learnItem(characterId, itemId);
     
     if (result.success) {
-      showSuccess('道具已新增');
-      setIsFormModalOpen(false);
+      showSuccess('已獲得物品');
       loadItems();
     } else {
-      showError(result.error || '新增道具失敗');
+      showError(result.error || '獲得物品失敗');
     }
   };
 
-  // 更新道具
-  const handleUpdate = async (data: ItemService.CreateItemData) => {
-    if (!editingItem) return;
-
-    const result = await ItemService.updateItem(editingItem.id, data);
+  // 創建全域物品
+  const handleCreateGlobalItem = async (data: CreateGlobalItemData) => {
+    const result = await ItemService.createGlobalItem(data);
     
     if (result.success) {
-      showSuccess('道具已更新');
+      showSuccess('全域物品已新增');
       setIsFormModalOpen(false);
+    } else {
+      showError(result.error || '新增物品失敗');
+    }
+  };
+
+  // 更新角色物品
+  const handleUpdateItem = async (characterItemId: string, updates: UpdateCharacterItemData) => {
+    const result = await ItemService.updateCharacterItem(characterItemId, updates);
+    
+    if (result.success) {
+      showSuccess('物品已更新');
+      setIsEditModalOpen(false);
       setEditingItem(null);
       loadItems();
     } else {
-      showError(result.error || '更新道具失敗');
+      showError(result.error || '更新物品失敗');
     }
   };
 
-  // 刪除道具
+  // 刪除角色物品
   const handleDelete = async () => {
     if (!selectedItem) return;
 
-    const result = await ItemService.deleteItem(selectedItem.id);
+    const result = await ItemService.deleteCharacterItem(selectedItem.id);
     
     if (result.success) {
-      showSuccess('道具已刪除');
+      showSuccess('物品已刪除');
       setIsDeleteModalOpen(false);
       setIsDetailModalOpen(false);
       setSelectedItem(null);
       loadItems();
     } else {
-      showError(result.error || '刪除道具失敗');
+      showError(result.error || '刪除物品失敗');
     }
   };
 
   // 開啟詳情
-  const handleItemClick = (item: Item) => {
+  const handleItemClick = (item: CharacterItem) => {
     setSelectedItem(item);
     setIsDetailModalOpen(true);
   };
 
   // 開啟編輯
-  const handleEditClick = () => {
-    if (!selectedItem) return;
-    setEditingItem(selectedItem);
+  const handleEditClick = (item: CharacterItem) => {
+    setEditingItem(item);
     setIsDetailModalOpen(false);
-    setIsFormModalOpen(true);
+    setIsEditModalOpen(true);
   };
 
   // 開啟刪除確認
@@ -155,11 +158,8 @@ export default function ItemsPage() {
     setIsDeleteModalOpen(true);
   };
 
-  // 開啟新增
-  const handleAddClick = () => {
-    setEditingItem(null);
-    setIsFormModalOpen(true);
-  };
+  // 已獲得的物品 ID 列表
+  const learnedItemIds = items.map(item => item.item_id);
 
   return (
     <div className="min-h-screen bg-slate-900 text-slate-100">
@@ -168,10 +168,10 @@ export default function ItemsPage() {
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-3xl font-bold text-slate-100">道具</h1>
           <button
-            onClick={handleAddClick}
+            onClick={() => setIsLearnModalOpen(true)}
             className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors font-bold shadow-md"
           >
-            + 新增道具
+            + 獲得物品
           </button>
         </div>
 
@@ -202,52 +202,71 @@ export default function ItemsPage() {
               {selectedCategory === 'all' ? '尚無道具' : `尚無「${selectedCategory}」類別的道具`}
             </div>
             <button
-              onClick={handleAddClick}
+              onClick={() => setIsLearnModalOpen(true)}
               className="mt-4 px-6 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors font-bold"
             >
-              新增第一個道具
+              獲得第一個物品
             </button>
           </div>
         ) : (
           <div className="space-y-3">
-            {filteredItems.map((item) => (
-              <div
-                key={item.id}
-                onClick={() => handleItemClick(item)}
-                className="bg-slate-800 border border-slate-700 rounded-lg p-4 hover:bg-slate-750 hover:border-slate-600 transition-all cursor-pointer"
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <h3 className="text-lg font-bold text-slate-100">{item.name}</h3>
-                      <span className="px-2 py-1 bg-amber-900/30 border border-amber-700 text-amber-400 text-xs rounded font-medium">
-                        {item.category}
-                      </span>
+            {filteredItems.map((item) => {
+              const display = ItemService.getDisplayValues(item);
+              return (
+                <div
+                  key={item.id}
+                  onClick={() => handleItemClick(item)}
+                  className="bg-slate-800 border border-slate-700 rounded-lg p-4 hover:bg-slate-750 hover:border-slate-600 transition-all cursor-pointer"
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <h3 className="text-lg font-bold text-slate-100">{display.displayName}</h3>
+                        <span className="px-2 py-1 bg-amber-900/30 border border-amber-700 text-amber-400 text-xs rounded font-medium">
+                          {display.displayCategory}
+                        </span>
+                      </div>
+                      {display.displayDescription && (
+                        <p className="text-sm text-slate-400 line-clamp-2">{display.displayDescription}</p>
+                      )}
                     </div>
-                    {item.description && (
-                      <p className="text-sm text-slate-400 line-clamp-2">{item.description}</p>
-                    )}
-                  </div>
-                  <div className="text-right ml-4">
-                    <div className="text-2xl font-bold text-slate-300">× {item.quantity}</div>
+                    <div className="text-right ml-4">
+                      <div className="text-2xl font-bold text-slate-300">× {item.quantity}</div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
 
       {/* Modal 們 */}
-      <ItemFormModal
+      <LearnItemModal
+        isOpen={isLearnModalOpen}
+        onClose={() => setIsLearnModalOpen(false)}
+        onLearnItem={handleLearnItem}
+        onCreateNew={() => {
+          setIsLearnModalOpen(false);
+          setIsFormModalOpen(true);
+        }}
+        learnedItemIds={learnedItemIds}
+      />
+
+      <GlobalItemFormModal
         isOpen={isFormModalOpen}
+        onClose={() => setIsFormModalOpen(false)}
+        onSubmit={handleCreateGlobalItem}
+      />
+
+      <CharacterItemEditModal
+        isOpen={isEditModalOpen}
         onClose={() => {
-          setIsFormModalOpen(false);
+          setIsEditModalOpen(false);
           setEditingItem(null);
         }}
-        onSubmit={editingItem ? handleUpdate : handleCreate}
-        editItem={editingItem}
-        title={editingItem ? '編輯道具' : '新增道具'}
+        characterItem={editingItem}
+        onSubmit={handleUpdateItem}
       />
 
       <ItemDetailModal
@@ -256,7 +275,7 @@ export default function ItemsPage() {
           setIsDetailModalOpen(false);
           setSelectedItem(null);
         }}
-        item={selectedItem}
+        characterItem={selectedItem}
         onEdit={handleEditClick}
         onDelete={handleDeleteClick}
       />
@@ -266,7 +285,7 @@ export default function ItemsPage() {
         onClose={() => setIsDeleteModalOpen(false)}
         onConfirm={handleDelete}
         title="刪除道具"
-        message={`確定要刪除「${selectedItem?.name}」嗎？此操作無法復原。`}
+        message={`確定要刪除「${selectedItem ? ItemService.getDisplayValues(selectedItem).displayName : ''}」嗎？此操作無法復原。`}
       />
     </div>
   );

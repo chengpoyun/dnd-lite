@@ -1054,7 +1054,7 @@ const AuthenticatedApp: React.FC = () => {
                 </div>
               </div>
             }>
-              <ItemsPage />
+              <ItemsPage characterId={currentCharacter?.id || ''} />
             </Suspense>
           )}
 
