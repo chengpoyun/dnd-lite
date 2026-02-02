@@ -45,6 +45,7 @@ interface CombatViewProps {
   onSaveSpeed?: (speed: number) => Promise<boolean>;
   onSaveSpellAttackBonus?: (bonus: number) => Promise<boolean>;
   onSaveSpellSaveDC?: (dc: number) => Promise<boolean>;
+  showSpellStats?: boolean;
 }
 
 export const CombatView: React.FC<CombatViewProps> = ({ 
@@ -56,7 +57,8 @@ export const CombatView: React.FC<CombatViewProps> = ({
   onSaveInitiative,
   onSaveSpeed,
   onSaveSpellAttackBonus,
-  onSaveSpellSaveDC
+  onSaveSpellSaveDC,
+  showSpellStats = false
 }) => {
   // 角色 ID 管理 - 優先使用從 props 傳入的 ID，否則從 localStorage 獲取
   const [characterId] = useState(() => {
@@ -778,17 +780,19 @@ export const CombatView: React.FC<CombatViewProps> = ({
         </div>
       </div>
 
-      {/* 法術數據 */}
-      <div className="grid grid-cols-2 gap-1">
-        <div onClick={() => { setTempSpellAttackValue(stats.spell_attack_bonus?.toString() || '2'); setIsSpellAttackModalOpen(true); }} className="flex flex-col items-center justify-center bg-slate-900 rounded-xl border border-purple-900/30 active:bg-slate-800 transition-colors cursor-pointer shadow-sm py-2">
-          <span className="text-[16px] font-black text-purple-400/80 uppercase mb-1 tracking-tighter">法術命中</span>
-          <span className="text-[16px] font-fantasy text-white leading-none">+{stats.spell_attack_bonus ?? 2}</span>
+      {/* 法術數據 - 只在法術頁面顯示 */}
+      {showSpellStats && (
+        <div className="grid grid-cols-2 gap-1">
+          <div onClick={() => { setTempSpellAttackValue(stats.spell_attack_bonus?.toString() || '2'); setIsSpellAttackModalOpen(true); }} className="flex flex-col items-center justify-center bg-slate-900 rounded-xl border border-purple-900/30 active:bg-slate-800 transition-colors cursor-pointer shadow-sm py-2">
+            <span className="text-[16px] font-black text-purple-400/80 uppercase mb-1 tracking-tighter">法術命中</span>
+            <span className="text-[16px] font-fantasy text-white leading-none">+{stats.spell_attack_bonus ?? 2}</span>
+          </div>
+          <div onClick={() => { setTempSpellDCValue(stats.spell_save_dc?.toString() || '10'); setIsSpellDCModalOpen(true); }} className="flex flex-col items-center justify-center bg-slate-900 rounded-xl border border-purple-900/30 active:bg-slate-800 transition-colors cursor-pointer shadow-sm py-2">
+            <span className="text-[16px] font-black text-purple-400/80 uppercase mb-1 tracking-tighter">法術DC</span>
+            <span className="text-[16px] font-fantasy text-white leading-none">{stats.spell_save_dc ?? 10}</span>
+          </div>
         </div>
-        <div onClick={() => { setTempSpellDCValue(stats.spell_save_dc?.toString() || '10'); setIsSpellDCModalOpen(true); }} className="flex flex-col items-center justify-center bg-slate-900 rounded-xl border border-purple-900/30 active:bg-slate-800 transition-colors cursor-pointer shadow-sm py-2">
-          <span className="text-[16px] font-black text-purple-400/80 uppercase mb-1 tracking-tighter">法術DC</span>
-          <span className="text-[16px] font-fantasy text-white leading-none">{stats.spell_save_dc ?? 10}</span>
-        </div>
-      </div>
+      )}
 
       <ActionList 
         title="職業資源" 
