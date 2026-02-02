@@ -962,7 +962,7 @@ const AuthenticatedApp: React.FC = () => {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-6 py-4 text-sm font-medium transition-colors whitespace-nowrap ${
+                className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors whitespace-nowrap ${
                   activeTab === tab.id
                     ? 'text-amber-400 border-b-2 border-amber-400'
                     : 'text-slate-400 hover:text-slate-200'
@@ -977,7 +977,7 @@ const AuthenticatedApp: React.FC = () => {
             {/* 角色切換按鈕 */}
             <button
               onClick={handleBackToCharacterSelect}
-              className="flex items-center gap-2 px-6 py-4 text-sm font-medium text-slate-400 hover:text-slate-200 transition-colors whitespace-nowrap ml-auto"
+              className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-slate-400 hover:text-slate-200 transition-colors whitespace-nowrap ml-auto"
             >
               <span className="text-base">🔄</span>
               切換角色
