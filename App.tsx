@@ -946,7 +946,7 @@ const AuthenticatedApp: React.FC = () => {
     return (
       <div className="min-h-screen bg-slate-950 text-slate-100">
         {/* 分頁導航 */}
-        <nav className="bg-slate-900/50 border-b border-slate-800">
+        <nav className="sticky top-0 z-50 bg-slate-900/95 backdrop-blur-sm border-b border-slate-800 shadow-lg">
           <div className="flex overflow-x-auto">
             {[
               { id: Tab.CHARACTER, label: '角色', icon: '👤' },
