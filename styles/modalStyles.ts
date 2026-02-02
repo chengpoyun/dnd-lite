@@ -5,7 +5,7 @@
  */
 
 // ===== Modal 容器樣式 =====
-export const MODAL_CONTAINER_CLASS = "bg-slate-800 rounded-xl px-3 py-3 max-w-md w-full relative";
+export const MODAL_CONTAINER_CLASS = "bg-slate-800 rounded-xl px-6 py-6 max-w-md w-full relative";
 
 // ===== 輸入行樣式（橫向佈局：label + input）=====
 export const INPUT_ROW_CLASS = "flex items-center gap-2 mb-3";
