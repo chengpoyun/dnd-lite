@@ -4,6 +4,8 @@ import { Modal } from './ui/Modal'
 interface ConfirmDeleteModalProps {
   isOpen: boolean
   characterName?: string
+  itemName?: string
+  itemType?: string
   title?: string
   message?: string
   confirmText?: string
@@ -15,6 +17,8 @@ interface ConfirmDeleteModalProps {
 export const ConfirmDeleteModal: React.FC<ConfirmDeleteModalProps> = ({ 
   isOpen, 
   characterName,
+  itemName,
+  itemType,
   title,
   message,
   confirmText,
@@ -24,16 +28,28 @@ export const ConfirmDeleteModal: React.FC<ConfirmDeleteModalProps> = ({
 }) => {
   const handleCancel = onCancel || onClose || (() => {});
   
+  // 根據不同情況決定標題
+  const modalTitle = title || (itemType ? `確認刪除${itemType}` : "確認刪除角色");
+  
   return (
     <Modal 
       isOpen={isOpen} 
       onClose={handleCancel}
     >
       <div className="bg-slate-800 rounded-xl px-3 py-3 max-w-md w-full">
-        <h2 className="text-xl font-bold mb-5">{title || "確認刪除角色"}</h2>
+        <h2 className="text-xl font-bold mb-5">{modalTitle}</h2>
         
         <div className="mb-4">
-          {characterName ? (
+          {itemName && itemType ? (
+            <>
+              <p className="text-slate-300 mb-2 text-center">
+                確定要刪除{itemType} <span className="text-amber-400 font-semibold">{itemName}</span> 嗎？
+              </p>
+              <p className="text-slate-400 text-sm">
+                刪除特殊能力可能會影響角色數值，請注意要手動調整。
+              </p>
+            </>
+          ) : characterName ? (
             <>
               <p className="text-slate-300 mb-2">
                 確定要刪除角色 <span className="text-amber-400 font-semibold">{characterName}</span> 嗎？

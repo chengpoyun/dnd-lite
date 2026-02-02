@@ -234,7 +234,7 @@ export interface CombatDamageLog {
 export interface Ability {
   id: string
   name: string
-  name_en: string
+  name_en: string | null  // 修改：英文名稱改為可選
   description: string
   source: '種族' | '職業' | '專長' | '背景' | '其他'
   recovery_type: '常駐' | '短休' | '長休'
@@ -248,6 +248,12 @@ export interface CharacterAbility {
   ability_id: string
   current_uses: number
   max_uses: number
+  // 覆蓋欄位（可選，用於客製化）
+  name_override?: string | null
+  name_en_override?: string | null
+  description_override?: string | null
+  source_override?: '種族' | '職業' | '專長' | '背景' | '其他' | null
+  recovery_type_override?: '常駐' | '短休' | '長休' | null
   created_at?: string
   updated_at?: string
 }
@@ -255,6 +261,12 @@ export interface CharacterAbility {
 // 組合類型：包含能力詳情的角色能力
 export interface CharacterAbilityWithDetails extends CharacterAbility {
   ability: Ability
+  // 便利方法：取得實際顯示的值（優先使用 override）
+  displayName?: string
+  displayNameEn?: string | null
+  displayDescription?: string
+  displaySource?: '種族' | '職業' | '專長' | '背景' | '其他'
+  displayRecoveryType?: '常駐' | '短休' | '長休'
 }
 
 // 組合類型：包含傷害記錄的怪物

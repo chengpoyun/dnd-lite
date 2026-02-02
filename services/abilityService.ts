@@ -9,7 +9,7 @@ export interface AbilityFilters {
 
 export interface CreateAbilityData {
   name: string;
-  name_en: string;
+  name_en: string;  // 可以是空字串
   description: string;
   source: '種族' | '職業' | '專長' | '背景' | '其他';
   recovery_type: '常駐' | '短休' | '長休';
@@ -300,4 +300,58 @@ export async function updateAbilityMaxUses(
   }
 
   return data;
+}
+
+/**
+ * 更新角色的特殊能力（客製化，不影響全域資料）
+ */
+export async function updateCharacterAbility(
+  characterId: string,
+  abilityId: string,
+  updates: {
+    name?: string;
+    name_en?: string;
+    description?: string;
+    source?: '種族' | '職業' | '專長' | '背景' | '其他';
+    recovery_type?: '常駐' | '短休' | '長休';
+    max_uses?: number;
+  }
+): Promise<CharacterAbility> {
+  const updateData: any = {};
+  
+  // 將更新轉換為 override 欄位
+  if (updates.name !== undefined) updateData.name_override = updates.name;
+  if (updates.name_en !== undefined) updateData.name_en_override = updates.name_en || null;
+  if (updates.description !== undefined) updateData.description_override = updates.description;
+  if (updates.source !== undefined) updateData.source_override = updates.source;
+  if (updates.recovery_type !== undefined) updateData.recovery_type_override = updates.recovery_type;
+  if (updates.max_uses !== undefined) updateData.max_uses = updates.max_uses;
+
+  const { data, error } = await supabase
+    .from('character_abilities')
+    .update(updateData)
+    .eq('character_id', characterId)
+    .eq('ability_id', abilityId)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('更新角色特殊能力失敗:', error);
+    throw error;
+  }
+
+  return data;
+}
+
+/**
+ * 取得角色能力的顯示值（優先使用 override）
+ */
+export function getDisplayValues(charAbility: CharacterAbilityWithDetails) {
+  return {
+    name: charAbility.name_override || charAbility.ability.name,
+    name_en: charAbility.name_en_override !== undefined ? charAbility.name_en_override : charAbility.ability.name_en,
+    description: charAbility.description_override || charAbility.ability.description,
+    source: charAbility.source_override || charAbility.ability.source,
+    recovery_type: charAbility.recovery_type_override || charAbility.ability.recovery_type
+  };
 }

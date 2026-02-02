@@ -1,5 +1,6 @@
 import React from 'react';
 import type { CharacterAbilityWithDetails } from '../lib/supabase';
+import { getDisplayValues } from '../services/abilityService';
 
 interface AbilityCardProps {
   characterAbility: CharacterAbilityWithDetails;
@@ -24,11 +25,12 @@ export const AbilityCard: React.FC<AbilityCardProps> = ({
   characterAbility,
   onClick
 }) => {
-  const { ability, current_uses, max_uses } = characterAbility;
-  const sourceColor = sourceColors[ability.source] || sourceColors['其他'];
-  const recoveryColor = recoveryTypeColors[ability.recovery_type] || recoveryTypeColors['常駐'];
+  const { current_uses, max_uses } = characterAbility;
+  const display = getDisplayValues(characterAbility);
+  const sourceColor = sourceColors[display.source] || sourceColors['其他'];
+  const recoveryColor = recoveryTypeColors[display.recovery_type] || recoveryTypeColors['常駐'];
 
-  const isPassive = ability.recovery_type === '常駐';
+  const isPassive = display.recovery_type === '常駐';
   const hasUses = !isPassive && max_uses > 0;
 
   return (
@@ -40,16 +42,16 @@ export const AbilityCard: React.FC<AbilityCardProps> = ({
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 flex-1 min-w-0">
             <div className="flex-1 min-w-0">
-              <h3 className="text-[20px] font-bold text-slate-200 truncate">{ability.name}</h3>
+              <h3 className="text-[20px] font-bold text-slate-200 truncate">{display.name}</h3>
               <div className="flex items-center gap-2 mt-1 flex-wrap">
                 {/* 來源標籤 */}
                 <span className={`text-[12px] px-1.5 py-0.5 rounded ${sourceColor.bgLight} ${sourceColor.text} font-bold`}>
-                  {ability.source}
+                  {display.source}
                 </span>
                 
                 {/* 恢復規則標籤 */}
                 <span className={`text-[12px] px-1.5 py-0.5 rounded ${recoveryColor.bgLight} ${recoveryColor.text} font-bold`}>
-                  {ability.recovery_type}
+                  {display.recovery_type}
                 </span>
 
                 {/* 使用次數顯示 */}

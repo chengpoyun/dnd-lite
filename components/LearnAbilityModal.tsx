@@ -1,0 +1,331 @@
+import React, { useState, useEffect } from 'react';
+import { Modal } from './ui/Modal';
+import type { Ability } from '../lib/supabase';
+import * as AbilityService from '../services/abilityService';
+
+interface LearnAbilityModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onLearnAbility: (abilityId: string, maxUses: number) => Promise<void>;
+  onCreateNew: () => void;
+  learnedAbilityIds: string[];
+}
+
+const SOURCES = ['種族', '職業', '專長', '背景', '其他'] as const;
+const RECOVERY_TYPES = ['常駐', '短休', '長休'] as const;
+
+export const LearnAbilityModal: React.FC<LearnAbilityModalProps> = ({
+  isOpen,
+  onClose,
+  onLearnAbility,
+  onCreateNew,
+  learnedAbilityIds
+}) => {
+  const [abilities, setAbilities] = useState<Ability[]>([]);
+  const [filteredAbilities, setFilteredAbilities] = useState<Ability[]>([]);
+  const [selectedSource, setSelectedSource] = useState<string>('all');
+  const [selectedRecoveryType, setSelectedRecoveryType] = useState<string>('all');
+  const [searchText, setSearchText] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  
+  // 選擇能力並詢問次數
+  const [selectedAbility, setSelectedAbility] = useState<Ability | null>(null);
+  const [maxUses, setMaxUses] = useState<number>(1);
+  const [isConfirming, setIsConfirming] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      loadAbilities();
+      setIsConfirming(false);
+      setSelectedAbility(null);
+    }
+  }, [isOpen]);
+
+  useEffect(() => {
+    filterAbilities();
+  }, [abilities, selectedSource, selectedRecoveryType, searchText, learnedAbilityIds]);
+
+  const loadAbilities = async () => {
+    setIsLoading(true);
+    try {
+      const data = await AbilityService.getAllAbilities();
+      setAbilities(data);
+    } catch (error) {
+      console.error('載入特殊能力列表失敗:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const filterAbilities = () => {
+    let filtered = abilities;
+
+    // 排除已學習的能力
+    filtered = filtered.filter(ability => !learnedAbilityIds.includes(ability.id));
+
+    // 來源篩選
+    if (selectedSource !== 'all') {
+      filtered = filtered.filter(ability => ability.source === selectedSource);
+    }
+
+    // 恢復類型篩選
+    if (selectedRecoveryType !== 'all') {
+      filtered = filtered.filter(ability => ability.recovery_type === selectedRecoveryType);
+    }
+
+    // 文字搜尋（中英文名稱）
+    if (searchText) {
+      const search = searchText.toLowerCase();
+      filtered = filtered.filter(ability =>
+        ability.name.toLowerCase().includes(search) ||
+        (ability.name_en && ability.name_en.toLowerCase().includes(search))
+      );
+    }
+
+    setFilteredAbilities(filtered);
+  };
+
+  const handleSelectAbility = (ability: Ability) => {
+    setSelectedAbility(ability);
+    setIsConfirming(true);
+    // 根據恢復類型設定預設次數
+    if (ability.recovery_type === '常駐') {
+      setMaxUses(0);
+    } else {
+      setMaxUses(1);
+    }
+  };
+
+  const handleConfirmLearn = async () => {
+    if (!selectedAbility) return;
+    
+    try {
+      await onLearnAbility(selectedAbility.id, maxUses);
+      // 從列表中移除已學習的能力
+      setAbilities(prev => prev.filter(a => a.id !== selectedAbility.id));
+      setIsConfirming(false);
+      setSelectedAbility(null);
+      // 關閉 modal，回到特殊能力 tab
+      onClose();
+    } catch (error) {
+      console.error('學習特殊能力失敗:', error);
+    }
+  };
+
+  const handleBack = () => {
+    setIsConfirming(false);
+    setSelectedAbility(null);
+  };
+
+  const sourceColors: Record<string, string> = {
+    '種族': 'bg-green-500/20 text-green-400',
+    '職業': 'bg-blue-500/20 text-blue-400',
+    '專長': 'bg-purple-500/20 text-purple-400',
+    '背景': 'bg-amber-500/20 text-amber-400',
+    '其他': 'bg-slate-500/20 text-slate-400'
+  };
+
+  const recoveryTypeColors: Record<string, string> = {
+    '常駐': 'bg-emerald-500/20 text-emerald-400',
+    '短休': 'bg-cyan-500/20 text-cyan-400',
+    '長休': 'bg-rose-500/20 text-rose-400'
+  };
+
+  // 確認學習畫面
+  if (isConfirming && selectedAbility) {
+    const isPassive = selectedAbility.recovery_type === '常駐';
+    
+    return (
+      <Modal isOpen={isOpen} onClose={onClose} size="2xl">
+        <div className="bg-slate-800 rounded-xl px-3 py-3 max-w-md w-full">
+          <h2 className="text-xl font-bold mb-5">學習特殊能力</h2>
+          
+          <div className="space-y-4">
+            {/* 能力資訊 */}
+            <div>
+              <p className="text-slate-300 mb-1">
+                <span className="font-semibold text-lg">{selectedAbility.name}</span>
+                {selectedAbility.name_en && (
+                  <span className="text-slate-400 ml-2 text-sm">({selectedAbility.name_en})</span>
+                )}
+              </p>
+              <div className="flex gap-2 mb-2">
+                <span className={`px-2 py-0.5 rounded text-[12px] font-bold ${sourceColors[selectedAbility.source]}`}>
+                  {selectedAbility.source}
+                </span>
+                <span className={`px-2 py-0.5 rounded text-[12px] font-bold ${recoveryTypeColors[selectedAbility.recovery_type]}`}>
+                  {selectedAbility.recovery_type}
+                </span>
+              </div>
+              <p className="text-sm text-slate-400">
+                {selectedAbility.description}
+              </p>
+            </div>
+
+            {/* 最大使用次數（非常駐才顯示） */}
+            {!isPassive && (
+              <div>
+                <label className="block text-[14px] text-slate-400 mb-2">
+                  最大使用次數 *
+                  <span className="text-slate-500 ml-2 text-[12px]">（設為 0 表示無限次）</span>
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  value={maxUses}
+                  onChange={(e) => setMaxUses(parseInt(e.target.value) || 0)}
+                  className="w-full bg-slate-800 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500"
+                  autoFocus
+                />
+                <p className="text-xs text-slate-500 mt-2">
+                  💡 每個角色的使用次數可能不同，請根據角色等級或能力來源設定
+                </p>
+              </div>
+            )}
+
+            {isPassive && (
+              <div className="bg-slate-700/50 rounded-lg p-3">
+                <p className="text-sm text-slate-300">
+                  ✨ 此為常駐能力，無需設定使用次數
+                </p>
+              </div>
+            )}
+
+            {/* 操作按鈕 */}
+            <div className="flex gap-3 pt-2">
+              <button
+                type="button"
+                onClick={handleBack}
+                className="flex-1 px-6 py-3 bg-slate-700 text-white rounded-lg hover:bg-slate-600 transition-colors font-medium"
+              >
+                返回
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmLearn}
+                className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+              >
+                學習
+              </button>
+            </div>
+          </div>
+        </div>
+      </Modal>
+    );
+  }
+
+  // 能力列表畫面
+  return (
+    <Modal isOpen={isOpen} onClose={onClose} size="3xl">
+      <div className="bg-slate-800 rounded-xl px-3 py-3 max-w-3xl w-full flex flex-col" style={{ maxHeight: '80vh' }}>
+        <h2 className="text-xl font-bold mb-5">學習特殊能力</h2>
+
+        {/* 篩選區 */}
+        <div className="space-y-3 mb-4">
+          {/* 來源和恢復類型篩選 */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-[14px] text-slate-400 mb-2">來源篩選</label>
+              <select
+                value={selectedSource}
+                onChange={(e) => setSelectedSource(e.target.value)}
+                className="w-full bg-slate-800 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500"
+              >
+                <option value="all">全部來源</option>
+                {SOURCES.map(source => (
+                  <option key={source} value={source}>{source}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-[14px] text-slate-400 mb-2">恢復類型</label>
+              <select
+                value={selectedRecoveryType}
+                onChange={(e) => setSelectedRecoveryType(e.target.value)}
+                className="w-full bg-slate-800 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500"
+              >
+                <option value="all">全部類型</option>
+                {RECOVERY_TYPES.map(type => (
+                  <option key={type} value={type}>{type}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* 搜尋框 */}
+          <div>
+            <label className="block text-[14px] text-slate-400 mb-2">搜尋能力</label>
+            <input
+              type="text"
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              placeholder="輸入能力名稱（中文或英文）..."
+              className="w-full bg-slate-800 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500"
+            />
+          </div>
+        </div>
+
+        {/* 能力列表 */}
+        <div className="flex-1 overflow-y-auto space-y-2 mb-4 min-h-0">
+          {isLoading ? (
+            <div className="text-center text-slate-500 py-8">載入中...</div>
+          ) : filteredAbilities.length === 0 ? (
+            <div className="text-center text-slate-500 py-8">
+              {searchText ? '找不到符合條件的能力' : '沒有可學習的能力'}
+            </div>
+          ) : (
+            filteredAbilities.map(ability => (
+              <div
+                key={ability.id}
+                onClick={() => handleSelectAbility(ability)}
+                className="bg-slate-800/50 rounded-lg p-3 border border-slate-700 hover:border-amber-500/50 transition-colors cursor-pointer"
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <h3 className="text-[16px] font-bold text-slate-200">{ability.name}</h3>
+                      {ability.name_en && (
+                        <span className="text-[14px] text-slate-400">({ability.name_en})</span>
+                      )}
+                    </div>
+                    <div className="flex gap-2 mb-1">
+                      <span className={`px-2 py-0.5 rounded text-[12px] font-bold ${sourceColors[ability.source]}`}>
+                        {ability.source}
+                      </span>
+                      <span className={`px-2 py-0.5 rounded text-[12px] font-bold ${recoveryTypeColors[ability.recovery_type]}`}>
+                        {ability.recovery_type}
+                      </span>
+                    </div>
+                    <div className="text-[14px] text-slate-500 line-clamp-2">
+                      {ability.description}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* 底部按鈕 */}
+        <div className="grid grid-cols-2 gap-3 pt-2 border-t border-slate-700">
+          <button
+            onClick={onClose}
+            className="px-6 py-3 bg-slate-700 text-white rounded-lg hover:bg-slate-600 transition-colors font-medium"
+          >
+            取消
+          </button>
+          <button
+            onClick={() => {
+              onClose();
+              onCreateNew();
+            }}
+            className="px-6 py-3 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors font-medium text-sm"
+          >
+            + 新增能力
+          </button>
+        </div>
+      </div>
+    </Modal>
+  );
+};

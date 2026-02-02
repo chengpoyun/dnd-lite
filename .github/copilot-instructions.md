@@ -112,14 +112,77 @@ const saveAllStats = async (stats: CharacterStats) => Promise<boolean>
 - **用戶體驗** - 部分保存失敗不影響其他已成功保存的值
 - **維護性** - 修改特定值的保存邏輯不影響其他值
 
-### 7. � Debug 日誌規範
+### 7. 📝 Modal 組件標準結構 (必須遵守 - 最高優先級)
+**🎯 確保所有 Modal 組件遵循統一標準，避免重複錯誤**
+
+**強制執行規則：**
+- **🚨 所有新增或修改的 Modal 必須遵循 AddMonsterModal 的標準結構**
+- **🚨 必須包含 wrapper div** - `<div className="bg-slate-800 rounded-xl px-3 py-3 max-w-md w-full">`
+- **🚨 標題只能出現一次** - 使用內部 h2，不使用 Modal 的 title prop
+
+**標準結構模板：**
+```tsx
+<Modal isOpen={isOpen} onClose={onClose} size="2xl">
+  <div className="bg-slate-800 rounded-xl px-3 py-3 max-w-md w-full">
+    <h2 className="text-xl font-bold mb-5">
+      {/* 標題內容 */}
+    </h2>
+    
+    <form onSubmit={handleSubmit}>
+      {/* 表單內容 */}
+    </form>
+  </div>
+</Modal>
+```
+
+**常見錯誤與修正：**
+```tsx
+// ❌ 錯誤 1：使用 Modal 的 title prop（會導致標題重複）
+<Modal title="新增能力" isOpen={isOpen} onClose={onClose}>
+
+// ✅ 正確：只使用內部 h2
+<Modal isOpen={isOpen} onClose={onClose}>
+  <div className="bg-slate-800 rounded-xl px-3 py-3 max-w-md w-full">
+    <h2 className="text-xl font-bold mb-5">新增能力</h2>
+  </div>
+</Modal>
+
+// ❌ 錯誤 2：缺少 wrapper div（破壞樣式一致性）
+<Modal isOpen={isOpen} onClose={onClose}>
+  <h2>標題</h2>
+  <form>...</form>
+</Modal>
+
+// ✅ 正確：包含完整 wrapper div
+<Modal isOpen={isOpen} onClose={onClose}>
+  <div className="bg-slate-800 rounded-xl px-3 py-3 max-w-md w-full">
+    <h2 className="text-xl font-bold mb-5">標題</h2>
+    <form>...</form>
+  </div>
+</Modal>
+```
+
+**AI 助理自我檢查清單（創建或修改 Modal 時）：**
+- [ ] 是否包含 wrapper div (`bg-slate-800 rounded-xl px-3 py-3 max-w-md w-full`)？
+- [ ] 標題是否只使用內部 h2 元素？
+- [ ] 是否移除了 Modal 的 title prop？
+- [ ] 樣式是否與 AddMonsterModal 一致？
+- [ ] 按鈕大小是否使用 `px-6 py-3`（符合 UI 統一規範）？
+
+**參考範例：**
+- `components/AddMonsterModal.tsx` - 標準範本
+- `components/ItemFormModal.tsx` - 已統一
+- `components/ConfirmDeleteModal.tsx` - 已統一
+- `components/AbilityFormModal.tsx` - 已統一
+
+### 8. 🐛 Debug 日誌規範
 **🎯 使用統一標記方便清理**
 
 - **Debug 標記** - 驗證問題時使用的 `console.log()` 必須加上 `[DEBUG]` 前綴
 - **範例格式** - `console.log('[DEBUG] 用戶狀態:', userContext)`
 - **便於清理** - 問題解決後可快速搜尋並刪除所有 debug 日誌
 
-### 8. 🔄 Git 提交工作流程
+### 9. 🔄 Git 提交工作流程
 **⚠️ 區分 commit（可執行）與 push（需確認）**
 
 - **git commit（可直接執行）** - 完成工作後可以直接提交到本地儲存庫

@@ -13,7 +13,6 @@ const SpellsPage = lazy(() => import('./components/SpellsPage').then(m => ({ def
 const MonstersPage = lazy(() => import('./components/MonstersPage'));
 const ItemsPage = lazy(() => import('./components/ItemsPage'));
 const AbilitiesPage = lazy(() => import('./components/AbilitiesPage'));
-const AbilitiesPage = lazy(() => import('./components/AbilitiesPage'));
 
 import { CharacterStats } from './types';
 import { getModifier } from './utils/helpers';
