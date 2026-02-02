@@ -274,6 +274,17 @@ const AuthenticatedApp: React.FC = () => {
     }
   }, [currentCharacter])
 
+  // 當 activeTab 改變時，自動滾動到對應的 tab 按鈕
+  useEffect(() => {
+    if (activeTabRef.current && navContainerRef.current) {
+      activeTabRef.current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest',
+        inline: 'center'
+      })
+    }
+  }, [activeTab])
+
   const loadCharacterStats = async () => {
     if (!currentCharacter || isLoadingCharacter) {
       return
@@ -1014,17 +1025,6 @@ const AuthenticatedApp: React.FC = () => {
         }
       }
     }
-
-    // 當 activeTab 改變時，自動滾動到對應的 tab 按鈕
-    useEffect(() => {
-      if (activeTabRef.current && navContainerRef.current) {
-        activeTabRef.current.scrollIntoView({
-          behavior: 'smooth',
-          block: 'nearest',
-          inline: 'center'
-        })
-      }
-    }, [activeTab])
 
     return (
       <div className="min-h-screen bg-slate-950 text-slate-100">
