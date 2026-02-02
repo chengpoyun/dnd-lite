@@ -85,6 +85,8 @@ export interface CharacterCurrentStats {
   armor_class: number
   initiative_bonus: number
   speed: number
+  spell_attack_bonus: number
+  spell_save_dc: number
   extra_data?: {
     downtime?: number
     renown?: { used: number; total: number }

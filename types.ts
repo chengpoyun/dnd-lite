@@ -34,6 +34,8 @@ export interface CharacterStats {
   ac: number;
   initiative: number;
   speed: number;
+  spell_attack_bonus?: number;
+  spell_save_dc?: number;
   abilityScores: {
     str: number;
     dex: number;

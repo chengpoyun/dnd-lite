@@ -676,6 +676,8 @@ export class DetailedCharacterService {
             armor_class: 10,
             initiative_bonus: 0,
             speed: 30,
+            spell_attack_bonus: 2,
+            spell_save_dc: 10,
             hit_die_type: 'd8',
             extra_data: extraData,
             updated_at: new Date().toISOString()
@@ -1046,6 +1048,8 @@ export class DetailedCharacterService {
       ac: fullData.currentStats.armor_class,
       initiative: fullData.currentStats.initiative_bonus,
       speed: fullData.currentStats.speed,
+      spell_attack_bonus: fullData.currentStats.spell_attack_bonus ?? 2,
+      spell_save_dc: fullData.currentStats.spell_save_dc ?? 10,
       abilityScores: {
         str: fullData.abilityScores.strength,
         dex: fullData.abilityScores.dexterity,
@@ -1101,6 +1105,8 @@ export class DetailedCharacterService {
       armor_class: 10,
       initiative_bonus: 0,
       speed: 30,
+      spell_attack_bonus: 2,
+      spell_save_dc: 10,
       created_at: '',
       updated_at: ''
     }
@@ -1161,7 +1167,9 @@ export class DetailedCharacterService {
         hit_die_type: stats?.hitDice.die || 'd8',
         armor_class: stats?.ac || 10,
         initiative_bonus: stats?.initiative || 0,
-        speed: stats?.speed || 30
+        speed: stats?.speed || 30,
+        spell_attack_bonus: stats?.spell_attack_bonus ?? 2,
+        spell_save_dc: stats?.spell_save_dc ?? 10
       }])
       .select()
       .single()

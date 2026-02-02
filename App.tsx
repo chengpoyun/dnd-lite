@@ -770,6 +770,78 @@ const AuthenticatedApp: React.FC = () => {
     }
   }
 
+  // 保存法術攻擊加值
+  const saveSpellAttackBonus = async (newBonus: number) => {
+    if (!currentCharacter || isSaving) return false
+    
+    // 驗證 session
+    if (!await validateSessionBeforeSave()) return false
+    
+    setIsSaving(true)
+    try {
+      console.log('🎯 保存法術攻擊加值:', newBonus)
+      const characterUpdate: CharacterUpdateData = {
+        character: currentCharacter,
+        current_stats: {
+          character_id: currentCharacter.id,
+          spell_attack_bonus: newBonus
+        } as Partial<CharacterCurrentStats>
+      }
+      
+      const success = await HybridDataManager.updateCharacter(currentCharacter.id, characterUpdate)
+      if (success) {
+        console.log('✅ 法術攻擊加值保存成功')
+        // 更新本地狀態
+        setStats(prev => ({
+          ...prev,
+          spell_attack_bonus: newBonus
+        }))
+      }
+      return success
+    } catch (error) {
+      console.error('❌ 法術攻擊加值保存失敗:', error)
+      return false
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  // 保存法術豁免DC
+  const saveSpellSaveDC = async (newDC: number) => {
+    if (!currentCharacter || isSaving) return false
+    
+    // 驗證 session
+    if (!await validateSessionBeforeSave()) return false
+    
+    setIsSaving(true)
+    try {
+      console.log('🛡️ 保存法術豁免DC:', newDC)
+      const characterUpdate: CharacterUpdateData = {
+        character: currentCharacter,
+        current_stats: {
+          character_id: currentCharacter.id,
+          spell_save_dc: newDC
+        } as Partial<CharacterCurrentStats>
+      }
+      
+      const success = await HybridDataManager.updateCharacter(currentCharacter.id, characterUpdate)
+      if (success) {
+        console.log('✅ 法術豁免DC保存成功')
+        // 更新本地狀態
+        setStats(prev => ({
+          ...prev,
+          spell_save_dc: newDC
+        }))
+      }
+      return success
+    } catch (error) {
+      console.error('❌ 法術豁免DC保存失敗:', error)
+      return false
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
   // 保存貨幣和經驗值
   const saveCurrencyAndExp = async (gp: number, exp: number) => {
     if (!currentCharacter || isSaving) return false
@@ -1157,6 +1229,8 @@ const AuthenticatedApp: React.FC = () => {
                 onSaveAC={saveAC}
                 onSaveInitiative={saveInitiative}
                 onSaveSpeed={saveSpeed}
+                onSaveSpellAttackBonus={saveSpellAttackBonus}
+                onSaveSpellSaveDC={saveSpellSaveDC}
               />
             </Suspense>
           )}

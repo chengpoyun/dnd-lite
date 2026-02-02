@@ -43,6 +43,8 @@ interface CombatViewProps {
   onSaveAC?: (ac: number) => Promise<boolean>;
   onSaveInitiative?: (initiative: number) => Promise<boolean>;
   onSaveSpeed?: (speed: number) => Promise<boolean>;
+  onSaveSpellAttackBonus?: (bonus: number) => Promise<boolean>;
+  onSaveSpellSaveDC?: (dc: number) => Promise<boolean>;
 }
 
 export const CombatView: React.FC<CombatViewProps> = ({ 
@@ -52,7 +54,9 @@ export const CombatView: React.FC<CombatViewProps> = ({
   onSaveHP,
   onSaveAC, 
   onSaveInitiative,
-  onSaveSpeed
+  onSaveSpeed,
+  onSaveSpellAttackBonus,
+  onSaveSpellSaveDC
 }) => {
   // 角色 ID 管理 - 優先使用從 props 傳入的 ID，否則從 localStorage 獲取
   const [characterId] = useState(() => {
@@ -108,6 +112,8 @@ export const CombatView: React.FC<CombatViewProps> = ({
   const [isACModalOpen, setIsACModalOpen] = useState(false);
   const [isInitiativeModalOpen, setIsInitiativeModalOpen] = useState(false);
   const [isSpeedModalOpen, setIsSpeedModalOpen] = useState(false);
+  const [isSpellAttackModalOpen, setIsSpellAttackModalOpen] = useState(false);
+  const [isSpellDCModalOpen, setIsSpellDCModalOpen] = useState(false);
   const [isEndCombatConfirmOpen, setIsEndCombatConfirmOpen] = useState(false);
   const [isItemEditModalOpen, setIsItemEditModalOpen] = useState(false);
   const [isCategoryUsageModalOpen, setIsCategoryUsageModalOpen] = useState(false);
@@ -126,6 +132,8 @@ export const CombatView: React.FC<CombatViewProps> = ({
   const [tempACValue, setTempACValue] = useState('');
   const [tempInitiativeValue, setTempInitiativeValue] = useState('');
   const [tempSpeedValue, setTempSpeedValue] = useState('');
+  const [tempSpellAttackValue, setTempSpellAttackValue] = useState('');
+  const [tempSpellDCValue, setTempSpellDCValue] = useState('');
   
   const [tempCategoryCurrent, setTempCategoryCurrent] = useState('0');
   const [tempCategoryMax, setTempCategoryMax] = useState('1');
@@ -770,6 +778,18 @@ export const CombatView: React.FC<CombatViewProps> = ({
         </div>
       </div>
 
+      {/* 法術數據 */}
+      <div className="grid grid-cols-2 gap-1">
+        <div onClick={() => { setTempSpellAttackValue(stats.spell_attack_bonus?.toString() || '2'); setIsSpellAttackModalOpen(true); }} className="flex flex-col items-center justify-center bg-slate-900 rounded-xl border border-purple-900/30 active:bg-slate-800 transition-colors cursor-pointer shadow-sm py-2">
+          <span className="text-[16px] font-black text-purple-400/80 uppercase mb-1 tracking-tighter">法術命中</span>
+          <span className="text-[16px] font-fantasy text-white leading-none">+{stats.spell_attack_bonus ?? 2}</span>
+        </div>
+        <div onClick={() => { setTempSpellDCValue(stats.spell_save_dc?.toString() || '10'); setIsSpellDCModalOpen(true); }} className="flex flex-col items-center justify-center bg-slate-900 rounded-xl border border-purple-900/30 active:bg-slate-800 transition-colors cursor-pointer shadow-sm py-2">
+          <span className="text-[16px] font-black text-purple-400/80 uppercase mb-1 tracking-tighter">法術DC</span>
+          <span className="text-[16px] font-fantasy text-white leading-none">{stats.spell_save_dc ?? 10}</span>
+        </div>
+      </div>
+
       <ActionList 
         title="職業資源" 
         category="resource"
@@ -1337,6 +1357,127 @@ export const CombatView: React.FC<CombatViewProps> = ({
             setIsSpeedModalOpen(false); 
             setTempSpeedValue(''); 
           }} className="bg-cyan-600 hover:bg-cyan-500">
+            套用
+          </ModalButton>
+        </div>
+      </Modal>
+
+      {/* 法術攻擊加值編輯彈窗 */}
+      <Modal 
+        isOpen={isSpellAttackModalOpen} 
+        onClose={() => setIsSpellAttackModalOpen(false)}
+        title="修改法術命中"
+        size="xs"
+      >
+        <ModalInput 
+          value={tempSpellAttackValue} 
+          onChange={setTempSpellAttackValue} 
+          placeholder={(stats.spell_attack_bonus ?? 2).toString()} 
+          className="text-3xl font-mono text-center mb-4" 
+          autoFocus 
+        />
+        <div className="flex gap-2">
+          <ModalButton variant="secondary" onClick={() => setIsSpellAttackModalOpen(false)}>
+            取消
+          </ModalButton>
+          <ModalButton variant="primary" onClick={() => { 
+            let finalValue;
+            const isCalculationInput = tempSpellAttackValue.includes('+') || tempSpellAttackValue.includes('-');
+            
+            if (isCalculationInput) {
+              // 運算模式
+              const result = handleValueInput(tempSpellAttackValue, stats.spell_attack_bonus ?? 2, {
+                allowZero: true
+              });
+              finalValue = result.isValid ? result.numericValue : (stats.spell_attack_bonus ?? 2);
+            } else {
+              // 純數字模式 - 直接設定
+              const numericValue = parseInt(tempSpellAttackValue);
+              if (!isNaN(numericValue)) {
+                finalValue = numericValue;
+              } else {
+                finalValue = stats.spell_attack_bonus ?? 2; // 無效輸入時保持原值
+              }
+            }
+            
+            console.log('Setting spell attack bonus from', stats.spell_attack_bonus, 'to', finalValue);
+            setStats(prev => ({ ...prev, spell_attack_bonus: finalValue }));
+
+            // 保存法術攻擊加值到資料庫
+            if (onSaveSpellAttackBonus) {
+              onSaveSpellAttackBonus(finalValue).then(success => {
+                if (!success) {
+                  console.error('❌ 法術攻擊加值保存失敗');
+                }
+              }).catch(error => {
+                console.error('❌ 法術攻擊加值保存錯誤:', error);
+              });
+            }
+
+            setIsSpellAttackModalOpen(false); 
+            setTempSpellAttackValue(''); 
+          }} className="bg-purple-600 hover:bg-purple-500">
+            套用
+          </ModalButton>
+        </div>
+      </Modal>
+
+      {/* 法術豁免DC編輯彈窗 */}
+      <Modal 
+        isOpen={isSpellDCModalOpen} 
+        onClose={() => setIsSpellDCModalOpen(false)}
+        title="修改法術DC"
+        size="xs"
+      >
+        <ModalInput 
+          value={tempSpellDCValue} 
+          onChange={setTempSpellDCValue} 
+          placeholder={(stats.spell_save_dc ?? 10).toString()} 
+          className="text-3xl font-mono text-center mb-4" 
+          autoFocus 
+        />
+        <div className="flex gap-2">
+          <ModalButton variant="secondary" onClick={() => setIsSpellDCModalOpen(false)}>
+            取消
+          </ModalButton>
+          <ModalButton variant="primary" onClick={() => { 
+            let finalValue;
+            const isCalculationInput = tempSpellDCValue.includes('+') || tempSpellDCValue.includes('-');
+            
+            if (isCalculationInput) {
+              // 運算模式
+              const result = handleValueInput(tempSpellDCValue, stats.spell_save_dc ?? 10, {
+                minValue: 0,
+                allowZero: true
+              });
+              finalValue = result.isValid ? result.numericValue : (stats.spell_save_dc ?? 10);
+            } else {
+              // 純數字模式 - 直接設定
+              const numericValue = parseInt(tempSpellDCValue);
+              if (!isNaN(numericValue) && numericValue >= 0) {
+                finalValue = numericValue;
+              } else {
+                finalValue = stats.spell_save_dc ?? 10; // 無效輸入時保持原值
+              }
+            }
+            
+            console.log('Setting spell save DC from', stats.spell_save_dc, 'to', finalValue);
+            setStats(prev => ({ ...prev, spell_save_dc: finalValue }));
+
+            // 保存法術豁免DC到資料庫
+            if (onSaveSpellSaveDC) {
+              onSaveSpellSaveDC(finalValue).then(success => {
+                if (!success) {
+                  console.error('❌ 法術豁免DC保存失敗');
+                }
+              }).catch(error => {
+                console.error('❌ 法術豁免DC保存錯誤:', error);
+              });
+            }
+
+            setIsSpellDCModalOpen(false); 
+            setTempSpellDCValue(''); 
+          }} className="bg-purple-600 hover:bg-purple-500">
             套用
           </ModalButton>
         </div>
