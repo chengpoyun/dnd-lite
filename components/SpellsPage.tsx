@@ -3,6 +3,7 @@ import { SpellCard } from './SpellCard';
 import { SpellDetailModal } from './SpellDetailModal';
 import { LearnSpellModal } from './LearnSpellModal';
 import { SpellFormModal } from './SpellFormModal';
+import { CharacterSpellEditModal } from './CharacterSpellEditModal';
 import { 
   CharacterSpell, 
   Spell,
@@ -38,8 +39,10 @@ export const SpellsPage: React.FC<SpellsPageProps> = ({
   const [characterSpells, setCharacterSpells] = useState<CharacterSpell[]>([]);
   const [isLearnModalOpen, setIsLearnModalOpen] = useState(false);
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [selectedCharacterSpell, setSelectedCharacterSpell] = useState<CharacterSpell | null>(null);
+  const [editingCharacterSpell, setEditingCharacterSpell] = useState<CharacterSpell | null>(null);
   const [editingSpell, setEditingSpell] = useState<Spell | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [preparedCount, setPreparedCount] = useState(0);
@@ -153,16 +156,19 @@ export const SpellsPage: React.FC<SpellsPageProps> = ({
   };
 
   const handleEditSpell = (characterSpell: CharacterSpell) => {
-    // 編輯全域 Spell（需要確認）
-    if (characterSpell.spell) {
-      setEditingSpell(characterSpell.spell);
-      setIsFormModalOpen(true);
-    }
+    // 編輯角色專屬法術（不影響全域）
+    setEditingCharacterSpell(characterSpell);
+    setIsEditModalOpen(true);
   };
 
   const handleCloseFormModal = () => {
     setIsFormModalOpen(false);
     setEditingSpell(null);
+  };
+
+  const handleCloseEditModal = () => {
+    setIsEditModalOpen(false);
+    setEditingCharacterSpell(null);
   };
 
   // 按環位分組法術
@@ -312,6 +318,13 @@ export const SpellsPage: React.FC<SpellsPageProps> = ({
         onClose={handleCloseFormModal}
         onSubmit={editingSpell ? handleUpdateSpell : handleCreateSpell}
         editingSpell={editingSpell}
+      />
+
+      <CharacterSpellEditModal
+        isOpen={isEditModalOpen}
+        onClose={handleCloseEditModal}
+        characterSpell={editingCharacterSpell}
+        onSuccess={loadCharacterSpells}
       />
     </div>
   );
