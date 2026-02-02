@@ -115,8 +115,14 @@ export const GlobalItemFormModal: React.FC<GlobalItemFormModalProps> = ({
     <Modal isOpen={isOpen} onClose={onClose} size="2xl">
       <div className="bg-slate-800 rounded-xl px-3 py-3 max-w-md w-full">
         <h2 className="text-xl font-bold mb-5">
-          {editItem ? '編輯全域物品' : '新增全域物品'}
+          {editItem ? '編輯全域物品' : '新增物品到資料庫'}
         </h2>
+        
+        {!editItem && (
+          <p className="text-slate-400 text-sm mb-4">
+            💡 請盡可能填寫詳細訊息，該物品可以被其他玩家所獲取。
+          </p>
+        )}
         
         <form onSubmit={handleSubmit} className="space-y-3">
           {/* 中文名稱 */}

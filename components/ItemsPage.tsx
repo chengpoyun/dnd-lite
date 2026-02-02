@@ -90,6 +90,7 @@ export default function ItemsPage({ characterId }: ItemsPageProps) {
     
     if (result.success) {
       showSuccess('已獲得物品');
+      setIsLearnModalOpen(false);
       loadItems();
     } else {
       showError(result.error || '獲得物品失敗');
