@@ -43,20 +43,20 @@ export const CharacterSpellEditModal: React.FC<CharacterSpellEditModalProps> = (
     if (characterSpell && isOpen) {
       const display = getDisplayValues(characterSpell);
       setFormData({
-        name_override: characterSpell.name_override || '',
-        name_en_override: characterSpell.name_en_override || '',
-        level_override: characterSpell.level_override ?? 0,
-        casting_time_override: characterSpell.casting_time_override || '',
-        school_override: (characterSpell.school_override as any) || '塑能',
-        concentration_override: characterSpell.concentration_override ?? false,
-        ritual_override: characterSpell.ritual_override ?? false,
-        duration_override: characterSpell.duration_override || '',
-        range_override: characterSpell.range_override || '',
-        source_override: characterSpell.source_override || '',
-        verbal_override: characterSpell.verbal_override ?? false,
-        somatic_override: characterSpell.somatic_override ?? false,
-        material_override: characterSpell.material_override || '',
-        description_override: characterSpell.description_override || ''
+        name_override: display.displayName,
+        name_en_override: display.displayNameEn,
+        level_override: display.displayLevel,
+        casting_time_override: display.displayCastingTime,
+        school_override: display.displaySchool as any,
+        concentration_override: display.displayConcentration,
+        ritual_override: display.displayRitual,
+        duration_override: display.displayDuration,
+        range_override: display.displayRange,
+        source_override: display.displaySource,
+        verbal_override: display.displayVerbal,
+        somatic_override: display.displaySomatic,
+        material_override: display.displayMaterial,
+        description_override: display.displayDescription
       });
     }
   }, [characterSpell, isOpen]);
@@ -108,36 +108,30 @@ export const CharacterSpellEditModal: React.FC<CharacterSpellEditModalProps> = (
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="2xl">
       <div className="bg-slate-800 rounded-xl px-3 py-3 max-w-2xl w-full">
-        <h2 className="text-xl font-bold mb-5">編輯法術（角色專屬）</h2>
+        <h2 className="text-xl font-bold mb-5">編輯法術</h2>
         <p className="text-sm text-slate-400 mb-4">
-          💡 修改下方欄位將只影響您的角色，不會影響其他玩家。留空表示使用原始值。
+          💡 修改欄位將只影響您的角色，不會影響其他玩家。
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* 法術名稱 */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-[14px] text-slate-400 mb-2">
-                中文名稱 <span className="text-slate-600">(原: {spell.name})</span>
-              </label>
+              <label className="block text-[14px] text-slate-400 mb-2">中文名稱</label>
               <input
                 type="text"
                 value={formData.name_override}
                 onChange={(e) => setFormData({ ...formData, name_override: e.target.value })}
                 className="w-full bg-slate-900 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500"
-                placeholder={spell.name}
               />
             </div>
             <div>
-              <label className="block text-[14px] text-slate-400 mb-2">
-                英文名稱 <span className="text-slate-600">(原: {spell.name_en || '無'})</span>
-              </label>
+              <label className="block text-[14px] text-slate-400 mb-2">英文名稱</label>
               <input
                 type="text"
                 value={formData.name_en_override}
                 onChange={(e) => setFormData({ ...formData, name_en_override: e.target.value })}
                 className="w-full bg-slate-900 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500"
-                placeholder={spell.name_en || ''}
               />
             </div>
           </div>
@@ -145,9 +139,7 @@ export const CharacterSpellEditModal: React.FC<CharacterSpellEditModalProps> = (
           {/* 環位和學派 */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-[14px] text-slate-400 mb-2">
-                環位 <span className="text-slate-600">(原: {spell.level === 0 ? '戲法' : `${spell.level}環`})</span>
-              </label>
+              <label className="block text-[14px] text-slate-400 mb-2">環位</label>
               <select
                 value={formData.level_override}
                 onChange={(e) => setFormData({ ...formData, level_override: parseInt(e.target.value) })}
@@ -162,9 +154,7 @@ export const CharacterSpellEditModal: React.FC<CharacterSpellEditModalProps> = (
             </div>
 
             <div>
-              <label className="block text-[14px] text-slate-400 mb-2">
-                學派 <span className="text-slate-600">(原: {spell.school})</span>
-              </label>
+              <label className="block text-[14px] text-slate-400 mb-2">學派</label>
               <select
                 value={formData.school_override}
                 onChange={(e) => setFormData({ ...formData, school_override: e.target.value as any })}
@@ -188,7 +178,6 @@ export const CharacterSpellEditModal: React.FC<CharacterSpellEditModalProps> = (
                 value={formData.casting_time_override}
                 onChange={(e) => setFormData({ ...formData, casting_time_override: e.target.value })}
                 className="w-full bg-slate-900 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500"
-                placeholder={spell.casting_time}
               />
             </div>
             <div>
@@ -198,7 +187,6 @@ export const CharacterSpellEditModal: React.FC<CharacterSpellEditModalProps> = (
                 value={formData.duration_override}
                 onChange={(e) => setFormData({ ...formData, duration_override: e.target.value })}
                 className="w-full bg-slate-900 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500"
-                placeholder={spell.duration}
               />
             </div>
             <div>
@@ -208,7 +196,6 @@ export const CharacterSpellEditModal: React.FC<CharacterSpellEditModalProps> = (
                 value={formData.range_override}
                 onChange={(e) => setFormData({ ...formData, range_override: e.target.value })}
                 className="w-full bg-slate-900 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500"
-                placeholder={spell.range}
               />
             </div>
           </div>
@@ -221,7 +208,6 @@ export const CharacterSpellEditModal: React.FC<CharacterSpellEditModalProps> = (
               value={formData.source_override}
               onChange={(e) => setFormData({ ...formData, source_override: e.target.value })}
               className="w-full bg-slate-900 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500"
-              placeholder={spell.source}
             />
           </div>
 

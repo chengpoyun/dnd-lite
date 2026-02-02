@@ -18,6 +18,7 @@ export const SpellFormModal: React.FC<SpellFormModalProps> = ({
 }) => {
   const [formData, setFormData] = useState<CreateSpellData>({
     name: '',
+    name_en: '',
     level: 0,
     casting_time: '動作',
     school: '塑能',
@@ -38,6 +39,7 @@ export const SpellFormModal: React.FC<SpellFormModalProps> = ({
     if (editingSpell) {
       setFormData({
         name: editingSpell.name,
+        name_en: editingSpell.name_en || '',
         level: editingSpell.level,
         casting_time: editingSpell.casting_time,
         school: editingSpell.school,
@@ -55,6 +57,7 @@ export const SpellFormModal: React.FC<SpellFormModalProps> = ({
       // 重置表單
       setFormData({
         name: '',
+        name_en: '',
         level: 0,
         casting_time: '動作',
         school: '塑能',
@@ -75,7 +78,7 @@ export const SpellFormModal: React.FC<SpellFormModalProps> = ({
     e.preventDefault();
     
     // 驗證必填欄位
-    if (!formData.name || !formData.casting_time || !formData.duration || 
+    if (!formData.name || !formData.name_en || !formData.casting_time || !formData.duration || 
         !formData.range || !formData.source || !formData.description) {
       return;
     }
@@ -135,23 +138,43 @@ export const SpellFormModal: React.FC<SpellFormModalProps> = ({
   }
 
   return (
-    <Modal 
-      isOpen={isOpen} 
-      onClose={onClose}
-      title={editingSpell ? '編輯法術' : '新增法術'}
-      size="2xl"
-    >
-      <form onSubmit={handleSubmit} className="space-y-4">
+    <Modal isOpen={isOpen} onClose={onClose} size="2xl">
+      <div className="bg-slate-800 rounded-xl px-3 py-3 max-w-2xl w-full">
+        <h2 className="text-xl font-bold mb-5">
+          {editingSpell ? '編輯法術' : '新增法術到資料庫'}
+        </h2>
+        
+        {!editingSpell && (
+          <p className="text-slate-400 text-sm mb-4">
+            💡 請盡可能填寫詳細訊息，該法術可以被其他玩家所獲取。
+          </p>
+        )}
+        
+        <form onSubmit={handleSubmit} className="space-y-4">
           {/* 法術名稱 */}
-          <div>
-            <label className="block text-[14px] text-slate-400 mb-2">法術名稱 *</label>
-            <input
-              type="text"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="w-full bg-slate-800 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500"
-              placeholder="例：火球術"
-            />
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-[14px] text-slate-400 mb-2">中文名稱 *</label>
+              <input
+                type="text"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                className="w-full bg-slate-800 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500"
+                placeholder="例：火球術"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-[14px] text-slate-400 mb-2">英文名稱 *</label>
+              <input
+                type="text"
+                value={formData.name_en}
+                onChange={(e) => setFormData({ ...formData, name_en: e.target.value })}
+                className="w-full bg-slate-800 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500"
+                placeholder="例：Fireball"
+                required
+              />
+            </div>
           </div>
 
           {/* 環位和學派 */}
@@ -376,7 +399,8 @@ export const SpellFormModal: React.FC<SpellFormModalProps> = ({
               {isSubmitting ? '處理中...' : (editingSpell ? '儲存變更' : '新增法術')}
             </button>
           </div>
-      </form>
+        </form>
+      </div>
     </Modal>
   );
 };
