@@ -71,7 +71,7 @@ export const GlobalItemFormModal: React.FC<GlobalItemFormModalProps> = ({
     if (!formData.name.trim()) return;
     if (isUpload && (!formData.name_en.trim() || !formData.description.trim())) return;
 
-    if (!editItem && !isUpload) {
+    if (!editItem) {
       setShowConfirm(true);
       return;
     }
@@ -109,9 +109,13 @@ export const GlobalItemFormModal: React.FC<GlobalItemFormModalProps> = ({
     return (
       <Modal isOpen={isOpen} onClose={onClose} size="md">
         <div className="bg-slate-800 rounded-xl px-3 py-3 max-w-md w-full">
-          <h2 className="text-xl font-bold mb-5">確認新增物品</h2>
+          <h2 className="text-xl font-bold mb-5">
+            {isUpload ? '確認上傳物品' : '確認新增物品'}
+          </h2>
           <p className="text-slate-300 mb-6">
-            是否確定新增 <span className="text-amber-400 font-semibold">{formData.name}</span> 到資料庫？該物品會能被其他玩家獲取。
+            {isUpload ? '是否確定上傳' : '是否確定新增'}{' '}
+            <span className="text-amber-400 font-semibold">{formData.name}</span>{' '}
+            到資料庫？該物品會能被其他玩家獲取。
           </p>
           <div className="flex gap-3">
             <button
@@ -127,7 +131,7 @@ export const GlobalItemFormModal: React.FC<GlobalItemFormModalProps> = ({
               disabled={isSubmitting}
               className="flex-1 px-6 py-3 rounded-lg bg-red-600 text-white font-bold active:bg-red-700 disabled:opacity-50"
             >
-              {isSubmitting ? '新增中...' : '確認新增'}
+              {isSubmitting ? '處理中...' : isUpload ? '確認上傳' : '確認新增'}
             </button>
           </div>
         </div>

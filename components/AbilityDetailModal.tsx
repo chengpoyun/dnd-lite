@@ -15,6 +15,8 @@ interface AbilityDetailModalProps {
   onEdit: () => void;
   onDelete: () => void;
   onUse: () => void;
+  /** 僅個人能力（未關聯 abilities）時顯示「上傳到資料庫」並呼叫此 callback */
+  onUploadToDb?: () => void;
 }
 
 export default function AbilityDetailModal({
@@ -23,14 +25,18 @@ export default function AbilityDetailModal({
   characterAbility,
   onEdit,
   onDelete,
-  onUse
+  onUse,
+  onUploadToDb
 }: AbilityDetailModalProps) {
   if (!characterAbility) return null;
 
   const { current_uses, max_uses } = characterAbility;
   const display = getDisplayValues(characterAbility);
-  const isPassive = display.recovery_type === '常駐';
+  const source = display.source || '其他';
+  const recoveryType = display.recovery_type || '常駐';
+  const isPassive = recoveryType === '常駐';
   const canUse = !isPassive && current_uses > 0;
+  const isPersonalOnly = !characterAbility.ability_id || !characterAbility.ability;
 
   const sourceColors: Record<string, string> = {
     '種族': 'bg-green-900/30 border-green-700 text-green-400',
@@ -72,13 +78,13 @@ export default function AbilityDetailModal({
           {/* 標籤區：來源、恢復規則、使用次數 */}
           <div className="flex items-center gap-2 flex-wrap">
             {/* 來源標籤 */}
-            <div className={`px-3 py-1.5 border rounded-lg font-medium ${sourceColors[display.source]}`}>
-              {display.source}
+            <div className={`px-3 py-1.5 border rounded-lg font-medium ${sourceColors[source]}`}>
+              {source}
             </div>
             
             {/* 恢復規則標籤 */}
-            <div className={`px-3 py-1.5 border rounded-lg font-medium ${recoveryColors[display.recovery_type]}`}>
-              {display.recovery_type}
+            <div className={`px-3 py-1.5 border rounded-lg font-medium ${recoveryColors[recoveryType]}`}>
+              {recoveryType}
             </div>
 
             {/* 使用次數標籤 */}
@@ -115,19 +121,29 @@ export default function AbilityDetailModal({
           )}
 
           {/* 操作按鈕 */}
-          <div className="flex gap-3 pt-2">
-            <button
-              onClick={onEdit}
-              className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
-            >
-              編輯
-            </button>
-            <button
-              onClick={onDelete}
-              className="flex-1 px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
-            >
-              移除
-            </button>
+          <div className="flex flex-col gap-2 pt-2">
+            <div className="flex gap-3">
+              <button
+                onClick={onEdit}
+                className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+              >
+                編輯
+              </button>
+              <button
+                onClick={onDelete}
+                className="flex-1 px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
+              >
+                移除
+              </button>
+            </div>
+            {isPersonalOnly && onUploadToDb && (
+              <button
+                onClick={onUploadToDb}
+                className="w-full px-6 py-3 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors font-medium"
+              >
+                上傳到資料庫
+              </button>
+            )}
           </div>
         </div>
       </div>

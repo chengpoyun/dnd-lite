@@ -31,7 +31,7 @@ describe('ItemService - 個人物品與上傳邏輯', () => {
     const globalBuilder: SupabaseBuilder = {
       select: vi.fn().mockReturnValue({
         ilike: vi.fn().mockReturnValue({
-          single: vi.fn().mockResolvedValue({
+          maybeSingle: vi.fn().mockResolvedValue({
             data: {
               id: existingGlobalItemId,
               name: '已存在物品',
@@ -81,7 +81,7 @@ describe('ItemService - 個人物品與上傳邏輯', () => {
     const globalBuilder: SupabaseBuilder = {
       select: vi.fn().mockReturnValue({
         ilike: vi.fn().mockReturnValue({
-          single: vi.fn().mockResolvedValue({
+          maybeSingle: vi.fn().mockResolvedValue({
             data: null,
             error: { code: 'PGRST116' }, // not found
           }),

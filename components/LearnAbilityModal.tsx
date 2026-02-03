@@ -308,10 +308,10 @@ export const LearnAbilityModal: React.FC<LearnAbilityModalProps> = ({
         </div>
 
         {/* 底部按鈕 */}
-        <div className="grid grid-cols-2 gap-3 pt-2 border-t border-slate-700">
+        <div className="flex gap-3 pt-2 border-t border-slate-700">
           <button
             onClick={onClose}
-            className="px-6 py-3 bg-slate-700 text-white rounded-lg hover:bg-slate-600 transition-colors font-medium"
+            className="flex-1 px-6 py-3 bg-slate-700 text-white rounded-lg hover:bg-slate-600 transition-colors font-medium whitespace-nowrap"
           >
             取消
           </button>
@@ -320,9 +320,9 @@ export const LearnAbilityModal: React.FC<LearnAbilityModalProps> = ({
               onClose();
               onCreateNew();
             }}
-            className="px-6 py-3 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors font-medium text-sm"
+            className="flex-1 px-6 py-3 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors font-medium whitespace-nowrap"
           >
-            + 新增能力
+            新增個人能力
           </button>
         </div>
       </div>

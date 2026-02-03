@@ -1,13 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { Modal } from './ui/Modal';
-import { CreateAbilityData, getDisplayValues } from '../services/abilityService';
-import type { Ability, CharacterAbilityWithDetails } from '../lib/supabase';
+import { CreateAbilityData, CreateAbilityDataForUpload, getDisplayValues } from '../services/abilityService';
+import type { CharacterAbilityWithDetails } from '../lib/supabase';
 
 interface AbilityFormModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: CreateAbilityData & { maxUses?: number }) => Promise<void>;
+  onSubmit: (data: (CreateAbilityData & { maxUses?: number }) | CreateAbilityDataForUpload) => Promise<void>;
   editingAbility?: CharacterAbilityWithDetails | null;
+  mode?: 'create' | 'upload';
+  uploadInitialData?: {
+    name: string;
+    description: string;
+    source: '種族' | '職業' | '專長' | '背景' | '其他';
+    recovery_type: '常駐' | '短休' | '長休';
+  } | null;
 }
 
 const SOURCES = ['種族', '職業', '專長', '背景', '其他'] as const;
@@ -17,8 +24,11 @@ export const AbilityFormModal: React.FC<AbilityFormModalProps> = ({
   isOpen,
   onClose,
   onSubmit,
-  editingAbility
+  editingAbility,
+  mode = 'create',
+  uploadInitialData = null,
 }) => {
+  const isUpload = mode === 'upload';
   const [formData, setFormData] = useState<CreateAbilityData>({
     name: '',
     name_en: '',
@@ -41,6 +51,15 @@ export const AbilityFormModal: React.FC<AbilityFormModalProps> = ({
         recovery_type: display.recovery_type
       });
       setMaxUses(editingAbility.max_uses);
+    } else if (isUpload && uploadInitialData) {
+      setFormData({
+        name: uploadInitialData.name,
+        name_en: '',
+        description: uploadInitialData.description,
+        source: uploadInitialData.source,
+        recovery_type: uploadInitialData.recovery_type
+      });
+      setMaxUses(0);
     } else {
       // 重置表單
       setFormData({
@@ -53,13 +72,16 @@ export const AbilityFormModal: React.FC<AbilityFormModalProps> = ({
       setMaxUses(0);
     }
     setShowConfirm(false);
-  }, [editingAbility, isOpen]);
+  }, [editingAbility, isUpload, uploadInitialData, isOpen]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     // 驗證必填欄位
     if (!formData.name || !formData.description) {
+      return;
+    }
+    if (isUpload && !formData.name_en) {
       return;
     }
 
@@ -76,11 +98,17 @@ export const AbilityFormModal: React.FC<AbilityFormModalProps> = ({
   const performSubmit = async () => {
     setIsSubmitting(true);
     try {
-      // 編輯模式才傳遞 maxUses
-      if (editingAbility) {
+      if (isUpload) {
+        await onSubmit({
+          name: formData.name.trim(),
+          name_en: formData.name_en.trim(),
+          description: formData.description.trim(),
+          source: formData.source,
+          recovery_type: formData.recovery_type
+        });
+      } else if (editingAbility) {
         await onSubmit({ ...formData, maxUses });
       } else {
-        // 創建新能力不傳遞 maxUses（abilities 表中沒有此欄位）
         await onSubmit(formData);
       }
       onClose();
@@ -101,11 +129,14 @@ export const AbilityFormModal: React.FC<AbilityFormModalProps> = ({
         {showConfirm ? (
           // 確認画面
           <>
-            <h2 className="text-xl font-bold mb-5">確認新增</h2>
+            <h2 className="text-xl font-bold mb-5">
+              {isUpload ? '確認上傳' : '確認新增'}
+            </h2>
             <div className="space-y-4">
               <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4">
                 <p className="text-slate-200 text-center">
-                  是否確定新增到資料庫？<br />
+                  {isUpload ? '是否確定上傳到資料庫？' : '是否確定新增到資料庫？'}
+                  <br />
                   <span className="text-amber-400 text-sm">該資料會能被其他玩家獲取。</span>
                 </p>
               </div>
@@ -124,7 +155,7 @@ export const AbilityFormModal: React.FC<AbilityFormModalProps> = ({
                   className="flex-1 px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                   disabled={isSubmitting}
                 >
-                  {isSubmitting ? '處理中...' : '確定新增'}
+                  {isSubmitting ? '處理中...' : isUpload ? '確定上傳' : '確定新增'}
                 </button>
               </div>
             </div>
@@ -132,7 +163,15 @@ export const AbilityFormModal: React.FC<AbilityFormModalProps> = ({
         ) : (
           // 表單画面
           <>
-            <h2 className="text-xl font-bold mb-5">{editingAbility ? '編輯特殊能力' : '新增特殊能力到資料庫'}</h2>
+            <h2 className="text-xl font-bold mb-5">
+              {isUpload ? '上傳到資料庫' : editingAbility ? '編輯特殊能力' : '新增特殊能力到資料庫'}
+            </h2>
+
+            {isUpload && (
+              <p className="text-slate-400 text-sm mb-4">
+                所有欄位皆為必填，且英文名稱（name_en）將用於比對是否已存在，大小寫視為相同。
+              </p>
+            )}
         
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* 中文名稱 */}
@@ -149,13 +188,16 @@ export const AbilityFormModal: React.FC<AbilityFormModalProps> = ({
 
         {/* 英文名稱 */}
         <div>
-          <label className="block text-[14px] text-slate-400 mb-2">英文名稱</label>
+          <label className="block text-[14px] text-slate-400 mb-2">
+            英文名稱 {isUpload ? '*' : ''}
+          </label>
           <input
             type="text"
             value={formData.name_en}
             onChange={(e) => setFormData({ ...formData, name_en: e.target.value })}
             className="w-full bg-slate-800 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500"
-            placeholder="例：Cunning Action（選填）"
+            placeholder="例：Cunning Action"
+            required={isUpload}
           />
         </div>
 
@@ -231,13 +273,15 @@ export const AbilityFormModal: React.FC<AbilityFormModalProps> = ({
           <button
             type="submit"
             className={`flex-1 px-6 py-3 text-white rounded-lg transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed ${
-              editingAbility 
-                ? 'bg-blue-600 hover:bg-blue-700' 
-                : 'bg-red-600 hover:bg-red-700'
+              isUpload
+                ? 'bg-amber-600 hover:bg-amber-700'
+                : editingAbility
+                  ? 'bg-blue-600 hover:bg-blue-700'
+                  : 'bg-red-600 hover:bg-red-700'
             }`}
             disabled={isSubmitting}
           >
-            {isSubmitting ? '處理中...' : (editingAbility ? '更新' : '新增')}
+            {isSubmitting ? '處理中...' : isUpload ? '上傳' : (editingAbility ? '更新' : '新增')}
           </button>
         </div>
       </form>

@@ -11,12 +11,13 @@
 import React, { useState, useEffect } from 'react';
 import { useToast } from '../hooks/useToast';
 import * as AbilityService from '../services/abilityService';
-import type { Ability, CharacterAbilityWithDetails } from '../lib/supabase';
+import type { CharacterAbilityWithDetails } from '../lib/supabase';
 import { AbilityCard } from './AbilityCard';
 import { AbilityFormModal } from './AbilityFormModal';
 import AbilityDetailModal from './AbilityDetailModal';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 import { LearnAbilityModal } from './LearnAbilityModal';
+import { AddPersonalAbilityModal } from './AddPersonalAbilityModal';
 
 interface AbilitiesPageProps {
   characterId: string;
@@ -25,7 +26,6 @@ interface AbilitiesPageProps {
 export default function AbilitiesPage({ characterId }: AbilitiesPageProps) {
   const { showSuccess, showError } = useToast();
 
-  const [allAbilities, setAllAbilities] = useState<Ability[]>([]);
   const [characterAbilities, setCharacterAbilities] = useState<CharacterAbilityWithDetails[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -34,6 +34,8 @@ export default function AbilitiesPage({ characterId }: AbilitiesPageProps) {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isLearnModalOpen, setIsLearnModalOpen] = useState(false);
+  const [isAddPersonalModalOpen, setIsAddPersonalModalOpen] = useState(false);
+  const [uploadFromCharacterAbility, setUploadFromCharacterAbility] = useState<CharacterAbilityWithDetails | null>(null);
   const [selectedCharacterAbility, setSelectedCharacterAbility] = useState<CharacterAbilityWithDetails | null>(null);
   const [editingCharacterAbility, setEditingCharacterAbility] = useState<CharacterAbilityWithDetails | null>(null);
 
@@ -41,11 +43,7 @@ export default function AbilitiesPage({ characterId }: AbilitiesPageProps) {
   const loadData = async () => {
     setIsLoading(true);
     try {
-      const [abilities, charAbilities] = await Promise.all([
-        AbilityService.getAllAbilities(),
-        AbilityService.getCharacterAbilities(characterId)
-      ]);
-      setAllAbilities(abilities);
+      const charAbilities = await AbilityService.getCharacterAbilities(characterId);
       setCharacterAbilities(charAbilities);
     } catch (error) {
       console.error('載入特殊能力失敗:', error);
@@ -61,10 +59,8 @@ export default function AbilitiesPage({ characterId }: AbilitiesPageProps) {
     }
   }, [characterId]);
 
-  // 只顯示已學習的能力
-  const displayAbilities = allAbilities.filter(ability => {
-    return characterAbilities.some(ca => ca.ability_id === ability.id);
-  });
+  // 顯示角色已擁有的能力（包含個人能力）
+  const displayAbilities = characterAbilities;
 
   // 新增能力到全域資料庫（不自動學習）
   const handleCreate = async (data: AbilityService.CreateAbilityData) => {
@@ -76,6 +72,32 @@ export default function AbilitiesPage({ characterId }: AbilitiesPageProps) {
     } catch (error) {
       console.error('新增特殊能力失敗:', error);
       showError('新增特殊能力失敗');
+    }
+  };
+
+  // 新增個人能力（不寫入 abilities）
+  const handleAddPersonalAbility = async (data: AbilityService.CreateCharacterAbilityData) => {
+    const result = await AbilityService.createCharacterAbility(characterId, data);
+    if (result.success) {
+      showSuccess('已新增個人能力');
+      setIsAddPersonalModalOpen(false);
+      loadData();
+    } else {
+      showError(result.error || '新增能力失敗');
+    }
+  };
+
+  // 上傳角色能力到全域庫（依 name_en 決定新增或關聯既有）
+  const handleUploadToGlobal = async (data: AbilityService.CreateAbilityDataForUpload) => {
+    if (!uploadFromCharacterAbility) return;
+    const result = await AbilityService.uploadCharacterAbilityToGlobal(uploadFromCharacterAbility.id, data);
+    if (result.success) {
+      showSuccess('已上傳至資料庫，其他玩家可取得此能力');
+      setUploadFromCharacterAbility(null);
+      setIsFormModalOpen(false);
+      loadData();
+    } else {
+      showError(result.error || '上傳失敗');
     }
   };
 
@@ -95,7 +117,8 @@ export default function AbilitiesPage({ characterId }: AbilitiesPageProps) {
           source: data.source,
           recovery_type: data.recovery_type,
           max_uses: data.maxUses
-        }
+        },
+        editingCharacterAbility.id
       );
       
       showSuccess('特殊能力已更新');
@@ -130,7 +153,11 @@ export default function AbilitiesPage({ characterId }: AbilitiesPageProps) {
     if (!selectedCharacterAbility) return;
 
     try {
-      await AbilityService.unlearnAbility(characterId, selectedCharacterAbility.ability_id);
+      await AbilityService.unlearnAbility(
+        characterId,
+        selectedCharacterAbility.ability_id,
+        selectedCharacterAbility.id
+      );
       showSuccess('已移除此能力');
       setIsDeleteModalOpen(false);
       setIsDetailModalOpen(false);
@@ -147,13 +174,17 @@ export default function AbilitiesPage({ characterId }: AbilitiesPageProps) {
     if (!selectedCharacterAbility) return;
 
     try {
-      await AbilityService.useAbility(characterId, selectedCharacterAbility.ability_id);
-      showSuccess(`已使用 ${selectedCharacterAbility.ability.name}`);
+      await AbilityService.useAbility(
+        characterId,
+        selectedCharacterAbility.ability_id,
+        selectedCharacterAbility.id
+      );
+      showSuccess(`已使用 ${AbilityService.getDisplayValues(selectedCharacterAbility).name}`);
       loadData();
       // 保持 modal 開啟，只更新資料
       // 重新找到更新後的能力
       const updatedCharAbilities = await AbilityService.getCharacterAbilities(characterId);
-      const updated = updatedCharAbilities.find(ca => ca.ability_id === selectedCharacterAbility.ability_id);
+      const updated = updatedCharAbilities.find(ca => ca.id === selectedCharacterAbility.id);
       if (updated) {
         setSelectedCharacterAbility(updated);
       }
@@ -164,12 +195,9 @@ export default function AbilitiesPage({ characterId }: AbilitiesPageProps) {
   };
 
   // 點擊能力卡片（只會是已學習的能力）
-  const handleAbilityClick = (ability: Ability) => {
-    const charAbility = characterAbilities.find(ca => ca.ability_id === ability.id);
-    if (charAbility) {
-      setSelectedCharacterAbility(charAbility);
-      setIsDetailModalOpen(true);
-    }
+  const handleAbilityClick = (charAbility: CharacterAbilityWithDetails) => {
+    setSelectedCharacterAbility(charAbility);
+    setIsDetailModalOpen(true);
   };
 
   // 學習能力（從 learn modal 呼叫）
@@ -206,7 +234,7 @@ export default function AbilitiesPage({ characterId }: AbilitiesPageProps) {
   // 從 learn modal 開啟新增 modal
   const handleOpenCreateModal = () => {
     setEditingCharacterAbility(null);
-    setIsFormModalOpen(true);
+    setIsAddPersonalModalOpen(true);
   };
 
   return (
@@ -239,17 +267,13 @@ export default function AbilitiesPage({ characterId }: AbilitiesPageProps) {
           </div>
         ) : (
           <div className="space-y-3">
-            {displayAbilities.map((ability) => {
-              const charAbility = characterAbilities.find(ca => ca.ability_id === ability.id);
-              if (!charAbility) return null;
-              return (
-                <AbilityCard
-                  key={charAbility.id}
-                  characterAbility={charAbility}
-                  onClick={() => handleAbilityClick(ability)}
-                />
-              );
-            })}
+            {displayAbilities.map((charAbility) => (
+              <AbilityCard
+                key={charAbility.id}
+                characterAbility={charAbility}
+                onClick={() => handleAbilityClick(charAbility)}
+              />
+            ))}
           </div>
         )}
       </div>
@@ -259,10 +283,27 @@ export default function AbilitiesPage({ characterId }: AbilitiesPageProps) {
         isOpen={isFormModalOpen}
         onClose={() => {
           setIsFormModalOpen(false);
+          setUploadFromCharacterAbility(null);
           setEditingCharacterAbility(null);
         }}
-        onSubmit={editingCharacterAbility ? handleUpdate : handleCreate}
+        onSubmit={uploadFromCharacterAbility ? handleUploadToGlobal : editingCharacterAbility ? handleUpdate : handleCreate}
         editingAbility={editingCharacterAbility}
+        mode={uploadFromCharacterAbility ? 'upload' : 'create'}
+        uploadInitialData={uploadFromCharacterAbility ? (() => {
+          const display = AbilityService.getDisplayValues(uploadFromCharacterAbility);
+          return {
+            name: display.name,
+            description: display.description,
+            source: display.source || '其他',
+            recovery_type: display.recovery_type || '常駐',
+          };
+        })() : undefined}
+      />
+
+      <AddPersonalAbilityModal
+        isOpen={isAddPersonalModalOpen}
+        onClose={() => setIsAddPersonalModalOpen(false)}
+        onSubmit={handleAddPersonalAbility}
       />
 
       <AbilityDetailModal
@@ -275,13 +316,19 @@ export default function AbilitiesPage({ characterId }: AbilitiesPageProps) {
         onEdit={handleEditClick}
         onDelete={handleDeleteClick}
         onUse={handleUse}
+        onUploadToDb={selectedCharacterAbility && (!selectedCharacterAbility.ability_id || !selectedCharacterAbility.ability) ? () => {
+          setUploadFromCharacterAbility(selectedCharacterAbility);
+          setIsDetailModalOpen(false);
+          setSelectedCharacterAbility(null);
+          setIsFormModalOpen(true);
+        } : undefined}
       />
 
       <ConfirmDeleteModal
         isOpen={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}
         onConfirm={handleUnlearn}
-        itemName={selectedCharacterAbility?.ability.name || ''}
+        itemName={selectedCharacterAbility ? AbilityService.getDisplayValues(selectedCharacterAbility).name : ''}
         itemType="特殊能力"
       />
 
@@ -290,7 +337,7 @@ export default function AbilitiesPage({ characterId }: AbilitiesPageProps) {
         onClose={() => setIsLearnModalOpen(false)}
         onLearnAbility={handleLearn}
         onCreateNew={handleOpenCreateModal}
-        learnedAbilityIds={characterAbilities.map(ca => ca.ability_id)}
+        learnedAbilityIds={characterAbilities.map(ca => ca.ability_id).filter((id): id is string => id != null)}
       />
     </div>
   );

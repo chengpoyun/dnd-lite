@@ -247,7 +247,7 @@ export interface Ability {
 export interface CharacterAbility {
   id: string
   character_id: string
-  ability_id: string
+  ability_id: string | null
   current_uses: number
   max_uses: number
   // 覆蓋欄位（可選，用於客製化）
@@ -262,7 +262,7 @@ export interface CharacterAbility {
 
 // 組合類型：包含能力詳情的角色能力
 export interface CharacterAbilityWithDetails extends CharacterAbility {
-  ability: Ability
+  ability: Ability | null
   // 便利方法：取得實際顯示的值（優先使用 override）
   displayName?: string
   displayNameEn?: string | null
