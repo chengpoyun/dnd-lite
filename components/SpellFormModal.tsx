@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Modal } from './ui/Modal';
 import { CreateSpellData, CreateSpellDataForUpload, Spell } from '../services/spellService';
 import { SPELL_SCHOOLS } from '../utils/spellUtils';
+import { MODAL_CONTAINER_CLASS } from '../styles/modalStyles';
 
 interface SpellFormModalProps {
   isOpen: boolean;
@@ -128,7 +129,7 @@ export const SpellFormModal: React.FC<SpellFormModalProps> = ({
   if (showConfirm) {
     return (
       <Modal isOpen={isOpen} onClose={onClose} size="md">
-        <div className="bg-slate-800 rounded-xl px-3 py-3 max-w-md w-full">
+        <div className={MODAL_CONTAINER_CLASS}>
           <h2 className="text-xl font-bold mb-5">
             {isUpload ? '確認上傳法術' : '確認新增法術'}
           </h2>
@@ -161,7 +162,7 @@ export const SpellFormModal: React.FC<SpellFormModalProps> = ({
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="2xl">
-      <div className="bg-slate-800 rounded-xl px-3 py-3 max-w-2xl w-full">
+      <div className={MODAL_CONTAINER_CLASS}>
         <h2 className="text-xl font-bold mb-5">
           {isUpload ? '上傳到資料庫' : editingSpell ? '編輯法術' : '新增法術到資料庫'}
         </h2>

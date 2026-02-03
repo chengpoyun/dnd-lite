@@ -6,6 +6,7 @@
 import React, { useState, useEffect } from 'react';
 import { Modal } from './ui/Modal';
 import type { CharacterItem, ItemCategory, UpdateCharacterItemData } from '../services/itemService';
+import { MODAL_CONTAINER_CLASS } from '../styles/modalStyles';
 
 interface CharacterItemEditModalProps {
   isOpen: boolean;
@@ -81,7 +82,7 @@ export const CharacterItemEditModal: React.FC<CharacterItemEditModalProps> = ({
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="2xl">
-      <div className="bg-slate-800 rounded-xl px-3 py-3 max-w-md w-full">
+      <div className={MODAL_CONTAINER_CLASS}>
         <h2 className="text-xl font-bold mb-5">編輯物品</h2>
         
         <p className="text-slate-400 text-sm mb-4">

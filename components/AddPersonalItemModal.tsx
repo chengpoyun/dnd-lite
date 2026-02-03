@@ -6,6 +6,7 @@
 import React, { useState } from 'react';
 import { Modal } from './ui/Modal';
 import type { ItemCategory, CreateCharacterItemData } from '../services/itemService';
+import { MODAL_CONTAINER_CLASS } from '../styles/modalStyles';
 
 const CATEGORIES: ItemCategory[] = ['裝備', '魔法物品', '藥水', '素材', '雜項'];
 
@@ -52,7 +53,7 @@ export const AddPersonalItemModal: React.FC<AddPersonalItemModalProps> = ({
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="2xl">
-      <div className="bg-slate-800 rounded-xl px-3 py-3 max-w-md w-full">
+      <div className={MODAL_CONTAINER_CLASS}>
         <h2 className="text-xl font-bold mb-5">新增個人物品</h2>
         <p className="text-slate-400 text-sm mb-4">
           此物品僅屬於此角色；之後若想讓大家都能取得，可在物品詳情中「上傳到資料庫」。

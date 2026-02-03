@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Modal } from './ui/Modal';
 import { Spell, getAllSpells } from '../services/spellService';
 import { getSpellLevelText, getSchoolColor } from '../utils/spellUtils';
+import { MODAL_CONTAINER_CLASS } from '../styles/modalStyles';
 
 interface LearnSpellModalProps {
   isOpen: boolean;
@@ -82,7 +83,7 @@ export const LearnSpellModal: React.FC<LearnSpellModalProps> = ({
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="3xl" className="flex flex-col">
-      <div className="bg-slate-800 rounded-xl px-3 py-3 max-w-3xl w-full relative flex flex-col">
+      <div className={`${MODAL_CONTAINER_CLASS} flex flex-col`}>
         <h2 className="text-xl font-bold mb-5">學習法術</h2>
 
         {/* 篩選區 */}

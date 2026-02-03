@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Modal } from './ui/Modal';
 import { CreateAbilityData, CreateAbilityDataForUpload, getDisplayValues } from '../services/abilityService';
 import type { CharacterAbilityWithDetails } from '../lib/supabase';
+import { MODAL_CONTAINER_CLASS } from '../styles/modalStyles';
 
 interface AbilityFormModalProps {
   isOpen: boolean;
@@ -125,7 +126,7 @@ export const AbilityFormModal: React.FC<AbilityFormModalProps> = ({
       onClose={onClose}
       size="2xl"
     >
-      <div className="bg-slate-800 rounded-xl px-3 py-3 max-w-md w-full">
+      <div className={MODAL_CONTAINER_CLASS}>
         {showConfirm ? (
           // 確認画面
           <>

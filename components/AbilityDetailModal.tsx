@@ -7,6 +7,7 @@ import ReactMarkdown from 'react-markdown';
 import { Modal } from './ui/Modal';
 import type { CharacterAbilityWithDetails } from '../lib/supabase';
 import { getDisplayValues } from '../services/abilityService';
+import { MODAL_CONTAINER_CLASS } from '../styles/modalStyles';
 
 interface AbilityDetailModalProps {
   isOpen: boolean;
@@ -54,7 +55,7 @@ export default function AbilityDetailModal({
 
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
-      <div className="bg-slate-800 rounded-xl px-3 py-3 max-w-md w-full">
+      <div className={MODAL_CONTAINER_CLASS}>
         <div className="space-y-3">
           {/* 名稱和英文名稱 + 使用按鈕 */}
           <div className="py-2 flex items-start justify-between gap-3">

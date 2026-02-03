@@ -1,5 +1,6 @@
 import React from 'react'
 import { Modal } from './ui/Modal'
+import { MODAL_CONTAINER_CLASS } from '../styles/modalStyles'
 
 interface ConfirmDeleteModalProps {
   isOpen: boolean
@@ -36,7 +37,7 @@ export const ConfirmDeleteModal: React.FC<ConfirmDeleteModalProps> = ({
       isOpen={isOpen} 
       onClose={handleCancel}
     >
-      <div className="bg-slate-800 rounded-xl px-3 py-3 max-w-md w-full">
+      <div className={MODAL_CONTAINER_CLASS}>
         <h2 className="text-xl font-bold mb-5">{modalTitle}</h2>
         
         <div className="mb-4">

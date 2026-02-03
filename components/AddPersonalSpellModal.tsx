@@ -7,6 +7,7 @@ import React, { useEffect, useState } from 'react';
 import { Modal } from './ui/Modal';
 import type { CreateCharacterSpellData } from '../services/spellService';
 import { SPELL_SCHOOLS } from '../utils/spellUtils';
+import { MODAL_CONTAINER_CLASS } from '../styles/modalStyles';
 
 interface AddPersonalSpellModalProps {
   isOpen: boolean;
@@ -96,7 +97,7 @@ export const AddPersonalSpellModal: React.FC<AddPersonalSpellModalProps> = ({
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="2xl">
-      <div className="bg-slate-800 rounded-xl px-3 py-3 max-w-2xl w-full">
+      <div className={MODAL_CONTAINER_CLASS}>
         <h2 className="text-xl font-bold mb-5">新增個人法術</h2>
         <p className="text-slate-400 text-sm mb-4">
           此法術僅屬於此角色；之後若想讓大家都能取得，可在法術詳情中「上傳到資料庫」。

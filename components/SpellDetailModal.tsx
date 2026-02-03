@@ -3,6 +3,7 @@ import ReactMarkdown from 'react-markdown';
 import { Modal } from './ui/Modal';
 import { CharacterSpell, getDisplayValues } from '../services/spellService';
 import { getSpellLevelText, getSchoolColor } from '../utils/spellUtils';
+import { MODAL_CONTAINER_CLASS } from '../styles/modalStyles';
 
 interface SpellDetailModalProps {
   isOpen: boolean;
@@ -30,7 +31,7 @@ export const SpellDetailModal: React.FC<SpellDetailModalProps> = ({
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="2xl">
-      <div className="bg-slate-800 rounded-xl px-3 py-3 max-w-2xl w-full relative">
+      <div className={`${MODAL_CONTAINER_CLASS} relative`}>
         <h2 className="text-xl font-bold mb-5">{display.displayName}</h2>
         
         {/* 法術等級和學派 */}

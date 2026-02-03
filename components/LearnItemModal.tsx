@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Modal } from './ui/Modal';
 import { GlobalItem, getGlobalItems } from '../services/itemService';
 import type { ItemCategory } from '../services/itemService';
+import { MODAL_CONTAINER_CLASS } from '../styles/modalStyles';
 
 interface LearnItemModalProps {
   isOpen: boolean;
@@ -87,7 +88,7 @@ export const LearnItemModal: React.FC<LearnItemModalProps> = ({
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="3xl" className="flex flex-col">
-      <div className="bg-slate-800 rounded-xl px-3 py-3 max-w-3xl w-full relative flex flex-col">
+      <div className={`${MODAL_CONTAINER_CLASS} relative flex flex-col`}>
         <h2 className="text-xl font-bold mb-5">獲得物品</h2>
 
         {/* 篩選區 */}

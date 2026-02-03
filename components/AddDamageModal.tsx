@@ -4,6 +4,7 @@ import CombatService from '../services/combatService';
 import type { ResistanceType } from '../lib/supabase';
 import { DAMAGE_TYPES, calculateActualDamage } from '../utils/damageTypes';
 import { useToast } from '../hooks/useToast';
+import { MODAL_CONTAINER_CLASS } from '../styles/modalStyles';
 
 interface DamageEntry {
   originalValue: string; // 原始傷害值（用戶輸入）
@@ -179,7 +180,7 @@ const AddDamageModal: React.FC<AddDamageModalProps> = ({
 
   return (
     <Modal isOpen={isOpen} onClose={handleClose}>
-      <div className="bg-slate-800 rounded-xl px-3 py-3 max-w-md w-full relative">
+      <div className={`${MODAL_CONTAINER_CLASS} relative`}>
         {/* Loading 蓋版 */}
         {isSubmitting && (
           <div className="absolute inset-0 bg-black/50 backdrop-blur-sm z-[130] rounded-xl flex items-center justify-center">

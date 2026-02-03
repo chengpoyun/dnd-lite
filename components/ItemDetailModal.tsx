@@ -6,6 +6,7 @@ import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Modal } from './ui/Modal';
 import { CharacterItem, getDisplayValues } from '../services/itemService';
+import { MODAL_CONTAINER_CLASS } from '../styles/modalStyles';
 
 interface ItemDetailModalProps {
   isOpen: boolean;
@@ -32,7 +33,7 @@ export default function ItemDetailModal({
 
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
-      <div className="bg-slate-800 rounded-xl px-3 py-3 max-w-md w-full">
+      <div className={MODAL_CONTAINER_CLASS}>
         <h2 className="text-xl font-bold mb-5">道具詳情</h2>
         
         <div className="space-y-3">

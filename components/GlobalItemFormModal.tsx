@@ -6,6 +6,7 @@
 import React, { useState, useEffect } from 'react';
 import { Modal } from './ui/Modal';
 import type { GlobalItem, ItemCategory, CreateGlobalItemData, CreateGlobalItemDataForUpload } from '../services/itemService';
+import { MODAL_CONTAINER_CLASS } from '../styles/modalStyles';
 
 type UploadInitialData = { name: string; description: string; category: ItemCategory };
 
@@ -108,7 +109,7 @@ export const GlobalItemFormModal: React.FC<GlobalItemFormModalProps> = ({
   if (showConfirm) {
     return (
       <Modal isOpen={isOpen} onClose={onClose} size="md">
-        <div className="bg-slate-800 rounded-xl px-3 py-3 max-w-md w-full">
+        <div className={MODAL_CONTAINER_CLASS}>
           <h2 className="text-xl font-bold mb-5">
             {isUpload ? '確認上傳物品' : '確認新增物品'}
           </h2>
@@ -141,7 +142,7 @@ export const GlobalItemFormModal: React.FC<GlobalItemFormModalProps> = ({
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="2xl">
-      <div className="bg-slate-800 rounded-xl px-3 py-3 max-w-md w-full">
+      <div className={MODAL_CONTAINER_CLASS}>
         <h2 className="text-xl font-bold mb-5">
           {isUpload ? '上傳到資料庫' : editItem ? '編輯全域物品' : '新增物品到資料庫'}
         </h2>

@@ -6,6 +6,7 @@
 import React, { useEffect, useState } from 'react';
 import { Modal } from './ui/Modal';
 import type { CreateCharacterAbilityData } from '../services/abilityService';
+import { MODAL_CONTAINER_CLASS } from '../styles/modalStyles';
 
 const SOURCES = ['種族', '職業', '專長', '背景', '其他'] as const;
 const RECOVERY_TYPES = ['常駐', '短休', '長休'] as const;
@@ -70,7 +71,7 @@ export const AddPersonalAbilityModal: React.FC<AddPersonalAbilityModalProps> = (
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="2xl">
-      <div className="bg-slate-800 rounded-xl px-3 py-3 max-w-md w-full">
+      <div className={MODAL_CONTAINER_CLASS}>
         <h2 className="text-xl font-bold mb-5">新增個人能力</h2>
         <p className="text-slate-400 text-sm mb-4">
           此能力僅屬於此角色；之後若想讓大家都能取得，可在能力詳情中「上傳到資料庫」。

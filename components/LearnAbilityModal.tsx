@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Modal } from './ui/Modal';
 import type { Ability } from '../lib/supabase';
 import * as AbilityService from '../services/abilityService';
+import { MODAL_CONTAINER_CLASS } from '../styles/modalStyles';
 
 interface LearnAbilityModalProps {
   isOpen: boolean;
@@ -137,7 +138,7 @@ export const LearnAbilityModal: React.FC<LearnAbilityModalProps> = ({
     
     return (
       <Modal isOpen={isOpen} onClose={onClose} size="2xl">
-        <div className="bg-slate-800 rounded-xl px-3 py-3 max-w-md w-full">
+        <div className={MODAL_CONTAINER_CLASS}>
           <h2 className="text-xl font-bold mb-5">學習特殊能力</h2>
           
           <div className="space-y-4">
@@ -217,7 +218,7 @@ export const LearnAbilityModal: React.FC<LearnAbilityModalProps> = ({
   // 能力列表畫面
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="3xl">
-      <div className="bg-slate-800 rounded-xl px-3 py-3 max-w-3xl w-full flex flex-col" style={{ maxHeight: '80vh' }}>
+      <div className={`${MODAL_CONTAINER_CLASS} flex flex-col`} style={{ maxHeight: '80vh' }}>
         <h2 className="text-xl font-bold mb-5">學習特殊能力</h2>
 
         {/* 篩選區 */}

@@ -7,6 +7,7 @@ import React, { useState, useEffect } from 'react';
 import { Modal } from './ui/Modal';
 import { CharacterSpell, updateCharacterSpell, getDisplayValues } from '../services/spellService';
 import { SPELL_SCHOOLS } from '../utils/spellUtils';
+import { MODAL_CONTAINER_CLASS } from '../styles/modalStyles';
 
 interface CharacterSpellEditModalProps {
   isOpen: boolean;
@@ -107,7 +108,7 @@ export const CharacterSpellEditModal: React.FC<CharacterSpellEditModalProps> = (
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="2xl">
-      <div className="bg-slate-800 rounded-xl px-3 py-3 max-w-2xl w-full">
+      <div className={MODAL_CONTAINER_CLASS}>
         <h2 className="text-xl font-bold mb-5">編輯法術</h2>
         <p className="text-sm text-slate-400 mb-4">
           💡 修改欄位將只影響您的角色，不會影響其他玩家。

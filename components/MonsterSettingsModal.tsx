@@ -4,6 +4,19 @@ import CombatService from '../services/combatService';
 import type { ResistanceType } from '../lib/supabase';
 import { DAMAGE_TYPES } from '../utils/damageTypes';
 import { useToast } from '../hooks/useToast';
+import {
+  MODAL_CONTAINER_CLASS,
+  INPUT_ROW_CLASS,
+  INPUT_LABEL_CLASS,
+  INPUT_CLASS,
+  SELECT_CLASS,
+  BUTTON_SECONDARY_CLASS,
+  BUTTON_DANGER_CLASS,
+  COLLAPSIBLE_BUTTON_CLASS,
+  COLLAPSIBLE_CONTENT_CLASS,
+  LOADING_OVERLAY_CLASS,
+  LOADING_BOX_CLASS,
+} from '../styles/modalStyles';
 
 interface MonsterSettingsModalProps {
   isOpen: boolean;
@@ -32,11 +45,6 @@ const MonsterSettingsModal: React.FC<MonsterSettingsModalProps> = ({
 }) => {
   const { showSuccess, showError } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
-  // 共用樣式
-  const inputRowClass = "flex items-center gap-2 mb-3";
-  const labelClass = "text-sm font-medium text-slate-300 w-20 shrink-0";
-  const inputClass = "w-[calc(100%-5.5rem)] px-3 py-2.5 bg-slate-700/50 border border-slate-600 rounded-lg text-white placeholder:text-slate-500 focus:outline-none focus:border-amber-500 focus:bg-slate-700";
   
   // AC 設定
   const [knownAC, setKnownAC] = useState<string>(
@@ -154,11 +162,11 @@ const MonsterSettingsModal: React.FC<MonsterSettingsModalProps> = ({
 
   return (
     <Modal isOpen={isOpen} onClose={handleClose}>
-      <div className="bg-slate-800 rounded-xl px-3 py-3 max-w-md w-full relative">
+      <div className={MODAL_CONTAINER_CLASS}>
         {/* Loading 蓋版 */}
         {isSubmitting && (
-          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm z-[130] rounded-xl flex items-center justify-center">
-            <div className="bg-slate-800 px-6 py-4 rounded-lg shadow-2xl border border-slate-700">
+          <div className={LOADING_OVERLAY_CLASS}>
+            <div className={LOADING_BOX_CLASS}>
               <div className="flex items-center gap-3">
                 <div className="animate-spin rounded-full h-5 w-5 border-2 border-amber-500 border-t-transparent"></div>
                 <span className="font-medium">更新中...</span>
@@ -170,8 +178,8 @@ const MonsterSettingsModal: React.FC<MonsterSettingsModalProps> = ({
         <h2 className="text-xl font-bold mb-4">⚙️ {monsterName} #{monsterNumber} - 設定</h2>
 
         {/* AC 設定 */}
-        <div className={inputRowClass}>
-          <label className={labelClass}>AC</label>
+        <div className={INPUT_ROW_CLASS}>
+          <label className={INPUT_LABEL_CLASS}>AC</label>
           <input
             type="number"
             value={knownAC}
@@ -183,21 +191,21 @@ const MonsterSettingsModal: React.FC<MonsterSettingsModalProps> = ({
                 ? `${currentACRange.max}`
                 : `${currentACRange.min} < AC <= ${currentACRange.max}`
             }
-            className={inputClass}
+            className={INPUT_CLASS}
             min="1"
             max="99"
           />
         </div>
 
         {/* HP 設定 */}
-        <div className={inputRowClass}>
-          <label className={labelClass}>最大 HP</label>
+        <div className={INPUT_ROW_CLASS}>
+          <label className={INPUT_LABEL_CLASS}>最大 HP</label>
           <input
             type="number"
             value={maxHP}
             onChange={(e) => setMaxHP(e.target.value)}
             placeholder={currentMaxHP === null || currentMaxHP < 0 ? '未知' : `${currentMaxHP}`}
-            className={inputClass}
+            className={INPUT_CLASS}
             min="1"
           />
         </div>
@@ -206,14 +214,14 @@ const MonsterSettingsModal: React.FC<MonsterSettingsModalProps> = ({
         <div className="mb-4">
           <button
             onClick={() => setShowResistances(!showResistances)}
-            className="w-full flex items-center justify-between p-3 bg-slate-900 hover:bg-slate-800 rounded-lg transition-colors text-left"
+            className={COLLAPSIBLE_BUTTON_CLASS}
           >
             <span className="text-slate-400 text-sm">🛡️ 已知抗性（可選）</span>
             <span className="text-slate-500">{showResistances ? '▲' : '▼'}</span>
           </button>
 
           {showResistances && (
-            <div className="mt-2 p-3 bg-slate-900 rounded-lg max-h-64 overflow-y-auto">
+            <div className={COLLAPSIBLE_CONTENT_CLASS}>
               <div className="space-y-2">
                 {DAMAGE_TYPES.map(damageType => (
                   <div key={damageType.value} className="flex items-center justify-between">
@@ -224,7 +232,7 @@ const MonsterSettingsModal: React.FC<MonsterSettingsModalProps> = ({
                         ...resistances,
                         [damageType.value]: e.target.value as ResistanceType
                       })}
-                      className="px-2 py-1 bg-slate-800 border border-slate-700 rounded text-sm focus:outline-none focus:border-amber-500"
+                      className={SELECT_CLASS}
                     >
                       <option value="normal">一般</option>
                       <option value="resistant">↓ 抗性</option>
@@ -242,14 +250,14 @@ const MonsterSettingsModal: React.FC<MonsterSettingsModalProps> = ({
         <div className="flex gap-3">
           <button
             onClick={handleClose}
-            className="flex-1 px-6 py-3 bg-slate-700 hover:bg-slate-600 rounded-lg font-medium transition-colors"
+            className={BUTTON_SECONDARY_CLASS}
             disabled={isSubmitting}
           >
             取消
           </button>
           <button
             onClick={handleSubmit}
-            className="flex-1 px-6 py-3 bg-amber-600 hover:bg-amber-700 rounded-lg font-medium transition-colors disabled:opacity-50"
+            className={BUTTON_DANGER_CLASS}
             disabled={isSubmitting}
           >
             確認更新

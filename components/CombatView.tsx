@@ -8,6 +8,7 @@ import { PageContainer, Card, Button, Title, Subtitle, Input } from './ui';
 import { Modal, ModalButton, ModalInput } from './ui/Modal';
 import { STYLES } from '../styles/common';
 import type { CharacterCombatAction as DatabaseCombatItem } from '../lib/supabase';
+import { MODAL_CONTAINER_CLASS } from '../styles/modalStyles';
 
 interface CombatItem {
   id: string;
@@ -851,7 +852,7 @@ export const CombatView: React.FC<CombatViewProps> = ({
         onClose={() => setIsItemEditModalOpen(false)}
         size="xs"
       >
-        <div className="bg-slate-800 rounded-xl px-3 py-3 max-w-md w-full relative">
+        <div className={`${MODAL_CONTAINER_CLASS} relative`}>
           <h2 className="text-xl font-bold mb-5">{editingItemId ? '編輯項目' : '新增項目'}</h2>
           
           <div className="space-y-4">
@@ -917,7 +918,7 @@ export const CombatView: React.FC<CombatViewProps> = ({
         onClose={() => setIsCategoryUsageModalOpen(false)}
         size="xs"
       >
-        <div className="bg-slate-800 rounded-xl px-3 py-3 max-w-md w-full relative">
+        <div className={`${MODAL_CONTAINER_CLASS} relative`}>
           <h2 className="text-xl font-bold mb-5">{editingCategory === 'action' ? '動作使用次數' : editingCategory === 'bonus' ? '附贈動作使用次數' : '反應使用次數'}</h2>
           
           <div className="space-y-4">
@@ -1079,7 +1080,7 @@ export const CombatView: React.FC<CombatViewProps> = ({
         onClose={() => setIsHPModalOpen(false)}
         size="sm"
       >
-        <div className="bg-slate-800 rounded-xl px-3 py-3 max-w-md w-full relative">
+        <div className={`${MODAL_CONTAINER_CLASS} relative`}>
           <h2 className="text-xl font-bold mb-5">修改生命值</h2>
           
           <div className="space-y-4">
