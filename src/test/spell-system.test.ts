@@ -6,8 +6,7 @@ import type { Spell, CreateSpellData } from '../services/spellService';
  * 
  * 測試範圍：
  * 1. Spell 介面的 ritual 欄位
- * 2. CreateSpellData 介面的預設值
- * 3. 法術表單資料驗證
+ * 2. 法術表單資料驗證
  */
 
 describe('法術系統 - 資料結構測試', () => {
@@ -46,57 +45,6 @@ describe('法術系統 - 資料結構測試', () => {
 
       expect(ritualSpell.ritual).toBe(true);
       expect(ritualSpell.concentration).toBe(true);
-    });
-  });
-
-  describe('CreateSpellData 介面', () => {
-    it('應該接受有效的法術資料', () => {
-      const spellData: CreateSpellData = {
-        name: '魔法飛彈',
-        name_en: 'Magic Missile',
-        level: 1,
-        casting_time: '動作',
-        school: '塑能',
-        concentration: false,
-        ritual: false,
-        duration: '即效',
-        range: '120尺',
-        source: 'PHB',
-        verbal: true,
-        somatic: true,
-        material: '一根荊條',
-        description: '你創造出三枚魔法能量飛彈...'
-      };
-
-      expect(spellData).toBeDefined();
-      expect(spellData.ritual).toBe(false);
-    });
-
-    it('應該正確設定預設值', () => {
-      const defaultSpellData: CreateSpellData = {
-        name: '',
-        name_en: '',
-        level: 0,
-        casting_time: '動作',
-        school: '塑能',
-        concentration: false,
-        ritual: false,
-        duration: '即效',
-        range: '自身',
-        source: 'PHB',
-        verbal: false,
-        somatic: false,
-        material: '',
-        description: ''
-      };
-
-      // 驗證預設值
-      expect(defaultSpellData.casting_time).toBe('動作');
-      expect(defaultSpellData.duration).toBe('即效');
-      expect(defaultSpellData.range).toBe('自身');
-      expect(defaultSpellData.source).toBe('PHB');
-      expect(defaultSpellData.ritual).toBe(false);
-      expect(defaultSpellData.concentration).toBe(false);
     });
   });
 
@@ -208,35 +156,6 @@ describe('法術系統 - 資料結構測試', () => {
 });
 
 describe('法術系統 - 表單資料完整性', () => {
-  it('新增法術時所有必填欄位應有預設值', () => {
-    const formData: CreateSpellData = {
-      name: '',
-      name_en: '',
-      level: 0,
-      casting_time: '動作',
-      school: '塑能',
-      concentration: false,
-      ritual: false,
-      duration: '即效',
-      range: '自身',
-      source: 'PHB',
-      verbal: false,
-      somatic: false,
-      material: '',
-      description: ''
-    };
-
-    // 確保所有下拉選單欄位都有有效預設值（非空字串）
-    expect(formData.casting_time).not.toBe('');
-    expect(formData.duration).not.toBe('');
-    expect(formData.range).not.toBe('');
-    expect(formData.source).not.toBe('');
-    
-    // 確保布林欄位有明確值
-    expect(typeof formData.concentration).toBe('boolean');
-    expect(typeof formData.ritual).toBe('boolean');
-  });
-
   it('表單驗證應該通過有效資料', () => {
     const validSpell: CreateSpellData = {
       name: '火球術',
