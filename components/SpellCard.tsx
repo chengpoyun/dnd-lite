@@ -4,7 +4,7 @@ import { getSpellLevelText, getSchoolColor } from '../utils/spellUtils';
 
 interface SpellCardProps {
   characterSpell: CharacterSpell;
-  onTogglePrepared: (spellId: string, isPrepared: boolean, needsWarning: boolean) => void;
+  onTogglePrepared: (characterSpellId: string, spellId: string | null, isPrepared: boolean, needsWarning: boolean) => void;
   onClick: () => void;
   canPrepareMore: boolean;
   isCantrip: boolean;
@@ -22,7 +22,12 @@ export const SpellCard: React.FC<SpellCardProps> = ({
 
   const handleTogglePrepared = () => {
     const needsWarning = !characterSpell.is_prepared && !canPrepareMore && !isCantrip;
-    onTogglePrepared(characterSpell.spell?.id || characterSpell.spell_id, !characterSpell.is_prepared, needsWarning);
+    onTogglePrepared(
+      characterSpell.id,
+      characterSpell.spell?.id || characterSpell.spell_id,
+      !characterSpell.is_prepared,
+      needsWarning
+    );
   };
 
   return (

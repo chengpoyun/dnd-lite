@@ -103,7 +103,7 @@ export const CharacterSpellEditModal: React.FC<CharacterSpellEditModalProps> = (
 
   if (!characterSpell) return null;
 
-  const spell = characterSpell.spell!;
+  const display = getDisplayValues(characterSpell);
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="2xl">
@@ -259,7 +259,7 @@ export const CharacterSpellEditModal: React.FC<CharacterSpellEditModalProps> = (
               value={formData.material_override}
               onChange={(e) => setFormData({ ...formData, material_override: e.target.value })}
               className="w-full bg-slate-900 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500"
-              placeholder={spell.material || '無'}
+              placeholder={display.displayMaterial || '無'}
             />
           </div>
 
@@ -271,7 +271,7 @@ export const CharacterSpellEditModal: React.FC<CharacterSpellEditModalProps> = (
               onChange={(e) => setFormData({ ...formData, description_override: e.target.value })}
               rows={6}
               className="w-full bg-slate-900 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500 resize-none"
-              placeholder={spell.description}
+              placeholder={display.displayDescription}
             />
           </div>
 

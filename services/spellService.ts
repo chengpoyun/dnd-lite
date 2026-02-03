@@ -23,7 +23,7 @@ export interface Spell {
 export interface CharacterSpell {
   id: string;
   character_id: string;
-  spell_id: string;
+  spell_id: string | null;
   is_prepared: boolean;
   created_at: string;
   // Override 欄位（角色專屬客製化）
@@ -42,7 +42,7 @@ export interface CharacterSpell {
   material_override?: string | null;
   description_override?: string | null;
   // JOIN 查詢時會包含完整法術資料
-  spell?: Spell;
+  spell?: Spell | null;
 }
 
 // 帶有 display helper 的 CharacterSpell 類型
@@ -71,6 +71,43 @@ export interface SpellFilters {
 
 export interface CreateSpellData {
   name: string;
+  name_en: string;
+  level: number;
+  casting_time: string;
+  school: Spell['school'];
+  concentration: boolean;
+  ritual: boolean;
+  duration: string;
+  range: string;
+  source: string;
+  verbal: boolean;
+  somatic: boolean;
+  material: string;
+  description: string;
+}
+
+// 上傳角色法術到全域法術庫時使用的資料（所有欄位必填）
+export interface CreateSpellDataForUpload {
+  name: string;
+  name_en: string;
+  level: number;
+  casting_time: string;
+  school: Spell['school'];
+  concentration: boolean;
+  ritual: boolean;
+  duration: string;
+  range: string;
+  source: string;
+  verbal: boolean;
+  somatic: boolean;
+  material: string;
+  description: string;
+}
+
+/** 新增個人法術（直接寫入 character_spells，不經 spells） */
+export interface CreateCharacterSpellData {
+  name: string;
+  name_en: string;
   level: number;
   casting_time: string;
   school: Spell['school'];
@@ -104,7 +141,7 @@ export async function getAllSpells(filters?: SpellFilters): Promise<Spell[]> {
   }
 
   if (filters?.searchText) {
-    query = query.ilike('name', `%${filters.searchText}%`);
+    query = query.or(`name.ilike.%${filters.searchText}%,name_en.ilike.%${filters.searchText}%`);
   }
 
   const { data, error } = await query;
@@ -115,6 +152,74 @@ export async function getAllSpells(filters?: SpellFilters): Promise<Spell[]> {
   }
 
   return data || [];
+}
+
+/**
+ * 新增個人法術（直接寫入 character_spells，不建立 spells）
+ * 所有欄位必填（同 SpellFormModal）
+ */
+export async function createCharacterSpell(
+  characterId: string,
+  data: CreateCharacterSpellData
+): Promise<{
+  success: boolean;
+  item?: CharacterSpell;
+  error?: string;
+}> {
+  try {
+    if (!characterId) {
+      return { success: false, error: '角色 ID 無效' };
+    }
+
+    const requiredFields = [
+      data.name,
+      data.name_en,
+      data.casting_time,
+      data.duration,
+      data.range,
+      data.source,
+      data.material,
+      data.description,
+    ];
+
+    if (requiredFields.some((value) => !value?.toString().trim())) {
+      return { success: false, error: '所有欄位皆為必填' };
+    }
+
+    const { data: row, error } = await supabase
+      .from('character_spells')
+      .insert([{
+        character_id: characterId,
+        spell_id: null,
+        is_prepared: false,
+        name_override: data.name.trim(),
+        name_en_override: data.name_en.trim(),
+        level_override: data.level,
+        casting_time_override: data.casting_time,
+        school_override: data.school,
+        concentration_override: data.concentration,
+        ritual_override: data.ritual,
+        duration_override: data.duration,
+        range_override: data.range,
+        source_override: data.source,
+        verbal_override: data.verbal,
+        somatic_override: data.somatic,
+        material_override: data.material,
+        description_override: data.description,
+      }])
+      .select()
+      .single();
+
+    if (error) {
+      console.error('新增個人法術失敗:', error);
+      return { success: false, error: error.message };
+    }
+
+    return { success: true, item: row };
+  } catch (error) {
+    console.error('新增個人法術異常:', error);
+    return { success: false, error: '新增個人法術時發生錯誤' };
+  }
 }
 
 /**
@@ -133,6 +238,90 @@ export async function createSpell(spellData: CreateSpellData): Promise<Spell> {
   }
 
   return data;
+}
+
+/**
+ * 將角色法術上傳到全域法術庫：
+ * - 以 name_en（不分大小寫）檢查 spells 是否已存在
+ * - 若已存在：只更新該角色法術的 spell_id 指向既有 spell
+ * - 若不存在：建立新的 spell，再更新角色法術的 spell_id
+ */
+export async function uploadCharacterSpellToGlobal(
+  characterSpellId: string,
+  data: CreateSpellDataForUpload
+): Promise<{
+  success: boolean;
+  error?: string;
+}> {
+  try {
+    if (!characterSpellId) {
+      return { success: false, error: '角色法術 ID 無效' };
+    }
+
+    const requiredFields = [
+      data.name,
+      data.name_en,
+      data.casting_time,
+      data.duration,
+      data.range,
+      data.source,
+      data.material,
+      data.description,
+    ];
+
+    if (requiredFields.some((value) => !value?.toString().trim())) {
+      return { success: false, error: '所有欄位皆為必填' };
+    }
+
+    const { data: existing, error: findError } = await (supabase
+      .from('spells')
+      .select('*')
+      .ilike('name_en', data.name_en)
+      .maybeSingle());
+
+    let targetSpellId: string | null = null;
+
+    if (existing && !findError) {
+      targetSpellId = existing.id;
+    } else {
+      if (findError && findError.code !== 'PGRST116' && findError.status !== 406) {
+        console.error('查詢全域法術失敗:', findError);
+        return { success: false, error: '查詢全域法術失敗' };
+      }
+
+      const { data: inserted, error: insertError } = await supabase
+        .from('spells')
+        .insert([data])
+        .select()
+        .single();
+
+      if (insertError || !inserted) {
+        console.error('創建全域法術失敗:', insertError);
+        return { success: false, error: insertError?.message || '創建全域法術失敗' };
+      }
+
+      targetSpellId = inserted.id;
+    }
+
+    if (!targetSpellId) {
+      return { success: false, error: '無法取得全域法術 ID' };
+    }
+
+    const { error: updateError } = await supabase
+      .from('character_spells')
+      .update({ spell_id: targetSpellId })
+      .eq('id', characterSpellId);
+
+    if (updateError) {
+      console.error('更新角色法術關聯失敗:', updateError);
+      return { success: false, error: updateError.message };
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error('上傳法術到全域庫異常:', error);
+    return { success: false, error: '上傳法術到全域庫時發生錯誤' };
+  }
 }
 
 /**
@@ -202,12 +391,22 @@ export async function learnSpell(characterId: string, spellId: string): Promise<
 /**
  * 角色遺忘法術
  */
-export async function forgetSpell(characterId: string, spellId: string): Promise<void> {
-  const { error } = await supabase
+export async function forgetSpell(
+  characterId: string,
+  spellId: string | null,
+  characterSpellId?: string
+): Promise<void> {
+  if (!spellId && !characterSpellId) {
+    throw new Error('角色法術 ID 無效');
+  }
+
+  const query = supabase
     .from('character_spells')
-    .delete()
-    .eq('character_id', characterId)
-    .eq('spell_id', spellId);
+    .delete();
+
+  const { error } = characterSpellId
+    ? await query.eq('id', characterSpellId)
+    : await query.eq('character_id', characterId).eq('spell_id', spellId);
 
   if (error) {
     console.error('遺忘法術失敗:', error);
@@ -218,12 +417,23 @@ export async function forgetSpell(characterId: string, spellId: string): Promise
 /**
  * 切換法術的準備狀態
  */
-export async function togglePrepared(characterId: string, spellId: string, isPrepared: boolean): Promise<void> {
-  const { error } = await supabase
+export async function togglePrepared(
+  characterId: string,
+  spellId: string | null,
+  isPrepared: boolean,
+  characterSpellId?: string
+): Promise<void> {
+  if (!spellId && !characterSpellId) {
+    throw new Error('角色法術 ID 無效');
+  }
+
+  const query = supabase
     .from('character_spells')
-    .update({ is_prepared: isPrepared })
-    .eq('character_id', characterId)
-    .eq('spell_id', spellId);
+    .update({ is_prepared: isPrepared });
+
+  const { error } = characterSpellId
+    ? await query.eq('id', characterSpellId)
+    : await query.eq('character_id', characterId).eq('spell_id', spellId);
 
   if (error) {
     console.error('切換準備狀態失敗:', error);
@@ -310,7 +520,7 @@ export function getDisplayValues(characterSpell: CharacterSpell): CharacterSpell
   return {
     ...characterSpell,
     displayName: characterSpell.name_override ?? spell?.name ?? '',
-    displayNameEn: characterSpell.name_en_override ?? spell?.name_en,
+    displayNameEn: characterSpell.name_en_override ?? spell?.name_en ?? '',
     displayLevel: characterSpell.level_override ?? spell?.level ?? 0,
     displayCastingTime: characterSpell.casting_time_override ?? spell?.casting_time ?? '',
     displaySchool: characterSpell.school_override ?? spell?.school ?? '塑能',

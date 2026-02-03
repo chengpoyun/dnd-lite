@@ -16,6 +16,7 @@ describe('法術系統 - 資料結構測試', () => {
       const spell: Spell = {
         id: 'test-id',
         name: '火球術',
+        name_en: 'Fireball',
         level: 3,
         casting_time: '動作',
         school: '塑能',
@@ -52,6 +53,7 @@ describe('法術系統 - 資料結構測試', () => {
     it('應該接受有效的法術資料', () => {
       const spellData: CreateSpellData = {
         name: '魔法飛彈',
+        name_en: 'Magic Missile',
         level: 1,
         casting_time: '動作',
         school: '塑能',
@@ -62,7 +64,7 @@ describe('法術系統 - 資料結構測試', () => {
         source: 'PHB',
         verbal: true,
         somatic: true,
-        material: '',
+        material: '一根荊條',
         description: '你創造出三枚魔法能量飛彈...'
       };
 
@@ -73,6 +75,7 @@ describe('法術系統 - 資料結構測試', () => {
     it('應該正確設定預設值', () => {
       const defaultSpellData: CreateSpellData = {
         name: '',
+        name_en: '',
         level: 0,
         casting_time: '動作',
         school: '塑能',
@@ -208,6 +211,7 @@ describe('法術系統 - 表單資料完整性', () => {
   it('新增法術時所有必填欄位應有預設值', () => {
     const formData: CreateSpellData = {
       name: '',
+      name_en: '',
       level: 0,
       casting_time: '動作',
       school: '塑能',
@@ -236,6 +240,7 @@ describe('法術系統 - 表單資料完整性', () => {
   it('表單驗證應該通過有效資料', () => {
     const validSpell: CreateSpellData = {
       name: '火球術',
+      name_en: 'Fireball',
       level: 3,
       casting_time: '動作',
       school: '塑能',
@@ -252,11 +257,13 @@ describe('法術系統 - 表單資料完整性', () => {
 
     // 模擬表單驗證邏輯
     const isValid = !!(
-      validSpell.name && 
+      validSpell.name &&
+      validSpell.name_en &&
       validSpell.casting_time && 
       validSpell.duration && 
       validSpell.range && 
       validSpell.source && 
+      validSpell.material &&
       validSpell.description
     );
 
@@ -267,16 +274,20 @@ describe('法術系統 - 表單資料完整性', () => {
     const invalidSpells: Partial<CreateSpellData>[] = [
       { name: '', description: '測試' }, // 缺少名稱
       { name: '測試', description: '' }, // 缺少描述
+      { name: '測試', description: '測試', name_en: '' }, // name_en 空字串
       { name: '測試', description: '測試', casting_time: '' }, // casting_time 空字串
+      { name: '測試', description: '測試', material: '' }, // material 空字串
     ];
 
     invalidSpells.forEach(spell => {
       const isValid = !!(
-        spell.name && 
+        spell.name &&
+        spell.name_en &&
         spell.casting_time && 
         spell.duration && 
         spell.range && 
         spell.source && 
+        spell.material &&
         spell.description
       );
 

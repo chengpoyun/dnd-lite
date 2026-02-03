@@ -4,17 +4,23 @@ import { SpellDetailModal } from './SpellDetailModal';
 import { LearnSpellModal } from './LearnSpellModal';
 import { SpellFormModal } from './SpellFormModal';
 import { CharacterSpellEditModal } from './CharacterSpellEditModal';
+import { AddPersonalSpellModal } from './AddPersonalSpellModal';
 import { Modal, ModalButton } from './ui/Modal';
 import { 
   CharacterSpell, 
   Spell,
   CreateSpellData,
+  CreateSpellDataForUpload,
+  CreateCharacterSpellData,
   getCharacterSpells, 
   learnSpell, 
   forgetSpell, 
   togglePrepared,
   createSpell,
   updateSpell,
+  createCharacterSpell,
+  uploadCharacterSpellToGlobal,
+  getDisplayValues,
   getPreparedSpellsCount,
   getPreparedCantripsCount
 } from '../services/spellService';
@@ -43,7 +49,9 @@ export const SpellsPage: React.FC<SpellsPageProps> = ({
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isOverLimitWarningOpen, setIsOverLimitWarningOpen] = useState(false);
-  const [pendingPrepareSpell, setPendingPrepareSpell] = useState<{ spellId: string, isPrepared: boolean } | null>(null);
+  const [isAddPersonalModalOpen, setIsAddPersonalModalOpen] = useState(false);
+  const [uploadFromCharacterSpell, setUploadFromCharacterSpell] = useState<CharacterSpell | null>(null);
+  const [pendingPrepareSpell, setPendingPrepareSpell] = useState<{ characterSpellId: string; spellId: string | null; isPrepared: boolean } | null>(null);
   const [selectedCharacterSpell, setSelectedCharacterSpell] = useState<CharacterSpell | null>(null);
   const [editingCharacterSpell, setEditingCharacterSpell] = useState<CharacterSpell | null>(null);
   const [editingSpell, setEditingSpell] = useState<Spell | null>(null);
@@ -89,10 +97,17 @@ export const SpellsPage: React.FC<SpellsPageProps> = ({
 
   const updatePreparedCount = async () => {
     try {
-      const count = await getPreparedSpellsCount(characterId);
-      setPreparedCount(count);
-      const cantripsCount = await getPreparedCantripsCount(characterId);
-      setPreparedCantripsCount(cantripsCount);
+      const [count, cantripsCount] = await Promise.all([
+        getPreparedSpellsCount(characterId),
+        getPreparedCantripsCount(characterId)
+      ]);
+
+      const personalPrepared = characterSpells.filter(cs => !cs.spell_id && cs.is_prepared);
+      const personalCantrips = personalPrepared.filter(cs => getDisplayValues(cs).displayLevel === 0);
+      const personalSpells = personalPrepared.filter(cs => getDisplayValues(cs).displayLevel > 0);
+
+      setPreparedCount(count + personalSpells.length);
+      setPreparedCantripsCount(cantripsCount + personalCantrips.length);
     } catch (error) {
       console.error('更新已準備法術數量失敗:', error);
     }
@@ -109,21 +124,25 @@ export const SpellsPage: React.FC<SpellsPageProps> = ({
     }
   };
 
-  const handleForgetSpell = async (spellId: string) => {
+  const handleForgetSpell = async (spellId: string | null, characterSpellId?: string) => {
     try {
-      await forgetSpell(characterId, spellId);
-      setCharacterSpells(prev => prev.filter(cs => cs.spell?.id !== spellId));
+      await forgetSpell(characterId, spellId, characterSpellId);
+      setCharacterSpells(prev => 
+        characterSpellId
+          ? prev.filter(cs => cs.id !== characterSpellId)
+          : prev.filter(cs => cs.spell?.id !== spellId)
+      );
     } catch (error) {
       console.error('遺忘法術失敗:', error);
     }
   };
 
-  const handleTogglePrepared = async (spellId: string, isPrepared: boolean) => {
+  const handleTogglePrepared = async (characterSpellId: string, spellId: string | null, isPrepared: boolean) => {
     try {
-      await togglePrepared(characterId, spellId, isPrepared);
+      await togglePrepared(characterId, spellId, isPrepared, characterSpellId);
       setCharacterSpells(prev => 
         prev.map(cs => 
-          cs.spell?.id === spellId 
+          cs.id === characterSpellId
             ? { ...cs, is_prepared: isPrepared }
             : cs
         )
@@ -133,20 +152,20 @@ export const SpellsPage: React.FC<SpellsPageProps> = ({
     }
   };
 
-  const handleTogglePreparedWithWarning = (spellId: string, isPrepared: boolean, needsWarning: boolean) => {
+  const handleTogglePreparedWithWarning = (characterSpellId: string, spellId: string | null, isPrepared: boolean, needsWarning: boolean) => {
     if (needsWarning && isPrepared) {
       // 顯示警告 modal (isPrepared=true 代表正在準備法術)
-      setPendingPrepareSpell({ spellId, isPrepared });
+      setPendingPrepareSpell({ characterSpellId, spellId, isPrepared });
       setIsOverLimitWarningOpen(true);
     } else {
       // 直接執行
-      handleTogglePrepared(spellId, isPrepared);
+      handleTogglePrepared(characterSpellId, spellId, isPrepared);
     }
   };
 
   const handleConfirmOverLimit = () => {
     if (pendingPrepareSpell) {
-      handleTogglePrepared(pendingPrepareSpell.spellId, pendingPrepareSpell.isPrepared);
+      handleTogglePrepared(pendingPrepareSpell.characterSpellId, pendingPrepareSpell.spellId, pendingPrepareSpell.isPrepared);
       setPendingPrepareSpell(null);
     }
     setIsOverLimitWarningOpen(false);
@@ -159,6 +178,28 @@ export const SpellsPage: React.FC<SpellsPageProps> = ({
     } catch (error) {
       console.error('新增法術失敗:', error);
       throw error;
+    }
+  };
+
+  const handleAddPersonalSpell = async (data: CreateCharacterSpellData) => {
+    const result = await createCharacterSpell(characterId, data);
+    if (result.success) {
+      setIsAddPersonalModalOpen(false);
+      loadCharacterSpells();
+    } else {
+      console.error(result.error || '新增法術失敗');
+    }
+  };
+
+  const handleUploadToGlobal = async (data: CreateSpellDataForUpload) => {
+    if (!uploadFromCharacterSpell) return;
+    const result = await uploadCharacterSpellToGlobal(uploadFromCharacterSpell.id, data);
+    if (result.success) {
+      setUploadFromCharacterSpell(null);
+      setIsFormModalOpen(false);
+      loadCharacterSpells();
+    } else {
+      console.error(result.error || '上傳失敗');
     }
   };
 
@@ -198,8 +239,8 @@ export const SpellsPage: React.FC<SpellsPageProps> = ({
     const grouped: Record<number, CharacterSpell[]> = {};
     
     characterSpells.forEach(cs => {
-      if (!cs.spell) return;
-      const level = cs.spell.level;
+      const display = getDisplayValues(cs);
+      const level = display.displayLevel;
       if (!grouped[level]) {
         grouped[level] = [];
       }
@@ -213,7 +254,7 @@ export const SpellsPage: React.FC<SpellsPageProps> = ({
       .map(level => ({
         level,
         spells: grouped[level].sort((a, b) => 
-          (a.spell?.name || '').localeCompare(b.spell?.name || '')
+          getDisplayValues(a).displayName.localeCompare(getDisplayValues(b).displayName)
         )
       }));
   }, [characterSpells]);
@@ -222,7 +263,7 @@ export const SpellsPage: React.FC<SpellsPageProps> = ({
   const canPrepareMoreCantrips = preparedCantripsCount < maxCantrips;
   const learnedSpellIds = characterSpells.map(cs => cs.spell?.id).filter(Boolean) as string[];
   // 計算已學習法術數量（不含戲法）
-  const learnedSpellsCount = characterSpells.filter(cs => cs.spell && cs.spell.level > 0).length;
+  const learnedSpellsCount = characterSpells.filter(cs => getDisplayValues(cs).displayLevel > 0).length;
 
   if (isLoading) {
     return (
@@ -321,7 +362,13 @@ export const SpellsPage: React.FC<SpellsPageProps> = ({
         }}
         characterSpell={selectedCharacterSpell}
         onEdit={handleEditSpell}
-        onForget={handleForgetSpell}
+        onForget={(spellId, characterSpellId) => handleForgetSpell(spellId, characterSpellId)}
+        onUploadToDb={selectedCharacterSpell && (!selectedCharacterSpell.spell_id || !selectedCharacterSpell.spell) ? () => {
+          setUploadFromCharacterSpell(selectedCharacterSpell);
+          setIsDetailModalOpen(false);
+          setSelectedCharacterSpell(null);
+          setIsFormModalOpen(true);
+        } : undefined}
       />
 
       <LearnSpellModal
@@ -331,16 +378,45 @@ export const SpellsPage: React.FC<SpellsPageProps> = ({
         onCreateNew={() => {
           setIsLearnModalOpen(false);
           setEditingSpell(null);
-          setIsFormModalOpen(true);
+          setIsAddPersonalModalOpen(true);
         }}
         learnedSpellIds={learnedSpellIds}
       />
 
       <SpellFormModal
         isOpen={isFormModalOpen}
-        onClose={handleCloseFormModal}
-        onSubmit={editingSpell ? handleUpdateSpell : handleCreateSpell}
+        onClose={() => {
+          handleCloseFormModal();
+          setUploadFromCharacterSpell(null);
+        }}
+        onSubmit={uploadFromCharacterSpell ? handleUploadToGlobal : editingSpell ? handleUpdateSpell : handleCreateSpell}
         editingSpell={editingSpell}
+        mode={uploadFromCharacterSpell ? 'upload' : 'create'}
+        uploadInitialData={uploadFromCharacterSpell ? (() => {
+          const display = getDisplayValues(uploadFromCharacterSpell);
+          return {
+            name: display.displayName,
+            name_en: display.displayNameEn || '',
+            level: display.displayLevel,
+            casting_time: display.displayCastingTime,
+            school: display.displaySchool,
+            concentration: display.displayConcentration,
+            ritual: display.displayRitual,
+            duration: display.displayDuration,
+            range: display.displayRange,
+            source: display.displaySource,
+            verbal: display.displayVerbal,
+            somatic: display.displaySomatic,
+            material: display.displayMaterial,
+            description: display.displayDescription,
+          };
+        })() : undefined}
+      />
+
+      <AddPersonalSpellModal
+        isOpen={isAddPersonalModalOpen}
+        onClose={() => setIsAddPersonalModalOpen(false)}
+        onSubmit={handleAddPersonalSpell}
       />
 
       <CharacterSpellEditModal

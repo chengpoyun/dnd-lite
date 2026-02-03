@@ -9,7 +9,9 @@ interface SpellDetailModalProps {
   onClose: () => void;
   characterSpell: CharacterSpell | null;
   onEdit: (characterSpell: CharacterSpell) => void;
-  onForget: (spellId: string) => void;
+  onForget: (spellId: string | null, characterSpellId?: string) => void;
+  /** 僅個人法術（未關聯 spells）時顯示「上傳到資料庫」並呼叫此 callback */
+  onUploadToDb?: () => void;
 }
 
 export const SpellDetailModal: React.FC<SpellDetailModalProps> = ({
@@ -17,11 +19,13 @@ export const SpellDetailModal: React.FC<SpellDetailModalProps> = ({
   onClose,
   characterSpell,
   onEdit,
-  onForget
+  onForget,
+  onUploadToDb
 }) => {
   if (!characterSpell) return null;
 
   const display = getDisplayValues(characterSpell);
+  const isPersonalOnly = !characterSpell.spell_id || !characterSpell.spell;
   const schoolColor = getSchoolColor(display.displaySchool);
 
   return (
@@ -106,25 +110,35 @@ export const SpellDetailModal: React.FC<SpellDetailModalProps> = ({
         </div>
 
         {/* 按鈕 */}
-        <div className="flex gap-3 pt-4 border-t border-slate-700">
-          <button
-            onClick={() => {
-              onEdit(characterSpell);
-              onClose();
-            }}
-            className="flex-1 px-6 py-3 rounded-lg bg-blue-600 text-white text-[16px] font-bold active:bg-blue-700"
-          >
-            編輯
-          </button>
-          <button
-            onClick={() => {
-              onForget(characterSpell.spell?.id || characterSpell.spell_id);
-              onClose();
-            }}
-            className="flex-1 px-6 py-3 rounded-lg bg-rose-600 text-white text-[16px] font-bold active:bg-rose-700"
-          >
-            遺忘
-          </button>
+        <div className="flex flex-col gap-2 pt-4 border-t border-slate-700">
+          <div className="flex gap-3">
+            <button
+              onClick={() => {
+                onEdit(characterSpell);
+                onClose();
+              }}
+              className="flex-1 px-6 py-3 rounded-lg bg-blue-600 text-white text-[16px] font-bold active:bg-blue-700"
+            >
+              編輯
+            </button>
+            <button
+              onClick={() => {
+                onForget(characterSpell.spell?.id || characterSpell.spell_id, characterSpell.id);
+                onClose();
+              }}
+              className="flex-1 px-6 py-3 rounded-lg bg-rose-600 text-white text-[16px] font-bold active:bg-rose-700"
+            >
+              遺忘
+            </button>
+          </div>
+          {isPersonalOnly && onUploadToDb && (
+            <button
+              onClick={onUploadToDb}
+              className="w-full px-6 py-3 rounded-lg bg-amber-600 text-white text-[16px] font-bold active:bg-amber-700"
+            >
+              上傳到資料庫
+            </button>
+          )}
           <button
             onClick={onClose}
             className="px-6 py-3 rounded-lg bg-slate-700 text-slate-200 text-[16px] font-bold active:bg-slate-600"

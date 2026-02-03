@@ -1,27 +1,25 @@
-import React, { useState, useEffect } from 'react';
+/**
+ * AddPersonalSpellModal - 新增個人法術（只存在於該角色，不寫入 spells）
+ * 所有欄位必填
+ */
+
+import React, { useEffect, useState } from 'react';
 import { Modal } from './ui/Modal';
-import { CreateSpellData, CreateSpellDataForUpload, Spell } from '../services/spellService';
+import type { CreateCharacterSpellData } from '../services/spellService';
 import { SPELL_SCHOOLS } from '../utils/spellUtils';
 
-interface SpellFormModalProps {
+interface AddPersonalSpellModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: CreateSpellData | CreateSpellDataForUpload) => Promise<void>;
-  editingSpell?: Spell | null;
-  mode?: 'create' | 'upload';
-  uploadInitialData?: CreateSpellData | null;
+  onSubmit: (data: CreateCharacterSpellData) => Promise<void>;
 }
 
-export const SpellFormModal: React.FC<SpellFormModalProps> = ({
+export const AddPersonalSpellModal: React.FC<AddPersonalSpellModalProps> = ({
   isOpen,
   onClose,
   onSubmit,
-  editingSpell,
-  mode = 'create',
-  uploadInitialData = null,
 }) => {
-  const isUpload = mode === 'upload';
-  const [formData, setFormData] = useState<CreateSpellData>({
+  const [formData, setFormData] = useState<CreateCharacterSpellData>({
     name: '',
     name_en: '',
     level: 0,
@@ -38,30 +36,9 @@ export const SpellFormModal: React.FC<SpellFormModalProps> = ({
     description: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
 
   useEffect(() => {
-    if (editingSpell) {
-      setFormData({
-        name: editingSpell.name,
-        name_en: editingSpell.name_en || '',
-        level: editingSpell.level,
-        casting_time: editingSpell.casting_time,
-        school: editingSpell.school,
-        concentration: editingSpell.concentration,
-        ritual: editingSpell.ritual,
-        duration: editingSpell.duration,
-        range: editingSpell.range,
-        source: editingSpell.source,
-        verbal: editingSpell.verbal,
-        somatic: editingSpell.somatic,
-        material: editingSpell.material || '',
-        description: editingSpell.description
-      });
-    } else if (isUpload && uploadInitialData) {
-      setFormData(uploadInitialData);
-    } else {
-      // 重置表單
+    if (isOpen) {
       setFormData({
         name: '',
         name_en: '',
@@ -78,32 +55,27 @@ export const SpellFormModal: React.FC<SpellFormModalProps> = ({
         material: '',
         description: ''
       });
+      setIsSubmitting(false);
     }
-  }, [editingSpell, isUpload, uploadInitialData, isOpen]);
+  }, [isOpen]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // 驗證必填欄位
-    if (!formData.name || !formData.name_en || !formData.casting_time || !formData.duration || 
-        !formData.range || !formData.source || !formData.material || !formData.description) {
-      return;
-    }
+    const requiredFields = [
+      formData.name,
+      formData.name_en,
+      formData.casting_time,
+      formData.duration,
+      formData.range,
+      formData.source,
+      formData.material,
+      formData.description,
+    ];
+    if (requiredFields.some((value) => !value?.toString().trim())) return;
 
-    // 如果是新增法術，先顯示確認畫面
-    if (!editingSpell) {
-      setShowConfirm(true);
-      return;
-    }
-
-    // 編輯模式直接提交
-    await performSubmit();
-  };
-
-  const performSubmit = async () => {
     setIsSubmitting(true);
     try {
-      const payload = {
+      await onSubmit({
         ...formData,
         name: formData.name.trim(),
         name_en: formData.name_en.trim(),
@@ -113,72 +85,23 @@ export const SpellFormModal: React.FC<SpellFormModalProps> = ({
         source: formData.source.trim(),
         material: formData.material.trim(),
         description: formData.description.trim(),
-      };
-      await onSubmit(payload);
+      });
       onClose();
-      setShowConfirm(false);
     } catch (error) {
-      console.error('提交法術失敗:', error);
+      console.error('新增個人法術失敗:', error);
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // 確認畫面
-  if (showConfirm) {
-    return (
-      <Modal isOpen={isOpen} onClose={onClose} size="md">
-        <div className="bg-slate-800 rounded-xl px-3 py-3 max-w-md w-full">
-          <h2 className="text-xl font-bold mb-5">
-            {isUpload ? '確認上傳法術' : '確認新增法術'}
-          </h2>
-          <p className="text-slate-300 mb-6">
-            {isUpload ? '是否確定上傳' : '是否確定新增'}{' '}
-            <span className="text-amber-400 font-semibold">{formData.name}</span>{' '}
-            到資料庫？該法術會能被其他玩家獲取。
-          </p>
-          <div className="flex gap-3">
-            <button
-              type="button"
-              onClick={() => setShowConfirm(false)}
-              className="flex-1 px-6 py-3 rounded-lg bg-slate-700 text-slate-300 font-bold active:bg-slate-600"
-            >
-              返回編輯
-            </button>
-            <button
-              type="button"
-              onClick={performSubmit}
-              disabled={isSubmitting}
-              className="flex-1 px-6 py-3 rounded-lg bg-red-600 text-white font-bold active:bg-red-700 disabled:opacity-50"
-            >
-              {isSubmitting ? '處理中...' : isUpload ? '確認上傳' : '確認新增'}
-            </button>
-          </div>
-        </div>
-      </Modal>
-    );
-  }
-
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="2xl">
       <div className="bg-slate-800 rounded-xl px-3 py-3 max-w-2xl w-full">
-        <h2 className="text-xl font-bold mb-5">
-          {isUpload ? '上傳到資料庫' : editingSpell ? '編輯法術' : '新增法術到資料庫'}
-        </h2>
-        
-        {isUpload && (
-          <p className="text-slate-400 text-sm mb-4">
-            所有欄位皆為必填，且英文名稱（name_en）將用於比對是否已存在，大小寫視為相同。
-          </p>
-        )}
-        {!editingSpell && !isUpload && (
-          <p className="text-slate-400 text-sm mb-4">
-            💡 請盡可能填寫詳細訊息，該法術可以被其他玩家所獲取。
-          </p>
-        )}
-        
+        <h2 className="text-xl font-bold mb-5">新增個人法術</h2>
+        <p className="text-slate-400 text-sm mb-4">
+          此法術僅屬於此角色；之後若想讓大家都能取得，可在法術詳情中「上傳到資料庫」。
+        </p>
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* 法術名稱 */}
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-[14px] text-slate-400 mb-2">中文名稱 *</label>
@@ -204,13 +127,12 @@ export const SpellFormModal: React.FC<SpellFormModalProps> = ({
             </div>
           </div>
 
-          {/* 環位和學派 */}
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-[14px] text-slate-400 mb-2">環位 *</label>
               <select
                 value={formData.level}
-                onChange={(e) => setFormData({ ...formData, level: parseInt(e.target.value) })}
+                onChange={(e) => setFormData({ ...formData, level: parseInt(e.target.value, 10) })}
                 className="w-full bg-slate-800 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500"
               >
                 {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map(level => (
@@ -220,7 +142,6 @@ export const SpellFormModal: React.FC<SpellFormModalProps> = ({
                 ))}
               </select>
             </div>
-
             <div>
               <label className="block text-[14px] text-slate-400 mb-2">法術學派 *</label>
               <select
@@ -243,7 +164,6 @@ export const SpellFormModal: React.FC<SpellFormModalProps> = ({
             </div>
           </div>
 
-          {/* 施法時間、持續時間、射程 */}
           <div className="grid grid-cols-3 gap-3">
             <div>
               <label className="block text-[14px] text-slate-400 mb-2">施法時間 *</label>
@@ -263,7 +183,6 @@ export const SpellFormModal: React.FC<SpellFormModalProps> = ({
                 <option value="24小時">24小時</option>
               </select>
             </div>
-
             <div>
               <label className="block text-[14px] text-slate-400 mb-2">持續時間 *</label>
               <select
@@ -282,7 +201,6 @@ export const SpellFormModal: React.FC<SpellFormModalProps> = ({
                 <option value="其他">其他</option>
               </select>
             </div>
-
             <div>
               <label className="block text-[14px] text-slate-400 mb-2">射程 *</label>
               <select
@@ -305,7 +223,6 @@ export const SpellFormModal: React.FC<SpellFormModalProps> = ({
             </div>
           </div>
 
-          {/* 來源 */}
           <div>
             <label className="block text-[14px] text-slate-400 mb-2">來源 *</label>
             <select
@@ -329,32 +246,30 @@ export const SpellFormModal: React.FC<SpellFormModalProps> = ({
             </select>
           </div>
 
-          {/* 專注與儀式 */}
           <div className="flex gap-6">
             <div className="flex items-center gap-2">
               <input
                 type="checkbox"
-                id="concentration"
+                id="personal-concentration"
                 checked={formData.concentration}
                 onChange={(e) => setFormData({ ...formData, concentration: e.target.checked })}
                 className="w-5 h-5 rounded border-2 border-slate-600 bg-slate-900 checked:bg-amber-500 checked:border-amber-500 cursor-pointer"
               />
-              <label htmlFor="concentration" className="text-[14px] text-slate-300 cursor-pointer">需要專注</label>
+              <label htmlFor="personal-concentration" className="text-[14px] text-slate-300 cursor-pointer">需要專注</label>
             </div>
 
             <div className="flex items-center gap-2">
               <input
                 type="checkbox"
-                id="ritual"
+                id="personal-ritual"
                 checked={formData.ritual}
                 onChange={(e) => setFormData({ ...formData, ritual: e.target.checked })}
                 className="w-5 h-5 rounded border-2 border-slate-600 bg-slate-900 checked:bg-amber-500 checked:border-amber-500 cursor-pointer"
               />
-              <label htmlFor="ritual" className="text-[14px] text-slate-300 cursor-pointer">儀式</label>
+              <label htmlFor="personal-ritual" className="text-[14px] text-slate-300 cursor-pointer">儀式</label>
             </div>
           </div>
 
-          {/* 成分 */}
           <div>
             <label className="block text-[14px] text-slate-400 mb-2">成分 *</label>
             <div className="flex gap-4">
@@ -380,9 +295,8 @@ export const SpellFormModal: React.FC<SpellFormModalProps> = ({
             </div>
           </div>
 
-          {/* 材料 */}
           <div>
-              <label className="block text-[14px] text-slate-400 mb-2">材料 (M) *</label>
+            <label className="block text-[14px] text-slate-400 mb-2">材料 (M) *</label>
             <input
               type="text"
               value={formData.material}
@@ -393,7 +307,6 @@ export const SpellFormModal: React.FC<SpellFormModalProps> = ({
             />
           </div>
 
-          {/* 法術效果 */}
           <div>
             <label className="block text-[14px] text-slate-400 mb-2">法術效果 *</label>
             <textarea
@@ -405,7 +318,6 @@ export const SpellFormModal: React.FC<SpellFormModalProps> = ({
             />
           </div>
 
-          {/* 按鈕 */}
           <div className="flex gap-3 pt-2">
             <button
               type="button"
@@ -418,15 +330,9 @@ export const SpellFormModal: React.FC<SpellFormModalProps> = ({
             <button
               type="submit"
               disabled={isSubmitting}
-              className={`flex-1 px-6 py-3 rounded-lg font-bold ${
-                isUpload
-                  ? 'bg-amber-600 text-white active:bg-amber-700'
-                  : editingSpell 
-                    ? 'bg-blue-600 text-white active:bg-blue-700' 
-                    : 'bg-red-600 text-white active:bg-red-700'
-              } disabled:opacity-50`}
+              className="flex-1 px-6 py-3 rounded-lg bg-amber-600 text-white font-bold active:bg-amber-700 disabled:opacity-50"
             >
-            {isSubmitting ? '處理中...' : isUpload ? '上傳' : (editingSpell ? '儲存變更' : '新增法術')}
+              {isSubmitting ? '新增中...' : '新增'}
             </button>
           </div>
         </form>
