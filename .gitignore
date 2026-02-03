@@ -30,3 +30,4 @@ dist-ssr
 
 # Assistant notes (not tracked by git)
 .assistant-notes.md
+supabase-cli
