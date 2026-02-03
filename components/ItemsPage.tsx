@@ -13,8 +13,9 @@
 import React, { useState, useEffect } from 'react';
 import { useToast } from '../hooks/useToast';
 import * as ItemService from '../services/itemService';
-import type { CharacterItem, ItemCategory, CreateGlobalItemData, UpdateCharacterItemData } from '../services/itemService';
+import type { CharacterItem, ItemCategory, CreateGlobalItemData, CreateGlobalItemDataForUpload, CreateCharacterItemData, UpdateCharacterItemData } from '../services/itemService';
 import { LearnItemModal } from './LearnItemModal';
+import { AddPersonalItemModal } from './AddPersonalItemModal';
 import { GlobalItemFormModal } from './GlobalItemFormModal';
 import { CharacterItemEditModal } from './CharacterItemEditModal';
 import ItemDetailModal from './ItemDetailModal';
@@ -43,7 +44,9 @@ export default function ItemsPage({ characterId }: ItemsPageProps) {
 
   // Modal 狀態
   const [isLearnModalOpen, setIsLearnModalOpen] = useState(false);
+  const [isAddPersonalModalOpen, setIsAddPersonalModalOpen] = useState(false);
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
+  const [uploadFromCharacterItem, setUploadFromCharacterItem] = useState<CharacterItem | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -97,10 +100,35 @@ export default function ItemsPage({ characterId }: ItemsPageProps) {
     }
   };
 
-  // 創建全域物品
+  // 新增個人物品（不寫入 global_items）
+  const handleAddPersonalItem = async (data: CreateCharacterItemData) => {
+    const result = await ItemService.createCharacterItem(characterId, data);
+    if (result.success) {
+      showSuccess('已新增個人物品');
+      setIsAddPersonalModalOpen(false);
+      loadItems();
+    } else {
+      showError(result.error || '新增物品失敗');
+    }
+  };
+
+  // 上傳角色物品到全域庫（依 name_en 決定新增或關聯既有）
+  const handleUploadToGlobal = async (data: CreateGlobalItemDataForUpload) => {
+    if (!uploadFromCharacterItem) return;
+    const result = await ItemService.uploadCharacterItemToGlobal(uploadFromCharacterItem.id, data);
+    if (result.success) {
+      showSuccess('已上傳至資料庫，其他玩家可取得此物品');
+      setUploadFromCharacterItem(null);
+      setIsFormModalOpen(false);
+      loadItems();
+    } else {
+      showError(result.error || '上傳失敗');
+    }
+  };
+
+  // 創建全域物品（舊流程，若仍有入口可保留）
   const handleCreateGlobalItem = async (data: CreateGlobalItemData) => {
     const result = await ItemService.createGlobalItem(data);
-    
     if (result.success) {
       showSuccess('全域物品已新增');
       setIsFormModalOpen(false);
@@ -159,8 +187,8 @@ export default function ItemsPage({ characterId }: ItemsPageProps) {
     setIsDeleteModalOpen(true);
   };
 
-  // 已獲得的物品 ID 列表
-  const learnedItemIds = items.map(item => item.item_id);
+  // 已獲得的全域物品 ID 列表（僅有 item_id 的才算）
+  const learnedItemIds = items.map(item => item.item_id).filter((id): id is string => id != null);
 
   return (
     <div className="min-h-screen bg-slate-900 text-slate-100">
@@ -254,15 +282,30 @@ export default function ItemsPage({ characterId }: ItemsPageProps) {
         onLearnItem={handleLearnItem}
         onCreateNew={() => {
           setIsLearnModalOpen(false);
-          setIsFormModalOpen(true);
+          setIsAddPersonalModalOpen(true);
         }}
         learnedItemIds={learnedItemIds}
       />
 
+      <AddPersonalItemModal
+        isOpen={isAddPersonalModalOpen}
+        onClose={() => setIsAddPersonalModalOpen(false)}
+        onSubmit={handleAddPersonalItem}
+      />
+
       <GlobalItemFormModal
         isOpen={isFormModalOpen}
-        onClose={() => setIsFormModalOpen(false)}
-        onSubmit={handleCreateGlobalItem}
+        onClose={() => {
+          setIsFormModalOpen(false);
+          setUploadFromCharacterItem(null);
+        }}
+        onSubmit={uploadFromCharacterItem ? handleUploadToGlobal : handleCreateGlobalItem}
+        mode={uploadFromCharacterItem ? 'upload' : 'create'}
+        uploadInitialData={uploadFromCharacterItem ? {
+          name: ItemService.getDisplayValues(uploadFromCharacterItem).displayName,
+          description: ItemService.getDisplayValues(uploadFromCharacterItem).displayDescription,
+          category: ItemService.getDisplayValues(uploadFromCharacterItem).displayCategory,
+        } : undefined}
       />
 
       <CharacterItemEditModal
@@ -284,6 +327,12 @@ export default function ItemsPage({ characterId }: ItemsPageProps) {
         characterItem={selectedItem}
         onEdit={handleEditClick}
         onDelete={handleDeleteClick}
+        onUploadToDb={selectedItem && (!selectedItem.item_id || !selectedItem.item) ? () => {
+          setUploadFromCharacterItem(selectedItem);
+          setIsDetailModalOpen(false);
+          setSelectedItem(null);
+          setIsFormModalOpen(true);
+        } : undefined}
       />
 
       <ConfirmDeleteModal

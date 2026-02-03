@@ -2,7 +2,7 @@
  * Modal 樣式統一性測試
  * 
  * 測試目標：
- * 1. 所有 Modal 使用統一的 padding (px-3 py-3)
+ * 1. 所有 Modal 使用統一的 padding（與 modalStyles 一致，目前為 px-6 py-6）
  * 2. 驗證共用樣式常量的正確性
  */
 
@@ -18,9 +18,9 @@ import {
 
 describe('Modal 樣式統一性測試', () => {
   describe('容器樣式', () => {
-    it('MODAL_CONTAINER_CLASS 應該包含 px-3 py-3', () => {
-      expect(MODAL_CONTAINER_CLASS).toContain('px-3');
-      expect(MODAL_CONTAINER_CLASS).toContain('py-3');
+    it('MODAL_CONTAINER_CLASS 應該包含統一的 padding (px-6 py-6)', () => {
+      expect(MODAL_CONTAINER_CLASS).toContain('px-6');
+      expect(MODAL_CONTAINER_CLASS).toContain('py-6');
     });
 
     it('MODAL_CONTAINER_CLASS 應該包含標準圓角和背景', () => {

@@ -32,10 +32,11 @@ export interface GlobalItem {
 }
 
 // 角色物品（character_items 表）
+// item_id 可為 null：純個人物品（未上傳至 global_items）
 export interface CharacterItem {
   id: string;
   character_id: string;
-  item_id: string;
+  item_id: string | null;
   quantity: number;
   
   // Override 欄位
@@ -64,11 +65,27 @@ export interface CreateGlobalItemData {
   category: ItemCategory;
 }
 
+// 上傳角色物品到全域物品庫時使用的資料（所有欄位必填）
+export interface CreateGlobalItemDataForUpload {
+  name: string;
+  name_en: string;
+  description: string;
+  category: ItemCategory;
+}
+
 export interface UpdateCharacterItemData {
   quantity?: number;
   name_override?: string | null;
   description_override?: string | null;
   category_override?: ItemCategory | null;
+}
+
+/** 新增個人物品（直接寫入 character_items，不經 global_items） */
+export interface CreateCharacterItemData {
+  name: string;
+  category: ItemCategory;
+  description?: string;
+  quantity?: number;
 }
 
 /**
@@ -95,6 +112,91 @@ export async function getGlobalItems(): Promise<{
   } catch (error) {
     console.error('❌ 取得全域物品異常:', error);
     return { success: false, error: '取得全域物品時發生錯誤' };
+  }
+}
+
+/**
+ * 將角色物品上傳到全域物品庫：
+ * - 以 name_en（不分大小寫）檢查 global_items 是否已存在
+ * - 若已存在：只更新該角色物品的 item_id 指向既有 global_item
+ * - 若不存在：建立新的 global_item，再更新角色物品的 item_id
+ */
+export async function uploadCharacterItemToGlobal(
+  characterItemId: string,
+  data: CreateGlobalItemDataForUpload
+): Promise<{
+  success: boolean;
+  error?: string;
+}> {
+  try {
+    if (!characterItemId) {
+      return { success: false, error: '角色物品 ID 無效' };
+    }
+
+    const { name, name_en, description, category } = data;
+
+    if (!name.trim() || !name_en.trim() || !description.trim() || !category) {
+      return { success: false, error: '所有欄位皆為必填' };
+    }
+
+    // 1. 先嘗試以 name_en（不分大小寫）尋找既有 global_item
+    const { data: existing, error: findError } = await (supabase
+      .from('global_items')
+      .select('*')
+      .ilike('name_en', name_en)
+      .maybeSingle());
+
+    let targetGlobalItemId: string | null = null;
+
+    if (existing && !findError) {
+      // 已有同名（不分大小寫）的 global_item
+      targetGlobalItemId = existing.id;
+    } else {
+      // 若錯誤碼不是「查無資料」，則視為真正錯誤
+      if (findError && findError.code !== 'PGRST116' && findError.status !== 406) {
+        console.error('❌ 查詢全域物品失敗:', findError);
+        return { success: false, error: '查詢全域物品失敗' };
+      }
+
+      // 2. 不存在時，建立新的 global_item
+      const { data: inserted, error: insertError } = await supabase
+        .from('global_items')
+        .insert({
+          name,
+          name_en,
+          description,
+          category,
+        })
+        .select()
+        .single();
+
+      if (insertError || !inserted) {
+        console.error('❌ 創建全域物品失敗:', insertError);
+        return { success: false, error: insertError?.message || '創建全域物品失敗' };
+      }
+
+      targetGlobalItemId = inserted.id;
+    }
+
+    if (!targetGlobalItemId) {
+      return { success: false, error: '無法取得全域物品 ID' };
+    }
+
+    // 3. 將角色物品關聯到這個 global_item
+    const { error: updateError } = await supabase
+      .from('character_items')
+      .update({ item_id: targetGlobalItemId })
+      .eq('id', characterItemId);
+
+    if (updateError) {
+      console.error('❌ 更新角色物品關聯失敗:', updateError);
+      return { success: false, error: updateError.message };
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error('❌ 上傳物品到全域庫異常:', error);
+    return { success: false, error: '上傳物品到全域庫時發生錯誤' };
   }
 }
 
@@ -173,6 +275,50 @@ export async function learnItem(characterId: string, itemId: string): Promise<{
   } catch (error) {
     console.error('❌ 獲得物品異常:', error);
     return { success: false, error: '獲得物品時發生錯誤' };
+  }
+}
+
+/**
+ * 新增個人物品（直接寫入 character_items，不建立 global_items）
+ * 必填：name、category；選填：description、quantity（預設 1）
+ */
+export async function createCharacterItem(
+  characterId: string,
+  data: CreateCharacterItemData
+): Promise<{
+  success: boolean;
+  item?: CharacterItem;
+  error?: string;
+}> {
+  try {
+    if (!characterId) {
+      return { success: false, error: '角色 ID 無效' };
+    }
+    if (!data.name?.trim() || !data.category) {
+      return { success: false, error: '名稱和類別為必填' };
+    }
+
+    const { data: row, error } = await supabase
+      .from('character_items')
+      .insert({
+        character_id: characterId,
+        item_id: null,
+        quantity: data.quantity ?? 1,
+        name_override: data.name.trim(),
+        description_override: data.description?.trim() ?? '',
+        category_override: data.category,
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('❌ 新增個人物品失敗:', error);
+      return { success: false, error: error.message };
+    }
+    return { success: true, item: row };
+  } catch (error) {
+    console.error('❌ 新增個人物品異常:', error);
+    return { success: false, error: '新增個人物品時發生錯誤' };
   }
 }
 

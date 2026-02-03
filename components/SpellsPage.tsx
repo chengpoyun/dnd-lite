@@ -134,8 +134,8 @@ export const SpellsPage: React.FC<SpellsPageProps> = ({
   };
 
   const handleTogglePreparedWithWarning = (spellId: string, isPrepared: boolean, needsWarning: boolean) => {
-    if (needsWarning && !isPrepared) {
-      // 顯示警告 modal
+    if (needsWarning && isPrepared) {
+      // 顯示警告 modal (isPrepared=true 代表正在準備法術)
       setPendingPrepareSpell({ spellId, isPrepared });
       setIsOverLimitWarningOpen(true);
     } else {
@@ -260,11 +260,6 @@ export const SpellsPage: React.FC<SpellsPageProps> = ({
             </span>
             <span className="text-[14px] text-slate-500">/</span>
             <span className="text-[16px] font-bold text-slate-400">{maxPrepared}</span>
-            {preparedCount > maxPrepared && (
-              <span className="text-[12px] px-2 py-1 rounded bg-rose-500/20 text-rose-400 ml-2">
-                超過可準備數量！
-              </span>
-            )}
           </div>
         </div>
 

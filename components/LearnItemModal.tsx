@@ -19,7 +19,7 @@ export const LearnItemModal: React.FC<LearnItemModalProps> = ({
   learnedItemIds
 }) => {
   const [items, setItems] = useState<GlobalItem[]>([]);
-  const [filteredItems, setFilteredItems] = useState<Item[]>([]);
+  const [filteredItems, setFilteredItems] = useState<GlobalItem[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<ItemCategory | 'all'>('all');
   const [searchText, setSearchText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -160,15 +160,15 @@ export const LearnItemModal: React.FC<LearnItemModalProps> = ({
         <div className="flex gap-3">
           <button
             onClick={onClose}
-            className="flex-1 px-6 py-3 rounded-lg bg-slate-700 text-slate-300 font-bold active:bg-slate-600"
+            className="flex-1 px-6 py-3 rounded-lg bg-slate-700 text-slate-300 font-bold active:bg-slate-600 whitespace-nowrap"
           >
             取消
           </button>
           <button
             onClick={onCreateNew}
-            className="flex-1 px-6 py-3 rounded-lg bg-red-600 text-white font-bold active:bg-red-700"
+            className="flex-1 px-6 py-3 rounded-lg bg-amber-600 text-white font-bold active:bg-amber-700 whitespace-nowrap"
           >
-            新增到資料庫
+            新增個人物品
           </button>
         </div>
       </div>

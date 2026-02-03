@@ -13,6 +13,8 @@ interface ItemDetailModalProps {
   characterItem: CharacterItem | null;
   onEdit: (characterItem: CharacterItem) => void;
   onDelete: () => void;
+  /** 僅個人物品（未關聯 global_items）時顯示「上傳到資料庫」並呼叫此 callback */
+  onUploadToDb?: () => void;
 }
 
 export default function ItemDetailModal({
@@ -20,11 +22,13 @@ export default function ItemDetailModal({
   onClose,
   characterItem,
   onEdit,
-  onDelete
+  onDelete,
+  onUploadToDb,
 }: ItemDetailModalProps) {
   if (!characterItem) return null;
 
   const display = getDisplayValues(characterItem);
+  const isPersonalOnly = !characterItem.item_id || !characterItem.item;
 
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
@@ -65,19 +69,29 @@ export default function ItemDetailModal({
           )}
 
           {/* 操作按鈕 */}
-          <div className="flex gap-3 pt-2">
-            <button
-              onClick={() => onEdit(characterItem)}
-              className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
-            >
-              編輯
-            </button>
-            <button
-              onClick={onDelete}
-              className="flex-1 px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
-            >
-              刪除
-            </button>
+          <div className="flex flex-col gap-2 pt-2">
+            <div className="flex gap-3">
+              <button
+                onClick={() => onEdit(characterItem)}
+                className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+              >
+                編輯
+              </button>
+              <button
+                onClick={onDelete}
+                className="flex-1 px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
+              >
+                刪除
+              </button>
+            </div>
+            {isPersonalOnly && onUploadToDb && (
+              <button
+                onClick={onUploadToDb}
+                className="w-full px-6 py-3 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors font-medium"
+              >
+                上傳到資料庫
+              </button>
+            )}
           </div>
         </div>
       </div>

@@ -33,6 +33,7 @@ describe('CombatView - 預設項目保護功能測試', () => {
     hp: { current: 25, max: 30 },
     ac: 15,
     initiative: 3,
+    speed: 30,
     abilityScores: {
       str: 14, dex: 16, con: 14, int: 10, wis: 12, cha: 8
     },

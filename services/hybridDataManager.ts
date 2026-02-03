@@ -106,8 +106,15 @@ export class HybridDataManager {
       console.log(`⏱️ 緩存檢查: ${cacheTime.toFixed(1)}ms${this.cachedCharacters ? ' (已過期)' : ' (無緩存)'}`)
       
       // 傳入用戶上下文，避免重複認證檢查
+      // 加入超時保護，避免請求長時間卡住
       const serviceCallStart = performance.now()
-      const dbCharacters = await DetailedCharacterService.getUserCharacters(userContext)
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error('載入角色列表超時')), 8000)
+      })
+      const dbCharacters = await Promise.race([
+        DetailedCharacterService.getUserCharacters(userContext),
+        timeoutPromise
+      ])
       const serviceTime = performance.now() - serviceCallStart
       console.log(`⏱️ DetailedCharacterService 調用: ${serviceTime.toFixed(1)}ms`)
       

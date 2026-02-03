@@ -94,7 +94,7 @@ export class DetailedCharacterService {
         
         let query = supabase
           .from('characters')
-          .select('id, user_id, anonymous_id, name, character_class, level, experience, avatar_url, is_anonymous, created_at, updated_at')
+          .select('id, user_id, anonymous_id, name, character_class, level, experience, is_anonymous, created_at, updated_at')
           .order('updated_at', { ascending: false })
         
         if (context.isAuthenticated) {

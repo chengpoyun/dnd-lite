@@ -5,13 +5,19 @@
 
 import React, { useState, useEffect } from 'react';
 import { Modal } from './ui/Modal';
-import type { GlobalItem, ItemCategory, CreateGlobalItemData } from '../services/itemService';
+import type { GlobalItem, ItemCategory, CreateGlobalItemData, CreateGlobalItemDataForUpload } from '../services/itemService';
+
+type UploadInitialData = { name: string; description: string; category: ItemCategory };
 
 interface GlobalItemFormModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: CreateGlobalItemData) => Promise<void>;
+  /** create = 僅新增全域物品；upload = 從角色物品上傳，所有欄位必填 */
+  onSubmit: (data: CreateGlobalItemData | CreateGlobalItemDataForUpload) => Promise<void>;
   editItem?: GlobalItem | null;
+  mode?: 'create' | 'upload';
+  /** 上傳模式時預填（來自角色物品的顯示值） */
+  uploadInitialData?: UploadInitialData | null;
 }
 
 const CATEGORIES: ItemCategory[] = ['裝備', '魔法物品', '藥水', '素材', '雜項'];
@@ -20,13 +26,16 @@ export const GlobalItemFormModal: React.FC<GlobalItemFormModalProps> = ({
   isOpen,
   onClose,
   onSubmit,
-  editItem = null
+  editItem = null,
+  mode = 'create',
+  uploadInitialData = null,
 }) => {
-  const [formData, setFormData] = useState<CreateGlobalItemData>({
+  const isUpload = mode === 'upload';
+  const [formData, setFormData] = useState<CreateGlobalItemData & { name_en: string }>({
     name: '',
     name_en: '',
     description: '',
-    category: '裝備'
+    category: '裝備',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -37,40 +46,56 @@ export const GlobalItemFormModal: React.FC<GlobalItemFormModalProps> = ({
         name: editItem.name,
         name_en: editItem.name_en || '',
         description: editItem.description,
-        category: editItem.category
+        category: editItem.category,
+      });
+    } else if (isUpload && uploadInitialData) {
+      setFormData({
+        name: uploadInitialData.name,
+        name_en: '',
+        description: uploadInitialData.description,
+        category: uploadInitialData.category,
       });
     } else {
       setFormData({
         name: '',
         name_en: '',
         description: '',
-        category: '裝備'
+        category: '裝備',
       });
     }
     setShowConfirm(false);
-  }, [editItem, isOpen]);
+  }, [editItem, isUpload, uploadInitialData, isOpen]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!formData.name.trim()) {
-      return;
-    }
+    if (!formData.name.trim()) return;
+    if (isUpload && (!formData.name_en.trim() || !formData.description.trim())) return;
 
-    // 如果是新增物品，先顯示確認畫面
-    if (!editItem) {
+    if (!editItem && !isUpload) {
       setShowConfirm(true);
       return;
     }
-
-    // 編輯模式直接提交
     await performSubmit();
   };
 
   const performSubmit = async () => {
     setIsSubmitting(true);
     try {
-      await onSubmit(formData);
+      if (isUpload) {
+        await onSubmit({
+          name: formData.name.trim(),
+          name_en: formData.name_en.trim(),
+          description: formData.description.trim(),
+          category: formData.category,
+        });
+      } else {
+        await onSubmit({
+          name: formData.name,
+          name_en: formData.name_en || undefined,
+          description: formData.description || undefined,
+          category: formData.category,
+        });
+      }
       onClose();
       setShowConfirm(false);
     } catch (error) {
@@ -80,7 +105,6 @@ export const GlobalItemFormModal: React.FC<GlobalItemFormModalProps> = ({
     }
   };
 
-  // 確認畫面
   if (showConfirm) {
     return (
       <Modal isOpen={isOpen} onClose={onClose} size="md">
@@ -115,17 +139,19 @@ export const GlobalItemFormModal: React.FC<GlobalItemFormModalProps> = ({
     <Modal isOpen={isOpen} onClose={onClose} size="2xl">
       <div className="bg-slate-800 rounded-xl px-3 py-3 max-w-md w-full">
         <h2 className="text-xl font-bold mb-5">
-          {editItem ? '編輯全域物品' : '新增物品到資料庫'}
+          {isUpload ? '上傳到資料庫' : editItem ? '編輯全域物品' : '新增物品到資料庫'}
         </h2>
-        
-        {!editItem && (
+        {isUpload && (
+          <p className="text-slate-400 text-sm mb-4">
+            所有欄位皆為必填，且英文名稱（name_en）將用於比對是否已存在，大小寫視為相同。
+          </p>
+        )}
+        {!editItem && !isUpload && (
           <p className="text-slate-400 text-sm mb-4">
             💡 請盡可能填寫詳細訊息，該物品可以被其他玩家所獲取。
           </p>
         )}
-        
         <form onSubmit={handleSubmit} className="space-y-3">
-          {/* 中文名稱 */}
           <div>
             <label className="block text-[14px] text-slate-400 mb-2">中文名稱 *</label>
             <input
@@ -138,10 +164,10 @@ export const GlobalItemFormModal: React.FC<GlobalItemFormModalProps> = ({
               maxLength={100}
             />
           </div>
-
-          {/* 英文名稱（選填） */}
           <div>
-            <label className="block text-[14px] text-slate-400 mb-2">英文名稱（選填）</label>
+            <label className="block text-[14px] text-slate-400 mb-2">
+              英文名稱 {isUpload ? '*' : '（選填）'}
+            </label>
             <input
               type="text"
               value={formData.name_en}
@@ -149,10 +175,9 @@ export const GlobalItemFormModal: React.FC<GlobalItemFormModalProps> = ({
               className="w-full bg-slate-800 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500"
               placeholder="Enter item name in English"
               maxLength={100}
+              required={isUpload}
             />
           </div>
-
-          {/* 類別 */}
           <div>
             <label className="block text-[14px] text-slate-400 mb-2">類別 *</label>
             <select
@@ -161,26 +186,23 @@ export const GlobalItemFormModal: React.FC<GlobalItemFormModalProps> = ({
               className="w-full bg-slate-800 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500"
             >
               {CATEGORIES.map((cat) => (
-                <option key={cat} value={cat}>
-                  {cat}
-                </option>
+                <option key={cat} value={cat}>{cat}</option>
               ))}
             </select>
           </div>
-
-          {/* 詳細描述 */}
           <div>
-            <label className="block text-[14px] text-slate-400 mb-2">詳細描述</label>
+            <label className="block text-[14px] text-slate-400 mb-2">
+              詳細描述 {isUpload ? '*' : ''}
+            </label>
             <textarea
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               className="w-full bg-slate-800 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500"
               placeholder="輸入物品描述（支援 Markdown 格式）"
               rows={6}
+              required={isUpload}
             />
           </div>
-
-          {/* 提交按鈕 */}
           <div className="flex gap-3">
             <button
               type="button"
@@ -193,12 +215,10 @@ export const GlobalItemFormModal: React.FC<GlobalItemFormModalProps> = ({
               type="submit"
               disabled={isSubmitting}
               className={`flex-1 px-6 py-3 rounded-lg font-bold ${
-                editItem 
-                  ? 'bg-blue-600 text-white active:bg-blue-700' 
-                  : 'bg-red-600 text-white active:bg-red-700'
+                editItem ? 'bg-blue-600 text-white active:bg-blue-700' : 'bg-red-600 text-white active:bg-red-700'
               } disabled:opacity-50`}
             >
-              {isSubmitting ? '儲存中...' : (editItem ? '儲存修改' : '新增物品')}
+              {isSubmitting ? '處理中...' : isUpload ? '上傳' : editItem ? '儲存修改' : '新增物品'}
             </button>
           </div>
         </form>
