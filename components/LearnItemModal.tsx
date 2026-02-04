@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Modal } from './ui/Modal';
 import { GlobalItem, getGlobalItems } from '../services/itemService';
-import type { ItemCategory } from '../services/itemService';
 import { MODAL_CONTAINER_CLASS } from '../styles/modalStyles';
 
 interface LearnItemModalProps {
@@ -21,21 +20,30 @@ export const LearnItemModal: React.FC<LearnItemModalProps> = ({
 }) => {
   const [items, setItems] = useState<GlobalItem[]>([]);
   const [filteredItems, setFilteredItems] = useState<GlobalItem[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<ItemCategory | 'all'>('all');
   const [searchText, setSearchText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const categories: ItemCategory[] = ['裝備', '藥水', '素材', 'MH素材', '雜項'];
-
   useEffect(() => {
     if (isOpen) {
+      setSearchText('');
+      setItems([]);
+      setIsLoading(false);
       loadItems();
     }
   }, [isOpen]);
 
   useEffect(() => {
-    filterItems();
-  }, [items, selectedCategory, searchText, learnedItemIds]);
+    let filtered = items;
+    filtered = filtered.filter(item => !learnedItemIds.includes(item.id));
+    if (searchText) {
+      const search = searchText.toLowerCase();
+      filtered = filtered.filter(item =>
+        item.name.toLowerCase().includes(search) ||
+        item.description.toLowerCase().includes(search)
+      );
+    }
+    setFilteredItems(filtered);
+  }, [items, searchText, learnedItemIds]);
 
   const loadItems = async () => {
     setIsLoading(true);
@@ -53,29 +61,6 @@ export const LearnItemModal: React.FC<LearnItemModalProps> = ({
     }
   };
 
-  const filterItems = () => {
-    let filtered = items;
-
-    // 排除已獲得的物品
-    filtered = filtered.filter(item => !learnedItemIds.includes(item.id));
-
-    // 類別篩選
-    if (selectedCategory !== 'all') {
-      filtered = filtered.filter(item => item.category === selectedCategory);
-    }
-
-    // 文字搜尋（支援中文）
-    if (searchText) {
-      const search = searchText.toLowerCase();
-      filtered = filtered.filter(item => 
-        item.name.toLowerCase().includes(search) ||
-        item.description.toLowerCase().includes(search)
-      );
-    }
-
-    setFilteredItems(filtered);
-  };
-
   const handleLearnItem = async (itemId: string) => {
     try {
       await onLearnItem(itemId);
@@ -89,25 +74,26 @@ export const LearnItemModal: React.FC<LearnItemModalProps> = ({
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="3xl" className="flex flex-col">
       <div className={`${MODAL_CONTAINER_CLASS} relative flex flex-col`}>
-        <h2 className="text-xl font-bold mb-5">獲得物品</h2>
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-5">
+          <h2 className="text-xl font-bold">獲得物品</h2>
+          <div className="flex gap-2">
+            <button
+              onClick={onClose}
+              className="px-4 py-2 rounded-lg bg-slate-700 text-slate-300 font-bold active:bg-slate-600 whitespace-nowrap"
+            >
+              取消
+            </button>
+            <button
+              onClick={onCreateNew}
+              className="px-4 py-2 rounded-lg bg-amber-600 text-white font-bold active:bg-amber-700 whitespace-nowrap"
+            >
+              新增個人物品
+            </button>
+          </div>
+        </div>
 
         {/* 篩選區 */}
         <div className="space-y-3 mb-4">
-          {/* 類別篩選 */}
-          <div>
-            <label className="block text-[14px] text-slate-400 mb-2">類別篩選</label>
-            <select
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value as ItemCategory | 'all')}
-              className="w-full bg-slate-800 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500"
-            >
-              <option value="all">全部類別</option>
-              {categories.map(category => (
-                <option key={category} value={category}>{category}</option>
-              ))}
-            </select>
-          </div>
-
           {/* 文字搜尋 */}
           <div>
             <label className="block text-[14px] text-slate-400 mb-2">搜尋物品</label>
@@ -124,10 +110,13 @@ export const LearnItemModal: React.FC<LearnItemModalProps> = ({
         {/* 物品列表 */}
         <div className="flex-1 overflow-y-auto min-h-0 max-h-[50vh] mb-4 space-y-2">
           {isLoading ? (
-            <div className="text-center py-8 text-slate-400">載入中...</div>
+            <div className="flex flex-col items-center justify-center gap-3 py-8 text-slate-400">
+              <div className="h-6 w-6 animate-spin rounded-full border-2 border-slate-500 border-t-transparent" />
+              <div>載入中...</div>
+            </div>
           ) : filteredItems.length === 0 ? (
             <div className="text-center py-8 text-slate-400">
-              {searchText || selectedCategory !== 'all' ? '沒有符合條件的物品' : '尚無可獲得的物品'}
+              {searchText ? '沒有符合條件的物品' : '尚無可獲得的物品'}
             </div>
           ) : (
             filteredItems.map(item => (
@@ -162,21 +151,6 @@ export const LearnItemModal: React.FC<LearnItemModalProps> = ({
           )}
         </div>
 
-        {/* 底部按鈕 */}
-        <div className="flex gap-3">
-          <button
-            onClick={onClose}
-            className="flex-1 px-6 py-3 rounded-lg bg-slate-700 text-slate-300 font-bold active:bg-slate-600 whitespace-nowrap"
-          >
-            取消
-          </button>
-          <button
-            onClick={onCreateNew}
-            className="flex-1 px-6 py-3 rounded-lg bg-amber-600 text-white font-bold active:bg-amber-700 whitespace-nowrap"
-          >
-            新增個人物品
-          </button>
-        </div>
       </div>
     </Modal>
   );

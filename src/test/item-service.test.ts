@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import type { Mock } from 'vitest';
 import { supabase } from '../../lib/supabase';
 import * as ItemService from '../../services/itemService';
 
@@ -15,7 +16,7 @@ type SupabaseBuilder = {
 
 describe('ItemService - 個人物品與上傳邏輯', () => {
   const mockedSupabase = supabase as unknown as {
-    from: vi.Mock;
+    from: Mock;
   };
 
   beforeEach(() => {
@@ -70,7 +71,7 @@ describe('ItemService - 個人物品與上傳邏輯', () => {
 
     expect(result.success).toBe(true);
     // 應該有更新 character_items.item_id
-    expect((updateBuilder.update as vi.Mock)).toHaveBeenCalledWith({
+    expect((updateBuilder.update as Mock)).toHaveBeenCalledWith({
       item_id: existingGlobalItemId,
     });
   });
@@ -133,7 +134,7 @@ describe('ItemService - 個人物品與上傳邏輯', () => {
 
     expect(result.success).toBe(true);
     // 確認有插入新的 global_items
-    expect((globalBuilder.insert as vi.Mock)).toHaveBeenCalledWith({
+    expect((globalBuilder.insert as Mock)).toHaveBeenCalledWith({
       name: data.name,
       name_en: data.name_en,
       description: data.description,
@@ -141,9 +142,10 @@ describe('ItemService - 個人物品與上傳邏輯', () => {
       is_magic: data.is_magic,
     });
     // 並且角色物品被更新為指向新 global item
-    expect((updateBuilder.update as vi.Mock)).toHaveBeenCalledWith({
+    expect((updateBuilder.update as Mock)).toHaveBeenCalledWith({
       item_id: newGlobalId,
     });
   });
 });
+
 

@@ -165,7 +165,8 @@ export async function uploadCharacterItemToGlobal(
       targetGlobalItemId = existing.id;
     } else {
       // 若錯誤碼不是「查無資料」，則視為真正錯誤
-      if (findError && findError.code !== 'PGRST116' && findError.status !== 406) {
+      const findStatus = (findError as { status?: number }).status;
+      if (findError && findError.code !== 'PGRST116' && findStatus !== 406) {
         console.error('❌ 查詢全域物品失敗:', findError);
         return { success: false, error: '查詢全域物品失敗' };
       }

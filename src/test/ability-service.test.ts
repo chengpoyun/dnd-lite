@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import type { Mock } from 'vitest';
 import { supabase } from '../../lib/supabase';
 import * as AbilityService from '../../services/abilityService';
 
@@ -14,7 +15,7 @@ type SupabaseBuilder = {
 
 describe('AbilityService - 個人能力與上傳邏輯', () => {
   const mockedSupabase = supabase as unknown as {
-    from: vi.Mock;
+    from: Mock;
   };
 
   beforeEach(() => {
@@ -66,7 +67,7 @@ describe('AbilityService - 個人能力與上傳邏輯', () => {
     const result = await AbilityService.uploadCharacterAbilityToGlobal(characterAbilityId, data);
 
     expect(result.success).toBe(true);
-    expect((updateBuilder.update as vi.Mock)).toHaveBeenCalledWith({
+    expect((updateBuilder.update as Mock)).toHaveBeenCalledWith({
       ability_id: existingAbilityId
     });
   });
@@ -124,14 +125,14 @@ describe('AbilityService - 個人能力與上傳邏輯', () => {
     const result = await AbilityService.uploadCharacterAbilityToGlobal(characterAbilityId, data);
 
     expect(result.success).toBe(true);
-    expect((globalBuilder.insert as vi.Mock)).toHaveBeenCalledWith([{
+    expect((globalBuilder.insert as Mock)).toHaveBeenCalledWith([{
       name: data.name,
       name_en: data.name_en,
       description: data.description,
       source: data.source,
       recovery_type: data.recovery_type
     }]);
-    expect((updateBuilder.update as vi.Mock)).toHaveBeenCalledWith({
+    expect((updateBuilder.update as Mock)).toHaveBeenCalledWith({
       ability_id: newAbilityId
     });
   });
@@ -170,8 +171,9 @@ describe('AbilityService - 個人能力與上傳邏輯', () => {
     const result = await AbilityService.createCharacterAbility(characterId, data);
 
     expect(result.success).toBe(true);
-    expect((insertBuilder.insert as vi.Mock)).toHaveBeenCalled();
-    const insertArg = (insertBuilder.insert as vi.Mock).mock.calls[0][0][0];
+    expect((insertBuilder.insert as Mock)).toHaveBeenCalled();
+    const insertArg = (insertBuilder.insert as Mock).mock.calls[0][0][0];
     expect(insertArg.ability_id).toBeNull();
   });
 });
+

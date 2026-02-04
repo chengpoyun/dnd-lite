@@ -12,9 +12,6 @@ interface LearnAbilityModalProps {
   learnedAbilityIds: string[];
 }
 
-const SOURCES = ['種族', '職業', '專長', '背景', '其他'] as const;
-const RECOVERY_TYPES = ['常駐', '短休', '長休'] as const;
-
 export const LearnAbilityModal: React.FC<LearnAbilityModalProps> = ({
   isOpen,
   onClose,
@@ -24,8 +21,6 @@ export const LearnAbilityModal: React.FC<LearnAbilityModalProps> = ({
 }) => {
   const [abilities, setAbilities] = useState<Ability[]>([]);
   const [filteredAbilities, setFilteredAbilities] = useState<Ability[]>([]);
-  const [selectedSource, setSelectedSource] = useState<string>('all');
-  const [selectedRecoveryType, setSelectedRecoveryType] = useState<string>('all');
   const [searchText, setSearchText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   
@@ -36,15 +31,27 @@ export const LearnAbilityModal: React.FC<LearnAbilityModalProps> = ({
 
   useEffect(() => {
     if (isOpen) {
-      loadAbilities();
+      setSearchText('');
+      setAbilities([]);
+      setIsLoading(false);
       setIsConfirming(false);
       setSelectedAbility(null);
+      loadAbilities();
     }
   }, [isOpen]);
 
   useEffect(() => {
-    filterAbilities();
-  }, [abilities, selectedSource, selectedRecoveryType, searchText, learnedAbilityIds]);
+    let filtered = abilities;
+    filtered = filtered.filter(ability => !learnedAbilityIds.includes(ability.id));
+    if (searchText) {
+      const search = searchText.toLowerCase();
+      filtered = filtered.filter(ability =>
+        ability.name.toLowerCase().includes(search) ||
+        (ability.name_en && ability.name_en.toLowerCase().includes(search))
+      );
+    }
+    setFilteredAbilities(filtered);
+  }, [abilities, searchText, learnedAbilityIds]);
 
   const loadAbilities = async () => {
     setIsLoading(true);
@@ -56,34 +63,6 @@ export const LearnAbilityModal: React.FC<LearnAbilityModalProps> = ({
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const filterAbilities = () => {
-    let filtered = abilities;
-
-    // 排除已學習的能力
-    filtered = filtered.filter(ability => !learnedAbilityIds.includes(ability.id));
-
-    // 來源篩選
-    if (selectedSource !== 'all') {
-      filtered = filtered.filter(ability => ability.source === selectedSource);
-    }
-
-    // 恢復類型篩選
-    if (selectedRecoveryType !== 'all') {
-      filtered = filtered.filter(ability => ability.recovery_type === selectedRecoveryType);
-    }
-
-    // 文字搜尋（中英文名稱）
-    if (searchText) {
-      const search = searchText.toLowerCase();
-      filtered = filtered.filter(ability =>
-        ability.name.toLowerCase().includes(search) ||
-        (ability.name_en && ability.name_en.toLowerCase().includes(search))
-      );
-    }
-
-    setFilteredAbilities(filtered);
   };
 
   const handleSelectAbility = (ability: Ability) => {
@@ -219,41 +198,29 @@ export const LearnAbilityModal: React.FC<LearnAbilityModalProps> = ({
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="3xl">
       <div className={`${MODAL_CONTAINER_CLASS} flex flex-col`} style={{ maxHeight: '80vh' }}>
-        <h2 className="text-xl font-bold mb-5">學習特殊能力</h2>
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-5">
+          <h2 className="text-xl font-bold">學習特殊能力</h2>
+          <div className="flex gap-2">
+            <button
+              onClick={onClose}
+              className="px-4 py-2 rounded-lg bg-slate-700 text-white hover:bg-slate-600 transition-colors font-medium whitespace-nowrap"
+            >
+              取消
+            </button>
+            <button
+              onClick={() => {
+                onClose();
+                onCreateNew();
+              }}
+              className="px-4 py-2 rounded-lg bg-amber-600 text-white hover:bg-amber-700 transition-colors font-medium whitespace-nowrap"
+            >
+              新增個人能力
+            </button>
+          </div>
+        </div>
 
         {/* 篩選區 */}
         <div className="space-y-3 mb-4">
-          {/* 來源和恢復類型篩選 */}
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-[14px] text-slate-400 mb-2">來源篩選</label>
-              <select
-                value={selectedSource}
-                onChange={(e) => setSelectedSource(e.target.value)}
-                className="w-full bg-slate-800 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500"
-              >
-                <option value="all">全部來源</option>
-                {SOURCES.map(source => (
-                  <option key={source} value={source}>{source}</option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-[14px] text-slate-400 mb-2">恢復類型</label>
-              <select
-                value={selectedRecoveryType}
-                onChange={(e) => setSelectedRecoveryType(e.target.value)}
-                className="w-full bg-slate-800 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500"
-              >
-                <option value="all">全部類型</option>
-                {RECOVERY_TYPES.map(type => (
-                  <option key={type} value={type}>{type}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-
           {/* 搜尋框 */}
           <div>
             <label className="block text-[14px] text-slate-400 mb-2">搜尋能力</label>
@@ -270,7 +237,10 @@ export const LearnAbilityModal: React.FC<LearnAbilityModalProps> = ({
         {/* 能力列表 */}
         <div className="flex-1 overflow-y-auto space-y-2 mb-4 min-h-0">
           {isLoading ? (
-            <div className="text-center text-slate-500 py-8">載入中...</div>
+            <div className="flex flex-col items-center justify-center gap-3 py-8 text-slate-400">
+              <div className="h-6 w-6 animate-spin rounded-full border-2 border-slate-500 border-t-transparent" />
+              <div>載入中...</div>
+            </div>
           ) : filteredAbilities.length === 0 ? (
             <div className="text-center text-slate-500 py-8">
               {searchText ? '找不到符合條件的能力' : '沒有可學習的能力'}
@@ -306,25 +276,6 @@ export const LearnAbilityModal: React.FC<LearnAbilityModalProps> = ({
               </div>
             ))
           )}
-        </div>
-
-        {/* 底部按鈕 */}
-        <div className="flex gap-3 pt-2 border-t border-slate-700">
-          <button
-            onClick={onClose}
-            className="flex-1 px-6 py-3 bg-slate-700 text-white rounded-lg hover:bg-slate-600 transition-colors font-medium whitespace-nowrap"
-          >
-            取消
-          </button>
-          <button
-            onClick={() => {
-              onClose();
-              onCreateNew();
-            }}
-            className="flex-1 px-6 py-3 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors font-medium whitespace-nowrap"
-          >
-            新增個人能力
-          </button>
         </div>
       </div>
     </Modal>

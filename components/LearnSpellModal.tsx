@@ -21,19 +21,34 @@ export const LearnSpellModal: React.FC<LearnSpellModalProps> = ({
 }) => {
   const [spells, setSpells] = useState<Spell[]>([]);
   const [filteredSpells, setFilteredSpells] = useState<Spell[]>([]);
-  const [selectedLevel, setSelectedLevel] = useState<number | 'all'>('all');
+  const [selectedLevel, setSelectedLevel] = useState<number>(0);
   const [searchText, setSearchText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
+      setSearchText('');
+      setSelectedLevel(0);
+      setSpells([]);
+      setIsLoading(false);
       loadSpells();
     }
   }, [isOpen]);
 
   useEffect(() => {
-    filterSpells();
-  }, [spells, selectedLevel, searchText, learnedSpellIds]);
+    let filtered = spells;
+    filtered = filtered.filter(spell => !learnedSpellIds.includes(spell.id));
+    filtered = filtered.filter(spell => spell.level === selectedLevel);
+    if (searchText) {
+      const search = searchText.toLowerCase();
+      filtered = filtered.filter(spell =>
+        spell.name.toLowerCase().includes(search) ||
+        (spell.name_en?.toLowerCase().includes(search)) ||
+        spell.description.toLowerCase().includes(search)
+      );
+    }
+    setFilteredSpells(filtered);
+  }, [spells, searchText, selectedLevel, learnedSpellIds]);
 
   const loadSpells = async () => {
     setIsLoading(true);
@@ -45,30 +60,6 @@ export const LearnSpellModal: React.FC<LearnSpellModalProps> = ({
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const filterSpells = () => {
-    let filtered = spells;
-
-    // 排除已學習的法術
-    filtered = filtered.filter(spell => !learnedSpellIds.includes(spell.id));
-
-    // 環位篩選
-    if (selectedLevel !== 'all') {
-      filtered = filtered.filter(spell => spell.level === selectedLevel);
-    }
-
-    // 文字搜尋（支援中英文）
-    if (searchText) {
-      const search = searchText.toLowerCase();
-      filtered = filtered.filter(spell => 
-        spell.name.toLowerCase().includes(search) ||
-        (spell.name_en?.toLowerCase().includes(search)) ||
-        spell.description.toLowerCase().includes(search)
-      );
-    }
-
-    setFilteredSpells(filtered);
   };
 
   const handleLearnSpell = async (spellId: string) => {
@@ -84,7 +75,26 @@ export const LearnSpellModal: React.FC<LearnSpellModalProps> = ({
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="3xl" className="flex flex-col">
       <div className={`${MODAL_CONTAINER_CLASS} flex flex-col`}>
-        <h2 className="text-xl font-bold mb-5">學習法術</h2>
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-5">
+          <h2 className="text-xl font-bold">學習法術</h2>
+          <div className="flex gap-2">
+            <button
+              onClick={onClose}
+              className="px-4 py-2 rounded-lg bg-slate-700 text-slate-300 font-bold active:bg-slate-600 whitespace-nowrap"
+            >
+              關閉
+            </button>
+            <button
+              onClick={() => {
+                onClose();
+                onCreateNew();
+              }}
+              className="px-4 py-2 rounded-lg bg-amber-600 text-white font-bold active:bg-amber-700 whitespace-nowrap"
+            >
+              新增個人法術
+            </button>
+          </div>
+        </div>
 
         {/* 篩選區 */}
         <div className="space-y-3 mb-4">
@@ -93,10 +103,9 @@ export const LearnSpellModal: React.FC<LearnSpellModalProps> = ({
             <label className="block text-[14px] text-slate-400 mb-2">環位篩選</label>
             <select
               value={selectedLevel}
-              onChange={(e) => setSelectedLevel(e.target.value === 'all' ? 'all' : parseInt(e.target.value))}
+              onChange={(e) => setSelectedLevel(parseInt(e.target.value))}
               className="w-full bg-slate-800 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500"
             >
-              <option value="all">全部環位</option>
               {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map(level => (
                 <option key={level} value={level}>
                   {level === 0 ? '戲法' : `${level}環法術`}
@@ -121,7 +130,10 @@ export const LearnSpellModal: React.FC<LearnSpellModalProps> = ({
         {/* 法術列表 */}
         <div className="flex-1 overflow-y-auto space-y-2 mb-4 min-h-0">
           {isLoading ? (
-            <div className="text-center text-slate-500 py-8">載入中...</div>
+            <div className="flex flex-col items-center justify-center gap-3 py-8 text-slate-400">
+              <div className="h-6 w-6 animate-spin rounded-full border-2 border-slate-500 border-t-transparent" />
+              <div>載入中...</div>
+            </div>
           ) : filteredSpells.length === 0 ? (
             <div className="text-center text-slate-500 py-8">
               {searchText ? '找不到符合條件的法術' : '沒有可學習的法術'}
@@ -164,25 +176,6 @@ export const LearnSpellModal: React.FC<LearnSpellModalProps> = ({
             })
           )}
         </div>
-
-        {/* 底部按鈕 */}
-        <div className="flex gap-3">
-          <button
-            onClick={onClose}
-            className="flex-1 py-3 rounded-lg bg-slate-700 text-slate-300 font-bold active:bg-slate-600"
-          >
-            關閉
-          </button>
-          <button
-            onClick={() => {
-              onClose();
-              onCreateNew();
-            }}
-            className="flex-1 py-3 rounded-lg bg-amber-600 text-white font-bold active:bg-amber-700"
-          >
-            新增個人法術
-          </button>
-      </div>
       </div>
     </Modal>
   );

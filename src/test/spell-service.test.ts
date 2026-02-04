@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import type { Mock } from 'vitest';
 import { supabase } from '../../lib/supabase';
 import * as SpellService from '../../services/spellService';
 
@@ -14,7 +15,7 @@ type SupabaseBuilder = {
 
 describe('SpellService - 個人法術與上傳邏輯', () => {
   const mockedSupabase = supabase as unknown as {
-    from: vi.Mock;
+    from: Mock;
   };
 
   beforeEach(() => {
@@ -84,7 +85,7 @@ describe('SpellService - 個人法術與上傳邏輯', () => {
     const result = await SpellService.uploadCharacterSpellToGlobal(characterSpellId, data);
 
     expect(result.success).toBe(true);
-    expect((updateBuilder.update as vi.Mock)).toHaveBeenCalledWith({
+    expect((updateBuilder.update as Mock)).toHaveBeenCalledWith({
       spell_id: existingSpellId
     });
   });
@@ -160,8 +161,8 @@ describe('SpellService - 個人法術與上傳邏輯', () => {
     const result = await SpellService.uploadCharacterSpellToGlobal(characterSpellId, data);
 
     expect(result.success).toBe(true);
-    expect((globalBuilder.insert as vi.Mock)).toHaveBeenCalledWith([data]);
-    expect((updateBuilder.update as vi.Mock)).toHaveBeenCalledWith({
+    expect((globalBuilder.insert as Mock)).toHaveBeenCalledWith([data]);
+    expect((updateBuilder.update as Mock)).toHaveBeenCalledWith({
       spell_id: newSpellId
     });
   });
@@ -210,7 +211,8 @@ describe('SpellService - 個人法術與上傳邏輯', () => {
     const result = await SpellService.createCharacterSpell(characterId, data);
 
     expect(result.success).toBe(true);
-    const insertArg = (insertBuilder.insert as vi.Mock).mock.calls[0][0][0];
+    const insertArg = (insertBuilder.insert as Mock).mock.calls[0][0][0];
     expect(insertArg.spell_id).toBeNull();
   });
 });
+
