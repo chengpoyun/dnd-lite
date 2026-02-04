@@ -43,8 +43,15 @@ export default function ItemDetailModal({
               <span className="text-lg font-bold text-white">{display.displayName}</span>
               <span className="text-amber-400 font-bold">×{characterItem.quantity}</span>
             </div>
-            <div className="px-3 py-1.5 bg-amber-900/30 border border-amber-700 text-amber-400 rounded-lg font-medium">
-              {display.displayCategory}
+            <div className="flex items-center gap-2">
+              <div className="px-3 py-1.5 bg-amber-900/30 border border-amber-700 text-amber-400 rounded-lg font-medium">
+                {display.displayCategory}
+              </div>
+              {display.displayIsMagic && (
+                <div className="px-3 py-1.5 bg-amber-900/40 border border-amber-700/60 text-amber-300 rounded-lg font-medium">
+                  魔法
+                </div>
+              )}
             </div>
           </div>
 

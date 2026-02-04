@@ -8,7 +8,7 @@ import { Modal } from './ui/Modal';
 import type { GlobalItem, ItemCategory, CreateGlobalItemData, CreateGlobalItemDataForUpload } from '../services/itemService';
 import { MODAL_CONTAINER_CLASS } from '../styles/modalStyles';
 
-type UploadInitialData = { name: string; description: string; category: ItemCategory };
+type UploadInitialData = { name: string; description: string; category: ItemCategory; is_magic: boolean };
 
 interface GlobalItemFormModalProps {
   isOpen: boolean;
@@ -21,7 +21,7 @@ interface GlobalItemFormModalProps {
   uploadInitialData?: UploadInitialData | null;
 }
 
-const CATEGORIES: ItemCategory[] = ['裝備', '魔法物品', '藥水', '素材', '雜項'];
+const CATEGORIES: ItemCategory[] = ['裝備', '藥水', '素材', '雜項'];
 
 export const GlobalItemFormModal: React.FC<GlobalItemFormModalProps> = ({
   isOpen,
@@ -37,6 +37,7 @@ export const GlobalItemFormModal: React.FC<GlobalItemFormModalProps> = ({
     name_en: '',
     description: '',
     category: '裝備',
+    is_magic: false,
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -48,6 +49,7 @@ export const GlobalItemFormModal: React.FC<GlobalItemFormModalProps> = ({
         name_en: editItem.name_en || '',
         description: editItem.description,
         category: editItem.category,
+        is_magic: editItem.is_magic,
       });
     } else if (isUpload && uploadInitialData) {
       setFormData({
@@ -55,6 +57,7 @@ export const GlobalItemFormModal: React.FC<GlobalItemFormModalProps> = ({
         name_en: '',
         description: uploadInitialData.description,
         category: uploadInitialData.category,
+        is_magic: uploadInitialData.is_magic,
       });
     } else {
       setFormData({
@@ -62,6 +65,7 @@ export const GlobalItemFormModal: React.FC<GlobalItemFormModalProps> = ({
         name_en: '',
         description: '',
         category: '裝備',
+        is_magic: false,
       });
     }
     setShowConfirm(false);
@@ -88,6 +92,7 @@ export const GlobalItemFormModal: React.FC<GlobalItemFormModalProps> = ({
           name_en: formData.name_en.trim(),
           description: formData.description.trim(),
           category: formData.category,
+          is_magic: formData.is_magic,
         });
       } else {
         await onSubmit({
@@ -95,6 +100,7 @@ export const GlobalItemFormModal: React.FC<GlobalItemFormModalProps> = ({
           name_en: formData.name_en || undefined,
           description: formData.description || undefined,
           category: formData.category,
+          is_magic: formData.is_magic,
         });
       }
       onClose();
@@ -195,6 +201,15 @@ export const GlobalItemFormModal: React.FC<GlobalItemFormModalProps> = ({
               ))}
             </select>
           </div>
+          <label className="flex items-center gap-2 text-[14px] text-slate-300">
+            <input
+              type="checkbox"
+              checked={formData.is_magic}
+              onChange={(e) => setFormData({ ...formData, is_magic: e.target.checked })}
+              className="h-4 w-4 rounded border-slate-600 bg-slate-800 text-amber-500 focus:ring-amber-500"
+            />
+            魔法物品
+          </label>
           <div>
             <label className="block text-[14px] text-slate-400 mb-2">
               詳細描述 {isUpload ? '*' : ''}

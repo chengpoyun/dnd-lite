@@ -25,7 +25,7 @@ export const LearnItemModal: React.FC<LearnItemModalProps> = ({
   const [searchText, setSearchText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const categories: ItemCategory[] = ['裝備', '魔法物品', '藥水', '素材', '雜項'];
+  const categories: ItemCategory[] = ['裝備', '藥水', '素材', '雜項'];
 
   useEffect(() => {
     if (isOpen) {
@@ -142,6 +142,11 @@ export const LearnItemModal: React.FC<LearnItemModalProps> = ({
                       <span className="px-2 py-0.5 rounded text-[12px] bg-slate-600 text-slate-300">
                         {item.category}
                       </span>
+                      {item.is_magic && (
+                        <span className="px-2 py-0.5 rounded text-[12px] bg-amber-900/40 text-amber-300 border border-amber-700/60">
+                          魔法
+                        </span>
+                      )}
                     </div>
                     <p className="text-[14px] text-slate-300 line-clamp-2">{item.description}</p>
                   </div>

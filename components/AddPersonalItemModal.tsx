@@ -8,7 +8,7 @@ import { Modal } from './ui/Modal';
 import type { ItemCategory, CreateCharacterItemData } from '../services/itemService';
 import { MODAL_CONTAINER_CLASS } from '../styles/modalStyles';
 
-const CATEGORIES: ItemCategory[] = ['裝備', '魔法物品', '藥水', '素材', '雜項'];
+const CATEGORIES: ItemCategory[] = ['裝備', '藥水', '素材', '雜項'];
 
 interface AddPersonalItemModalProps {
   isOpen: boolean;
@@ -25,6 +25,7 @@ export const AddPersonalItemModal: React.FC<AddPersonalItemModalProps> = ({
   const [category, setCategory] = useState<ItemCategory>('裝備');
   const [description, setDescription] = useState('');
   const [quantity, setQuantity] = useState(1);
+  const [isMagic, setIsMagic] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -38,11 +39,13 @@ export const AddPersonalItemModal: React.FC<AddPersonalItemModalProps> = ({
         category,
         description: description.trim() || undefined,
         quantity: quantity < 1 ? 1 : quantity,
+        is_magic: isMagic,
       });
       setName('');
       setDescription('');
       setQuantity(1);
       setCategory('裝備');
+      setIsMagic(false);
       onClose();
     } catch (err) {
       console.error('新增個人物品失敗:', err);
@@ -83,6 +86,15 @@ export const AddPersonalItemModal: React.FC<AddPersonalItemModalProps> = ({
               ))}
             </select>
           </div>
+          <label className="flex items-center gap-2 text-[14px] text-slate-300">
+            <input
+              type="checkbox"
+              checked={isMagic}
+              onChange={(e) => setIsMagic(e.target.checked)}
+              className="h-4 w-4 rounded border-slate-600 bg-slate-800 text-amber-500 focus:ring-amber-500"
+            />
+            魔法物品
+          </label>
           <div>
             <label className="block text-[14px] text-slate-400 mb-2">描述（選填）</label>
             <textarea

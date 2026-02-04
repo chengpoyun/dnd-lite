@@ -15,7 +15,7 @@ interface CharacterItemEditModalProps {
   onSubmit: (characterItemId: string, updates: UpdateCharacterItemData) => Promise<void>;
 }
 
-const CATEGORIES: ItemCategory[] = ['裝備', '魔法物品', '藥水', '素材', '雜項'];
+const CATEGORIES: ItemCategory[] = ['裝備', '藥水', '素材', '雜項'];
 
 export const CharacterItemEditModal: React.FC<CharacterItemEditModalProps> = ({
   isOpen,
@@ -27,7 +27,8 @@ export const CharacterItemEditModal: React.FC<CharacterItemEditModalProps> = ({
     quantity: 1,
     name_override: '',
     description_override: '',
-    category_override: null
+    category_override: null,
+    is_magic: false
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -36,13 +37,17 @@ export const CharacterItemEditModal: React.FC<CharacterItemEditModalProps> = ({
       const display = { 
         name: characterItem.name_override ?? characterItem.item?.name ?? '',
         description: characterItem.description_override ?? characterItem.item?.description ?? '',
-        category: characterItem.category_override ?? characterItem.item?.category ?? null
+        category: characterItem.category_override ?? characterItem.item?.category ?? null,
+        is_magic: characterItem.item_id
+          ? (characterItem.is_magic_override ?? characterItem.item?.is_magic ?? false)
+          : characterItem.is_magic
       };
       setFormData({
         quantity: characterItem.quantity,
         name_override: display.name,
         description_override: display.description,
-        category_override: display.category
+        category_override: display.category,
+        is_magic: display.is_magic
       });
     }
   }, [characterItem, isOpen]);
@@ -67,6 +72,11 @@ export const CharacterItemEditModal: React.FC<CharacterItemEditModalProps> = ({
       }
       if (formData.category_override) {
         updates.category_override = formData.category_override;
+      }
+      if (characterItem.item_id) {
+        updates.is_magic_override = !!formData.is_magic;
+      } else {
+        updates.is_magic = !!formData.is_magic;
       }
 
       await onSubmit(characterItem.id, updates);
@@ -159,6 +169,15 @@ export const CharacterItemEditModal: React.FC<CharacterItemEditModalProps> = ({
               ))}
             </select>
           </div>
+          <label className="flex items-center gap-2 text-[14px] text-slate-300">
+            <input
+              type="checkbox"
+              checked={!!formData.is_magic}
+              onChange={(e) => setFormData({ ...formData, is_magic: e.target.checked })}
+              className="h-4 w-4 rounded border-slate-600 bg-slate-800 text-amber-500 focus:ring-amber-500"
+            />
+            魔法物品
+          </label>
 
           {/* 描述 */}
           <div>

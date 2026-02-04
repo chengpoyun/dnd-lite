@@ -29,6 +29,10 @@ npm run db:status
 - 運行 `npm run db:migrate`
 - 自動檢查並推送所有未應用的遷移
 - 包含錯誤檢查和狀態確認
+  - CLI 來源優先順序：
+    - 專案根目錄的 `./supabase-cli`
+    - 若無，使用 PATH 中的 `supabase`
+  - **重要**：只要有新增 migration，必須立即推送到遠端 DB
 
 ### 遷移文件命名
 - 格式：`YYYYMMDDHHMMSS_description.sql`
@@ -47,6 +51,8 @@ npm run db:status
 ```bash
 SUPABASE_ACCESS_TOKEN=your_token_here
 ```
+
+並確保本機已安裝 Supabase CLI（PATH 可找到 `supabase`），或將 `supabase-cli` 放在專案根目錄。
 
 ## 📂 文件結構
 

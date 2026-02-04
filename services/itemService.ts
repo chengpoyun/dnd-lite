@@ -18,7 +18,7 @@
 
 import { supabase } from '../lib/supabase';
 
-export type ItemCategory = '裝備' | '魔法物品' | '藥水' | '素材' | '雜項';
+export type ItemCategory = '裝備' | '藥水' | '素材' | '雜項';
 
 // 全域物品（global_items 表）
 export interface GlobalItem {
@@ -27,6 +27,7 @@ export interface GlobalItem {
   name_en?: string;
   description: string;
   category: ItemCategory;
+  is_magic: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -38,6 +39,8 @@ export interface CharacterItem {
   character_id: string;
   item_id: string | null;
   quantity: number;
+  is_magic: boolean;
+  is_magic_override?: boolean | null;
   
   // Override 欄位
   name_override?: string | null;
@@ -56,6 +59,7 @@ export interface CharacterItemWithDetails extends CharacterItem {
   displayName: string;
   displayDescription: string;
   displayCategory: ItemCategory;
+  displayIsMagic: boolean;
 }
 
 export interface CreateGlobalItemData {
@@ -63,6 +67,7 @@ export interface CreateGlobalItemData {
   name_en?: string;
   description?: string;
   category: ItemCategory;
+  is_magic: boolean;
 }
 
 // 上傳角色物品到全域物品庫時使用的資料（所有欄位必填）
@@ -71,6 +76,7 @@ export interface CreateGlobalItemDataForUpload {
   name_en: string;
   description: string;
   category: ItemCategory;
+  is_magic: boolean;
 }
 
 export interface UpdateCharacterItemData {
@@ -78,6 +84,8 @@ export interface UpdateCharacterItemData {
   name_override?: string | null;
   description_override?: string | null;
   category_override?: ItemCategory | null;
+  is_magic?: boolean;
+  is_magic_override?: boolean | null;
 }
 
 /** 新增個人物品（直接寫入 character_items，不經 global_items） */
@@ -86,6 +94,7 @@ export interface CreateCharacterItemData {
   category: ItemCategory;
   description?: string;
   quantity?: number;
+  is_magic: boolean;
 }
 
 /**
@@ -138,6 +147,9 @@ export async function uploadCharacterItemToGlobal(
     if (!name.trim() || !name_en.trim() || !description.trim() || !category) {
       return { success: false, error: '所有欄位皆為必填' };
     }
+    if (typeof data.is_magic !== 'boolean') {
+      return { success: false, error: '魔法物品欄位無效' };
+    }
 
     // 1. 先嘗試以 name_en（不分大小寫）尋找既有 global_item
     const { data: existing, error: findError } = await (supabase
@@ -166,6 +178,7 @@ export async function uploadCharacterItemToGlobal(
           name_en,
           description,
           category,
+          is_magic: data.is_magic,
         })
         .select()
         .single();
@@ -304,6 +317,7 @@ export async function createCharacterItem(
         character_id: characterId,
         item_id: null,
         quantity: data.quantity ?? 1,
+        is_magic: data.is_magic ?? false,
         name_override: data.name.trim(),
         description_override: data.description?.trim() ?? '',
         category_override: data.category,
@@ -341,7 +355,8 @@ export async function createGlobalItem(data: CreateGlobalItemData): Promise<{
         name: data.name,
         name_en: data.name_en,
         description: data.description || '',
-        category: data.category
+        category: data.category,
+        is_magic: data.is_magic ?? false,
       })
       .select()
       .single();
@@ -423,10 +438,15 @@ export async function deleteCharacterItem(characterItemId: string): Promise<{
  * 獲取物品的顯示值（優先使用 override 值，否則使用原始值）
  */
 export function getDisplayValues(characterItem: CharacterItem): CharacterItemWithDetails {
+  const displayIsMagic = characterItem.item_id
+    ? (characterItem.is_magic_override ?? characterItem.item?.is_magic ?? false)
+    : !!characterItem.is_magic;
+
   return {
     ...characterItem,
     displayName: characterItem.name_override ?? characterItem.item?.name ?? '',
     displayDescription: characterItem.description_override ?? characterItem.item?.description ?? '',
-    displayCategory: (characterItem.category_override ?? characterItem.item?.category ?? '雜項') as ItemCategory
+    displayCategory: (characterItem.category_override ?? characterItem.item?.category ?? '雜項') as ItemCategory,
+    displayIsMagic
   };
 }

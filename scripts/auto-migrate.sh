@@ -19,19 +19,24 @@ if [ -z "$SUPABASE_ACCESS_TOKEN" ]; then
     exit 1
 fi
 
-# 檢查 CLI
-if [ ! -f "./supabase-cli" ]; then
-    echo -e "${RED}❌ supabase-cli 未找到${NC}"
-    exit 1
+# 檢查 CLI（優先使用專案內的 ./supabase-cli，否則使用 PATH 的 supabase）
+SUPABASE_CLI="./supabase-cli"
+if [ ! -f "$SUPABASE_CLI" ]; then
+    if command -v supabase >/dev/null 2>&1; then
+        SUPABASE_CLI="supabase"
+    else
+        echo -e "${RED}❌ supabase-cli 未找到${NC}"
+        exit 1
+    fi
 fi
 
 echo -e "${BLUE}🚀 開始自動資料庫遷移...${NC}"
 
 # 檢查專案連接狀態
 echo -e "${YELLOW}📡 檢查專案連接...${NC}"
-if ! ./supabase-cli status > /dev/null 2>&1; then
+if ! $SUPABASE_CLI status > /dev/null 2>&1; then
     echo -e "${YELLOW}🔗 重新連接到專案...${NC}"
-    ./supabase-cli link --project-ref xucevgaoqmsvkikspgdv
+    $SUPABASE_CLI link --project-ref xucevgaoqmsvkikspgdv
 fi
 
 # 檢查是否有新的遷移文件
@@ -45,17 +50,17 @@ echo -e "${GREEN}📄 找到 $migration_count 個遷移文件${NC}"
 
 # 列出遷移狀態
 echo -e "${BLUE}📋 當前遷移狀態:${NC}"
-./supabase-cli migration list || true
+$SUPABASE_CLI migration list || true
 
 # 執行推送
 echo -e "${YELLOW}⬆️ 推送遷移到遠程資料庫...${NC}"
-echo "Y" | ./supabase-cli db push
+echo "Y" | $SUPABASE_CLI db push
 
 # 檢查結果
 if [ $? -eq 0 ]; then
     echo -e "${GREEN}✅ 資料庫遷移成功完成！${NC}"
     echo -e "${BLUE}📋 更新後的遷移狀態:${NC}"
-    ./supabase-cli migration list
+    $SUPABASE_CLI migration list
 else
     echo -e "${RED}❌ 資料庫遷移失敗${NC}"
     exit 1

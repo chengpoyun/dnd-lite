@@ -21,13 +21,13 @@ import { CharacterItemEditModal } from './CharacterItemEditModal';
 import ItemDetailModal from './ItemDetailModal';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 
-const CATEGORIES: { label: string; value: ItemCategory | 'all' }[] = [
+const CATEGORIES: { label: string; value: ItemCategory | 'all' | 'magic' }[] = [
   { label: '全部', value: 'all' },
   { label: '裝備', value: '裝備' },
-  { label: '魔法物品', value: '魔法物品' },
   { label: '藥水', value: '藥水' },
   { label: '素材', value: '素材' },
-  { label: '雜項', value: '雜項' }
+  { label: '雜項', value: '雜項' },
+  { label: '魔法物品', value: 'magic' }
 ];
 
 interface ItemsPageProps {
@@ -39,7 +39,7 @@ export default function ItemsPage({ characterId }: ItemsPageProps) {
 
   const [items, setItems] = useState<CharacterItem[]>([]);
   const [filteredItems, setFilteredItems] = useState<CharacterItem[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<ItemCategory | 'all'>('all');
+  const [selectedCategory, setSelectedCategory] = useState<ItemCategory | 'all' | 'magic'>('all');
   const [isLoading, setIsLoading] = useState(true);
 
   // Modal 狀態
@@ -79,6 +79,8 @@ export default function ItemsPage({ characterId }: ItemsPageProps) {
   useEffect(() => {
     if (selectedCategory === 'all') {
       setFilteredItems(items);
+    } else if (selectedCategory === 'magic') {
+      setFilteredItems(items.filter(item => ItemService.getDisplayValues(item).displayIsMagic));
     } else {
       setFilteredItems(items.filter(item => {
         const display = ItemService.getDisplayValues(item);
@@ -232,8 +234,10 @@ export default function ItemsPage({ characterId }: ItemsPageProps) {
         ) : filteredItems.length === 0 ? (
           <div className="text-center py-12 bg-slate-800 border border-slate-700 rounded-lg">
             <div className="text-slate-500 text-4xl mb-3">📦</div>
-            <div className="text-slate-400">
-              {selectedCategory === 'all' ? '尚無道具' : `尚無「${selectedCategory}」類別的道具`}
+          <div className="text-slate-400">
+              {selectedCategory === 'all'
+                ? '尚無道具'
+                : `尚無「${selectedCategory === 'magic' ? '魔法物品' : selectedCategory}」類別的道具`}
             </div>
             <button
               onClick={() => setIsLearnModalOpen(true)}
@@ -259,6 +263,11 @@ export default function ItemsPage({ characterId }: ItemsPageProps) {
                         <span className="px-2 py-1 bg-amber-900/30 border border-amber-700 text-amber-400 text-xs rounded font-medium">
                           {display.displayCategory}
                         </span>
+                        {display.displayIsMagic && (
+                          <span className="px-2 py-1 bg-amber-900/40 border border-amber-700/60 text-amber-300 text-xs rounded font-medium">
+                            魔法
+                          </span>
+                        )}
                       </div>
                       {display.displayDescription && (
                         <p className="text-sm text-slate-400 line-clamp-2">{display.displayDescription}</p>
@@ -305,6 +314,7 @@ export default function ItemsPage({ characterId }: ItemsPageProps) {
           name: ItemService.getDisplayValues(uploadFromCharacterItem).displayName,
           description: ItemService.getDisplayValues(uploadFromCharacterItem).displayDescription,
           category: ItemService.getDisplayValues(uploadFromCharacterItem).displayCategory,
+          is_magic: ItemService.getDisplayValues(uploadFromCharacterItem).displayIsMagic,
         } : undefined}
       />
 

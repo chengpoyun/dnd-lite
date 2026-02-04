@@ -38,6 +38,7 @@ describe('ItemService - 個人物品與上傳邏輯', () => {
               name_en: 'Fireball',
               description: 'desc',
               category: '裝備',
+              is_magic: false,
             },
             error: null,
           }),
@@ -62,6 +63,7 @@ describe('ItemService - 個人物品與上傳邏輯', () => {
       name_en: 'fireball', // 與 Fireball 僅大小寫不同
       description: 'test desc',
       category: '裝備',
+      is_magic: false,
     };
 
     const result = await ItemService.uploadCharacterItemToGlobal(characterItemId, data);
@@ -96,6 +98,7 @@ describe('ItemService - 個人物品與上傳邏輯', () => {
               name_en: 'NewItem',
               description: 'desc',
               category: '裝備',
+              is_magic: false,
             },
             error: null,
           }),
@@ -123,6 +126,7 @@ describe('ItemService - 個人物品與上傳邏輯', () => {
       name_en: 'NewItem',
       description: 'test desc',
       category: '裝備',
+      is_magic: false,
     };
 
     const result = await ItemService.uploadCharacterItemToGlobal(characterItemId, data);
@@ -134,6 +138,7 @@ describe('ItemService - 個人物品與上傳邏輯', () => {
       name_en: data.name_en,
       description: data.description,
       category: data.category,
+      is_magic: data.is_magic,
     });
     // 並且角色物品被更新為指向新 global item
     expect((updateBuilder.update as vi.Mock)).toHaveBeenCalledWith({
