@@ -20,6 +20,7 @@ import { CharacterStats } from './types';
 import { formatClassDisplay, getPrimaryClass, getTotalLevel, getClassHitDie } from './utils/classUtils';
 import { isSpellcaster } from './utils/spellUtils';
 import { HybridDataManager } from './services/hybridDataManager';
+import { DetailedCharacterService } from './services/detailedCharacter';
 import { AnonymousService } from './services/anonymous';
 import { UserSettingsService } from './services/userSettings';
 import type { Character, CharacterAbilityScores, CharacterCurrentStats, CharacterCurrency, CharacterUpdateData, CharacterSkillProficiency, CharacterSavingThrow } from './lib/supabase';
@@ -373,7 +374,7 @@ const AuthenticatedApp: React.FC = () => {
       console.log('🎯 保存法術攻擊加值:', newBonus)
       const characterUpdate: CharacterUpdateData = {
         character: currentCharacter,
-        current_stats: {
+        currentStats: {
           character_id: currentCharacter.id,
           spell_attack_bonus: newBonus
         } as Partial<CharacterCurrentStats>
@@ -409,7 +410,7 @@ const AuthenticatedApp: React.FC = () => {
       console.log('🛡️ 保存法術豁免DC:', newDC)
       const characterUpdate: CharacterUpdateData = {
         character: currentCharacter,
-        current_stats: {
+        currentStats: {
           character_id: currentCharacter.id,
           spell_save_dc: newDC
         } as Partial<CharacterCurrentStats>
