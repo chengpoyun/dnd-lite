@@ -35,6 +35,10 @@ export const LearnItemModal: React.FC<LearnItemModalProps> = ({
   useEffect(() => {
     let filtered = items;
     filtered = filtered.filter(item => !learnedItemIds.includes(item.id));
+    if (!searchText) {
+      setFilteredItems([]);
+      return;
+    }
     if (searchText) {
       const search = searchText.toLowerCase();
       filtered = filtered.filter(item =>
@@ -116,7 +120,7 @@ export const LearnItemModal: React.FC<LearnItemModalProps> = ({
             </div>
           ) : filteredItems.length === 0 ? (
             <div className="text-center py-8 text-slate-400">
-              {searchText ? '沒有符合條件的物品' : '尚無可獲得的物品'}
+              {searchText ? '沒有符合條件的物品' : '請輸入關鍵字以搜尋物品'}
             </div>
           ) : (
             filteredItems.map(item => (
@@ -124,9 +128,9 @@ export const LearnItemModal: React.FC<LearnItemModalProps> = ({
                 key={item.id}
                 className="bg-slate-700/50 rounded-lg p-4 border border-slate-600"
               >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1 flex-wrap">
                       <h3 className="text-[16px] font-bold text-amber-400">{item.name}</h3>
                       <span className="px-2 py-0.5 rounded text-[12px] bg-slate-600 text-slate-300">
                         {item.category}
@@ -141,7 +145,7 @@ export const LearnItemModal: React.FC<LearnItemModalProps> = ({
                   </div>
                   <button
                     onClick={() => handleLearnItem(item.id)}
-                    className="ml-3 px-4 py-2 rounded-lg bg-green-600 text-white text-[14px] font-bold active:bg-green-700 whitespace-nowrap"
+                    className="shrink-0 px-4 py-2 rounded-lg bg-green-600 text-white text-[14px] font-bold active:bg-green-700 whitespace-nowrap"
                   >
                     獲得
                   </button>

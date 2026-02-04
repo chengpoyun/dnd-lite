@@ -43,6 +43,10 @@ export const LearnAbilityModal: React.FC<LearnAbilityModalProps> = ({
   useEffect(() => {
     let filtered = abilities;
     filtered = filtered.filter(ability => !learnedAbilityIds.includes(ability.id));
+    if (!searchText) {
+      setFilteredAbilities([]);
+      return;
+    }
     if (searchText) {
       const search = searchText.toLowerCase();
       filtered = filtered.filter(ability =>
@@ -243,7 +247,7 @@ export const LearnAbilityModal: React.FC<LearnAbilityModalProps> = ({
             </div>
           ) : filteredAbilities.length === 0 ? (
             <div className="text-center text-slate-500 py-8">
-              {searchText ? '找不到符合條件的能力' : '沒有可學習的能力'}
+              {searchText ? '找不到符合條件的能力' : '請輸入關鍵字以搜尋能力'}
             </div>
           ) : (
             filteredAbilities.map(ability => (
