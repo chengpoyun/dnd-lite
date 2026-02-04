@@ -3,6 +3,7 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { WelcomePage } from './components/WelcomePage';
 import { CharacterSheet } from './components/CharacterSheet';
 import { SessionExpiredModal } from './components/SessionExpiredModal';
+import { useAppInitialization } from './hooks/useAppInitialization';
 
 // 延遲載入非關鍵頁面
 const CharacterSelectPage = lazy(() => import('./components/CharacterSelectPage').then(m => ({ default: m.CharacterSelectPage })));
@@ -16,16 +17,11 @@ const AbilitiesPage = lazy(() => import('./components/AbilitiesPage'));
 const AboutPage = lazy(() => import('./components/AboutPage'));
 
 import { CharacterStats } from './types';
-import { getModifier } from './utils/helpers';
 import { formatClassDisplay, getPrimaryClass, getTotalLevel, getClassHitDie } from './utils/classUtils';
 import { isSpellcaster } from './utils/spellUtils';
-import { migrateLegacyCharacterStats, needsMulticlassMigration, ensureDisplayClass } from './utils/migrationHelpers';
 import { HybridDataManager } from './services/hybridDataManager';
-import { AuthService } from './services/auth';
 import { AnonymousService } from './services/anonymous';
-import { DatabaseInitService } from './services/databaseInit';
 import { UserSettingsService } from './services/userSettings';
-import { DetailedCharacterService } from './services/detailedCharacter';
 import type { Character, CharacterAbilityScores, CharacterCurrentStats, CharacterCurrency, CharacterUpdateData, CharacterSkillProficiency, CharacterSavingThrow } from './lib/supabase';
 
 enum Tab {
@@ -42,37 +38,31 @@ enum Tab {
 type AppState = 'welcome' | 'conversion' | 'characterSelect' | 'main'
 type UserMode = 'authenticated' | 'anonymous'
 
-const INITIAL_STATS: CharacterStats = {
-  name: "新角色",
-  class: "戰士",
-  level: 1,
-  exp: 0,
-  hp: { current: 10, max: 10, temp: 0 },
-  hitDice: { current: 1, total: 1, die: "d10" },
-  ac: 10,
-  initiative: 0, // 會在後續計算時被敵捷調整值覆蓋
-  speed: 30,
-  abilityScores: { str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10 },
-  proficiencies: {},
-  savingProficiencies: [],
-  downtime: 0,
-  renown: { used: 0, total: 0 },
-  prestige: { org: "", level: 0, rankName: "" },
-  attacks: [],
-  currency: { cp: 0, sp: 0, ep: 0, gp: 50, pp: 0 },
-  avatarUrl: undefined,
-  customRecords: []
-};
-
 const AuthenticatedApp: React.FC = () => {
   const { user, isLoading: authLoading, signOut } = useAuth();
   
+  const {
+    appState,
+    setAppState,
+    userMode,
+    setUserMode,
+    needsConversion,
+    setNeedsConversion,
+    showSessionExpired,
+    setShowSessionExpired,
+    currentCharacter,
+    setCurrentCharacter,
+    stats,
+    setStats,
+    isLoading,
+    isCharacterDataReady,
+    initError,
+    setInitError,
+    resetInitialization,
+  } = useAppInitialization({ user, authLoading })
+
   // 應用程式狀態
-  const [appState, setAppState] = useState<AppState>('welcome')
-  const [userMode, setUserMode] = useState<UserMode>('anonymous')
   const [activeTab, setActiveTab] = useState<Tab>(Tab.CHARACTER)
-  const [needsConversion, setNeedsConversion] = useState(false)
-  const [showSessionExpired, setShowSessionExpired] = useState(false)
   
   // 滑動切換 Tab 狀態
   const [touchStartX, setTouchStartX] = useState<number>(0)
@@ -82,199 +72,7 @@ const AuthenticatedApp: React.FC = () => {
   const activeTabRef = useRef<HTMLButtonElement>(null)
   
   // 角色數據
-  const [currentCharacter, setCurrentCharacter] = useState<Character | null>(null)
-  const [stats, setStats] = useState<CharacterStats>(INITIAL_STATS)
-  const [isLoading, setIsLoading] = useState(true)
-  const [isLoadingCharacter, setIsLoadingCharacter] = useState(false) // 添加角色載入狀態
-  const [isCharacterDataReady, setIsCharacterDataReady] = useState(false) // 角色資料是否已載入完成
   const [isSaving, setIsSaving] = useState(false) // 添加保存狀態
-  const [isInitialized, setIsInitialized] = useState(false) // 防止重複初始化
-  const [initError, setInitError] = useState<string | null>(null) // 初始化錯誤訊息
-
-  // 初始化狀態 - 等待AuthContext確認狀態後才執行
-  useEffect(() => {
-    // 防止重複初始化：等待認證狀態確認且未初始化過
-    if (authLoading || isInitialized) {
-      return
-    }
-    
-    const initializeApp = async () => {
-      // 防止競爭條件
-      if (isInitialized) {
-        console.warn('⚠️ 初始化已在進行中，跳過')
-        return
-      }
-      
-      const startTime = performance.now()
-      console.log('🚀 開始應用初始化...')
-      setIsLoading(true)
-      setIsInitialized(true)
-      
-      // 定義帶自動重試的載入函數
-      const loadWithRetry = async (loadFn: () => Promise<void>, maxRetries = 1) => {
-        let lastError: any = null
-        
-        for (let attempt = 0; attempt <= maxRetries; attempt++) {
-          try {
-            if (attempt > 0) {
-              console.log(`🔄 自動重試第 ${attempt} 次...`)
-              await new Promise(resolve => setTimeout(resolve, 1000))
-            }
-            
-            await loadFn()
-            return // 成功，直接返回
-            
-          } catch (error) {
-            lastError = error
-            console.warn(`⚠️ 載入失敗 (嘗試 ${attempt + 1}/${maxRetries + 1}):`, error?.message)
-            
-            // 如果還有重試機會，繼續循環
-            if (attempt < maxRetries) {
-              continue
-            }
-          }
-        }
-        
-        // 所有重試都失敗，拋出最後的錯誤
-        throw lastError
-      }
-      
-      try {
-        // 静默初始化，只在錯誤時輸出
-        const dbInitStart = performance.now()
-        await DatabaseInitService.initializeTables()
-        console.log(`⏱️ DatabaseInit: ${(performance.now() - dbInitStart).toFixed(1)}ms`)
-        
-        if (user) {
-          // 先檢查是否有匿名角色需要轉換
-          const conversionCheckStart = performance.now()
-          const hasAnonymousChars = await DetailedCharacterService.hasAnonymousCharactersToConvert()
-          console.log(`⏱️ 轉換檢查: ${(performance.now() - conversionCheckStart).toFixed(1)}ms`)
-          
-          if (hasAnonymousChars) {
-            console.log('🔄 檢測到匿名角色，準備轉換')
-            setUserMode('anonymous') // 保持匿名模式以觸發轉換流程
-            setNeedsConversion(true)
-            setAppState('conversion')
-          } else {
-            // 沒有匿名角色需要轉換，設定為認證模式
-            setUserMode('authenticated')
-            
-            await loadWithRetry(async () => {
-              // 傳入認證用戶上下文
-              const userContext = {
-                isAuthenticated: true,
-                userId: user.id
-              }
-              const characters = await HybridDataManager.getUserCharacters(userContext)
-              
-              if (characters.length > 0) {
-                // 載入最後使用的角色
-                let characterToLoad = characters[0]
-                
-                try {
-                  const settingsStart = performance.now()
-                  const lastCharacterId = await UserSettingsService.getLastCharacterId()
-                  console.log(`⏱️ 讀取設定: ${(performance.now() - settingsStart).toFixed(1)}ms`)
-                  if (lastCharacterId) {
-                    const lastCharacter = characters.find(c => c.id === lastCharacterId)
-                    if (lastCharacter) {
-                      characterToLoad = lastCharacter
-                    } else {
-                      // 清理不存在的角色 ID
-                      console.warn('⚠️ 上次使用的角色已不存在，已清理')
-                      await UserSettingsService.setLastCharacterId(characterToLoad.id)
-                    }
-                  } else {
-                    // 儲存第一個角色為預設
-                    await UserSettingsService.setLastCharacterId(characterToLoad.id)
-                  }
-                } catch (settingsError) {
-                  // 靜默處理設定錯誤
-                  console.warn('設定服務錯誤:', settingsError)
-                }
-                
-                setCurrentCharacter(characterToLoad)
-                setAppState('main')
-              } else {
-                // 真的沒有角色，進入選擇頁面創建
-                console.log('✅ 用戶沒有角色，進入選擇頁面')
-                setAppState('characterSelect')
-              }
-            })
-          }
-        } else {
-          // 匿名用戶模式
-          await loadWithRetry(async () => {
-            const anonInitStart = performance.now()
-            await AnonymousService.init()
-            console.log(`⏱️ 匿名服務初始化: ${(performance.now() - anonInitStart).toFixed(1)}ms`)
-            
-            // 傳入匿名用戶上下文
-            const userContext = {
-              isAuthenticated: false,
-              anonymousId: AnonymousService.getAnonymousId()
-            }
-            const characters = await HybridDataManager.getUserCharacters(userContext)
-            
-            if (characters.length > 0) {
-              setUserMode('anonymous')
-              setCurrentCharacter(characters[0])
-              setAppState('main')
-            } else {
-              // 匿名用戶確實沒有角色
-              console.log('✅ 匿名用戶沒有角色，進入歡迎頁面')
-              setAppState('welcome')
-            }
-          })
-        }
-      } catch (error) {
-        console.error('❌ 初始化失敗（已自動重試）:', error?.message)
-        // 所有重試都失敗後，才設置錯誤狀態
-        setInitError('載入失敗，可能是網路問題。請點擊重試。')
-        setAppState('welcome')
-      } finally {
-        const endTime = performance.now()
-        console.log(`⏱️ 應用初始化總耗時: ${(endTime - startTime).toFixed(1)}ms`)
-        setIsLoading(false)
-      }
-    }
-
-    initializeApp()
-  }, [user, authLoading, isInitialized]) // 添加authLoading依賴，確保認證狀態穩定後才初始化
-
-  // 處理匿名角色轉換
-  useEffect(() => {
-    const checkConversion = async () => {
-      if (user && userMode === 'anonymous') {
-        // 用戶剛登入，檢查是否需要轉換匿名角色
-        try {
-          const hasAnonymousChars = await DetailedCharacterService.hasAnonymousCharactersToConvert()
-          if (hasAnonymousChars) {
-            setNeedsConversion(true)
-            setAppState('conversion')
-          } else {
-            setUserMode('authenticated')
-            setAppState('characterSelect')
-          }
-        } catch (error) {
-          console.error('檢查轉換需求失敗:', error)
-          setUserMode('authenticated')
-          setAppState('characterSelect')
-        }
-      }
-    }
-
-    checkConversion()
-  }, [user, userMode])
-
-  // 載入角色數據 - 添加防重複載入保護
-  useEffect(() => {
-    if (currentCharacter && !isLoadingCharacter) {
-      setIsCharacterDataReady(false) // 重置資料準備狀態
-      loadCharacterStats()
-    }
-  }, [currentCharacter])
 
   // 當 activeTab 改變時，自動滾動到對應的 tab 按鈕
   useEffect(() => {
@@ -286,213 +84,6 @@ const AuthenticatedApp: React.FC = () => {
       })
     }
   }, [activeTab])
-
-  const loadCharacterStats = async () => {
-    if (!currentCharacter || isLoadingCharacter) {
-      return
-    }
-    
-    setIsLoadingCharacter(true)
-
-    try {
-      // 傳入用戶上下文避免冗餘的身份驗證調用
-      const userContext = user ? {
-        isAuthenticated: true,
-        userId: user.id
-      } : {
-        isAuthenticated: false,
-        anonymousId: AnonymousService.getAnonymousId()
-      }
-      const characterData = await HybridDataManager.getCharacter(currentCharacter.id, userContext)
-      
-      if (!characterData || !characterData.character) {
-        console.error('❌ 角色不存在，清理並返回角色選擇頁面')
-        // 清理不存在的角色 ID
-        await UserSettingsService.setLastCharacterId('')
-        setCurrentCharacter(null)
-        setAppState('characterSelect')
-        setIsLoadingCharacter(false)
-        return
-      }
-      
-      if (characterData && characterData.character) {
-        // 從完整角色數據中提取 CharacterStats
-        const extractedStats = {
-          ...INITIAL_STATS,
-          name: characterData.character.name,
-          class: characterData.character.character_class || (characterData.character as any).class || '戰士',
-          level: characterData.character.level,
-          exp: characterData.character.experience || INITIAL_STATS.exp,
-          avatarUrl: characterData.character.avatar_url || INITIAL_STATS.avatarUrl,
-          hp: {
-            current: characterData.currentStats?.current_hp || INITIAL_STATS.hp.current,
-            max: characterData.currentStats?.max_hp || INITIAL_STATS.hp.max,
-            temp: characterData.currentStats?.temporary_hp || INITIAL_STATS.hp.temp
-          },
-          ac: characterData.currentStats?.armor_class || INITIAL_STATS.ac,
-          initiative: characterData.currentStats?.initiative_bonus !== undefined 
-            ? characterData.currentStats.initiative_bonus 
-            : (characterData.abilityScores?.dexterity ? getModifier(characterData.abilityScores.dexterity) : 0),
-          speed: characterData.currentStats?.speed || INITIAL_STATS.speed,
-          abilityScores: {
-            str: characterData.abilityScores?.strength || INITIAL_STATS.abilityScores.str,
-            dex: characterData.abilityScores?.dexterity || INITIAL_STATS.abilityScores.dex,
-            con: characterData.abilityScores?.constitution || INITIAL_STATS.abilityScores.con,
-            int: characterData.abilityScores?.intelligence || INITIAL_STATS.abilityScores.int,
-            wis: characterData.abilityScores?.wisdom || INITIAL_STATS.abilityScores.wis,
-            cha: characterData.abilityScores?.charisma || INITIAL_STATS.abilityScores.cha
-          },
-          currency: {
-            cp: characterData.currency?.copper || INITIAL_STATS.currency.cp,
-            sp: characterData.currency?.silver || INITIAL_STATS.currency.sp,
-            ep: characterData.currency?.electrum || INITIAL_STATS.currency.ep,
-            gp: characterData.currency?.gp || INITIAL_STATS.currency.gp,
-            pp: characterData.currency?.platinum || INITIAL_STATS.currency.pp
-          },
-          // 載入技能熟練度 - 簡化處理，只載入有記錄的技能
-          proficiencies: (() => {
-            const skillProfs = characterData.skillProficiencies
-            const result: Record<string, number> = {};
-            
-            try {
-              // 檢查是否為數組格式（新格式）
-              if (Array.isArray(skillProfs)) {
-                skillProfs.forEach(skill => {
-                  if (skill && typeof skill === 'object' && skill.skill_name && skill.proficiency_level > 0) {
-                    result[skill.skill_name] = skill.proficiency_level;
-                  }
-                });
-                return result;
-              }
-              
-              // 檢查是否已經是物件格式（舊格式/直接格式）
-              if (skillProfs && typeof skillProfs === 'object' && !Array.isArray(skillProfs)) {
-                // 只包含熟練度 > 0 的技能
-                Object.entries(skillProfs as Record<string, number>).forEach(([skillName, level]) => {
-                  if (level > 0) {
-                    result[skillName] = level;
-                  }
-                });
-
-                return result;
-              }
-            } catch (skillError) {
-              console.warn('🔧 技能熟練度處理異常，使用預設值:', skillError)
-            }
-            
-            // 預設值 - 空物件（沒有任何技能熟練度）
-            return result;
-          })(),
-          // 載入豁免骰熟練度 - 添加安全檢查和詳細除錯
-          savingProficiencies: (() => {
-            try {
-              if (Array.isArray(characterData.savingThrows)) {
-                const proficientSaves = characterData.savingThrows
-                  .filter(st => st && st.is_proficient)
-                  .map(st => {
-                    // 將完整的資料庫名稱映射回前端使用的縮寫
-                    const abilityMap = {
-                      strength: 'str',
-                      dexterity: 'dex', 
-                      constitution: 'con',
-                      intelligence: 'int',
-                      wisdom: 'wis',
-                      charisma: 'cha'
-                    } as any
-                    return abilityMap[st.ability] || st.ability
-                  }) as (keyof typeof INITIAL_STATS.abilityScores)[]
-                  
-                return proficientSaves
-              }
-            } catch (savingError) {
-              console.warn('🔧 豁免骰處理異常，使用預設值:', savingError)
-            }
-            return INITIAL_STATS.savingProficiencies
-          })(),
-          // 載入額外資料（修整期、名聲等）
-          downtime: characterData.currentStats?.extra_data?.downtime || INITIAL_STATS.downtime,
-          renown: characterData.currentStats?.extra_data?.renown || INITIAL_STATS.renown,
-          prestige: characterData.currentStats?.extra_data?.prestige || INITIAL_STATS.prestige,
-          customRecords: characterData.currentStats?.extra_data?.customRecords || INITIAL_STATS.customRecords,
-          extraData: {
-            abilityBonuses: characterData.currentStats?.extra_data?.abilityBonuses || {},
-            modifierBonuses: characterData.currentStats?.extra_data?.modifierBonuses || {}
-          },
-          attacks: characterData.currentStats?.extra_data?.attacks || INITIAL_STATS.attacks,
-          // 載入生命骰資料
-          hitDice: {
-            current: characterData.currentStats?.current_hit_dice || INITIAL_STATS.hitDice.current,
-            total: characterData.currentStats?.total_hit_dice || stats.level || INITIAL_STATS.hitDice.total,
-            die: characterData.currentStats?.hit_die_type || INITIAL_STATS.hitDice.die
-          },
-          
-          // 載入兼職系統資料（新增）
-          classes: characterData.currentStats?.extra_data?.classes ? 
-            characterData.currentStats.extra_data.classes.map((c: any, index: number) => ({
-              id: c.id || `class-${index}`,
-              name: c.name,
-              level: c.level,
-              hitDie: c.hitDie || getClassHitDie(c.name),
-              isPrimary: c.isPrimary
-            })) :
-            (characterData.classes && characterData.classes.length > 0 ? 
-              characterData.classes.map(c => ({
-                id: `legacy-${c.class_name}`,
-                name: c.class_name,
-                level: c.class_level,
-                hitDie: c.hit_die,
-                isPrimary: c.is_primary
-              })) : undefined), // 無資料時使用傳統模式
-          
-          hitDicePools: characterData.hitDicePools ? {
-            d12: { 
-              current: characterData.hitDicePools.d12_current, 
-              total: characterData.hitDicePools.d12_total 
-            },
-            d10: { 
-              current: characterData.hitDicePools.d10_current, 
-              total: characterData.hitDicePools.d10_total 
-            },
-            d8: { 
-              current: characterData.hitDicePools.d8_current, 
-              total: characterData.hitDicePools.d8_total 
-            },
-            d6: { 
-              current: characterData.hitDicePools.d6_current, 
-              total: characterData.hitDicePools.d6_total 
-            }
-          } : undefined // 無資料時使用傳統模式
-        }
-        
-        // 執行資料移轉（如果需要）
-        let finalStats = extractedStats;
-        if (needsMulticlassMigration(extractedStats)) {
-          finalStats = migrateLegacyCharacterStats(extractedStats);
-        }
-        finalStats = ensureDisplayClass(finalStats);
-        
-        setStats(finalStats)
-        setIsCharacterDataReady(true) // 設置資料載入完成
-      } else {
-        console.warn('⚠️ 角色數據不完整，使用預設值')
-        setStats(INITIAL_STATS)
-        setIsCharacterDataReady(true) // 即使沒有資料也設為準備完成
-      }
-    } catch (error) {
-      console.error('❌ 載入角色數據失敗:', error)
-      console.error('錯誤詳情:', {
-        characterId: currentCharacter?.id,
-        characterName: currentCharacter?.name,
-        errorMessage: error.message,
-        errorStack: error.stack
-      })
-      // 設置預設值以防止應用崩潰
-      setStats(INITIAL_STATS)
-      setIsCharacterDataReady(true) // 錯誤時也設為準備完成
-    } finally {
-      setIsLoadingCharacter(false) // 清除載入狀態
-    }
-  }
 
   // 保存操作鎖和序列化機制
   const saveTimeoutRef = React.useRef<NodeJS.Timeout | null>(null)
@@ -993,10 +584,7 @@ const AuthenticatedApp: React.FC = () => {
 
   // 重試初始化
   const handleRetryInit = async () => {
-    setInitError(null)
-    setIsInitialized(false) // 重置初始化狀態
-    setIsLoading(true)
-    // useEffect 會自動重新觸發初始化
+    resetInitialization()
   }
 
   // Session 失效後重新登入
