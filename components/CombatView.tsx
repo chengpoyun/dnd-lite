@@ -9,6 +9,7 @@ import { Modal, ModalButton, ModalInput } from './ui/Modal';
 import { STYLES } from '../styles/common';
 import type { CharacterCombatAction as DatabaseCombatItem } from '../lib/supabase';
 import { MODAL_CONTAINER_CLASS } from '../styles/modalStyles';
+import { isSpellcaster } from '../utils/spellUtils';
 
 interface CombatItem {
   id: string;
@@ -61,6 +62,11 @@ export const CombatView: React.FC<CombatViewProps> = ({
   onSaveSpellSaveDC,
   showSpellStats = false
 }) => {
+  const spellcasterClassNames = stats.classes?.length
+    ? stats.classes.map(item => item.name)
+    : (stats.class ? [stats.class] : []);
+  const isCaster = isSpellcaster(spellcasterClassNames);
+
   // 角色 ID 管理 - 優先使用從 props 傳入的 ID，否則從 localStorage 獲取
   const [characterId] = useState(() => {
     if (propCharacterId) {
@@ -155,15 +161,28 @@ export const CombatView: React.FC<CombatViewProps> = ({
         setError(null);
         
         const combatItems = await HybridDataManager.getCombatItems(characterId);
+        const filteredCombatItems = isCaster
+          ? combatItems
+          : combatItems.filter(item => !(item.name === '施法' && (item.is_default || item.default_item_id)));
         
         // 將資料庫中的數據按類別分組
-        const actionItems = combatItems.filter(item => item.category === 'action');
-        const bonusItems = combatItems.filter(item => item.category === 'bonus_action');
-        const reactionItems = combatItems.filter(item => item.category === 'reaction');
-        const resourceItems = combatItems.filter(item => item.category === 'resource');
+        const actionItems = filteredCombatItems.filter(item => item.category === 'action');
+        const bonusItems = filteredCombatItems.filter(item => item.category === 'bonus_action');
+        const reactionItems = filteredCombatItems.filter(item => item.category === 'reaction');
+        const resourceItems = filteredCombatItems.filter(item => item.category === 'resource');
         
         // 轉換資料庫格式到組件格式
-        const convertedActions = actionItems.map(convertDbItemToLocal);
+        const convertedActions = actionItems
+          .map(convertDbItemToLocal)
+          .sort((a, b) => {
+            const preferredOrder = ['攻擊', '施法', '疾走', '撤離'];
+            const aIndex = preferredOrder.indexOf(a.name);
+            const bIndex = preferredOrder.indexOf(b.name);
+            if (aIndex === -1 && bIndex === -1) return 0;
+            if (aIndex === -1) return 1;
+            if (bIndex === -1) return -1;
+            return aIndex - bIndex;
+          });
         const convertedBonusActions = bonusItems.map(convertDbItemToLocal);
         const convertedReactions = reactionItems.map(convertDbItemToLocal);
         const convertedResources = resourceItems.map(convertDbItemToLocal);
@@ -181,7 +200,7 @@ export const CombatView: React.FC<CombatViewProps> = ({
     };
 
     loadData();
-  }, [characterId]);
+  }, [characterId, isCaster]);
 
   // 分類映射 - 前端到資料庫
   const mapCategoryToDb = (category: ItemCategory): string => {
