@@ -25,7 +25,7 @@ export const LearnItemModal: React.FC<LearnItemModalProps> = ({
   const [searchText, setSearchText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const categories: ItemCategory[] = ['裝備', '藥水', '素材', '雜項'];
+  const categories: ItemCategory[] = ['裝備', '藥水', '素材', 'MH素材', '雜項'];
 
   useEffect(() => {
     if (isOpen) {

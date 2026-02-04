@@ -26,6 +26,7 @@ const CATEGORIES: { label: string; value: ItemCategory | 'all' | 'magic' }[] = [
   { label: '裝備', value: '裝備' },
   { label: '藥水', value: '藥水' },
   { label: '素材', value: '素材' },
+  { label: 'MH素材', value: 'MH素材' },
   { label: '雜項', value: '雜項' },
   { label: '魔法物品', value: 'magic' }
 ];

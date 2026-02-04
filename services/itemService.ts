@@ -18,7 +18,7 @@
 
 import { supabase } from '../lib/supabase';
 
-export type ItemCategory = '裝備' | '藥水' | '素材' | '雜項';
+export type ItemCategory = '裝備' | '藥水' | '素材' | 'MH素材' | '雜項';
 
 // 全域物品（global_items 表）
 export interface GlobalItem {

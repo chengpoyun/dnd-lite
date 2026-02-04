@@ -8,7 +8,7 @@ import { Modal } from './ui/Modal';
 import type { ItemCategory, CreateCharacterItemData } from '../services/itemService';
 import { MODAL_CONTAINER_CLASS } from '../styles/modalStyles';
 
-const CATEGORIES: ItemCategory[] = ['裝備', '藥水', '素材', '雜項'];
+const CATEGORIES: ItemCategory[] = ['裝備', '藥水', '素材', 'MH素材', '雜項'];
 
 interface AddPersonalItemModalProps {
   isOpen: boolean;

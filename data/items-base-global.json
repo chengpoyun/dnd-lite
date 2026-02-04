@@ -1,0 +1,1374 @@
+[
+  {
+    "name": "反物質步槍",
+    "name_en": "Antimatter Rifle",
+    "description": " \"source\": \"DMG\", \"page\": 268, \"reprintedAs\": [ \"反物質步槍|XDMG\" ], \"edition\": \"經典\", \"type\": \"R\", \"rarity\": \"無\", \"weight\": 10, \"weaponCategory\": \"軍用未來\"DMG\", \"weight\": 10, \"weaponCategory\": \"軍用未來\"DMG\" \"雙手\" ], \"range\": \"120/360\", \"reload\": 2, \"dmg1\": \"6d8\", \"dmgType\": \"N\", \"firearm\": true, \"weapon\": true, \"ammoType\": \"能量電池\" }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "反物質步槍",
+    "name_en": "Antimatter Rifle",
+    "description": " \"來源\": \"XDMG\", \"頁碼\": 73, \"版本\": \"一\", \"型\": \"R|XPHB\", \"稀有度\": \"無\", \"重量\": 10, \"價值稀有度\": \"非常稀有\", \"武器類別\": \"軍用\", \"雙手時代\" \"精通\": [ \"Sap|XPHB\" ], \"射程\": \"120/360\", \"裝填時間\": 2, \"傷害1\": \"6d8\", \"傷害類型\": \"無\", \"槍械\": true, \"武器\": true, \"彈藥類型\": \"能量電池|xdmg\" }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "箭",
+    "name_en": "Arrow",
+    "description": " \"source\": \"PHB\", \"page\": 150, \"srd\": true, \"basicRules\": true, \"reprintedAs\": [ \"Arrow|XPHB\" ], \"edition\": \"classic\", \"type\": \"A\", \"rarity\": \"none\", \"weight\": 0.00\"",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "箭",
+    "name_en": "Arrow",
+    "description": " \"來源\": \"XPHB\", \"頁碼\": 222, \"srd52\": true, \"版本\": \"一\", \"類型\": \"A|XPHB\", \"稀有度\": \"無\", \"重量\": 0.05, \"價值\": 5, \"箭\"\": true, \"配合使用：[每次使用該武器攻擊時，都會消耗一枚彈藥。從箭袋、箭盒或其他容器中取出彈藥是攻擊的一部分（單手武器需要空出一隻手來裝填彈藥）。戰鬥結束後，你可以花一分鐘搜索戰場，回收一半已消耗的彈藥。 \", \"箭矢通常存放在{@item 箭袋|XPHB}（需單獨購買）。 \" ] }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "箭（20）",
+    "name_en": "Arrows (20)",
+    "description": " \"source\": \"PHB\", \"page\": 150, \"srd\": true, \"basicRules\": true, \"reprintedAs\": [ \"Arrows (20)|XPHB\" ], \"edition\": \"classic\", \"type\": \"A\", \"rarity\": \"none\", \"weight\": \"classic\", \"type\": \"A\", \"rarity\": \"none\", \"weight\" \"packContents\": [ { \"item\": \"arrow|phb\", \"quantity\": 20 } ] }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "箭（20）",
+    "name_en": "Arrows (20)",
+    "description": " \"source\": \"XPHB\", \"page\": 222, \"srd52\": true, \"edition\": \"one\", \"type\": \"A|XPHB\", \"rarity\": \"none\", \"weight\": 1, \"value\": 100, \"arrow\": \"none\", \"weight\": 1, \"value\": 100, \"arrow\": true, \"entries\": [true: 「箭矢與具有彈藥屬性的武器配合使用，進行遠程攻擊。每次使用該武器攻擊時，都會消耗一枚彈藥。從箭袋、箭盒或其他容器中取出彈藥是攻擊的一部分（單手武器需要空出一隻手來裝填彈藥）。戰鬥結束後，你可以花一分鐘時間搜索戰場，回收一半已消耗的彈藥。 { \"item\": \"arrow|xphb\", \"quantity\": 20 } ] }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "自動手槍",
+    "name_en": "Automatic Pistol",
+    "description": " \"source\": \"DMG\", \"page\": 268, \"reprintedAs\": [ \"Semiautomatic Pistol|XDMG\" ], \"edition\": \"classic\", \"type\": \"R\", \"rarity\": \"none\", \"weight\": 3, \"wetype\": \"R\", \"rarity\": \"none\", \"weight\": 3, \"wetype\": \"R\", \"rarity\": \"none\", \"weight\": 3, \"wetypeCCategory\", \"pk, FMG\" \"RLD\" ], \"range\": \"50/150\", \"reload\": 15, \"dmg1\": \"2d6\", \"dmgType\": \"P\", \"firearm\": true, \"weapon\": true, \"ammoType\": \"modern bullet\" }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "自動步槍",
+    "name_en": "Automatic Rifle",
+    "description": " \"source\": \"DMG\", \"page\": 268, \"reprintedAs\": [ \"Automatic Rifle|XDMG\" ], \"edition\": \"classic\", \"type\": \"R\", \"rarity\": \"none\", \"weight\": 8, \"weonCatefate\" \"BF|DMG\", \"RLD\", \"2H\" ], \"range\": \"80/240\", \"reload\": 30, \"dmg1\": \"2d8\", \"dmgType\": \"P\", \"firearm\": true, \"weapon\": true, \"ammoType\": \"P\", \"firearm\": true, \"weapon\": true, \"ammoType\": \"modern bullet\"",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "自動步槍",
+    "name_en": "Automatic Rifle",
+    "description": " \"來源\": \"XDMG\", \"頁碼\": 73, \"版本\": \"一\", \"類型\": \"R|XPHB\", \"稀有度\": \"無\", \"重量\": 8, \"價值稀有度\": \"稀有\", \"武器類別\": \"軍用\", \"時代\": \"現代\", \"D44:\"S, \"DMG\" \"2H|XPHB\" ], \"精通\": [ \"慢速|XPHB\" ], \"射程\": \"80/240\", \"裝填時間\": 30, \"傷害1\": \"2d8\", \"傷害類型\": \"P\", \"槍械\": true, \"武器類型\": true, \"彈藥\":\" true, \"彈藥\": \"槍械類型",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "風笛",
+    "name_en": "Bagpipes",
+    "description": " \"source\": \"PHB\", \"page\": 154, \"srd\": true, \"basicRules\": true, \"reprintedAs\": [ \"Bagpipes|XPHB\" ], \"edition\": \"classic\", \"type\": \"INS\", \"rarity\": \"none\", \"weight\": 6, \"value",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "風笛",
+    "name_en": "Bagpipes",
+    "description": " \"source\": \"XPHB\", \"page\": 221, \"srd52\": true, \"basicRules2024\": true, \"edition\": \"one\", \"type\": \"INS|XPHB\", \"rarity\": \"none\", \"weight\": 6, \"INS|XPHB\", \"rarity\": \"none\", \"weight\": 6, \"INS|: 3000\" \"list-hang-notitle\", \"items\": [ { \"name\": \"Ability:\", \"type\": \"item\", \"entries\": [ \"Charisma\" ] }, { \"name\": \"Utilize:\", \"type\": \"item\", \"entries\": [ \"Play anown tune( ] } ] }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "班多爾",
+    "name_en": "Bandore",
+    "description": " \"source\": \"FRHoF\", \"page\": 132, \"type\": \"INS|XPHB\", \"rarity\": \"none\", \"weight\": 3, \"value\": 6500, \"hasFluff\": true, \"hasFluffImages\": true }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "戰斧",
+    "name_en": "Battleaxe",
+    "description": " \"source\": \"PHB\", \"page\": 149, \"srd\": true, \"basicRules\": true, \"reprintedAs\": [ \"Battleaxe|XPHB\" ], \"edition\": \"classic\", \"type\": \"M\", \"rarity\": \"nnone\", \"weight\": 4, \" 000,000: \"none\" \"martial\", \"property\": [ \"V\" ], \"dmg1\": \"1d8\", \"dmgType\": \"S\", \"dmg2\": \"1d10\", \"axe\": true, \"weapon\": true }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "戰斧",
+    "name_en": "Battleaxe",
+    "description": " \"來源\": \"XPHB\", \"頁碼\": 215, \"srd52\": true, \"基本規則2024\": true, \"版本\": \"一\", \"類型\": \"M|XPHB\", \"稀有度\": \"無\", \"重量\": 4, \"價值\"M|XPHB\", \"稀有度\": \"無\", \"重量\": 4, \"價值\"M|XPHB\", \"稀有度\": \"無\", \"重量\": 4, \"價值\"M|: 1000」, \"B.\" [ \"擊倒|XPHB\" ], \"傷害1\": \"1d8\", \"傷害類型\": \"S\", \"傷害2\": \"1d10\", \"斧頭\": true, \"武器\": true, \"有背景圖片\": true }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "鳥笛",
+    "name_en": "Birdpipes",
+    "description": " \"source\": \"SCAG\", \"page\": 124, \"type\": \"INS\", \"rarity\": \"none\", \"entries\": [ \"潘笛或薩提爾笛，又稱深受木笛，是{@deity Lliira|Faerûnian|scag}的聖物，沙姆吟笛，是{@deity Lliira|Faerûnian|scag精靈的聖物，沙姆和野精靈和野精靈吟遊詩人的喜愛。",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "吹箭",
+    "name_en": "Blowgun",
+    "description": " \"source\": \"PHB\", \"page\": 149, \"srd\": true, \"basicRules\": true, \"reprintedAs\": [ \"Blowgun|XPHB\" ], \"edition\": \"classic\", \"type\": \"R\", \"rarity\": \"none\", \"weight\": 1, \"ap0\": 1, \"ap00000, \"we \"martial\", \"property\": [ \"A\", \"LD\" ], \"range\": \"25/100\", \"dmg1\": \"1\", \"dmgType\": \"P\", \"weapon\": true, \"ammoType\": \"blowgun needle|phb\" }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "吹箭",
+    "name_en": "Blowgun",
+    "description": " \"來源\": \"XPHB\", \"頁碼\": 215, \"srd52\": true, \"基本規則2024\": true, \"版本\": \"一\", \"型\": \"R|XPHB\", \"稀有度\": \"無\", \"重量\": 1, \"價值\"R|XPHB\", \"稀有度\": \"無\", \"重量\": 1, \"價值\"R|XPHB\", \"稀有度\": \"無\", \"重量\": 1, \"價值\"R| 1000, \"APH:\" \"LD|XPHB\" ], \"精通\": [ \"Vex|XPHB\" ], \"射程\": \"25/100\", \"傷害1\": \"1\", \"傷害類型\": \"P\", \"武器\": true, \"彈藥類型\": \"指針|XPHB\", \"有背景圖片\": true }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "吹箭針",
+    "name_en": "Blowgun Needle",
+    "description": " \"source\": \"PHB\", \"page\": 150, \"srd\": true, \"basicRules\": true, \"reprintedAs\": [ \"Needle|XPHB\" ], \"edition\": \"classic\", \"type\": \"A\", \"rarity\": \"none\", \"weight\": 0ue.0,\"/Fall」, \"weight 200,002」, \"208:000,\"",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "吹箭筒針（50）",
+    "name_en": "Blowgun Needles (50)",
+    "description": " { \"source\": \"PHB\", \"page\": 150, \"srd\": true, \"basicRules\": true, \"reprintedAs\": [ \"Needles (50)|XPHB\" ], \"edition\": \"classic\", \"type\": \"A\", \"rarity\": \"ndle, \"weight\": \"classic\", \"type\": \"A\", \"rarity\": \"ndle\", \"weight\" \"packContents\": [ { \"item\": \"blowgun needle|phb\", \"quantity\": 50 } ] }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "螺栓",
+    "name_en": "Bolt",
+    "description": " \"來源\": \"XPHB\", \"頁碼\": 222, \"srd52\": true, \"版本\": \"一\", \"型別\": \"A|XPHB\", \"稀有度\": \"無\", \"重量\": 0.075, \"價值\": 5, \"箭矢\": true, \"條件\": [ 「弩箭用於具有彈藥屬性的武器進行遠程攻擊。每次使用該武器攻擊時，都會消耗一支彈藥。從箭袋、箭盒或其他容器中取出彈藥是攻擊的一部分（單手武器需要空出一隻手來裝填彈藥）。戰鬥結束後，你可以花一分鐘時間搜索戰場，回收一半已消耗的彈藥。」",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "螺栓（20）",
+    "name_en": "Bolts (20)",
+    "description": " \"來源\": \"XPHB\", \"頁碼\": 222, \"srd52\": true, \"版本\": \"一\", \"類型\": \"A|XPHB\", \"稀有度\": \"無\", \"重量\": 1.5, \"價值\": 100, \"箭矢\": true, \"條件\": [true 「弩箭用於具有彈藥屬性的武器進行遠程攻擊。每次使用該武器攻擊時，都會消耗一支彈藥。從箭袋、箭盒或其他容器中取出彈藥是攻擊的一部分（裝填單手武器需要空出一隻手）。戰鬥結束後，你可以花一分鐘時間搜索戰場，回收一半已消耗的彈藥盒。 \"item\": \"bolt|xphb\", \"quantity\": 20 } ] }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "胸甲",
+    "name_en": "Breastplate",
+    "description": " \"source\": \"PHB\", \"page\": 145, \"srd\": true, \"basicRules\": true, \"reprintedAs\": [ \"胸甲|XPHB\" ], \"edition\": \"classic\", \"type\": \"MA\", \"rarity\": \"none\", \"weight\": 20, \"type\": \"MA\", \"rarity\": \"none\", \"weight\": 204,000\" true, \"entries\": [ \"這件盔甲由一件貼身的金屬胸甲和柔軟的皮革組成。雖然它對腿部和手臂的保護相對不足，但這件盔甲能很好地保護穿著者的重要器官，同時又不會給穿著者帶來太大的負擔。\" ] }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "胸甲",
+    "name_en": "Breastplate",
+    "description": " \"來源\": \"XPHB\", \"頁碼\": 219, \"srd52\": true, \"基本規則2024\": true, \"版本\": \"一\", \"型別\": \"MA|XPHB\", \"稀有度\": \"無\", \"重量\": 20, \"價值\": 40000,, \"true\" true }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "鎖子甲",
+    "name_en": "Chain Mail",
+    "description": " \"source\": \"PHB\", \"page\": 145, \"srd\": true, \"basicRules\": true, \"reprintedAs\": [ \"Chain Mail|XPHB\" ], \"edition\": \"classic\", \"type\": \"HA\", \"rarity\": \"none\", \"weight\": 5, \"\": \"HA\", \"rarity\": \"none\", \"weight\": 5,7000:50:005\" \"strength\": \"13\", \"armor\": true, \"stealth\": true, \"entries\": [ \"鎖子甲由相互連接的金屬環製成，內襯一層絎縫織物，以防止摩擦並緩衝打擊衝擊。此套裝包含護手。\" ] }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "鎖子甲",
+    "name_en": "Chain Mail",
+    "description": " \"來源\": \"XPHB\", \"頁碼\": 219, \"srd52\": true, \"基本規則2024\": true, \"版本\": \"一\", \"型\": \"HA|XPHB\", \"稀有度\": \"無\", \"重量\": 55, \"價值\": 7500, \"稀有度\": \"無\", \"重量\": 55, \"價值\": 7500, \"true\" \"隱藏\"\": true, \"有背景圖片\"\": true }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "鍊式襯衫",
+    "name_en": "Chain Shirt",
+    "description": " \"source\": \"PHB\", \"page\": 144, \"srd\": true, \"basicRules\": true, \"reprintedAs\": [ \"Chain Shirt|XPHB\" ], \"edition\": \"classic\", \"type\": \"MA\", \"rarity\": \"none\", \"weight\": 20, \"0020,000: \"none\", \"weight\": 20,\" \"armor\": true, \"entries\": [ \"鎖子甲由環環相扣的金屬環製成，穿在衣物或皮革之間。這種盔甲能為穿著者的上半身提供一定的保護，並且外層衣物可以掩蓋金屬環相互摩擦的聲音。\" ] }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "鍊式襯衫",
+    "name_en": "Chain Shirt",
+    "description": " \"來源\": \"XPHB\", \"頁碼\": 219, \"srd52\": true, \"基本規則2024\": true, \"版本\": \"一\", \"類型\": \"MA|XPHB\", \"稀有度\": \"無\", \"重量\": 20, \"價值\": 5000, \"稀有度\": \"無\", \"重量\": 20, \"價值\": 5000, \"true\"true\" }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "西特恩",
+    "name_en": "Cittern",
+    "description": " \"source\": \"FRHoF\", \"page\": 132, \"type\": \"INS|XPHB\", \"rarity\": \"none\", \"weight\": 2, \"value\": 6500, \"hasFluff\": true, \"hasFluffImages\": true }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "俱樂部",
+    "name_en": "Club",
+    "description": " \"source\": \"PHB\", \"page\": 149, \"srd\": true, \"basicRules\": true, \"reprintedAs\": [ \"Club|XPHB\" ], \"edition\": \"classic\", \"type\": \"M\", \"rarity\": \"none\", \" \"property\": [ \"L\" ], \"dmg1\": \"1d4\", \"dmgType\": \"B\", \"club\": true, \"weapon\": true }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "俱樂部",
+    "name_en": "Club",
+    "description": " \"來源\": \"XPHB\", \"頁碼\": 215, \"srd52\": true, \"基本規則2024\": true, \"版本\": \"一\", \"類型\": \"M|XPHB\", \"稀有度\": \"無\", \"重量\": 2, \"價值\"M|XPHB\", \"稀有度\": \"無\", \"重量\": 2, \"價值\"M|XPHB\", \"稀有度\": \"無\", \"重量\": 2, \"價值\": 10, \"B\":\" 簡單\"\" \"緩慢|XPHB\" ], \"1傷害\": \"1d4\", \"傷害類型\": \"B\", \"棍棒\": true, \"武器\": true, \"有背景圖片\": true }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "弩箭",
+    "name_en": "Crossbow Bolt",
+    "description": " \"source\": \"PHB\", \"page\": 150, \"srd\": true, \"basicRules\": true, \"reprintedAs\": [ \"Bolt|XPHB\" ], \"edition\": \"classic\", \"type\": \"A\", \"rarity\": \"none\", \"weight\": 0.0",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "弩箭（20支）",
+    "name_en": "Crossbow Bolts (20)",
+    "description": " { \"source\": \"PHB\", \"page\": 150, \"srd\": true, \"basicRules\": true, \"reprintedAs\": [ \"Bolts (20)|XPHB\" ], \"edition\": \"classic\", \"type\": \"A\", \"rarity\": \"nolt\", \"weight\": \"classic\", \"type\": \"A\", \"rarity\": \"nolt\", \"webue\" \"packContents\": [ { \"item\": \"crossbow bolt|phb\", \"quantity\": 20 } ] }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "水晶",
+    "name_en": "Crystal",
+    "description": " \"group\": [ \"奧術焦點\" ], \"source\": \"玩家手冊\", \"page\": 151, \"srd\": true, \"basicRules\": true, \"reprintedAs\": [ \"水晶版|XPHB\" ], \"edition\": \"經典版\", \"type: \"SCF\", cf. \"value\": 1000 }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "水晶",
+    "name_en": "Crystal",
+    "description": " \"group\": [ \"奧術焦點\" ], \"source\": \"XPHB\", \"page\": 224, \"srd52\": true, \"edition\": \"one\", \"type\": \"SCF|XPHB\", \"scfType\": \"奧術\", \"rarity\": \"none\", \"weight\", \"scfType\": \"奧術\", \"rarity\": \"none\", \"weight\": 1000",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "匕首",
+    "name_en": "Dagger",
+    "description": " \"source\": \"PHB\", \"page\": 149, \"srd\": true, \"basicRules\": true, \"reprintedAs\": [ \"Dagger|XPHB\" ], \"edition\": \"classic\", \"type\": \"M\", \"rarity\": \"none\", \"weight\": 1」 \"property\": [ \"F\", \"L\", \"T\" ], \"range\": \"20/60\", \"dmg1\": \"1d4\", \"dmgType\": \"P\", \"dagger\": true, \"weapon\": true }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "匕首",
+    "name_en": "Dagger",
+    "description": " \"來源\": \"XPHB\", \"頁碼\": 215, \"srd52\": true, \"基本規則2024\": true, \"版本\": \"一\", \"類型\": \"M|XPHB\", \"稀有度\": \"無\", \"重量\": 1, \"價值\"M|XPHB\", \"稀有度\": \"無\", \"重量\": 1, \"價值\"M|XPHB\", \"稀有度\": \"無\", \"重量\": 1, \"價值\": 200, \"A:\" 簡單\"\" \"L|XPHB\", \"T|XPHB\" ], \"精通\": [ \"Nick|XPHB\" ], \"射程\": \"20/60\", \"1d4傷害\" \"傷害類型\": \"P\", \"匕首\": true, \"武器\": true, \"有背景圖片\"\": true }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "鏢",
+    "name_en": "Dart",
+    "description": " \"source\": \"PHB\", \"page\": 149, \"srd\": true, \"basicRules\": true, \"reprintedAs\": [ \"Dart|XPHB\" ], \"edition\": \"classic\", \"type\": \"R\", \"rarity\": \"none\", \"weight\": 0.2\" \"property\": [ \"F\", \"T\" ], \"range\": \"20/60\", \"dmg1\": \"1d4\", \"dmgType\": \"P\", \"weapon\": true }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "鏢",
+    "name_en": "Dart",
+    "description": " \"來源\": \"XPHB\", \"頁碼\": 215, \"srd52\": true, \"基本規則2024\": true, \"版本\": \"一\", \"類型\": \"R|XPHB\", \"稀有度\": \"無\", \"重量\": 0.25, \"R|XPHB\", \"稀有度\": \"無\", \"重量\": 0.25, \"R|XPHB\", \"稀有度\": \"無\", \"重量\": 0.25, \"R\": 簡單」, \"BPH\"\"\"\"\"\"\"\"\"\"\":\",\",\",\"\"\"\"\"\",\",\",\",\",\",\",\"\"\"\"\"\",\",\"\"\"\"幫助幫助位迪伊乾不短不接不戴著不戴著準備色,\"很長\"\" \"T|XPHB\" ], \"精通\": [ \"Vex|XPHB\" ], \"射程\": \"20/60\", \"1d4傷害\" \"傷害類型\": \"P\", \"武器\": true, \"有背景圖片\"\": true }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "雙刃彎刀",
+    "name_en": "Double-Bladed Scimitar",
+    "description": " \"來源\": \"ERLW\", \"頁碼\": 21, \"類型\": \"M\", \"ERLW\", \"頁碼\": 21, \"類型\": \"M\", \"稀有度\": \"無\", \"重量\": 6, \"價值\": 10000, \"武器類別\": \"武術\", \"屬性\": [ \"短」\", \"雙手\" ], \"傷害1\": \"d4, \"屬性\": \"true\" \"條目\": [ { \"類型\": \"條目\", \"名稱\": \"特殊\", \"條目\": [ \"如果你在本回合使用雙刃彎刀進行{@action 攻擊}動作，你可以立即使用一個附贈動作進行一次近戰攻擊。這次攻擊命中時造成{@damage 1d4}揮砍傷害，而非{@damage 2d4}。 \" ] } ], \"有特殊效果\": true }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "鼓",
+    "name_en": "Drum",
+    "description": " \"source\": \"PHB\", \"page\": 154, \"srd\": true, \"basicRules\": true, \"reprintedAs\": [ \"Drum|XPHB\" ], \"edition\": \"classic\", \"type\": \"INS\", \"rarity\": \"none\", \"weight\": 6, \"type\": \"6, \"rarity\": \"none\", \"weight\": 6, \"v",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "鼓",
+    "name_en": "Drum",
+    "description": " \"source\": \"XPHB\", \"page\": 221, \"srd52\": true, \"basicRules2024\": true, \"edition\": \"one\", \"type\": \"INS|XPHB\", \"rarity\": \"none\", \"weight\": 3, \"INS|XPHB\", \"rarity\": \"none\", \"weight\": 3, \"INS|XPHB\", \"rarity\": \"none\", \"weight\": 3, \"^\": 600\" \"list-hang-notitle\", \"items\": [ { \"name\": \"Ability:\", \"type\": \"item\", \"entries\": [ \"Charisma\" ] }, { \"name\": \"Utilize:\", \"type\": \"item\", \"entries\": [ \"Play anown tune( ] } ] }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "洋琴",
+    "name_en": "Dulcimer",
+    "description": " \"source\": \"PHB\", \"page\": 154, \"srd\": true, \"basicRules\": true, \"reprintedAs\": [ \"Dulcimer|XPHB\" ], \"edition\": \"classic\", \"type\": \"INS\", \"rarity\": \"none\", \"weight\": 10, \"20010 250: \"none\", \"weight\": 10」",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "洋琴",
+    "name_en": "Dulcimer",
+    "description": " \"source\": \"XPHB\", \"page\": 221, \"srd52\": true, \"basicRules2024\": true, \"edition\": \"one\", \"type\": \"INS|XPHB\", \"rarity\": \"none\", \"weight\": 10, \"^\": 250,\" 250:\" \"list-hang-notitle\", \"items\": [ { \"name\": \"Ability:\", \"type\": \"item\", \"entries\": [ \"Charisma\" ] }, { \"name\": \"Utilize:\", \"type\": \"item\", \"entries\": [ \"Play anown tune( ] } ] }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "能量電池",
+    "name_en": "Energy Cell",
+    "description": " \"source\": \"DMG\", \"page\": 268, \"reprintedAs\": [ \"Energy Cell|XDMG\" ], \"edition\": \"classic\", \"type\": \"AF|DMG\", \"rarity\": \"none\", \"weight\": 0.3125, \"Aco, mistu\": \"none\", \"weight\": 0.3125, \"JA, misristic\"\"\",\"Agy\"\", \"v.3125\" }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "能量電池",
+    "name_en": "Energy Cell",
+    "description": " \"來源\": \"XDMG\", \"頁碼\": 72, \"版本\": \"一\", \"類型\": \"AF|XDMG\", \"稀有度\": \"無\", \"重量\": 0.5, \"年代\": \"未來主義\", \"細胞能量\": true, \"其他標籤\": [ \"CNS\" ] }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "槍彈",
+    "name_en": "Firearm Bullet",
+    "description": " \"source\": \"XPHB\", \"page\": 222, \"edition\": \"one\", \"type\": \"A|XPHB\", \"rarity\": \"none\", \"weight\": 0.2, \"value\": 30, \"bulletFirearm\": true, \"pentries\": \"Fire\": 30, \"bulletFirearm\": true, \"\"m.al arm, \"Fire 長度\"Fire 長度, \"Fire 長度, \" 長度\"Fire 長度, 長度, 長度。 \"miscTags\": [ \"CNS\" ] }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "槍彈（10發）",
+    "name_en": "Firearm Bullets (10)",
+    "description": " \"來源\": \"XPHB\", \"頁碼\": 222, \"版本\": \"一\", \"類型\": \"A|XPHB\", \"稀有度\": \"無\", \"重量\": 2, \"價值\": 300, \"子彈類型：槍械\"\": true, \"條目\": [ \"現代槍械將被銷毀。 \" ], \"包裝內容\": [ { \"物品\": \"槍械子彈|XPHB\", \"數量\": 10 } ], \"其他標籤\": [ \"CNS\" ] }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "連枷",
+    "name_en": "Flail",
+    "description": " \"source\": \"PHB\", \"page\": 149, \"srd\": true, \"basicRules\": true, \"reprintedAs\": [ \"Flail|XPHB\" ], \"edition\": \"classic\", \"type\": \"M\", \"rarity\": \"none\", \"weight\": 2, \"type\": \"M\", \"rarity\": \"none\", \"weight\": 2, \"type\" \"dmg1\": \"1d8\", \"dmgType\": \"B\", \"weapon\": true }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "連枷",
+    "name_en": "Flail",
+    "description": " \"來源\": \"XPHB\", \"頁碼\": 215, \"srd52\": true, \"基本規則2024\": true, \"版本\": \"一\", \"類型\": \"M|XPHB\", \"稀有度\": \"無\", \"重量\": 2, \"價值\"M|XPHB\", \"稀有度\": \"無\", \"重量\": 2, \"價值\"M|XPHB\", \"稀有度\": \"無\", \"重量\": 2, \"價值\"M: 1000, \"X;\" \"1d8傷害\"\", \"傷害類型\": \"B\", \"武器\": true, \"有背景圖片\": true }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "長笛",
+    "name_en": "Flute",
+    "description": " \"source\": \"PHB\", \"page\": 154, \"srd\": true, \"basicRules\": true, \"reprintedAs\": [ \"Flute|XPHB\" ], \"edition\": \"classic\", \"type\": \"INS\", \"rarity\": \"none\", \"weight\": 1, \"value",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "長笛",
+    "name_en": "Flute",
+    "description": " \"source\": \"XPHB\", \"page\": 221, \"srd52\": true, \"basicRules2024\": true, \"edition\": \"one\", \"type\": \"INS|XPHB\", \"rarity\": \"none\", \"weight\": 1, \"INS|XPHB\", \"rarity\": \"none\", \"weight\": 1, \"INS|: 2000, \"\"ent:\"\" \"list-hang-notitle\", \"items\": [ { \"name\": \"Ability:\", \"type\": \"item\", \"entries\": [ \"Charisma\" ] }, { \"name\": \"Utilize:\", \"type\": \"item\", \"entries\": [ \"Play anown tune( ] } ] }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "戰戟",
+    "name_en": "Glaive",
+    "description": " \"source\": \"PHB\", \"page\": 149, \"srd\": true, \"basicRules\": true, \"reprintedAs\": [ \"Glaive|XPHB\" ], \"edition\": \"classic\", \"type\": \"M\", \"rarity\": \"none\", \"weight\": 6, \"ap0\": \"none\", \"weight\": 6, \"ap0」:005, \"we \"martial\", \"property\": [ \"H\", \"R\", \"2H\" ], \"dmg1\": \"1d10\", \"dmgType\": \"S\", \"polearm\": true, \"weapon\": true }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "戰戟",
+    "name_en": "Glaive",
+    "description": " \"來源\": \"XPHB\", \"頁碼\": 215, \"srd52\": true, \"基本規則2024\": true, \"版本\": \"一\", \"類型\": \"M|XPHB\", \"稀有度\": \"無\", \"重量\": 6, \"價值\"M|XPHB\", \"稀有度\": \"無\", \"重量\": 6, \"價值\"M|XPHB\", \"稀有度\": \"無\", \"重量\": 6, \"價值\"M|:2000, \"HPHX\" \"R|XPHB\", \"2H|XPHB\" ], \"精通\": [ \"掠奪|XPHB\" ], \"1點傷害\": \"1d10\", \"傷害類型\": \"S\", \"長柄武器\": true, \"武器\": true, \"有背景圖片\": true }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "格勞爾",
+    "name_en": "Glaur",
+    "description": " \"source\": \"SCAG\", \"page\": 124, \"type\": \"INS\", \"rarity\": \"none\", \"entries\": [ \"短而彎曲的號角，形似豐饒角。使用活塞演奏時，格勞爾號角（glaur）的聲音類似小號角；而沒有活塞的格勞爾號角。",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "大斧頭",
+    "name_en": "Greataxe",
+    "description": " \"source\": \"PHB\", \"page\": 149, \"srd\": true, \"basicRules\": true, \"reprintedAs\": [ \"Greataxe|XPHB\" ], \"edition\": \"classic\", \"type\": \"M\", \"rarity\": \"none\", \"weight\": 30\", \"v005,\" \"martial\", \"property\": [ \"H\", \"2H\" ], \"dmg1\": \"1d12\", \"dmgType\": \"S\", \"axe\": true, \"weapon\": true }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "大斧頭",
+    "name_en": "Greataxe",
+    "description": " \"來源\": \"XPHB\", \"頁碼\": 215, \"srd52\": true, \"基本規則2024\": true, \"版本\": \"一\", \"類型\": \"M|XPHB\", \"稀有度\": \"無\", \"重量\": 7, \"價值\"M|XPHB\", \"稀有度\": \"無\", \"重量\": 7, \"價值\"M|XPHB\", \"稀有度\": \"無\", \"重量\": 7, \"價值\"M|XPHB\", \"稀有度\": \"無\", \"重量\": 7, \"價值\"M:3000, \"^\" \"雙手|XPHB\" ], \"精通\": [ \"順劈|XPHB\" ], \"1d12傷害\" \"傷害類型\": \"S\", \"斧頭\": true, \"武器\": true, \"有背景圖片\": true }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "大俱樂部",
+    "name_en": "Greatclub",
+    "description": " \"source\": \"PHB\", \"page\": 149, \"srd\": true, \"basicRules\": true, \"reprintedAs\": [ \"Greatclub|XPHB\" ], \"edition\": \"classic\", \"type\": \"M\", \"rarity\": \"none\", \"weight\": 10\" \"simple\", \"property\": [ \"2H\" ], \"dmg1\": \"1d8\", \"dmgType\": \"B\", \"club\": true, \"weapon\": true }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "大俱樂部",
+    "name_en": "Greatclub",
+    "description": " \"來源\": \"XPHB\", \"頁碼\": 215, \"srd52\": true, \"基本規則2024\": true, \"頁碼\": 215, \"srd52\": \"M|XPHB\", \"稀有度\": \"無\", \"重量\": 10, \"價值\": 20」, \"稀有度\": \"無\", \"重量\": 10, \"價值\": 20, \"武器類別 [\" \"推擊|XPHB\" ], \"1傷害\": \"1d8\", \"傷害類型\": \"B\", \"棍棒\": true, \"武器\": true, \"有背景圖片\": true }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "大劍",
+    "name_en": "Greatsword",
+    "description": " \"source\": \"PHB\", \"page\": 149, \"srd\": true, \"basicRules\": true, \"reprintedAs\": [ \"Greatsword|XPHB\" ], \"edition\": \"classic\", \"type\": \"M\", \"rarity\": \"nnone\", \"weight\": 6, \"vx」 \"martial\", \"property\": [ \"H\", \"2H\" ], \"dmg1\": \"2d6\", \"dmgType\": \"S\", \"sword\": true, \"weapon\": true }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "大劍",
+    "name_en": "Greatsword",
+    "description": " \"來源\": \"XPHB\", \"頁碼\": 215, \"srd52\": true, \"基本規則2024\": true, \"版本\": \"一\", \"類型\": \"M|XPHB\", \"稀有度\": \"無\", \"重量\": 6, \"價值\"M|XPHB\", \"稀有度\": \"無\", \"重量\": 6, \"價值\"M|XPHB\", \"稀有度\": \"無\", \"重量\": 6, \"價值\"M| 5000, \"APHX\" \"2H|XPHB\" ], \"精通\": [ \"掠奪|XPHB\" ], \"1點傷害\": \"2d6\", \"傷害類型\": \"S\", \"劍\": true, \"武器\": true, \"有背景圖片\": true }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "戟",
+    "name_en": "Halberd",
+    "description": " \"source\": \"PHB\", \"page\": 149, \"srd\": true, \"basicRules\": true, \"reprintedAs\": [ \"戟|XPHB\" ], \"edition\": \"classic\", \"type\": \"M\", \"rarity\": \"none\", \"weight\": 6, \"type\": \"M\", \"rarity\": \"none\", \"weight\": 6, \"type\": \"M\", \"rarity\": \"none\", \"weight \"property\": [ \"H\", \"R\", \"2H\" ], \"dmg1\": \"1d10\", \"dmgType\": \"S\", \"polearm\": true, \"weapon\": true }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "戟",
+    "name_en": "Halberd",
+    "description": " \"來源\": \"XPHB\", \"頁碼\": 215, \"srd52\": true, \"基本規則2024\": true, \"版本\": \"一\", \"類型\": \"M|XPHB\", \"稀有度\": \"無\", \"重量\": 6, \"價值\"M|XPHB\", \"稀有度\": \"無\", \"重量\": 6, \"價值\"M|XPHB\", \"稀有度\": \"無\", \"重量\": 6, \"價值\"M|:2000, \"HPHX\" \"R|XPHB\", \"2H|XPHB\" ], \"精通\": [ \"順劈|XPHB\" ], \"1d10傷害\": \"1d10\", \"傷害類型\": \"S\", \"長柄武器\": true, \"武器\": true, \"有背景圖片\": true }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "半身板甲",
+    "name_en": "Half Plate Armor",
+    "description": " \"source\": \"PHB\", \"page\": 145, \"srd\": true, \"basicRules\": true, \"reprintedAs\": [ \"半身板甲|XPHB\" ], \"edition\": \"classic\", \"type\": \"MA\", \"rarity\": \"none\", \"weight\": 40, \"\": \"MA\", \"rarity\": \"none\", \"weight\": 40, \" 50: 40:00 \"armor\": true, \"stealth\": true, \"entries\": [ \"半身板甲由覆蓋穿戴者大部分身體的金屬板組成。除了用皮帶固定的簡單脛甲外，它不包含腿部防護。\" ] }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "半身板甲",
+    "name_en": "Half Plate Armor",
+    "description": " \"來源\": \"XPHB\", \"頁碼\": 219, \"srd52\": true, \"基本規則2024\": true, \"版本\": \"一\", \"型別價值\": \"MA|XPHB\", \"稀有度\": \"無\", \"重量\": 40, \"值\"MA|XPHB\", \"稀有度\": \"無\", \"重量\": 40, \"匿價值\": 75000, \"true\" true, \"有背景圖片\": true }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "手弩",
+    "name_en": "Hand Crossbow",
+    "description": " \"source\": \"PHB\", \"page\": 149, \"srd\": true, \"basicRules\": true, \"reprintedAs\": [ \"Hand Crossbow|XPHB\" ], \"edition\": \"classic\", \"type\": \"R\", \"rarity\": \"none\", \"weight\": 36\" \"martial\", \"property\": [ \"A\", \"L\", \"LD\" ], \"range\": \"30/120\", \"dmg1\": \"1d6\", \"dmgType\": \"P\", \"crossbow\": true, \"weapon\": true, \"ammoType\": \"P\", \"crossbow\": true, \"weapon\": true, \"ammoType\": \"P\", \"crossbow\": true, \"weapon\": true, \"ammoType\": \"Pcrossbow b|bcross\"",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "手弩",
+    "name_en": "Hand Crossbow",
+    "description": " \"來源\": \"XPHB\", \"頁碼\": 215, \"srd52\": true, \"基本規則2024\": true, \"版本\": \"一\", \"型\": \"R|XPHB\", \"稀有度\": \"無\", \"重量\": 3, \"價值\"R|XPHB\", \"稀有度\": \"無\", \"重量\": 3, \"價值\"R|XPHB\", \"稀有度\": \"無\", \"重量\": 3, \"價值\"R|: 7500」, \"B.\" \"L|XPHB\", \"LD|XPHB\" ], \"精通\": [ \"Vex|XPHB\" ], \"射程\": \"30/120\", \"1d6傷害\" \"傷害類型\": \"物理\", \"弩\": true, \"武器\": true, \"彈藥類型\": \"弩|XPHB\", \"有背景圖片\"",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "手鼓",
+    "name_en": "Hand Drum",
+    "description": " \"source\": \"SCAG\", \"page\": 124, \"type\": \"INS\", \"rarity\": \"none\", \"entries\": [ \"一種側面裝有把手的雙面皮鼓。\" ] }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "手斧",
+    "name_en": "Handaxe",
+    "description": " \"source\": \"PHB\", \"page\": 149, \"srd\": true, \"basicRules\": true, \"reprintedAs\": [ \"Handaxe|XPHB\" ], \"edition\": \"classic\", \"type\": \"M\", \"rarity\": \"nn\", \"weight\": 2\", \"apue\": \"n」, \"weight\": 2\" \"simple\", \"property\": [ \"L\", \"T\" ], \"range\": \"20/60\", \"dmg1\": \"1d6\", \"dmgType\": \"S\", \"axe\": true, \"weapon\": true }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "手斧",
+    "name_en": "Handaxe",
+    "description": " \"來源\": \"XPHB\", \"頁碼\": 215, \"srd52\": true, \"基本規則2024\": true, \"版本\": \"一\", \"類型\": \"M|XPHB\", \"稀有度\": \"無\", \"重量\": 2, \"價值\"M|XPHB\", \"稀有度\": \"無\", \"重量\": 2, \"價值\"M|XPHB\", \"稀有度\": \"無\", \"重量\": 2, \"價值\":500, \"APHX\" ], \"精通\": [ \"Vex|XPHB\" ], \"射程\": \"20/60\", \"1d6傷害\"\", \"傷害類型\": \"S\", \"斧頭\": true, \"武器\": true, \"有背景圖片\": true }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "重型弩",
+    "name_en": "Heavy Crossbow",
+    "description": " \"source\": \"PHB\", \"page\": 149, \"srd\": true, \"basicRules\": true, \"reprintedAs\": [ \"Heavy Crossbow|XPHB\" ], \"edition\": \"classic\", \"type\": \"R\", \"rarity\": \"nnon\",weight\": \"class \"martial\", \"property\": [ \"A\", \"H\", \"LD\", \"2H\" ], \"range\": \"100/400\", \"dmg1\": \"1d10\", \"dmgType\": \"P\", \"crossbow\": true, \"weapon\": true, \"ambowType\": \"P\", \"crossbow\": true, \"weapon\": true, \"ambowType\": \"b^\"",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "重型弩",
+    "name_en": "Heavy Crossbow",
+    "description": " \"來源\": \"XPHB\", \"頁碼\": 215, \"srd52\": true, \"基本規則2024\": true, \"版本\": \"一\", \"型別\": \"R|XPHB\", \"稀有度\": \"無\", \"重量\": 18, \"價值\": 5000, \"稀有度\": \"無\", \"重量\": 18, \"價值\": 5000, \"AX\", \"BPHAX\":\"n, \"AX\": 3000, \"Ap\": 用軍武器類別\" \"H|XPHB\", \"LD|XPHB\", \"2H|XPHB\" ], \"精通\": [ \"推擊|XPHB\" ], \"射程\": \"100/400\", \"傷害1\": \"1d10\", \"傷害類型\": \"P\", \"\": true, \"武器彈藥\": 圖片",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "隱藏盔甲",
+    "name_en": "Hide Armor",
+    "description": " \"source\": \"PHB\", \"page\": 144, \"srd\": true, \"basicRules\": true, \"reprintedAs\": [ \"Hide Armor|XPHB\" ], \"edition\": \"classic\", \"type\": \"MA\", \"rarity\": \"none\", \"weight\": 12, \"0012,000: \"none\", \"weight\": 12」 \"armor\": true, \"entries\": [ \"這種簡陋的盔甲由厚厚的毛皮製成。野蠻部落、邪惡的類人生物以及其他缺乏製造更好盔甲所需工具和材料的人們通常穿著它。\" ] }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "隱藏盔甲",
+    "name_en": "Hide Armor",
+    "description": " \"source\": \"XPHB\", \"page\": 219, \"srd52\": true, \"basicRules2024\": true, \"edition\": \"one\", \"type\": \"MA|XPHB\", \"rarity\": \"none\", \"weight\": 12, \"MA|: 100,\" \"hasFluffImages\": true }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "鉤狀短矛",
+    "name_en": "Hooked Shortspear",
+    "description": " \"source\": \"OotA\", \"page\": 224, \"type\": \"M\", \"rarity\": \"unknown\", \"weight\": 2, \"weaponCategory\": \"martial\", \"property\": [ \"L\" ], \"dmg1\": \"1d4\", \"dmgType\" \"使用此武器命中時，使用者可以放棄造成傷害，並嘗試絆倒目標。在這種情況下，目標必須通過一次力量豁免檢定，否則將倒地（@condition prone）。豁免難度等級為 8 + 使用者的力量調整值 + 使用者的熟練加值。\" ] }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "胡帕克",
+    "name_en": "Hoopak",
+    "description": " \"來源\": \"DSotDQ\", \"頁碼\": 188, \"類型\": \"M\", \"稀有度\": \"無\", \"重量\": 2, \"價值\": 10, \"武器類別\": \"軍用\", \"屬性\": [ \"攻擊\", \"射擊\", \"單手\", \"雙手傷害\": \"軍用\", \"屬性\": [ \"攻擊\", \"傷害\", \"單手\", \" 雙手」], \"10\"4\", \"d\" \"物理\", \"武器\": true, \"條目\": [ \"投擲棒是一根結實的棍子，一端是投石索，另一端是尖頭。\", { \"類型\": \"條目\", \"名稱\": \"特殊\", \"條目\": [ \"當你用這件武器進行近戰攻擊時，你忽略它的彈藥屬性。 1d4} 點鈍擊傷害。",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "喇叭",
+    "name_en": "Horn",
+    "description": " \"source\": \"PHB\", \"page\": 154, \"srd\": true, \"basicRules\": true, \"reprintedAs\": [ \"Horn|XPHB\" ], \"edition\": \"classic\", \"type\": \"INS\", \"rarity\": \"none\", \"weight\": 2, \"type\": \"INS\", \"rarity\": \"none\", \"weight\": 30」",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "喇叭",
+    "name_en": "Horn",
+    "description": " \"source\": \"XPHB\", \"page\": 221, \"srd52\": true, \"basicRules2024\": true, \"edition\": \"one\", \"type\": \"INS|XPHB\", \"rarity\": \"none\", \"weight\": 2, \"INS|XPHB\", \"rarity\": \"none\", \"weight\": 2, \"INS|: 300, \"\"ent:\"\" \"list-hang-notitle\", \"items\": [ { \"name\": \"Ability:\", \"type\": \"item\", \"entries\": [ \"Charisma\" ] }, { \"name\": \"Utilize:\", \"type\": \"item\", \"entries\": [ \"Play anown tune( ] } ] }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "獵槍",
+    "name_en": "Hunting Rifle",
+    "description": " \"source\": \"DMG\", \"page\": 268, \"reprintedAs\": [ \"Hunting Rifle|XDMG\" ], \"edition\": \"classic\", \"type\": \"R\", \"rarity\": \"none\", \"weight\": 8, \"weonCategoage\" \"RLD\", \"2H\" ], \"range\": \"80/240\", \"reload\": 5, \"dmg1\": \"2d10\", \"dmgType\": \"P\", \"firearm\": true, \"weapon\": true, \"ammoType\": \"modern bulfirearm\": true, \"weapon\": true, \"ammoType\": \"modern bullet\" }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "獵槍",
+    "name_en": "Hunting Rifle",
+    "description": " \"來源\": \"XDMG\", \"頁碼\": 73, \"版本\": \"一\", \"類型\": \"R|XPHB\", \"稀有度\": \"無\", \"重量\": 8, \"價值稀有度\": \"稀有\", \"武器類別\": \"軍用\", \"時代\": \"現代」, \"45\", \"R4445\", \"DMG\"X\", \"R445\", \"屬性\": \"R4445\", \"R44445\", \"D4445\", \"D445\", k4445\", \"D4445\", \"D445\",\"T445\"), \"D44c5\",\")」。 \"精通\": [ \"慢速|XPHB\" ], \"射程\": \"80/240\", \"裝填時間\": 5, \"傷害1\": \"2d10\", \"傷害類型\": \"物理\", \"槍械\": true, \"武器\": true, \"彈藥類型\": \"槍械子彈|XPHB\" }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "標槍",
+    "name_en": "Javelin",
+    "description": " \"source\": \"PHB\", \"page\": 149, \"srd\": true, \"basicRules\": true, \"reprintedAs\": [ \"Javelin|XPHB\" ], \"edition\": \"classic\", \"type\": \"M\", \"rarity\": \"none\", \"weight\": 2\", \"type\": \"M\", \"rarity\": \"none\", \"weight\": 2」 \"property\": [ \"T\" ], \"range\": \"30/120\", \"dmg1\": \"1d6\", \"dmgType\": \"P\", \"spear\": true, \"weapon\": true }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "標槍",
+    "name_en": "Javelin",
+    "description": " \"來源\": \"XPHB\", \"頁碼\": 215, \"srd52\": true, \"基本規則2024\": true, \"版本\": \"一\", \"類型\": \"M|XPHB\", \"稀有度\": \"無\", \"重量\": 2, \"價值\"M|XPHB\", \"稀有度\": \"無\", \"重量\": 2, \"價值\"M|XPHB\", \"稀有度\": \"無\", \"重量\": 2, \"價值\": 50, \"BPH\": \"T.\" \"緩慢|XPHB\" ], \"射程\": \"30/120\", \"1d6傷害\" \"傷害類型\": \"物理\", \"長矛\": true, \"武器\": true, \"有背景圖片\"\": true }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "槊",
+    "name_en": "Lance",
+    "description": " \"source\": \"PHB\", \"page\": 149, \"srd\": true, \"basicRules\": true, \"reprintedAs\": [ \"Lance|XPHB\" ], \"edition\": \"classic\", \"type\": \"M\", \"rarity\": \"none\", \"weight\": 6, \"type\": \"M\", \"rarity\": \"none\", \"weight\":6, \"\" \"property\": [ \"R\", \"S\" ], \"dmg1\": \"1d12\", \"dmgType\": \"P\", \"lance\": true, \"weapon\": true, \"entries\": [ { \"type\": \"entries\", \"name\": \"Special\", \"entries\": [ { \"type\": \"entries\", \"name\": \"Special\", \"entries\": [ \"當你使用長矛攻擊5尺內的目標時，你處於劣勢。此外，當你未騎乘時，長矛需要雙手才能揮舞。\" ] } ] }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "槊",
+    "name_en": "Lance",
+    "description": " \"source\": \"XPHB\", \"page\": 215, \"srd52\": true, \"basicRules2024\": true, \"edition\": \"one\", \"type\": \"M|XPHB\", \"rarity\": \"none\", \"weight\": 6, \"M|XPHB\", \"rarity\": \"none\", \"weight\": 6, \"M|XPHB\", \"rarity\": \"none\", \"weight\": 6, \"M00: 10000\",\",\",\" \"H|XPHB\", \"R|XPHB\", { \"uid\": \"2H|XPHB\", \"note\": \"unless mounted\" } ], \"mastery\": [ \"Topple|XPHB\" ], \"dmg1\": \"1d10\", \"dmgType\": \"P\", \"lance\": mg1\": \"1d10\", \"dmgType\": \"P\", \"lance\": true\" \"在非騎乘狀態下，長矛需要雙手才能揮舞。\" ], \"hasFluffImages\": true }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "雷射手槍",
+    "name_en": "Laser Pistol",
+    "description": " \"source\": \"DMG\", \"page\": 268, \"reprintedAs\": [ \"雷射手槍|XDMG\" ], \"edition\": \"經典\", \"type\": \"R\", \"rarity\": \"無\", \"weight\": 2, \"weaponCategory\": \"軍用\": \"無\", \"weight\": 2, \"weaponCategory\": \"軍用\", \"D4: \"未來\" \"range\": \"40/120\", \"reload\": 50, \"dmg1\": \"3d6\", \"dmgType\": \"R\", \"firearm\": true, \"weapon\": true, \"ammoType\": \"能源電池\" }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "雷射手槍",
+    "name_en": "Laser Pistol",
+    "description": " \"來源\": \"XDMG\", \"頁碼\": 73, \"版本\": \"一\", \"類型\": \"R|XPHB\", \"稀有度\": \"無\", \"重量\": 2, \"價值稀有度\": \"非常稀有\", \"武器類別\": \"軍用\", \"時代\": \"未來\", \"R4, 非常稀有\", \"武器類別 [ \"Vex|XPHB\" ], \"射程\": \"40/120\", \"裝填時間\": 50, \"傷害1\": \"3d6\", \"傷害類型\": \"R\", \"槍械\": true, \"武器\": true, \"彈藥類型\": \"能量電池|xdmg\" }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "雷射步槍",
+    "name_en": "Laser Rifle",
+    "description": " \"source\": \"DMG\", \"page\": 268, \"reprintedAs\": [ \"雷射步槍|XDMG\" ], \"edition\": \"經典\", \"type\": \"R\", \"rarity\": \"無\", \"weight\": 7, \"weaponCategory\": \"軍用\": \"無\", \"weight\": 7, \"weaponCategory\": \"軍用\", \"RD: \"Runter\" ], \"range\": \"100/300\", \"reload\": 30, \"dmg1\": \"3d8\", \"dmgType\": \"R\", \"firearm\": true, \"weapon\": true, \"ammoType\": \"能量電池\" }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "雷射步槍",
+    "name_en": "Laser Rifle",
+    "description": " \"來源\": \"XDMG\", \"頁碼\": 73, \"版本\": \"一\", \"類型\": \"R|XPHB\", \"稀有度\": \"無\", \"重量\": 7, \"價值稀有度\": \"非常稀有\", \"武器類別\": \"軍用\", \"時代\": \"未來\", \"R4445\", \"A4MG\", \"R445\": \"未來\", \"R44445\"ppMG\" \"精通\": [ \"慢速|XPHB\" ], \"射程\": \"100/300\", \"裝填時間\": 30, \"傷害1\": \"3d8\", \"傷害類型\": \"R\", \"槍械\": true, \"武器\": true, \"彈藥類型\": \"能量電池|xdmg\" }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "皮革盔甲",
+    "name_en": "Leather Armor",
+    "description": " \"source\": \"PHB\", \"page\": 144, \"srd\": true, \"basicRules\": true, \"reprintedAs\": [ \"皮甲|XPHB\" ], \"edition\": \"classic\", \"type\": \"LA\", \"rarity\": \"none\", \"weight\": 10, \"type\": \"LA\", \"rarity\": \"none\", \"weight\": 10,\" true, \"entries\": [ \"這件盔甲的胸甲和肩甲由經油煮硬化的皮革製成。盔甲的其餘部分則由更柔軟、更靈活的材料製成。\" ] }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "皮革盔甲",
+    "name_en": "Leather Armor",
+    "description": " \"source\": \"XPHB\", \"page\": 219, \"srd52\": true, \"basicRules2024\": true, \"edition\": \"one\", \"type\": \"LA|XPHB\", \"rarity\": \"none\", \"weight\": 10, \"LA|XPHB\", \"rarity\": \"none\", \"weight\": 10, \"LA| \"hasFluffImages\": true }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "輕型弩",
+    "name_en": "Light Crossbow",
+    "description": " \"source\": \"PHB\", \"page\": 149, \"srd\": true, \"basicRules\": true, \"reprintedAs\": [ \"Light Crossbow|XPHB\" ], \"edition\": \"classic\", \"type\": \"R\", \"rarity\": \"nnone\", \"weight\": 5, \"v005,\" \"simple\", \"property\": [ \"A\", \"LD\", \"2H\" ], \"range\": \"80/320\", \"dmg1\": \"1d8\", \"dmgType\": \"P\", \"crossbow\": true, \"weapon\": true, \"ammoType\": \"P\", \"crossbow\": true, \"weapon\": true, \"ammoType\": \"P\", \"crossbow\": true, \"weapon\": true, \"ammoType\": \"crossbow b|bolt\"",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "輕型弩",
+    "name_en": "Light Crossbow",
+    "description": " \"來源\": \"XPHB\", \"頁碼\": 215, \"srd52\": true, \"基本規則2024\": true, \"版本\": \"一\", \"型\": \"R|XPHB\", \"稀有度\": \"無\", \"重量\": 5, \"價值\"R|XPHB\", \"稀有度\": \"無\", \"重量\": 5, \"價值\"R|XPHB\", \"稀有度\": \"無\", \"重量\": 5, \"價值\": 2500」, \"APH\"B.\" \"LD|XPHB\", \"2H|XPHB\" ], \"精通\": [ \"慢速|XPHB\" ], \"射程\": \"80/320\", \"傷害1\": \"1d8\", \"傷害類型\": \"物理\", \"弩\": true, \"弩武器\": true, \"彈藥類型\": \" 射彈型擁有圖片\"",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "輕錘",
+    "name_en": "Light Hammer",
+    "description": " \"source\": \"PHB\", \"page\": 149, \"srd\": true, \"basicRules\": true, \"reprintedAs\": [ \"Light Hammer|XPHB\" ], \"edition\": \"classic\", \"type\": \"M\", \"rarity\": \"none\", \"weight\": 2」 \"property\": [ \"L\", \"T\" ], \"range\": \"20/60\", \"dmg1\": \"1d4\", \"dmgType\": \"B\", \"hammer\": true, \"weapon\": true }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "輕錘",
+    "name_en": "Light Hammer",
+    "description": " \"來源\": \"XPHB\", \"頁碼\": 215, \"srd52\": true, \"基本規則2024\": true, \"版本\": \"一\", \"類型\": \"M|XPHB\", \"稀有度\": \"無\", \"重量\": 2, \"價值\"M|XPHB\", \"稀有度\": \"無\", \"重量\": 2, \"價值\"M|XPHB\", \"稀有度\": \"無\", \"重量\": 2, \"價值\": 200, \"APHX\" ], \"精通\": [ \"Nick|XPHB\" ], \"射程\": \"20/60\", \"1d4傷害\" \"傷害類型\": \"B\", \"錘子\": true, \"武器\": true, \"有背景圖片\"\": true }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "輕型連發弩",
+    "name_en": "Light Repeating Crossbow",
+    "description": " \"source\": \"OotA\", \"page\": 224, \"type\": \"R\", \"rarity\": \"unknown\", \"weight\": 5, \"weaponCategory\": \"simple\", \"property\": [ \"A\", \"2H\" ], \"range\": \"simple\", \"property\": [ \"A\", \"2H\" ], \"range\": \"simple\", \"property\": [ \"A\", \"2H\" ], \"range\": \"simple\", \"property\": [ \"A\", \"2H\" ], \"range\": \"40/1600\" \"crossbow\": true, \"weapon\": true, \"entries\": [ \"這把弩配有一個最多可容納六支弩箭的彈藥筒。射擊後會自動重新裝填，直到彈藥筒內的彈藥耗盡。重新裝填彈藥筒需要一個動作。\" ], \"ammoType\": \"crossbow bolt|phb\" } }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "長弓",
+    "name_en": "Longbow",
+    "description": " \"source\": \"PHB\", \"page\": 149, \"srd\": true, \"basicRules\": true, \"reprintedAs\": [ \"Longbow|XPHB\" ], \"edition\": \"classic\", \"type\": \"R\", \"rarity\": \"none\", \"weight\": 2, \"ap0\": 5, \"ap00050, \"we \"martial\", \"property\": [ \"A\", \"H\", \"2H\" ], \"range\": \"150/600\", \"dmg1\": \"1d8\", \"dmgType\": \"P\", \"bow\": true, \"weapon\": true, \"ammoType\": \"P\", \"bow\": true, \"weapon\": true, \"ammoType\": \"P|phb\" }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "長弓",
+    "name_en": "Longbow",
+    "description": " \"來源\": \"XPHB\", \"頁碼\": 215, \"srd52\": true, \"基本規則2024\": true, \"版本\": \"一\", \"類型\": \"R|XPHB\", \"稀有度\": \"無\", \"重量\": 2, \"價值\"R|XPHB\", \"稀有度\": \"無\", \"重量\": 2, \"價值\"R|XPHB\", \"稀有度\": \"無\", \"重量\": 2, \"價值\": 5000, \"X: 1\" \"H|XPHB\", \"2H|XPHB\" ], \"精通\": [ \"慢速|XPHB\" ], \"射程\": \"150/600\", \"傷害1\": \"1d8\", \"傷害型別\": \"物理\", \"弓\": true, \"武器\": true, \"彈藥類型\": \" 有背景圖片\"",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "長角牛",
+    "name_en": "Longhorn",
+    "description": " \"source\": \"SCAG\", \"page\": 124, \"type\": \"INS\", \"rarity\": \"none\", \"entries\": [ \"一支製作精良的費倫長笛，僅在技藝精湛的工匠聚集的地區才能找到，例如大城市或精靈聚居地。\" ] }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "長劍",
+    "name_en": "Longsword",
+    "description": " \"source\": \"PHB\", \"page\": 149, \"srd\": true, \"basicRules\": true, \"reprintedAs\": [ \"Longsword|XPHB\" ], \"edition\": \"classic\", \"type\": \"M\", \"rarity\": \"none\", \"weight\": 3, \"v005,\" \"martial\", \"property\": [ \"V\" ], \"dmg1\": \"1d8\", \"dmgType\": \"S\", \"dmg2\": \"1d10\", \"sword\": true, \"weapon\": true }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "長劍",
+    "name_en": "Longsword",
+    "description": " \"來源\": \"XPHB\", \"頁碼\": 215, \"srd52\": true, \"基本規則2024\": true, \"版本\": \"一\", \"類型\": \"M|XPHB\", \"稀有度\": \"無\", \"重量\": 3, \"價值\"M|XPHB\", \"稀有度\": \"無\", \"重量\": 3, \"價值\"M|XPHB\", \"稀有度\": \"無\", \"重量\": 3, \"價值\"M| 1500」, \"B.\" [ \"Sap|XPHB\" ], \"傷害1\": \"1d8\", \"傷害類型\": \"S\", \"傷害2\": \"1d10\", \"劍\": true, \"武器\": true, \"有背景圖片\": true }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "琵琶",
+    "name_en": "Lute",
+    "description": " \"source\": \"PHB\", \"page\": 154, \"srd\": true, \"basicRules\": true, \"reprintedAs\": [ \"Lute|XPHB\" ], \"edition\": \"classic\", \"type\": \"INS\", \"rarity\": \"none\", \"weight\": 2, \"type\": \"INS\", \"rarity\": \"none\", \"weight\": 2, \"\"",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "琵琶",
+    "name_en": "Lute",
+    "description": " \"source\": \"XPHB\", \"page\": 221, \"srd52\": true, \"basicRules2024\": true, \"edition\": \"one\", \"type\": \"INS|XPHB\", \"rarity\": \"none\", \"weight\": 2, \"INS|XPHB\", \"rarity\": \"none\", \"weight\": 2, \"INS|: 3500\" \"list-hang-notitle\", \"items\": [ { \"name\": \"Ability:\", \"type\": \"item\", \"entries\": [ \"Charisma\" ] }, { \"name\": \"Utilize:\", \"type\": \"item\", \"entries\": [ \"Play anown tune( ] } ] }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "豎琴",
+    "name_en": "Lyre",
+    "description": " \"source\": \"PHB\", \"page\": 154, \"srd\": true, \"basicRules\": true, \"reprintedAs\": [ \"Lyre|XPHB\" ], \"edition\": \"classic\", \"type\": \"INS\", \"rarity\": \"none\", \"weight\": 2」",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "豎琴",
+    "name_en": "Lyre",
+    "description": " \"source\": \"XPHB\", \"page\": 221, \"srd52\": true, \"basicRules2024\": true, \"edition\": \"one\", \"type\": \"INS|XPHB\", \"rarity\": \"none\", \"weight\": 2, \"INS|XPHB\", \"rarity\": \"none\", \"weight\": 2, \"INS|: 3000\" \"list-hang-notitle\", \"items\": [ { \"name\": \"Ability:\", \"type\": \"item\", \"entries\": [ \"Charisma\" ] }, { \"name\": \"Utilize:\", \"type\": \"item\", \"entries\": [ \"Play anown tune( ] } ] }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "槌",
+    "name_en": "Mace",
+    "description": " \"source\": \"PHB\", \"page\": 149, \"srd\": true, \"basicRules\": true, \"reprintedAs\": [ \"Mace|XPHB\" ], \"edition\": \"classic\", \"type\": \"M\", \"rarity\": \"none\", \"weight\": 4, \"type\": \"M\", \"rarity\": \"none\", \"weight\": 4, \"\"pp \"dmg1\": \"1d6\", \"dmgType\": \"B\", \"mace\": true, \"weapon\": true }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "槌",
+    "name_en": "Mace",
+    "description": " \"來源\": \"XPHB\", \"頁碼\": 215, \"srd52\": true, \"基本規則2024\": true, \"版本\": \"一\", \"類型\": \"M|XPHB\", \"稀有度\": \"無\", \"重量\": 4, \"價值\"M|XPHB\", \"稀有度\": \"無\", \"重量\": 4, \"價值\"M|XPHB\", \"稀有度\": \"無\", \"重量\": 4, \"價值\"M|XPHB\", \"稀有度\": \"無\", \"重量\": 4, \"價值\"M|XPHB\", \"稀有度\": \"無\", \"重量\": 4, \"價值\"M|:500」, \"B50,\"p.\" \"1d6傷害\",\"傷害類型\": \"B\", \"釘頭鎚\": true, \"武器\": true, \"有背景圖片\": true }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "打傷",
+    "name_en": "Maul",
+    "description": " \"source\": \"PHB\", \"page\": 149, \"srd\": true, \"basicRules\": true, \"reprintedAs\": [ \"Maul|XPHB\" ], \"edition\": \"classic\", \"type\": \"M\", \"rarity\": \"none\", \"weight\": 10, \"type\": \"M\", “ \"martial\", \"property\": [ \"H\", \"2H\" ], \"dmg1\": \"2d6\", \"dmgType\": \"B\", \"hammer\": true, \"weapon\": true }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "打傷",
+    "name_en": "Maul",
+    "description": " \"來源\": \"XPHB\", \"頁碼\": 215, \"srd52\": true, \"基本規則2024\": true, \"版本\": \"一\", \"型別\": \"M|XPHB\", \"稀有度\": \"無\", \"重量\": 10, \"價值\"M|XPHB\", \"稀有度\": \"無\", \"重量\": 10, \"價值\"M|XPHB\", \"稀有度\": \"無\", \"重量\": 10, \"值\"M|XPHB\", \"稀有度\": \"無\", \"重量\": 10, \"價值\"值\" \"雙手|XPHB\" ], \"精通\": [ \"擊倒|XPHB\" ], \"1級傷害\": \"2d6\", \"傷害類型\": \"B\", \"錘子\": true, \"武器\": true, \"有背景圖片\": true }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "現代子彈",
+    "name_en": "Modern Bullet",
+    "description": " \"source\": \"DMG\", \"page\": 268, \"edition\": \"classic\", \"type\": \"AF|DMG\", \"rarity\": \"none\", \"weight\": 0.1, \"age\": \"modern\", \"bulletFirearm\": true, \"miscTags\": \"Cmodern\", \"bulletFirearm\": true, \"miscTags\": \"Cmodern\") } \"CCNS\"",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "現代子彈（10）",
+    "name_en": "Modern Bullets (10)",
+    "description": " { \"來源\": \"DMG\", \"頁碼\": 268, \"版本\": \"經典\", \"類型\": \"AF|DMG\", \"稀有度\": \"無\", \"重量\": 1, \"年代\": \"現代\", \"子彈型別\": true, \"包內容\": [ { \"NS: \"現代物品\": \"DNS:\"D.\"D.: \"H: \"FNS: \"DNS:\" 現代其他物品」",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "晨星",
+    "name_en": "Morningstar",
+    "description": " \"source\": \"PHB\", \"page\": 149, \"srd\": true, \"basicRules\": true, \"reprintedAs\": [ \"Morningstar|XPHB\" ], \"edition\": \"classic\", \"type\": \"M\", \"rarity\": \"none\", \"weight\": 4, \"ap0\" 4, \" \"martial\", \"dmg1\": \"1d8\", \"dmgType\": \"P\", \"mace\": true, \"weapon\": true }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "晨星",
+    "name_en": "Morningstar",
+    "description": " \"來源\": \"XPHB\", \"頁碼\": 215, \"srd52\": true, \"基本規則2024\": true, \"版本\": \"一\", \"類型\": \"M|XPHB\", \"稀有度\": \"無\", \"重量\": 4, \"價值\"M|XPHB\", \"稀有度\": \"無\", \"重量\": 4, \"價值\"M|XPHB\", \"稀有度\": \"無\", \"重量\": 4, \"價值\"M|XPHB\", \"稀有度\": \"無「「精」」類： 4.\" \"1d8傷害\"\", \"傷害類型\": \"P\", \"釘頭鎚\": true, \"武器\": true, \"有背景圖片\": true }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "滑膛槍",
+    "name_en": "Musket",
+    "description": " \"source\": \"DMG\", \"page\": 268, \"reprintedAs\": [ \"Musket|XPHB\" ], \"edition\": \"classic\", \"type\": \"R\", \"rarity\": \"none\", \"weight\": 10, \"value\": 50000, \"weial,\" \"property\": [ \"AF|DMG\", \"LD\", \"2H\" ], \"range\": \"40/120\", \"dmg1\": \"1d12\", \"dmgType\": \"P\", \"firearm\": true, \"weapon\": true, \"ammoType\": \"P\", \"firearm\": true, \"weapon\": true, \"ammoType\": \"renaissance bullet\"",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "滑膛槍",
+    "name_en": "Musket",
+    "description": " \"來源\": \"XPHB\", \"頁碼\": 215, \"srd52\": true, \"基本規則2024\": true, \"版本\": \"一\", \"型別\": \"R|XPHB\", \"稀有度\": \"無\", \"重量\": 10, \"價值\": 50000,\", \"B.\" \"LD|XPHB\", \"2H|XPHB\" ], \"精通\": [ \"慢速|XPHB\" ], \"射程\": \"40/120\", \"傷害1\": \"1d12\", \"傷害類型\": \"P\", \"槍械\": true, \"武器\": true, \"彈藥彈藥\": \"P\", \"R\"true 子彈類型",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "針",
+    "name_en": "Needle",
+    "description": " \"source\": \"XPHB\", \"page\": 222, \"srd52\": true, \"edition\": \"one\", \"type\": \"A|XPHB\", \"rarity\": \"none\", \"weight\": 0.02, \"value\": 2, \"needleBlowgunee\": true \"吹箭針用於具有彈藥屬性的武器進行遠程攻擊。每次使用該武器攻擊時，都會消耗一枚彈藥。從箭袋、箭盒或其他容器中取出彈藥是攻擊的一部分（單手武器需要空出一隻手來裝填彈藥）。戰鬥結束後，你可以花一分鐘時間搜索戰場，回收一半已消耗的彈藥。",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "針（50）",
+    "name_en": "Needles (50)",
+    "description": " \"來源\": \"XPHB\", \"頁碼\": 222, \"srd52\": true, \"版本\": \"一\", \"型別\": \"A|XPHB\", \"稀有度\": \"無\", \"重量\": 1, \"價值\": 100, \"吹箭頭\": true, \"輸入\": [true \"吹箭筒針與具有彈藥屬性的武器配合使用，進行遠程攻擊。每次使用該武器攻擊時，都會消耗一發彈藥。從箭袋、彈藥盒或其他容器中取出彈藥是攻擊的一部分（單手武器需要空出一隻手來裝填彈藥）。戰鬥結束後，你可以花一分鐘時間搜索戰場，回收一半已消耗的箭。\" \"packContents\": [ { \"item\": \"needle|xphb\", \"quantity\": 50 } ] }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "網",
+    "name_en": "Net",
+    "description": " \"source\": \"PHB\", \"page\": 149, \"srd\": true, \"basicRules\": true, \"reprintedAs\": [ { \"uid\": \"Net|XPHB\", \"tag\": \"item\" } ], \"edition\": \"classic\", \"type\": \"R\": \"item\" } ], \"edition\": \"classic\", \"type\": \"R\", \"item\" } ], \"edition\": \"classic\", \"type\": \"R\",\"al,\" \"weaponCategory\": \"martial\", \"property\": [ \"S\", \"T\" ], \"range\": \"5/15\", \"net\": true, \"weapon\": true, \"entries\": [ { \"type\": \"entries\", \"name\": \"Special\",\"束縛}狀態，直到被解救。點揮砍傷害，即可在不傷害生物的情況下將其解救，結束效果並摧毀網。",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "寶珠",
+    "name_en": "Orb",
+    "description": " \"group\": [ \"奧術焦點\" ], \"source\": \"玩家手冊\", \"page\": 151, \"srd\": true, \"basicRules\": true, \"reprintedAs\": [ \"Orb|XPHB\" ], \"edition\": \"經典\", \"type\": \"SCF\", \"pwepSCF\" ], \"edition\": \"經典\", \"type\": \"SCF\", \"sweak \"value\": 2000 }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "寶珠",
+    "name_en": "Orb",
+    "description": " \"group\": [ \"奧術焦點\" ], \"source\": \"XPHB\", \"page\": [ \"奧術焦點\" ], \"source\": \"XPHB\", \"page\": 224, \"srd52\": true, \"edition\": \"one\", \"type\": \"SCF|XPHB\", \"scfType\": \"奧術\", \"rarity\": \"none\", \"weight\": \"scfType\": \"奧術\", \"rarity\": \"none\", \"weight\": 30.\"",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "軟墊護甲",
+    "name_en": "Padded Armor",
+    "description": " \"source\": \"PHB\", \"page\": 144, \"srd\": true, \"basicRules\": true, \"reprintedAs\": [ \"Padded Armor|XPHB\" ], \"edition\": \"classic\", \"type\": \"LA\", \"rarity\": \"nn\", \"weight\": 18\" true, \"stealth\": true, \"entries\": [ \"Padded armor composed of quilted layers of cloth and batting.\" ] }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "軟墊護甲",
+    "name_en": "Padded Armor",
+    "description": " \"來源\": \"XPHB\", \"頁碼\": 219, \"srd52\": true, \"基本規則2024\": true, \"版本\": \"一\", \"類型\": \"LA|XPHB\", \"稀有度\": \"無\", \"重量\": 8, \"匿價值\"LA|XPHB\", \"稀有度\": \"無\", \"重量\": 8, \"匿價值\"LA|XPHB\", \"稀有度\": \"無\", \"重量\": 8, \"匿價值\": 500, \"true\" \"有背景圖片\"\": true }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "排簫",
+    "name_en": "Pan Flute",
+    "description": " \"source\": \"PHB\", \"page\": 154, \"srd\": true, \"basicRules\": true, \"reprintedAs\": [ \"Pan Flute|XPHB\" ], \"edition\": \"classic\", \"type\": \"INS\", \"rarity\": \"none\", \"weight\": 20, \"value",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "排簫",
+    "name_en": "Pan Flute",
+    "description": " \"source\": \"XPHB\", \"page\": 221, \"srd52\": true, \"basicRules2024\": true, \"edition\": \"one\", \"type\": \"INS|XPHB\", \"rarity\": \"none\", \"weight\": 2, \"INS|XPHB\", \"rarity\": \"none\", \"weight\": 2, \"INS|: 1200\" \"list-hang-notitle\", \"items\": [ { \"name\": \"Ability:\", \"type\": \"item\", \"entries\": [ \"Charisma\" ] }, { \"name\": \"Utilize:\", \"type\": \"item\", \"entries\": [ \"Play anown tune( ] } ] }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "梭魚",
+    "name_en": "Pike",
+    "description": " \"source\": \"PHB\", \"page\": 149, \"srd\": true, \"basicRules\": true, \"reprintedAs\": [ \"Pike|XPHB\" ], \"edition\": \"classic\", \"type\": \"M\", \"rarity\": \"none\", \"weight\": 18, \"type\": \"M\", \"rarity\": \"none\", \"weight\": 18, \"ap0, 5,005,\" \"property\": [ \"H\", \"R\", \"2H\" ], \"dmg1\": \"1d10\", \"dmgType\": \"P\", \"weapon\": true }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "梭魚",
+    "name_en": "Pike",
+    "description": " \"來源\": \"XPHB\", \"頁碼\": 215, \"srd52\": true, \"基本規則2024\": true, \"版本\": \"一\", \"類型\": \"M|XPHB\", \"稀有度\": \"無\", \"重量\": 18, \"價值\": 500, \"稀有度\": \"無\", \"重量\": 18, \"價值\": 500, \"APHX\" \"R|XPHB\", \"2H|XPHB\" ], \"精通\": [ \"Push|XPHB\" ], \"dmg1\": \"1d10\", \"dmg類型\": \"P\", \"武器\": true, \"有背景圖片\": true }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "手槍",
+    "name_en": "Pistol",
+    "description": " \"來源\": \"DMG\", \"頁碼\": 268, \"重印版本\": [ \"手槍|XPHB\" ], \"版本\": \"經典\", \"類型\": \"R\", \"稀有度\": \"無\", \"重量\": 3, \"價值\": 25000, \"武器類別\": \"無\", \"重量\": 3, \"價值\": 25000, \"武器類別\": \"軍用文藝復興\", \"\"MG\" \"射程\": \"30/90\", \"1d10傷害\"\", \"傷害類型\": \"P\", \"槍械\": true, \"武器\": true, \"彈藥類型\": \"文藝復興子彈\" }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "手槍",
+    "name_en": "Pistol",
+    "description": " \"來源\": \"XPHB\", \"頁碼\": 215, \"srd52\": true, \"基本規則2024\": true, \"版本\": \"一\", \"型\": \"R|XPHB\", \"稀有度\": \"無\", \"重量\": 3, \"價值\"R|XPHB\", \"稀有度\": \"無\", \"重量\": 3, \"價值\"R|XPHB\", \"稀有度\": \"無\", \"重量\": 3, \"價值\"R|XPHB\", \"稀有度\": \"無\", \"重量\": 3, \"價值\": 25000」, \"AX\",\"X\"X\",\"n,\",\",\",\",\",\"A\"\"\"\"\"\"\"\"\"\",\"R,\",\",\",\",\",\",\"R做出狀態吧沒有不帶護軍武器, \"RWPHAX\" \"LD|XPHB\" ], \"精通\": [ \"Vex|XPHB\" ], \"射程\": \"30/90\", \"1d10傷害\" \"傷害類型\": \"P\", \"槍械\": true, \"武器\": true, \"彈藥類型\": \"槍械子彈|XPHB\", \"有背景圖片\": true }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "板甲",
+    "name_en": "Plate Armor",
+    "description": " \"source\": \"PHB\", \"page\": 145, \"srd\": true, \"basicRules\": true, \"reprintedAs\": [ \"板甲|XPHB\" ], \"edition\": \"classic\", \"type\": \"HA\", \"rarity\": \"none\", \"weight\": 5, \"type\": \"HA\", \"rarity\": \"none\", \"weight\": 5, \"type\": \"HA\", \"rarity\": \"none\", \"weight\": 55, \"v000,000,000 \"strength\": \"15\", \"armor\": true, \"stealth\": true, \"entries\": [ \"板甲由形狀各異、相互連接的金屬板組成，覆蓋全身。一套板甲包括護手、厚重的皮靴、帶面罩的頭盔以及盔甲下方的厚厚襯墊。",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "板甲",
+    "name_en": "Plate Armor",
+    "description": " \"來源\": \"XPHB\", \"頁碼\": 219, \"srd52\": true, \"基本規則2024\": true, \"版本\": \"一\", \"型\": \"HA|XPHB\", \"稀有度\": \"無\", \"重量\": 65, \"價值\": 150000, \"\" true, \"隱藏\"\": true, \"有背景圖片\"\": true }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "四分之一杖",
+    "name_en": "Quarterstaff",
+    "description": " \"source\": \"PHB\", \"page\": 149, \"srd\": true, \"basicRules\": true, \"reprintedAs\": [ \"Quarterstaff|XPHB\" ], \"edition\": \"classic\", \"type\": \"M\", \"rarity\": \"nn\",weight\": \"classic\", \"\": \"M\", \"rarity\": \"nn\",weight\": 4\" \"simple\", \"property\": [ \"V\" ], \"dmg1\": \"1d6\", \"dmgType\": \"B\", \"dmg2\": \"1d8\", \"weapon\": true }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "四分之一杖",
+    "name_en": "Quarterstaff",
+    "description": " \"來源\": \"XPHB\", \"頁碼\": 215, \"srd52\": true, \"基本規則2024\": true, \"版本\": \"一\", \"類型\": \"M|XPHB\", \"稀有度\": \"無\", \"重量\": 4, \"價值\"M|XPHB\", \"稀有度\": \"無\", \"重量\": 4, \"價值\"M|XPHB\", \"稀有度\": \"無\", \"重量\": 4, \"價值\": 20, \"BPH\":\"M0:\".\" \"擊倒|XPHB\" ], \"傷害1\": \"1d6\", \"傷害類型\": \"B\", \"傷害2\": \"1d8\", \"武器\": true, \"有背景圖片\": true }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "細劍",
+    "name_en": "Rapier",
+    "description": " \"source\": \"PHB\", \"page\": 149, \"srd\": true, \"basicRules\": true, \"reprintedAs\": [ \"Rapier|XPHB\" ], \"edition\": \"classic\", \"type\": \"M\", \"rarity\": \"none\", \"weight\": 2, \"ap0\": 2\", \"apue\": \"none\", \"weight\": 2,\" \"martial\", \"property\": [ \"F\" ], \"dmg1\": \"1d8\", \"dmgType\": \"P\", \"rapier\": true, \"sword\": true, \"weapon\": true }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "細劍",
+    "name_en": "Rapier",
+    "description": " \"來源\": \"XPHB\", \"頁碼\": 215, \"srd52\": true, \"基本規則2024\": true, \"版本\": \"一\", \"類型\": \"M|XPHB\", \"稀有度\": \"無\", \"重量\": 2, \"價值\"M|XPHB\", \"稀有度\": \"無\", \"重量\": 2, \"價值\"M|XPHB\", \"稀有度\": \"無\", \"重量\": 2, \"價值\"M:2500」, \"B.\" [ \"Vex|XPHB\" ], \"1d8傷害\" \"傷害型別\": \"P\", \"細劍\": true, \"劍\": true, \"武器\": true, \"有背景圖片\": true }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "文藝復興子彈",
+    "name_en": "Renaissance Bullet",
+    "description": " \"source\": \"DMG\", \"page\": 268, \"reprintedAs\": [ \"Firearm Bullet|XPHB\" ], \"edition\": \"classic\", \"type\": \"AF|DMG\", \"rarity\": \"none\", \"weight\": 0.2, \"valueDMG\", \"rarity\": \"none\", \"weight\": 0.2, \"valueue\": 30, \"」 \"miscTags\": [ \"CNS\" ] }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "文藝復興子彈（10）",
+    "name_en": "Renaissance Bullets (10)",
+    "description": " \"source\": \"DMG\", \"page\": 268, \"reprintedAs\": [ \"Firearm Bullets (10)|XPHB\" ], \"edition\": \"classic\", \"type\": \"AF|DMG\", \"rarity\": \"none\", \"weight\": 2, \"Fire\": 300」 \"packContents\": [ { \"item\": \"renaissance bullet\", \"quantity\": 10 } ], \"miscTags\": [ \"CNS\" ] }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "左輪手槍",
+    "name_en": "Revolver",
+    "description": " \"source\": \"DMG\", \"page\": 268, \"reprintedAs\": [ \"Revolver|XDMG\" ], \"edition\": \"classic\", \"type\": \"R\", \"rarity\": \"none\", \"weight\": 3, \"weapon:Category\": \"pk, \"R4MG\" ], \"range\": \"40/120\", \"reload\": 6, \"dmg1\": \"2d8\", \"dmgType\": \"P\", \"firearm\": true, \"weapon\": true, \"ammoType\": \"modern bullet\" }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "左輪手槍",
+    "name_en": "Revolver",
+    "description": " \"來源\": \"XDMG\", \"頁碼\": 73, \"版本\": \"一\", \"類型\": \"R|XPHB\", \"稀有度\": \"無\", \"重量\": 3, \"價值稀有度\": \"稀有\", \"武器類別\": \"軍用\", \"時代\": \"現代\", \"DMG\": \"Ak, \"DMG\" \"Sap|XPHB\" ], \"射程\": \"40/120\", \"裝填速度\": 6, \"傷害1\": \"2d8\", \"傷害類型\": \"P\", \"槍械\": true, \"武器\": true, \"彈藥類型\": \"槍械子彈|xphb\" }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "環郵件",
+    "name_en": "Ring Mail",
+    "description": " \"source\": \"PHB\", \"page\": 145, \"srd\": true, \"basicRules\": true, \"reprintedAs\": [ \"Ring Mail|XPHB\" ], \"edition\": \"classic\", \"type\": \"HA\", \"rarity\": \"none\", \"weight\": 40. \"armor\": true, \"stealth\": true, \"entries\": [ \"這件盔甲是皮革盔甲，上面縫有沉重的環。這些環可以增強盔甲的防禦力，抵禦刀劍和斧頭的攻擊。環甲不如鎖子甲，通常只有買不起更好盔甲的人才會穿不起。\" ] }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "環郵件",
+    "name_en": "Ring Mail",
+    "description": " \"來源\": \"XPHB\", \"頁碼\": 219, \"srd52\": true, \"基本規則2024\": true, \"版本\": \"一\", \"型別價值\": \"HA|XPHB\", \"稀有度\": \"無\", \"重量\": 40, \"值\": 3000, \"\"true\" true, \"有背景圖片\"\": true }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "桿",
+    "name_en": "Rod",
+    "description": " \"group\": [ \"奧術焦點\" ], \"source\": \"玩家手冊\", \"page\": 151, \"srd\": true, \"basicRules\": true, \"reprintedAs\": [ \"魔杖|XPHB\" ], \"edition\": \"經典\", \"type\": \"SCF\", \"scfweal\" ], \"edition\": \"經典\", \"type\": \"SCF\", \"scfweal\" ], \"e, 1000 }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "桿",
+    "name_en": "Rod",
+    "description": " \"group\": [ \"奧術焦點\" ], \"source\": \"XPHB\", \"page\": 224, \"srd52\": true, \"edition\": \"one\", \"type\": \"SCF|XPHB\", \"scfType\": \"奧術\", \"rarity\": \"none\", \"weight\": \"scfType\": \"奧術\", \"rarity\": \"none\", \"weight\": 2000",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "鱗片郵件",
+    "name_en": "Scale Mail",
+    "description": " \"source\": \"PHB\", \"page\": 144, \"srd\": true, \"basicRules\": true, \"reprintedAs\": [ \"Scale Mail|XPHB\" ], \"edition\": \"classic\", \"type\": \"MA\", \"rarity\": \"none\", \"weight\": 45, \"ac0: 045,00024:00 \"armor\": true, \"stealth\": true, \"entries\": [ \"這套盔甲由一件皮革外套和護腿（可能還有一條單獨的裙子）組成，上面覆蓋著重疊的金屬片，很像魚鱗。這套盔甲還包括護手。\" ] }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "鱗片郵件",
+    "name_en": "Scale Mail",
+    "description": " \"來源\": \"XPHB\", \"頁碼\": 219, \"srd52\": true, \"基本規則2024\": true, \"版本\": \"一\", \"類型\": \"MA|XPHB\", \"稀有度\": \"無\", \"重量\": 45, \"價值\"MA|XPHB\", \"稀有度\": \"無\", \"重量\": 45, \"值\"MA|XPHB\", \"稀有度\": \"無\", \"重量\": 45, \"價值\": 5000, \"true,\" true, \"有背景圖片\": true }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "彎刀",
+    "name_en": "Scimitar",
+    "description": " \"source\": \"PHB\", \"page\": 149, \"srd\": true, \"basicRules\": true, \"reprintedAs\": [ \"Scimitar|XPHB\" ], \"edition\": \"classic\", \"type\": \"M\", \"rarity\": \"none\", \"weight\": 3, \"apue\": 3, \"ap0,0050, \"weight\": 3, \"ap0」: 2050,00005, \"0005,00005,00005, \"vFate\" \"martial\", \"property\": [ \"F\", \"L\" ], \"dmg1\": \"1d6\", \"dmgType\": \"S\", \"sword\": true, \"weapon\": true }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "彎刀",
+    "name_en": "Scimitar",
+    "description": " \"來源\": \"XPHB\", \"頁碼\": 215, \"srd52\": true, \"基本規則2024\": true, \"版本\": \"一\", \"類型\": \"M|XPHB\", \"稀有度\": \"無\", \"重量\": 3, \"價值\"M|XPHB\", \"稀有度\": \"無\", \"重量\": 3, \"價值\"M|XPHB\", \"稀有度\": \"無\", \"重量\": 3, \"價值\"M:2500」, \"B.\" \"L|XPHB\" ], \"精通\": [ \"Nick|XPHB\" ], \"1d6傷害\": \"1d6\", \"傷害類型\": \"S\", \"劍\": true, \"武器\": true, \"有背景圖片\": true }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "半自動手槍",
+    "name_en": "Semiautomatic Pistol",
+    "description": " \"來源\": \"XDMG\", \"頁碼\": 73, \"版本\": \"一\", \"類型\": \"R|XPHB\", \"稀有度\": \"無\", \"重量\": 3, \"價值稀有度\": \"稀有\", \"武器類別\": \"軍用\", \"時代\": \"現代\", \"DMG\": \"Ak, \"DMG\" \"Vex|XPHB\" ], \"射程\": \"50/150\", \"裝填速度\": 15, \"傷害1\": \"2d6\", \"傷害類型\": \"物理\", \"槍械\": true, \"武器\": true, \"彈藥類型\": \"槍械子彈|XPHB\" }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "蕭姆",
+    "name_en": "Shawm",
+    "description": " \"source\": \"PHB\", \"page\": 154, \"srd\": true, \"basicRules\": true, \"reprintedAs\": [ \"Shawm|XPHB\" ], \"edition\": \"classic\", \"type\": \"INS\", \"rarity\": \"none\", \"weight\": 1, \"value",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "蕭姆",
+    "name_en": "Shawm",
+    "description": " \"source\": \"SCAG\", \"page\": 124, \"reprintedAs\": [ \"Shawm|XPHB\" ], \"edition\": \"classic\", \"type\": \"INS\", \"rarity\": \"none\", \"entries\": [ \"一種類似於雙簧管或巴鬆鬆箱的雙簧管板的雙簧管樂器，他們所愛的人氣。",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "蕭姆",
+    "name_en": "Shawm",
+    "description": " \"source\": \"XPHB\", \"page\": 221, \"srd52\": true, \"basicRules2024\": true, \"edition\": \"one\", \"type\": \"INS|XPHB\", \"rarity\": \"none\", \"weight\": 1, \"INS|XPHB\", \"rarity\": \"none\", \"weight\": 1, \"INS|: 2000, \"\"ent:\"\" \"list-hang-notitle\", \"items\": [ { \"name\": \"Ability:\", \"type\": \"item\", \"entries\": [ \"Charisma\" ] }, { \"name\": \"Utilize:\", \"type\": \"item\", \"entries\": [ \"Play anown tune( ] } ] }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "盾",
+    "name_en": "Shield",
+    "description": " \"source\": \"PHB\", \"page\": 144, \"srd\": true, \"basicRules\": true, \"reprintedAs\": [ \"Shield|XPHB\" ], \"edition\": \"classic\", \"type\": \"S\", \"rarity\": \"none\", \"weight\": 6, \"type\": \"S\", \"rarity\": \"none\", \"weight\": 0000\" \"盾牌由木頭或金屬製成，單手持有。使用盾牌可使你的護甲等級提高2點。你一次只能使用一面盾牌。\" ] }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "盾",
+    "name_en": "Shield",
+    "description": " \"source\": \"XPHB\", \"page\": 219, \"srd52\": true, \"basicRules2024\": true, \"edition\": \"one\", \"type\": \"S|XPHB\", \"rarity\": \"none\", \"weight\": 6, \"S|: 1000,\"",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "短弓",
+    "name_en": "Shortbow",
+    "description": " \"source\": \"PHB\", \"page\": 149, \"srd\": true, \"basicRules\": true, \"reprintedAs\": [ \"Shortbow|XPHB\" ], \"edition\": \"classic\", \"type\": \"R\", \"rarity\": \"none\", \"weight\": 2, \"ap0\":\", \"ap0,\"none\", \"weight\": 2, \"ap0025,\" \"simple\", \"property\": [ \"A\", \"2H\" ], \"range\": \"80/320\", \"dmg1\": \"1d6\", \"dmgType\": \"P\", \"bow\": true, \"weapon\": true, \"ammoType\": \"arrow|phb\" }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "短弓",
+    "name_en": "Shortbow",
+    "description": " \"來源\": \"XPHB\", \"頁碼\": 215, \"srd52\": true, \"基本規則2024\": true, \"版本\": \"一\", \"類型\": \"R|XPHB\", \"稀有度\": \"無\", \"重量\": 2, \"價值\": 2500, \"稀有度\": \"無\", \"重量\": 2, \"價值\": 2500, \"APH;\" \"2H|XPHB\" ], \"精通\": [ \"Vex|XPHB\" ], \"射程\": \"80/320\", \"1d6傷害\" \"傷害類型\": \"P\", \"弓\": true, \"武器\": true, \"彈藥類型\": \"箭頭|XPHB\", \"有背景圖片\" }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "短劍",
+    "name_en": "Shortsword",
+    "description": " \"source\": \"PHB\", \"page\": 149, \"srd\": true, \"basicRules\": true, \"reprintedAs\": [ \"Shortsword|XPHB\" ], \"edition\": \"classic\", \"type\": \"M\", \"rarity\": \"nnone\", \"weight\": 2\", \" 0,020,000: \"none\" \"martial\", \"property\": [ \"F\", \"L\" ], \"dmg1\": \"1d6\", \"dmgType\": \"P\", \"sword\": true, \"weapon\": true }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "短劍",
+    "name_en": "Shortsword",
+    "description": " \"來源\": \"XPHB\", \"頁碼\": 215, \"srd52\": true, \"基本規則2024\": true, \"版本\": \"一\", \"類型\": \"M|XPHB\", \"稀有度\": \"無\", \"重量\": 2, \"價值\"M|XPHB\", \"稀有度\": \"無\", \"重量\": 2, \"價值\"M|XPHB\", \"稀有度\": \"無\", \"重量\": 2, \"價值\"M: 1000, \"RPHX\" \"L|XPHB\" ], \"精通\": [ \"Vex|XPHB\" ], \"1d6傷害\": \"1d6\", \"傷害型別\": \"P\", \"劍\": true, \"武器\": true, \"有背景圖片\": true }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "霰彈槍",
+    "name_en": "Shotgun",
+    "description": " \"source\": \"DMG\", \"page\": 268, \"reprintedAs\": [ \"Shotgun|XDMG\" ], \"edition\": \"classic\", \"type\": \"R\", \"rarity\": \"none\", \"weight\": 7, \"weapon:Category\": \"pk, FMG\", \"weight\": 7, \"weapon:Category\": \"pk, \"DMG\" \"2H\" ], \"range\": \"30/90\", \"reload\": 2, \"dmg1\": \"2d8\", \"dmgType\": \"P\", \"firearm\": true, \"weapon\": true, \"ammoType\": \"modern bullet\" }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "霰彈槍",
+    "name_en": "Shotgun",
+    "description": " \"來源\": \"XDMG\", \"頁碼\": 73, \"版本\": \"一\", \"類型\": \"R|XPHB\", \"稀有度\": \"無\", \"重量\": 7, \"價值稀有度\": \"稀有\", \"武器類別\": \"軍用\", \"時代\": \"現代\", \"R444445\", \"D4MG\" \"精通\": [ \"推擊|XPHB\" ], \"射程\": \"30/90\", \"裝填時間\": 2, \"傷害1\": \"2d8\", \"傷害類型\": \"穿透\", \"槍械\": true, \"武器\": true, \"彈藥類型\": \"槍械子彈|XPHB\" }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "鐮刀",
+    "name_en": "Sickle",
+    "description": " \"source\": \"PHB\", \"page\": 149, \"srd\": true, \"basicRules\": true, \"reprintedAs\": [ \"Sickle|XPHB\" ], \"edition\": \"classic\", \"type\": \"M\", \"rarity\": \"none\", \"weight\": 2\", \"type\": \"M\", \"rarity\": \"none\", \"weight\": 2」 \"property\": [ \"L\" ], \"dmg1\": \"1d4\", \"dmgType\": \"S\", \"weapon\": true }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "鐮刀",
+    "name_en": "Sickle",
+    "description": " \"來源\": \"XPHB\", \"頁碼\": 215, \"srd52\": true, \"基本規則2024\": true, \"頁碼\": 215, \"srd52\": \"M|XPHB\", \"稀有度\": \"無\", \"重量\": 2, \"價值\"M|XPHB\", \"稀有度\": \"無\", \"重量\": 2, \"價值\"M|XPHB\", \"稀有度\": \"無\", \"重量\": 2, \"價值\"M|XPHB\", \"稀有度\": \"無\", \"重量\": 2, \"價值\": 100, \"A: 100」, \"B.\" \"暱稱|XPHB\" ], \"1d4傷害\": \"1d4\", \"傷害類型\": \"S\", \"武器\": true, \"有背景圖片\": true }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "吊索",
+    "name_en": "Sling",
+    "description": " \"source\": \"PHB\", \"page\": 149, \"srd\": true, \"basicRules\": true, \"reprintedAs\": [ \"Sling|XPHB\" ], \"edition\": \"classic\", \"type\": \"R\", \"rarity\": \"none\", \"pronone\", \"procate\", \"type\": \"R\",\" ], \"range\": \"30/120\", \"dmg1\": \"1d4\", \"dmgType\": \"B\", \"weapon\": true, \"ammoType\": \"sling bullet|phb\" }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "吊索",
+    "name_en": "Sling",
+    "description": " \"來源\": \"XPHB\", \"頁碼\": 215, \"srd52\": true, \"基本規則2024\": true, \"版本\": \"一\", \"類型\": \"R|XPHB\", \"稀有度\": \"無\", \"價值\": 10, \"武器類別\": \"簡單\", \"稀有度\": \"無\", \"價值\": 10, \"武器類別」：「簡單」, \"X\"X\",\"X\",\"X\" V\"T <TPH\"X\"T;\" VPH\"X\"T;\" VPH\"X\", FPH\"\",\",\"A\"\"\"\"\",\",\",\",\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"提供閱讀\"\"\",幫助\",有很多準備不準備\",\")))、太時尚\",\" \"射程\": \"30/120\", \"1d4傷害\" \"傷害類型\": \"B\", \"武器\": true, \"彈藥類型\": \"彈弓子彈|XPHB\", \"有背景圖片\" true }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "彈弓子彈",
+    "name_en": "Sling Bullet",
+    "description": " \"source\": \"PHB\", \"page\": 150, \"srd\": true, \"basicRules\": true, \"reprintedAs\": [ \"Sling Bullet|XPHB\" ], \"edition\": \"classic\", \"type\": \"A\", \"rarity\": \"none\", \"weight\": 0ue.\" }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "彈弓子彈",
+    "name_en": "Sling Bullet",
+    "description": " \"source\": \"XPHB\", \"page\": 222, \"srd52\": true, \"edition\": \"one\", \"type\": \"A|XPHB\", \"rarity\": \"none\", \"weight\": 0.075, \"value\": 0.2, \"bullet.\" \"投石彈用於具有彈藥屬性的武器進行遠程攻擊。每次使用該武器攻擊時，都會消耗一發彈藥。從箭袋、彈藥盒或其他容器中取出彈藥是攻擊的一部分（單手武器需要空出一隻手來裝填彈藥）。戰鬥結束後，你可以花一分鐘時間搜索戰場，回收一半已消耗的彈藥。",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "彈弓子彈（20）",
+    "name_en": "Sling Bullets (20)",
+    "description": " \"source\": \"PHB\", \"page\": 150, \"srd\": true, \"basicRules\": true, \"reprintedAs\": [ \"投石子彈 (20)|XPHB\" ], \"edition\": \"classic\", \"type\": \"A\", \"rarity\": \"none: \"webue\" \"packContents\": [ { \"item\": \"投石子彈|phb\", \"quantity\": 20 } ] }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "彈弓子彈（20）",
+    "name_en": "Sling Bullets (20)",
+    "description": " \"來源\": \"XPHB\", \"頁碼\": 222, \"srd52\": true, \"版本\": \"一\", \"類型\": \"A|XPHB\", \"稀有度\": \"無\", \"重量\": 1.5, \"價值\": 4, \"彈弓子彈\": true, \"條目\": [true, \"條目\": [true 「彈弓子彈用於具有彈藥屬性的武器進行遠程攻擊。每次使用該武器攻擊時，都會消耗一發彈藥。從箭袋、彈藥盒或其他容器中取出彈藥是攻擊的一部分（單手武器需要空出一隻手來裝填彈藥）。戰鬥結束後，你可以花一分鐘時間搜索戰場，回收一半已消耗的彈藥。 \"item\": \"投擲子彈|xphb\", \"quantity\": 20 } ] }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "歌號",
+    "name_en": "Songhorn",
+    "description": " \"source\": \"SCAG\", \"page\": 124, \"type\": \"INS\", \"rarity\": \"none\", \"entries\": [ \"一種豎笛，一種簡單的笛子，通常由木頭雕刻而成。\" ] }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "矛",
+    "name_en": "Spear",
+    "description": " \"source\": \"PHB\", \"page\": 149, \"srd\": true, \"basicRules\": true, \"reprintedAs\": [ \"Spear|XPHB\" ], \"edition\": \"classic\", \"type\": \"M\", \"rarity\": \"none\", \"weight\": 3, \"type\": \"M\", \"rarity\": \"none\", \"weight\": 3,\" \"property\": [ \"T\", \"V\" ], \"range\": \"20/60\", \"dmg1\": \"1d6\", \"dmgType\": \"P\", \"dmg2\": \"1d8\", \"spear\": true, \"weapon\": true }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "矛",
+    "name_en": "Spear",
+    "description": " \"來源\": \"XPHB\", \"頁碼\": 215, \"srd52\": true, \"基本規則2024\": true, \"版本\": \"一\", \"類型\": \"M|XPHB\", \"稀有度\": \"無\", \"重量\": 3, \"價值\"M|XPHB\", \"稀有度\": \"無\", \"重量\": 3, \"價值\"M|XPHB\", \"稀有度\": \"無\", \"重量\": 3, \"價值\"M|XPHB\", \"稀有度\": \"無\", \"重量\": 3, \"價值\": 100, \"APHX\" ], \"精通\": [ \"Sap|XPHB\" ], \"射程\": \"20/60\", \"傷害1\": \"1d6\", \"傷害類型\": \"P\", \"傷害2\": \"1d8\", \"長矛\": true, \"武器\": true, \"有背景圖片\": true }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "尖刺盔甲",
+    "name_en": "Spiked Armor",
+    "description": " \"source\": \"SCAG\", \"page\": 121, \"type\": \"MA\", \"rarity\": \"unknown\", \"weight\": 45, \"value\": 7500, \"ac\": 14, \"armor\": true, \"stealth\": true, \"entries\": [true, \"entries\": [true, \"entries\": [true, \"entries\": [true, \"entries\": [true, \"entries\": [true, \"entries\": [true, \"entries\": [true)\" \"尖刺盔甲是矮人製造的稀有中型盔甲。它由一件皮革外套和護腿組成，上面覆蓋著通常由金屬製成的尖刺。\" ] }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "夾板護甲",
+    "name_en": "Splint Armor",
+    "description": " \"source\": \"PHB\", \"page\": 145, \"srd\": true, \"basicRules\": true, \"reprintedAs\": [ \"Splint Armor|XPHB\" ], \"edition\": \"classic\", \"type\": \"HA\", \"rarity\": \"nn\", \"weight\"0:\" \"strength\": \"15\", \"armor\": true, \"stealth\": true, \"entries\": [ \"這件盔甲由鉚接在皮革襯底上的狹窄垂直金屬條製成，穿在布質襯墊上。柔韌的鎖子甲保護關節。\" ] }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "夾板護甲",
+    "name_en": "Splint Armor",
+    "description": " \"來源\": \"XPHB\", \"頁碼\": 219, \"srd52\": true, \"基本規則2024\": true, \"版本\": \"一\", \"型\": \"HA|XPHB\", \"稀有度\": \"無\", \"重量\": 60, \"價值\": 護甲值」 true, \"隱藏\"\": true, \"有背景圖片\"\": true }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "職員",
+    "name_en": "Staff",
+    "description": " \"group\": [ \"奧術聚焦\" ], \"source\": \"玩家手冊\", \"page\": 151, \"srd\": true, \"basicRules\": true, \"reprintedAs\": [ \"法杖|XPHB\" ], \"edition\": \"經典\", \"type\": \"SCF\", \"swefSCF\" ], \"edition\": \"經典\", \"type\": \"SCF\", \"sweer\" \"value\": 500, \"weaponCategory\": \"簡單\", \"property\": [ \"V\" ], \"dmg1\": \"1d6\", \"dmgType\": \"B\", \"dmg2\": \"1d8\", \"staff\": true }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "職員",
+    "name_en": "Staff",
+    "description": " \"group\": [ \"奧術聚焦\" ], \"source\": \"XPHB\", \"page\": [ \"奧術聚焦\" ], \"source\": \"XPHB\", \"page\": [ \"奧術聚焦\" ], \"source\": \"XPHB\", \"page\": 224, \"srd52\": true, \"edition\": \"one\", \"type\": \"SCF|XPHB\", \"scfType\": \"奧術\", \"rarity\": \"nnone\", \"weight\", \"scfType\": \"奧術\", \"rarity\": \"none\", \"weight\": 44ry\" \"simple\", \"property\": [ \"V\" ], \"mastery\": [ \"Topple|XPHB\" ], \"dmg1\": \"1d6\", \"dmgType\": \"B\", \"dmg2\": \"1d8\", \"staff\": true }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "鑲釘皮甲",
+    "name_en": "Studded Leather Armor",
+    "description": " \"source\": \"PHB\", \"page\": 144, \"srd\": true, \"basicRules\": true, \"reprintedAs\": [ \"鉚釘皮甲|XPHB\" ], \"edition\": \"classic\", \"type\": \"LA\", \"rarity\": \"none\", \"weight\": 13, \"ac0: 450: \"none\", \"weight\": 13\" \"armor\": true, \"entries\": [ \"鉚釘皮甲由堅韌而柔韌的皮革製成，並用密集的鉚釘或尖刺加固。\" ] }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "鑲釘皮甲",
+    "name_en": "Studded Leather Armor",
+    "description": " \"source\": \"XPHB\", \"page\": 219, \"srd52\": true, \"basicRules2024\": true, \"edition\": \"one\", \"type\": \"LA|XPHB\", \"rarity\": \"none\", \"weight\": 13, \"LA|XPHB\", \"rarity\": \"none\", \"weight\": 13, \"LA\": 450,\" 450,\" \"hasFluffImages\": true }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "坦坦",
+    "name_en": "Tantan",
+    "description": " \"source\": \"SCAG\", \"page\": 124, \"type\": \"INS\", \"rarity\": \"none\", \"entries\": [ \"鈴鼓，一種在戴爾蘭以南的半身人和人類中流行的樂器。\" ] }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "塞拉爾",
+    "name_en": "Thelarr",
+    "description": " \"alias\": [ \"哨笛\" ], \"source\": \"SCAG\", \"page\": 124, \"type\": \"INS\", \"rarity\": \"none\", \"entries\": [ \"也稱作哨笛，是一種用蘆葦製成的簡單易做的吹奏樂器。事實上，它們非常簡單，以至於父母后不知道，這一切都可能讓他們感到欣喜若狂。",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "托肯",
+    "name_en": "Tocken",
+    "description": " \"source\": \"SCAG\", \"page\": 124, \"type\": \"INS\", \"rarity\": \"none\", \"entries\": [ \"一套懸掛的雕刻橢圓形鈴鐺，通常用一對輕木槌（或用手）敲擊。它們在地下文化中最為常見，因為共鳴聲可以傳播得更遠。\" ] }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "三叉戟",
+    "name_en": "Trident",
+    "description": " \"source\": \"PHB\", \"page\": 149, \"srd\": true, \"basicRules\": true, \"reprintedAs\": [ \"Trident|XPHB\" ], \"edition\": \"classic\", \"type\": \"M\", \"rarity\": \"none\", \"weight\": 4, \"type\": \"M\", \"rarity\": \"none\", \"weight\": 4,0,00,\" \"property\": [ \"T\", \"V\" ], \"range\": \"20/60\", \"dmg1\": \"1d6\", \"dmgType\": \"P\", \"dmg2\": \"1d8\", \"weapon\": true }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "三叉戟",
+    "name_en": "Trident",
+    "description": " \"來源\": \"XPHB\", \"頁碼\": 215, \"srd52\": true, \"基本規則2024\": true, \"版本\": \"一\", \"類型\": \"M|XPHB\", \"稀有度\": \"無\", \"重量\": 4, \"價值\"M|XPHB\", \"稀有度\": \"無\", \"重量\": 4, \"價值\"M|XPHB\", \"稀有度\": \"無\", \"重量\": 4, \"價值\"M:500, \"APH:\" \"V|XPHB\" ], \"精通\": [ \"擊倒|XPHB\" ], \"射程\": \"20/60\", \"傷害1\": \"1d8\", \"傷害類型\": \"P\", \"傷害2\": \"1d10\", \"武器\": true, \"有背景圖片\": true }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "維奧爾",
+    "name_en": "Viol",
+    "description": " \"source\": \"PHB\", \"page\": 154, \"srd\": true, \"basicRules\": true, \"reprintedAs\": [ \"Viol|XPHB\" ], \"edition\": \"classic\", \"type\": \"INS\", \"rarity\": \"none\", \"weight\": 1, \"type\": \"INS\", \"rarity\": \"none\", \"weight\": 1, \"\"",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "維奧爾",
+    "name_en": "Viol",
+    "description": " \"source\": \"XPHB\", \"page\": 221, \"srd52\": true, \"basicRules2024\": true, \"edition\": \"one\", \"type\": \"INS|XPHB\", \"rarity\": \"none\", \"weight\": 1, \"INS|XPHB\", \"rarity\": \"none\", \"weight\": 1, \"INS|: 3000\" \"list-hang-notitle\", \"items\": [ { \"name\": \"Ability:\", \"type\": \"item\", \"entries\": [ \"Charisma\" ] }, { \"name\": \"Utilize:\", \"type\": \"item\", \"entries\": [ \"Play anown tune( ] } ] }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "魔杖",
+    "name_en": "Wand",
+    "description": " \"group\": [ \"奧術聚焦\" ], \"source\": \"玩家手冊\", \"page\": 151, \"srd\": true, \"basicRules\": true, \"reprintedAs\": [ \"魔杖|XPHB\" ], \"edition\": \"經典\", \"type\": \"SCF\", \"scfweal\" ], \"edition\": \"經典\", \"type\": \"SCF\", \"scfweval\" ], \"e, 1000 }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "魔杖",
+    "name_en": "Wand",
+    "description": " \"group\": [ \"奧術焦點\" ], \"source\": \"XPHB\", \"page\": 224, \"srd52\": true, \"edition\": \"one\", \"type\": \"SCF|XPHB\", \"scfType\": \"奧術\", \"rarity\": \"none\", \"weight\", \"scfType\": \"奧術\", \"rarity\": \"none\", \"weight\": 1000",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "戰爭鎬",
+    "name_en": "War Pick",
+    "description": " \"source\": \"PHB\", \"page\": 149, \"srd\": true, \"basicRules\": true, \"reprintedAs\": [ \"War Pick|XPHB\" ], \"edition\": \"classic\", \"type\": \"M\", \"rarity\": \"none\", \"weight\": 2\", \"type\": \"M\", \"rarity\": \"none\", \"weight\": 20,\" \"dmg1\": \"1d8\", \"dmgType\": \"P\", \"weapon\": true }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "戰爭鎬",
+    "name_en": "War Pick",
+    "description": " \"來源\": \"XPHB\", \"頁碼\": 215, \"srd52\": true, \"基本規則2024\": true, \"版本\": \"一\", \"類型\": \"M|XPHB\", \"稀有度\": \"無\", \"重量\": 2, \"價值\"M|XPHB\", \"稀有度\": \"無\", \"重量\": 2, \"價值\"M|XPHB\", \"稀有度\": \"無\", \"重量\": 2, \"價值\"M:500」, \"BPH:\"S;\" \"Sap|XPHB\" ], \"傷害1\": \"1d8\", \"傷害類型\": \"P\", \"傷害2\": \"1d10\", \"武器\": true, \"有背景圖片\": true }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "瓦爾貢",
+    "name_en": "Wargong",
+    "description": " \"source\": \"SCAG\", \"page\": 124, \"type\": \"INS\", \"rarity\": \"none\", \"entries\": [ \"一種金屬鑼，傳統上用盾牌製成，尤其是敵人的盾牌。地精和矮人都會製作和演奏戰鑼，其聲響在幽暗地域的隧道中迴盪。\" ] }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "戰鎚",
+    "name_en": "Warhammer",
+    "description": " \"source\": \"PHB\", \"page\": 149, \"srd\": true, \"basicRules\": true, \"reprintedAs\": [ \"Warhammer|XPHB\" ], \"edition\": \"classic\", \"type\": \"M\", \"rarity\": \"nnone\", \"weight\": 2\", \"rar.\" \"martial\", \"property\": [ \"V\" ], \"dmg1\": \"1d8\", \"dmgType\": \"B\", \"dmg2\": \"1d10\", \"hammer\": true, \"weapon\": true }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "戰鎚",
+    "name_en": "Warhammer",
+    "description": " \"來源\": \"XPHB\", \"頁碼\": 215, \"srd52\": true, \"基本規則2024\": true, \"版本\": \"一\", \"類型\": \"M|XPHB\", \"稀有度\": \"無\", \"重量\": 5, \"價值\"M|XPHB\", \"稀有度\": \"無\", \"重量\": 5, \"價值\"M|XPHB\", \"稀有度\": \"無\", \"重量\": 5, \"價值\"M| 1500」, \"BPH:\" [ \"Push|XPHB\" ], \"傷害1\": \"1d8\", \"傷害類型\": \"B\", \"傷害2\": \"1d10\", \"錘子\": true, \"武器\": true, \"有背景圖片\": true }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "鞭",
+    "name_en": "Whip",
+    "description": " \"source\": \"PHB\", \"page\": 149, \"srd\": true, \"basicRules\": true, \"reprintedAs\": [ \"Whip|XPHB\" ], \"edition\": \"classic\", \"type\": \"M\", \"rarity\": \"none\", \"weight\": 3, \"type\": \"M\", \"rarity\": \"none\", \"weight\": 3, \"\"pp. \"property\": [ \"F\", \"R\" ], \"dmg1\": \"1d4\", \"dmgType\": \"S\", \"weapon\": true }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "鞭",
+    "name_en": "Whip",
+    "description": " \"來源\": \"XPHB\", \"頁碼\": 215, \"srd52\": true, \"基本規則2024\": true, \"版本\": \"一\", \"類型\": \"M|XPHB\", \"稀有度\": \"無\", \"重量\": 3, \"價值\"M|XPHB\", \"稀有度\": \"無\", \"重量\": 3, \"價值\"M|XPHB\", \"稀有度\": \"無\", \"重量\": 3, \"價值\": 200, \"APH:\" \"R|XPHB\" ], \"精通\": [ \"緩慢|XPHB\" ], \"1d4傷害\" \"傷害類型\": \"S\", \"武器\": true, \"有背景圖片\"\": true }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "木杖",
+    "name_en": "Wooden Staff",
+    "description": " \"group\": [ \"德魯伊專注\" ], \"source\": \"玩家手冊\", \"page\": 151, \"srd\": true, \"basicRules\": true, \"reprintedAs\": [ \"木杖|XPHB\" ], \"edition\": \"經典\", \"type\": \"SCF\"\"\"\"\",\",\",\",\",\",\",me\",\",\",me\",\",\",me\",\",\",\",獎\",\"un獎\"unun\"\"\"\"素,\",\"ent\"\"\"\"\"\"\"\"\"\"\"素,\",\",\"紮紮,\",獎,獎, 如果ar 如果 如果忘記. \"value\": 500, \"weaponCategory\": \"簡易\", \"property\": [ \"V\" ], \"dmg1\": \"1d6\", \"dmgType\": \"B\", \"dmg2\": \"1d8\" }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "木杖",
+    "name_en": "Wooden Staff",
+    "description": " \"group\": [ \"德魯伊專注\" ], \"source\": \"XPHB\", \"page\": 225, \"srd52\": true, \"edition\": \"one\", \"type\": \"SCF|XPHB\", \"scfType\": \"德魯伊\", \"rarity\": \"SCF|XPHB\", \"scfType\": \"德魯伊\", \"rarity\": \"SCF|,weight\" \"simple\", \"property\": [ \"V\" ], \"mastery\": [ \"Topple|XPHB\" ], \"dmg1\": \"1d6\", \"dmgType\": \"B\", \"dmg2\": \"1d8\" }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "雅廷",
+    "name_en": "Yarting",
+    "description": " \"source\": \"FRHoF\", \"page\": 132, \"type\": \"INS|XPHB\", \"rarity\": \"none\", \"weight\": 2, \"value\": 4000, \"hasFluff\": true, \"hasFluffImages\": true }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "雅廷",
+    "name_en": "Yarting",
+    "description": " \"source\": \"SCAG\", \"page\": 124, \"reprintedAs\": [ \"Yarting|FRHoF\" ], \"type\": \"INS\", \"rarity\": \"none\", \"entries\": [ \"一種來自阿姆和卡利姆沙恩的南方樂器，是費倫大陸上與吉他類似的類似樂器 ]。",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "伊克爾瓦",
+    "name_en": "Yklwa",
+    "description": " \"來源\": \"ToA\", \"頁碼\": 32, \"類型\": \"M\", \"稀有度\": \"無\", \"重量\": 3, \"價值\": 100, \"武器類別\": \"簡單\", \"屬性\": [ \"T\" ], \"射程\": \"10/30\", \"1d8\", \"\"\" \"yklwa（發音為YICK-ul-wah）是一種簡單的近戰武器，是楚爾特戰士的傳統武器。 yklwa由一根3英尺長的木桿和一把長達18英寸的鋼製或石製刀刃組成。雖然它具有投擲武器的屬性，但yklwa的平衡性並不適合投擲。 \" ] }",
+    "category": "裝備",
+    "is_magic": false
+  },
+  {
+    "name": "祖爾昆",
+    "name_en": "Zulkoon",
+    "description": " \"source\": \"SCAG\", \"page\": 124, \"type\": \"INS\", \"rarity\": \"none\", \"entries\": [ \"一種複雜的腳踏風琴，起源於泰伊的祖爾基爾人，他們用它來施法。它被認為擁有戲劇性但又陰森的聲音。\" ] }",
+    "category": "裝備",
+    "is_magic": false
+  }
+]
