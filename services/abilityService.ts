@@ -405,41 +405,66 @@ export async function resetAbilityUses(
   // 過濾需要恢復的能力
   const toReset = characterAbilities.filter(ca => {
     const ability = Array.isArray(ca.ability) ? ca.ability[0] : ca.ability;
-    if (!ability) return false;
+    const effectiveRecoveryType = ca.recovery_type_override || ability?.recovery_type;
+    if (!effectiveRecoveryType) return false;
     
     // 長休恢復所有非常駐能力，短休只恢復短休能力
     if (recoveryType === '長休') {
-      return ability.recovery_type === '短休' || ability.recovery_type === '長休';
-    } else {
-      return ability.recovery_type === '短休';
+      return effectiveRecoveryType === '短休' || effectiveRecoveryType === '長休';
     }
+    return effectiveRecoveryType === '短休';
   });
 
   // 批量更新
-  const updates = toReset.map(ca => ({
-    character_id: characterId,
-    ability_id: ca.ability_id,
-    current_uses: ca.max_uses
-  }));
+  const updates = toReset
+    .filter(ca => ca.ability_id)
+    .map(ca => ({
+      character_id: characterId,
+      ability_id: ca.ability_id,
+      current_uses: ca.max_uses
+    }));
 
-  if (updates.length === 0) {
+  const personalUpdates = toReset
+    .filter(ca => !ca.ability_id)
+    .map(ca => ({
+      id: ca.id,
+      current_uses: ca.max_uses
+    }));
+
+  if (updates.length === 0 && personalUpdates.length === 0) {
     return; // 沒有能力需要恢復
   }
 
   // 使用 upsert 批量更新
-  const { error: updateError } = await supabase
-    .from('character_abilities')
-    .upsert(updates, {
-      onConflict: 'character_id,ability_id',
-      ignoreDuplicates: false
-    });
+  if (updates.length > 0) {
+    const { error: updateError } = await supabase
+      .from('character_abilities')
+      .upsert(updates, {
+        onConflict: 'character_id,ability_id',
+        ignoreDuplicates: false
+      });
 
-  if (updateError) {
-    console.error('重設特殊能力使用次數失敗:', updateError);
-    throw updateError;
+    if (updateError) {
+      console.error('重設特殊能力使用次數失敗:', updateError);
+      throw updateError;
+    }
   }
 
-  console.log(`✅ ${recoveryType}恢復：已重設 ${updates.length} 個特殊能力`);
+  if (personalUpdates.length > 0) {
+    for (const update of personalUpdates) {
+      const { error: personalUpdateError } = await supabase
+        .from('character_abilities')
+        .update({ current_uses: update.current_uses })
+        .eq('id', update.id);
+
+      if (personalUpdateError) {
+        console.error('重設個人特殊能力使用次數失敗:', personalUpdateError);
+        throw personalUpdateError;
+      }
+      
+      console.log('重設個人特殊能力使用次數:', update.id, update.current_uses);
+    }
+  }
 }
 
 /**

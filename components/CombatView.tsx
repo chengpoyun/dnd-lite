@@ -4,6 +4,7 @@ import { evaluateValue, getModifier, setNormalValue, handleValueInput } from '..
 import { formatHitDicePools, getTotalCurrentHitDice, useHitDie, recoverHitDiceOnLongRest } from '../utils/classUtils';
 import { HybridDataManager } from '../services/hybridDataManager';
 import { MulticlassService } from '../services/multiclassService';
+import { resetAbilityUses } from '../services/abilityService';
 import { PageContainer, Card, Button, Title, Subtitle, Input } from './ui';
 import { Modal, ModalButton, ModalInput } from './ui/Modal';
 import { STYLES } from '../styles/common';
@@ -544,6 +545,9 @@ export const CombatView: React.FC<CombatViewProps> = ({
       bonus: { ...prev.bonus, current: prev.bonus.max },
       reaction: { ...prev.reaction, current: prev.reaction.max }
     }));
+    resetAbilityUses(characterId, '短休').catch(error => {
+      console.error('短休後重設特殊能力失敗:', error);
+    });
   };
 
   const handleLongRest = () => {
@@ -580,6 +584,9 @@ export const CombatView: React.FC<CombatViewProps> = ({
     setCombatSeconds(0);
     setIsLongRestConfirmOpen(false);
     setIsRestOptionsOpen(false);
+    resetAbilityUses(characterId, '長休').catch(error => {
+      console.error('長休後重設特殊能力失敗:', error);
+    });
   };
 
   const rollHitDie = () => {
