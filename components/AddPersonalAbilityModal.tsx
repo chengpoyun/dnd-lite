@@ -23,8 +23,8 @@ export const AddPersonalAbilityModal: React.FC<AddPersonalAbilityModalProps> = (
   onSubmit,
 }) => {
   const [name, setName] = useState('');
-  const [source, setSource] = useState<typeof SOURCES[number]>('職業');
-  const [recoveryType, setRecoveryType] = useState<typeof RECOVERY_TYPES[number]>('長休');
+  const [source, setSource] = useState<typeof SOURCES[number]>('種族');
+  const [recoveryType, setRecoveryType] = useState<typeof RECOVERY_TYPES[number]>('常駐');
   const [description, setDescription] = useState('');
   const [maxUses, setMaxUses] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -32,8 +32,8 @@ export const AddPersonalAbilityModal: React.FC<AddPersonalAbilityModalProps> = (
   useEffect(() => {
     if (isOpen) {
       setName('');
-      setSource('職業');
-      setRecoveryType('長休');
+      setSource('種族');
+      setRecoveryType('常駐');
       setDescription('');
       setMaxUses(1);
       setIsSubmitting(false);
@@ -46,7 +46,7 @@ export const AddPersonalAbilityModal: React.FC<AddPersonalAbilityModalProps> = (
     }
   }, [recoveryType]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!name.trim()) return;
 
