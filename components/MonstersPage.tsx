@@ -33,6 +33,8 @@ const MonstersPage: React.FC = () => {
   const [errorModalOpen, setErrorModalOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [selectedMonsterId, setSelectedMonsterId] = useState<string>('');
+  const [deleteMonsterModalOpen, setDeleteMonsterModalOpen] = useState(false);
+  const [pendingDeleteMonsterId, setPendingDeleteMonsterId] = useState<string | null>(null);
 
   /**
    * 開始新戰鬥
@@ -200,6 +202,22 @@ const MonstersPage: React.FC = () => {
     }
   };
 
+  const openDeleteMonsterModal = (monsterId: string) => {
+    setPendingDeleteMonsterId(monsterId);
+    setDeleteMonsterModalOpen(true);
+  };
+
+  const closeDeleteMonsterModal = () => {
+    setDeleteMonsterModalOpen(false);
+    setPendingDeleteMonsterId(null);
+  };
+
+  const confirmDeleteMonster = async () => {
+    if (!pendingDeleteMonsterId) return;
+    await handleDeleteMonster(pendingDeleteMonsterId);
+    closeDeleteMonsterModal();
+  };
+
   /**
    * 打開新增傷害 Modal
    */
@@ -279,6 +297,13 @@ const MonstersPage: React.FC = () => {
       localStorage.removeItem('combat_session_code');
     }
   }, [sessionCode]);
+
+  const pendingMonster = pendingDeleteMonsterId
+    ? monsters.find(monster => monster.id === pendingDeleteMonsterId) || null
+    : null;
+  const pendingMonsterLabel = pendingMonster
+    ? `${pendingMonster.name} #${pendingMonster.monster_number}`
+    : '怪物';
 
   return (
     <div className="min-h-screen bg-slate-900 text-slate-100">
@@ -361,7 +386,7 @@ const MonstersPage: React.FC = () => {
                 onAddDamage={() => openDamageModal(monster.id)}
                 onAdjustAC={() => openACModal(monster.id)}
                 onAdjustSettings={() => openSettingsModal(monster.id)}
-                onDelete={() => handleDeleteMonster(monster.id)}
+                onDelete={() => openDeleteMonsterModal(monster.id)}
               />
             ))}
           </div>
@@ -441,6 +466,15 @@ const MonstersPage: React.FC = () => {
         isOpen={combatEndedModalOpen}
         onClose={() => setCombatEndedModalOpen(false)}
         onConfirm={handleEndCombat}
+      />
+
+      <ConfirmDeleteModal
+        isOpen={deleteMonsterModalOpen}
+        onClose={closeDeleteMonsterModal}
+        onConfirm={confirmDeleteMonster}
+        title="刪除怪物"
+        message={`確定要刪除 ${pendingMonsterLabel} 嗎？`}
+        confirmText="刪除"
       />
 
       <ConfirmDeleteModal
