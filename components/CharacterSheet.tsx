@@ -23,13 +23,13 @@ const STAT_LABELS: Record<keyof CharacterStats['abilityScores'], string> = {
 };
 
 const SKILLS_MAP: { name: string; base: keyof CharacterStats['abilityScores'] }[] = [
-  { name: "運動", base: "str" }, { name: "特技動作", base: "dex" },
+  { name: "運動", base: "str" }, { name: "特技", base: "dex" },
   { name: "巧手", base: "dex" }, { name: "隱匿", base: "dex" },
   { name: "奧秘", base: "int" }, { name: "歷史", base: "int" },
   { name: "調查", base: "int" }, { name: "自然", base: "int" },
   { name: "宗教", base: "int" }, { name: "馴獸", base: "wis" },
-  { name: "察言觀色", base: "wis" }, { name: "醫術", base: "wis" },
-  { name: "觀察", base: "wis" }, { name: "生存", base: "wis" },
+  { name: "觀察", base: "wis" }, { name: "醫術", base: "wis" },
+  { name: "察覺", base: "wis" }, { name: "生存", base: "wis" },
   { name: "欺瞞", base: "cha" }, { name: "威嚇", base: "cha" },
   { name: "表演", base: "cha" }, { name: "說服", base: "cha" },
 ];
@@ -1063,15 +1063,14 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
               <Button
                 key={skill.name}
                 variant="ghost"
-                size="sm"
                 onClick={() => handleSkillClick(skill)}
-                className={`flex items-center justify-between py-1 px-1.5 rounded border transition-all h-9 ${profLevel > 0 ? 'bg-amber-500/10 border-amber-500/40 shadow-sm' : 'bg-slate-800/30 border-slate-800'}`}
+                className={`!px-2 !py-0 flex items-center justify-between transition-all h-9 ${profLevel > 0 ? 'bg-amber-500/10 border-amber-500/40 shadow-sm' : 'bg-slate-800/30 border-slate-800'}`}
               >
                 <div className="flex items-center gap-1 min-w-0 flex-1">
                    <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${profLevel === 1 ? 'bg-amber-500' : profLevel === 2 ? 'bg-amber-500 shadow-[0_0_5px_rgba(245,158,11,1)] ring-1 ring-amber-300' : 'bg-slate-700 opacity-30'}`} />
-                   <span className={`text-sm font-bold leading-none truncate tracking-tighter ${profLevel > 0 ? 'text-amber-400' : 'text-slate-500'}`}>{skill.name}</span>
+                   <span className={`text-base font-bold leading-none truncate tracking-tighter ${profLevel > 0 ? 'text-amber-400' : 'text-slate-500'}`}>{skill.name}</span>
                 </div>
-                <span className={`text-sm font-mono font-black leading-none shrink-0 pl-1 ${profLevel > 0 ? 'text-white' : 'text-slate-600'}`}>{bonus >= 0 ? '+' : ''}{bonus}</span>
+                <span className={`text-2xl font-mono font-black leading-none shrink-0 pl-1 ${profLevel > 0 ? 'text-white' : 'text-slate-600'}`}>{bonus >= 0 ? '+' : ''}{bonus}</span>
               </Button>
             );
           })}
