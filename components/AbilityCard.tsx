@@ -42,8 +42,8 @@ export const AbilityCard: React.FC<AbilityCardProps> = ({
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 flex-1 min-w-0">
             <div className="flex-1 min-w-0">
-              <h3 className="text-[20px] font-bold text-slate-200 truncate">{display.name}</h3>
-              <div className="flex items-center gap-2 mt-1 flex-wrap">
+              <div className="flex items-center gap-3">
+                <h3 className="text-[20px] font-bold text-slate-200 truncate">{display.name}</h3>
                 {/* 來源標籤 */}
                 <span className={`text-[12px] px-1.5 py-0.5 rounded ${sourceColor.bgLight} ${sourceColor.text} font-bold`}>
                   {display.source}
@@ -65,7 +65,13 @@ export const AbilityCard: React.FC<AbilityCardProps> = ({
                   </span>
                 )}
               </div>
-            </div>
+              {/* 描述文字放在最多兩行，超過顯示... */}
+              {display.description && (
+                <div className="mt-1 text-slate-400 text-[14px] break-words whitespace-pre-line line-clamp-2">
+                  {display.description}
+                </div>
+              )}
+            </div>            
           </div>
 
           {/* 箭頭圖示 */}
