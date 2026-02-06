@@ -11,12 +11,12 @@ vi.mock('../../services/itemService', async () => {
   );
   return {
     ...actual,
-    getGlobalItems: vi.fn(),
+    searchGlobalItems: vi.fn(),
   };
 });
 
 describe('LearnItemModal - keyword gating', () => {
-  const mockedGetGlobalItems = ItemService.getGlobalItems as unknown as vi.Mock;
+  const mockedSearchGlobalItems = ItemService.searchGlobalItems as unknown as vi.Mock;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -36,7 +36,7 @@ describe('LearnItemModal - keyword gating', () => {
       },
     ];
 
-    mockedGetGlobalItems.mockResolvedValue({
+    mockedSearchGlobalItems.mockResolvedValue({
       success: true,
       items,
     });
@@ -60,8 +60,58 @@ describe('LearnItemModal - keyword gating', () => {
       target: { value: '木' },
     });
 
-    await waitFor(() => {
-      expect(screen.getByText('木劍')).toBeInTheDocument();
+    await waitFor(
+      () => {
+        expect(screen.getByText('木劍')).toBeInTheDocument();
+      },
+      { timeout: 600 }
+    );
+    expect(mockedSearchGlobalItems).toHaveBeenCalledWith('木');
+  });
+
+  it('shows items with null description when name matches search', async () => {
+    const items: GlobalItem[] = [
+      {
+        id: 'item-1',
+        name: '誇爾羽符鳥',
+        name_en: null,
+        description: null as unknown as string,
+        category: '雜項',
+        is_magic: false,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      },
+    ];
+
+    mockedSearchGlobalItems.mockResolvedValue({
+      success: true,
+      items,
     });
+
+    render(
+      <LearnItemModal
+        isOpen
+        onClose={vi.fn()}
+        onLearnItem={vi.fn()}
+        onCreateNew={vi.fn()}
+        learnedItemIds={[]}
+      />
+    );
+
+    await waitFor(() => {
+      expect(screen.getByPlaceholderText('輸入名稱或描述...')).toBeInTheDocument();
+    });
+
+    fireEvent.change(screen.getByPlaceholderText('輸入名稱或描述...'), {
+      target: { value: '誇爾羽符' },
+    });
+
+    await waitFor(
+      () => {
+        expect(screen.getByText('誇爾羽符鳥')).toBeInTheDocument();
+      },
+      { timeout: 600 }
+    );
+    expect(mockedSearchGlobalItems).toHaveBeenCalledWith('誇爾羽符');
   });
 });

@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Modal } from './ui/Modal';
-import { GlobalItem, getGlobalItems } from '../services/itemService';
+import { GlobalItem, searchGlobalItems } from '../services/itemService';
 import { MODAL_CONTAINER_CLASS } from '../styles/modalStyles';
+
+const SEARCH_DEBOUNCE_MS = 280;
 
 interface LearnItemModalProps {
   isOpen: boolean;
@@ -19,51 +21,49 @@ export const LearnItemModal: React.FC<LearnItemModalProps> = ({
   learnedItemIds
 }) => {
   const [items, setItems] = useState<GlobalItem[]>([]);
-  const [filteredItems, setFilteredItems] = useState<GlobalItem[]>([]);
   const [searchText, setSearchText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (isOpen) {
       setSearchText('');
       setItems([]);
       setIsLoading(false);
-      loadItems();
     }
   }, [isOpen]);
 
   useEffect(() => {
-    let filtered = items;
-    filtered = filtered.filter(item => !learnedItemIds.includes(item.id));
-    if (!searchText) {
-      setFilteredItems([]);
+    const query = searchText.trim();
+    if (!query) {
+      setItems([]);
       return;
     }
-    if (searchText) {
-      const search = searchText.toLowerCase();
-      filtered = filtered.filter(item =>
-        item.name.toLowerCase().includes(search) ||
-        item.description.toLowerCase().includes(search)
-      );
-    }
-    setFilteredItems(filtered);
-  }, [items, searchText, learnedItemIds]);
-
-  const loadItems = async () => {
-    setIsLoading(true);
-    try {
-      const result = await getGlobalItems();
-      if (result.success && result.items) {
-        setItems(result.items);
-      } else {
-        console.error('載入物品列表失敗:', result.error);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(async () => {
+      debounceRef.current = null;
+      setIsLoading(true);
+      try {
+        const result = await searchGlobalItems(query);
+        if (result.success && result.items) {
+          setItems(result.items.filter(item => !learnedItemIds.includes(item.id)));
+        } else {
+          console.error('搜尋物品失敗:', result.error);
+          setItems([]);
+        }
+      } catch (error) {
+        console.error('搜尋物品失敗:', error);
+        setItems([]);
+      } finally {
+        setIsLoading(false);
       }
-    } catch (error) {
-      console.error('載入物品列表失敗:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    }, SEARCH_DEBOUNCE_MS);
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, [searchText, learnedItemIds]);
+
+  const filteredItems = items;
 
   const handleLearnItem = async (itemId: string) => {
     try {
@@ -119,8 +119,11 @@ export const LearnItemModal: React.FC<LearnItemModalProps> = ({
               <div>載入中...</div>
             </div>
           ) : filteredItems.length === 0 ? (
-            <div className="text-center py-8 text-slate-400">
-              {searchText ? '沒有符合條件的物品' : '請輸入關鍵字以搜尋物品'}
+            <div className="text-center py-8 text-slate-400 space-y-1">
+              <div>{searchText.trim() ? '沒有符合條件的物品' : '請輸入關鍵字以搜尋物品'}</div>
+              {searchText.trim() && (
+                <div className="text-[13px] text-slate-500">已擁有的物品不會顯示在此列表中</div>
+              )}
             </div>
           ) : (
             filteredItems.map(item => (
@@ -141,7 +144,7 @@ export const LearnItemModal: React.FC<LearnItemModalProps> = ({
                         </span>
                       )}
                     </div>
-                    <p className="text-[14px] text-slate-300 line-clamp-2">{item.description}</p>
+                    <p className="text-[14px] text-slate-300 line-clamp-2">{item.description ?? ''}</p>
                   </div>
                   <button
                     onClick={() => handleLearnItem(item.id)}

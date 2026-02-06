@@ -110,7 +110,8 @@ export async function getGlobalItems(): Promise<{
     const { data, error } = await supabase
       .from('global_items')
       .select('*')
-      .order('name', { ascending: true });
+      .order('name', { ascending: true })
+      .limit(5000);
 
     if (error) {
       console.error('❌ 取得全域物品失敗:', error);
@@ -121,6 +122,46 @@ export async function getGlobalItems(): Promise<{
   } catch (error) {
     console.error('❌ 取得全域物品異常:', error);
     return { success: false, error: '取得全域物品時發生錯誤' };
+  }
+}
+
+/** Escape % and _ for literal match in ilike; use * as alias of % (PostgREST) to avoid URL encoding */
+function escapeIlikePattern(s: string): string {
+  return s.replace(/\\/g, '\\\\').replace(/%/g, '\\%').replace(/_/g, '\\_');
+}
+
+/**
+ * 依關鍵字搜尋全域物品（name / name_en / description ilike）
+ * 用於 LearnItemModal 輸入時由後端過濾，避免前端載入不全或編碼問題
+ */
+export async function searchGlobalItems(query: string): Promise<{
+  success: boolean;
+  items?: GlobalItem[];
+  error?: string;
+}> {
+  const trimmed = query.trim();
+  if (!trimmed) {
+    return { success: true, items: [] };
+  }
+  try {
+    const escaped = escapeIlikePattern(trimmed);
+    const pattern = `*${escaped}*`;
+    const { data, error } = await supabase
+      .from('global_items')
+      .select('*')
+      .or(`name.ilike.${pattern},name_en.ilike.${pattern},description.ilike.${pattern}`)
+      .order('name', { ascending: true })
+      .limit(500);
+
+    if (error) {
+      console.error('❌ 搜尋全域物品失敗:', error);
+      return { success: false, error: error.message };
+    }
+
+    return { success: true, items: data || [] };
+  } catch (error) {
+    console.error('❌ 搜尋全域物品異常:', error);
+    return { success: false, error: '搜尋物品時發生錯誤' };
   }
 }
 
