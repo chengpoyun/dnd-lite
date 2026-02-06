@@ -13,6 +13,8 @@ export const INITIAL_STATS: CharacterStats = {
   ac: 10,
   initiative: 0, // 會在後續計算時被敵捷調整值覆蓋
   speed: 30,
+  spell_attack_bonus: 2,
+  spell_save_dc: 10,
   abilityScores: { str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10 },
   proficiencies: {},
   savingProficiencies: [],
@@ -43,6 +45,8 @@ export function buildCharacterStats(characterData: any, previousStats: Character
       ? characterData.currentStats.initiative_bonus 
       : (characterData.abilityScores?.dexterity ? getModifier(characterData.abilityScores.dexterity) : 0),
     speed: characterData.currentStats?.speed || INITIAL_STATS.speed,
+    spell_attack_bonus: characterData.currentStats?.spell_attack_bonus ?? INITIAL_STATS.spell_attack_bonus ?? 2,
+    spell_save_dc: characterData.currentStats?.spell_save_dc ?? INITIAL_STATS.spell_save_dc ?? 10,
     abilityScores: {
       str: characterData.abilityScores?.strength || INITIAL_STATS.abilityScores.str,
       dex: characterData.abilityScores?.dexterity || INITIAL_STATS.abilityScores.dex,

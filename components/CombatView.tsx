@@ -784,42 +784,133 @@ export const CombatView: React.FC<CombatViewProps> = ({
       </div>
 
       {/* 核心數據摘要 */}
-      <div className="grid grid-cols-4 gap-1">
-        <div onClick={() => { 
-          setTempHPValue(stats.hp.current.toString()); 
-          setTempMaxHPValue(stats.hp.max.toString());
-          setIsHPModalOpen(true); 
-        }} className={`flex flex-col items-center justify-center bg-slate-900 rounded-xl border ${hpColors.border} active:bg-slate-800 transition-colors cursor-pointer shadow-sm`}>
-          <span className={`text-[16px] font-black uppercase mb-1 tracking-tighter ${hpColors.label}`}>HP</span>
-          <span className={`text-[16px] font-fantasy leading-none ${hpColors.text}`}>{stats.hp.current}/{stats.hp.max}</span>
-        </div>
-        <div onClick={() => { setTempACValue(stats.ac.toString()); setIsACModalOpen(true); }} className="flex flex-col items-center justify-center bg-slate-900 rounded-xl border border-amber-900/30 active:bg-slate-800 transition-colors cursor-pointer shadow-sm">
-          <span className="text-[16px] font-black text-amber-500/80 uppercase mb-1 tracking-tighter">AC</span>
-          <span className="text-[16px] font-fantasy text-white leading-none">{stats.ac}</span>
-        </div>
-        <div onClick={() => { setTempInitiativeValue(stats.initiative.toString()); setIsInitiativeModalOpen(true); }} className="flex flex-col items-center justify-center bg-slate-900 rounded-xl border border-indigo-900/30 active:bg-slate-800 transition-colors cursor-pointer shadow-sm">
-          <span className="text-[16px] font-black text-indigo-400/80 uppercase mb-1 tracking-tighter">先攻</span>
-          <span className="text-[16px] font-fantasy text-white leading-none">+{stats.initiative}</span>
-        </div>
-        <div onClick={() => { setTempSpeedValue(stats.speed.toString()); setIsSpeedModalOpen(true); }} className="flex flex-col items-center justify-center bg-slate-900 rounded-xl border border-cyan-900/30 active:bg-slate-800 transition-colors cursor-pointer shadow-sm">
-          <span className="text-[16px] font-black text-cyan-400/80 uppercase mb-1 tracking-tighter">速度</span>
-          <span className="text-[16px] font-fantasy text-white leading-none">{stats.speed}</span>
-        </div>
-      </div>
+      {/* 統一資訊卡片樣式 */}
+      {(() => {
+        // cardConfigs: 配置陣列，方便 render 各卡片
+        const summaryCardBase =
+          "flex flex-col items-center justify-center bg-slate-900 rounded-xl border active:bg-slate-800 transition-colors cursor-pointer shadow-sm";
+        const labelBase =
+          "text-[20px] font-black uppercase mb-1 tracking-tighter";
+        const valueBase =
+          "text-[24px] font-fantasy text-white leading-none font-bold";
+
+        const cards = [
+          {
+            key: "hp",
+            onClick: () => {
+              setTempHPValue(stats.hp.current.toString());
+              setTempMaxHPValue(stats.hp.max.toString());
+              setIsHPModalOpen(true);
+            },
+            containerClass:
+              `${summaryCardBase} ${hpColors.border}`,
+            labelClass: `${labelBase} ${hpColors.label}`,
+            valueClass: `${valueBase} ${hpColors.text}`,
+            label: "HP",
+            value: `${stats.hp.current}/${stats.hp.max}`,
+            style: { paddingBottom: '3px' },
+          },
+          {
+            key: "ac",
+            onClick: () => {
+              setTempACValue(stats.ac.toString());
+              setIsACModalOpen(true);
+            },
+            containerClass:
+              `${summaryCardBase} border-amber-900/30`,
+            labelClass: `${labelBase} text-amber-500/80`,
+            valueClass: valueBase,
+            label: "AC",
+            value: stats.ac,
+          },
+          {
+            key: "initiative",
+            onClick: () => {
+              setTempInitiativeValue(stats.initiative.toString());
+              setIsInitiativeModalOpen(true);
+            },
+            containerClass:
+              `${summaryCardBase} border-indigo-900/30`,
+            labelClass: `${labelBase} text-indigo-400/80`,
+            valueClass: valueBase,
+            label: "先攻",
+            value: `+${stats.initiative}`,
+          },
+          {
+            key: "speed",
+            onClick: () => {
+              setTempSpeedValue(stats.speed.toString());
+              setIsSpeedModalOpen(true);
+            },
+            containerClass:
+              `${summaryCardBase} border-cyan-900/30`,
+            labelClass: `${labelBase} text-cyan-400/80`,
+            valueClass: valueBase,
+            label: "速度",
+            value: stats.speed,
+          },
+        ];
+
+        return (
+          <div className="grid grid-cols-4 gap-1">
+            {cards.map((card) => (
+              <div
+                key={card.key}
+                onClick={card.onClick}
+                className={card.containerClass}
+                style={card.style}
+              >
+                <span className={card.labelClass}>{card.label}</span>
+                <span className={card.valueClass}>{card.value}</span>
+              </div>
+            ))}
+          </div>
+        );
+      })()}
 
       {/* 法術數據 - 只在法術頁面顯示 */}
-      {showSpellStats && (
-        <div className="grid grid-cols-2 gap-1">
-          <div onClick={() => { setTempSpellAttackValue(stats.spell_attack_bonus?.toString() || '2'); setIsSpellAttackModalOpen(true); }} className="flex flex-col items-center justify-center bg-slate-900 rounded-xl border border-purple-900/30 active:bg-slate-800 transition-colors cursor-pointer shadow-sm py-2">
-            <span className="text-[16px] font-black text-purple-400/80 uppercase mb-1 tracking-tighter">法術命中</span>
-            <span className="text-[16px] font-fantasy text-white leading-none">+{stats.spell_attack_bonus ?? 2}</span>
+      {showSpellStats && (() => {
+        const summaryCardBase =
+          "flex flex-col items-center justify-center bg-slate-900 rounded-xl border active:bg-slate-800 transition-colors cursor-pointer shadow-sm py-2";
+        const labelClass =
+          "text-[20px] font-black text-purple-400/80 uppercase mb-1 tracking-tighter";
+        const valueClass =
+          "text-[24px] font-fantasy text-white leading-none font-bold";
+        const spellCards = [
+          {
+            key: "spell-attack",
+            onClick: () => {
+              setTempSpellAttackValue(stats.spell_attack_bonus?.toString() || "2");
+              setIsSpellAttackModalOpen(true);
+            },
+            label: "法術命中",
+            value: `+${stats.spell_attack_bonus ?? 2}`,
+          },
+          {
+            key: "spell-dc",
+            onClick: () => {
+              setTempSpellDCValue(stats.spell_save_dc?.toString() || "10");
+              setIsSpellDCModalOpen(true);
+            },
+            label: "法術DC",
+            value: stats.spell_save_dc ?? 10,
+          },
+        ];
+        return (
+          <div className="grid grid-cols-2 gap-1">
+            {spellCards.map(card => (
+              <div
+                key={card.key}
+                onClick={card.onClick}
+                className={summaryCardBase + " border-purple-900/30"}
+              >
+                <span className={labelClass}>{card.label}</span>
+                <span className={valueClass}>{card.value}</span>
+              </div>
+            ))}
           </div>
-          <div onClick={() => { setTempSpellDCValue(stats.spell_save_dc?.toString() || '10'); setIsSpellDCModalOpen(true); }} className="flex flex-col items-center justify-center bg-slate-900 rounded-xl border border-purple-900/30 active:bg-slate-800 transition-colors cursor-pointer shadow-sm py-2">
-            <span className="text-[16px] font-black text-purple-400/80 uppercase mb-1 tracking-tighter">法術DC</span>
-            <span className="text-[16px] font-fantasy text-white leading-none">{stats.spell_save_dc ?? 10}</span>
-          </div>
-        </div>
-      )}
+        );
+      })()}
 
       <ActionList 
         title="職業資源" 
