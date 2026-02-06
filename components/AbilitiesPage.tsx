@@ -293,6 +293,7 @@ export default function AbilitiesPage({ characterId }: AbilitiesPageProps) {
           const display = AbilityService.getDisplayValues(uploadFromCharacterAbility);
           return {
             name: display.name,
+            name_en: display.name_en ?? '',
             description: display.description,
             source: display.source || '其他',
             recovery_type: display.recovery_type || '常駐',

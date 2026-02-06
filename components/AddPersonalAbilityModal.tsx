@@ -54,6 +54,7 @@ export const AddPersonalAbilityModal: React.FC<AddPersonalAbilityModalProps> = (
     try {
       await onSubmit({
         name: name.trim(),
+        name_en: "",
         source,
         recovery_type: recoveryType,
         description: description.trim() || undefined,

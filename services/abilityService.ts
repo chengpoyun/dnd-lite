@@ -27,6 +27,7 @@ export interface CreateAbilityDataForUpload {
 /** 新增個人能力（直接寫入 character_abilities，不經 abilities） */
 export interface CreateCharacterAbilityData {
   name: string;
+  name_en: string;
   source: '種族' | '職業' | '專長' | '背景' | '其他';
   recovery_type: '常駐' | '短休' | '長休';
   description?: string;

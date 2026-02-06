@@ -12,6 +12,7 @@ interface AbilityFormModalProps {
   mode?: 'create' | 'upload';
   uploadInitialData?: {
     name: string;
+    name_en: string;
     description: string;
     source: '種族' | '職業' | '專長' | '背景' | '其他';
     recovery_type: '常駐' | '短休' | '長休';
@@ -55,7 +56,7 @@ export const AbilityFormModal: React.FC<AbilityFormModalProps> = ({
     } else if (isUpload && uploadInitialData) {
       setFormData({
         name: uploadInitialData.name,
-        name_en: '',
+        name_en: uploadInitialData.name_en ?? '',
         description: uploadInitialData.description,
         source: uploadInitialData.source,
         recovery_type: uploadInitialData.recovery_type
@@ -194,7 +195,7 @@ export const AbilityFormModal: React.FC<AbilityFormModalProps> = ({
           </label>
           <input
             type="text"
-            value={formData.name_en}
+            value={formData.name_en ?? ''}
             onChange={(e) => setFormData({ ...formData, name_en: e.target.value })}
             className="w-full bg-slate-800 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500"
             placeholder="例：Cunning Action"
