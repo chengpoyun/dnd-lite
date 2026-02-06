@@ -790,7 +790,7 @@ export const CombatView: React.FC<CombatViewProps> = ({
           setTempMaxHPValue(stats.hp.max.toString());
           setIsHPModalOpen(true); 
         }} className={`flex flex-col items-center justify-center bg-slate-900 rounded-xl border ${hpColors.border} active:bg-slate-800 transition-colors cursor-pointer shadow-sm`}>
-          <span className={`text-[16px] font-black uppercase mb-1 tracking-tighter ${hpColors.label}`}>生命值</span>
+          <span className={`text-[16px] font-black uppercase mb-1 tracking-tighter ${hpColors.label}`}>HP</span>
           <span className={`text-[16px] font-fantasy leading-none ${hpColors.text}`}>{stats.hp.current}/{stats.hp.max}</span>
         </div>
         <div onClick={() => { setTempACValue(stats.ac.toString()); setIsACModalOpen(true); }} className="flex flex-col items-center justify-center bg-slate-900 rounded-xl border border-amber-900/30 active:bg-slate-800 transition-colors cursor-pointer shadow-sm">
@@ -1107,7 +1107,7 @@ export const CombatView: React.FC<CombatViewProps> = ({
         size="sm"
       >
         <div className={`${MODAL_CONTAINER_CLASS} relative`}>
-          <h2 className="text-xl font-bold mb-5">修改生命值</h2>
+          <h2 className="text-xl font-bold mb-5">修改 HP</h2>
           
           <div className="space-y-4">
             <div>
