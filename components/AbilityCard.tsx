@@ -5,6 +5,10 @@ import { getDisplayValues } from '../services/abilityService';
 interface AbilityCardProps {
   characterAbility: CharacterAbilityWithDetails;
   onClick: () => void;
+  /** 左側拖拉把手（僅此區域可拖曳排序） */
+  dragHandle?: React.ReactNode;
+  /** 是否正在被拖曳（用於樣式） */
+  isDragging?: boolean;
 }
 
 const sourceColors: Record<string, { bgLight: string; text: string }> = {
@@ -23,7 +27,9 @@ const recoveryTypeColors: Record<string, { bgLight: string; text: string }> = {
 
 export const AbilityCard: React.FC<AbilityCardProps> = ({
   characterAbility,
-  onClick
+  onClick,
+  dragHandle,
+  isDragging = false
 }) => {
   const { current_uses, max_uses } = characterAbility;
   const display = getDisplayValues(characterAbility);
@@ -34,9 +40,16 @@ export const AbilityCard: React.FC<AbilityCardProps> = ({
   const hasUses = !isPassive && max_uses > 0;
 
   return (
-    <div className="bg-slate-800/30 rounded-xl border border-slate-700 overflow-hidden">
-      <div 
-        className="p-4 cursor-pointer active:bg-slate-700/30"
+    <div
+      className={`bg-slate-800/30 rounded-xl border border-slate-700 overflow-hidden flex ${isDragging ? 'opacity-70 shadow-lg ring-2 ring-amber-500/50' : ''}`}
+    >
+      {dragHandle != null && (
+        <div className="flex items-center justify-center shrink-0 w-10 border-r border-slate-700 bg-slate-800/50 text-slate-500 touch-none cursor-grab active:cursor-grabbing [&:active]:bg-slate-700/50">
+          {dragHandle}
+        </div>
+      )}
+      <div
+        className="p-4 cursor-pointer active:bg-slate-700/30 flex-1 min-w-0"
         onClick={onClick}
       >
         <div className="flex items-center justify-between gap-3">

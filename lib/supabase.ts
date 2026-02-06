@@ -250,6 +250,8 @@ export interface CharacterAbility {
   ability_id: string | null
   current_uses: number
   max_uses: number
+  /** 顯示順序（愈小愈前面）；null 時依 created_at 排 */
+  sort_order?: number | null
   // 覆蓋欄位（可選，用於客製化）
   name_override?: string | null
   name_en_override?: string | null

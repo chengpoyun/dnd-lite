@@ -6,9 +6,23 @@
  * - 新增/編輯/刪除特殊能力
  * - 學習/移除能力
  * - 使用能力（扣除次數）
+ * - 拖拉左側把手調整能力卡順序（依角色儲存）
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import {
+  DndContext,
+  DragEndEvent,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { useToast } from '../hooks/useToast';
 import * as AbilityService from '../services/abilityService';
 import type { CharacterAbilityWithDetails } from '../lib/supabase';
@@ -23,11 +37,59 @@ interface AbilitiesPageProps {
   characterId: string;
 }
 
+/** 單一能力卡的可排序包裝（僅左側把手可拖曳） */
+function SortableAbilityCard({
+  characterAbility,
+  onClick,
+}: {
+  characterAbility: CharacterAbilityWithDetails;
+  onClick: () => void;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    setActivatorNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: characterAbility.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  const dragHandle = (
+    <div
+      ref={setActivatorNodeRef}
+      {...listeners}
+      {...attributes}
+      className="flex items-center justify-center w-full h-full py-2"
+      aria-label="拖曳以調整順序"
+    >
+      <span className="text-slate-400 select-none" style={{ fontSize: '1rem' }}>⋮⋮</span>
+    </div>
+  );
+
+  return (
+    <div ref={setNodeRef} style={style}>
+      <AbilityCard
+        characterAbility={characterAbility}
+        onClick={onClick}
+        dragHandle={dragHandle}
+        isDragging={isDragging}
+      />
+    </div>
+  );
+}
+
 export default function AbilitiesPage({ characterId }: AbilitiesPageProps) {
   const { showSuccess, showError } = useToast();
 
   const [characterAbilities, setCharacterAbilities] = useState<CharacterAbilityWithDetails[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSavingOrder, setIsSavingOrder] = useState(false);
 
   // Modal 狀態
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
@@ -59,8 +121,47 @@ export default function AbilitiesPage({ characterId }: AbilitiesPageProps) {
     }
   }, [characterId]);
 
-  // 顯示角色已擁有的能力（包含個人能力）
+  // 顯示角色已擁有的能力（包含個人能力），順序已由 getCharacterAbilities 依 sort_order 排好
   const displayAbilities = characterAbilities;
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: { distance: 8 },
+    })
+  );
+
+  const handleDragEnd = useCallback(
+    async (event: DragEndEvent) => {
+      const { active, over } = event;
+      if (!over || active.id === over.id) return;
+
+      const oldList = characterAbilities;
+      const oldIndex = oldList.findIndex((ca) => ca.id === active.id);
+      const newIndex = oldList.findIndex((ca) => ca.id === over.id);
+      if (oldIndex === -1 || newIndex === -1) return;
+
+      const next = [...oldList];
+      const [removed] = next.splice(oldIndex, 1);
+      next.splice(newIndex, 0, removed);
+      setCharacterAbilities(next);
+
+      setIsSavingOrder(true);
+      try {
+        await AbilityService.updateCharacterAbilityOrder(
+          characterId,
+          next.map((ca) => ca.id)
+        );
+      } catch (error) {
+        console.error('儲存能力順序失敗:', error);
+        showError('儲存順序失敗，已還原');
+        const restored = await AbilityService.getCharacterAbilities(characterId);
+        setCharacterAbilities(restored);
+      } finally {
+        setIsSavingOrder(false);
+      }
+    },
+    [characterId, characterAbilities, showError]
+  );
 
   // 新增能力到全域資料庫（不自動學習）
   const handleCreate = async (data: AbilityService.CreateAbilityData) => {
@@ -267,13 +368,23 @@ export default function AbilitiesPage({ characterId }: AbilitiesPageProps) {
           </div>
         ) : (
           <div className="space-y-3">
-            {displayAbilities.map((charAbility) => (
-              <AbilityCard
-                key={charAbility.id}
-                characterAbility={charAbility}
-                onClick={() => handleAbilityClick(charAbility)}
-              />
-            ))}
+            {isSavingOrder && (
+              <div className="text-sm text-slate-400 mb-1">正在儲存順序…</div>
+            )}
+            <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
+              <SortableContext
+                items={displayAbilities.map((ca) => ca.id)}
+                strategy={verticalListSortingStrategy}
+              >
+                {displayAbilities.map((charAbility) => (
+                  <SortableAbilityCard
+                    key={charAbility.id}
+                    characterAbility={charAbility}
+                    onClick={() => handleAbilityClick(charAbility)}
+                  />
+                ))}
+              </SortableContext>
+            </DndContext>
           </div>
         )}
       </div>

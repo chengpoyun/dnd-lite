@@ -250,7 +250,7 @@ export async function deleteAbility(abilityId: string): Promise<void> {
 }
 
 /**
- * 取得角色已學習的特殊能力（含能力詳情）
+ * 取得角色已學習的特殊能力（含能力詳情），依 sort_order 升序，無值則依 created_at 降序
  */
 export async function getCharacterAbilities(characterId: string): Promise<CharacterAbilityWithDetails[]> {
   const { data, error } = await supabase
@@ -260,6 +260,7 @@ export async function getCharacterAbilities(characterId: string): Promise<Charac
       ability:abilities(*)
     `)
     .eq('character_id', characterId)
+    .order('sort_order', { ascending: true, nullsFirst: false })
     .order('created_at', { ascending: false });
 
   if (error) {
@@ -544,6 +545,31 @@ export async function updateCharacterAbility(
   }
 
   return data;
+}
+
+/**
+ * 更新角色能力卡的顯示順序（依 character_ability 的 id 陣列順序寫入 sort_order）
+ */
+export async function updateCharacterAbilityOrder(
+  characterId: string,
+  orderedCharacterAbilityIds: string[]
+): Promise<void> {
+  if (!characterId || !orderedCharacterAbilityIds.length) return;
+
+  const updates = orderedCharacterAbilityIds.map((id, index) =>
+    supabase
+      .from('character_abilities')
+      .update({ sort_order: index })
+      .eq('id', id)
+      .eq('character_id', characterId)
+  );
+
+  const results = await Promise.all(updates);
+  const failed = results.find(r => r.error);
+  if (failed?.error) {
+    console.error('更新能力順序失敗:', failed.error);
+    throw failed.error;
+  }
 }
 
 /**

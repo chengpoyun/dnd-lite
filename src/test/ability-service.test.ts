@@ -175,5 +175,56 @@ describe('AbilityService - 個人能力與上傳邏輯', () => {
     const insertArg = (insertBuilder.insert as Mock).mock.calls[0][0][0];
     expect(insertArg.ability_id).toBeNull();
   });
+
+  describe('updateCharacterAbilityOrder', () => {
+    it('應依陣列順序對每個 character_ability 寫入 sort_order', async () => {
+      const characterId = 'char-1';
+      const orderedIds = ['ca-a', 'ca-b', 'ca-c'];
+
+      const updateBuilder: SupabaseBuilder = {
+        update: vi.fn().mockReturnValue({
+          eq: vi.fn().mockReturnValue({
+            eq: vi.fn().mockResolvedValue({ error: null })
+          })
+        })
+      };
+
+      mockedSupabase.from.mockImplementation((table: string) => {
+        if (table === 'character_abilities') return updateBuilder as any;
+        throw new Error(`Unexpected table: ${table}`);
+      });
+
+      await AbilityService.updateCharacterAbilityOrder(characterId, orderedIds);
+
+      expect((updateBuilder.update as Mock)).toHaveBeenCalledTimes(3);
+      expect((updateBuilder.update as Mock)).toHaveBeenNthCalledWith(1, { sort_order: 0 });
+      expect((updateBuilder.update as Mock)).toHaveBeenNthCalledWith(2, { sort_order: 1 });
+      expect((updateBuilder.update as Mock)).toHaveBeenNthCalledWith(3, { sort_order: 2 });
+    });
+
+    it('orderedIds 為空時應不發送請求', async () => {
+      mockedSupabase.from.mockReset();
+      await AbilityService.updateCharacterAbilityOrder('char-1', []);
+      expect(mockedSupabase.from).not.toHaveBeenCalled();
+    });
+
+    it('當後端回傳錯誤時應 throw', async () => {
+      const updateBuilder: SupabaseBuilder = {
+        update: vi.fn().mockReturnValue({
+          eq: vi.fn().mockReturnValue({
+            eq: vi.fn().mockResolvedValue({ error: new Error('DB error') })
+          })
+        })
+      };
+      mockedSupabase.from.mockImplementation((table: string) => {
+        if (table === 'character_abilities') return updateBuilder as any;
+        throw new Error(`Unexpected table: ${table}`);
+      });
+
+      await expect(
+        AbilityService.updateCharacterAbilityOrder('char-1', ['ca-1'])
+      ).rejects.toThrow();
+    });
+  });
 });
 
