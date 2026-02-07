@@ -80,6 +80,15 @@ export const STYLES = {
     grid: 'grid gap-3 sm:gap-4',
   },
   
+  // 列表卡片（ItemCard / AbilityCard / MonsterCard 共用基底）
+  listCard: {
+    base: 'bg-slate-800 border border-slate-700 rounded-lg p-4',
+    clickable: 'hover:bg-slate-750 hover:border-slate-600 transition-all cursor-pointer',
+    withHandle: 'bg-slate-800 border border-slate-700 rounded-lg overflow-hidden flex',
+    inner: 'p-4 flex-1 min-w-0',
+    innerClickable: 'cursor-pointer active:bg-slate-700/30',
+  },
+
   // 狀態
   state: {
     disabled: 'disabled:opacity-50 disabled:cursor-not-allowed',

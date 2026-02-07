@@ -87,6 +87,61 @@ export const Card: React.FC<CardProps> = ({
   )
 }
 
+// 列表卡片基底（ItemCard / AbilityCard / MonsterCard 共用）
+interface ListCardProps {
+  children: React.ReactNode
+  /** 點擊整張卡片時觸發（無 dragHandle 時加 hover 樣式） */
+  onClick?: () => void
+  /** 左側拖拉把手；有值時改為 flex 佈局且 padding 在內層 */
+  dragHandle?: React.ReactNode
+  className?: string
+}
+
+export const ListCard: React.FC<ListCardProps> = ({
+  children,
+  onClick,
+  dragHandle,
+  className = ''
+}) => {
+  if (dragHandle != null) {
+    return (
+      <div
+        className={combineStyles(
+          STYLES.listCard.withHandle,
+          className
+        )}
+      >
+        <div className="flex items-center justify-center shrink-0 w-10 border-r border-slate-700 bg-slate-800/50 text-slate-500 touch-none cursor-grab active:cursor-grabbing [&:active]:bg-slate-700/50">
+          {dragHandle}
+        </div>
+        <div
+          className={combineStyles(
+            STYLES.listCard.inner,
+            onClick != null ? STYLES.listCard.innerClickable : ''
+          )}
+          onClick={onClick}
+          role={onClick != null ? 'button' : undefined}
+        >
+          {children}
+        </div>
+      </div>
+    )
+  }
+  return (
+    <div
+      className={combineStyles(
+        STYLES.listCard.base,
+        onClick != null ? STYLES.listCard.clickable : '',
+        className
+      )}
+      onClick={onClick}
+      role={onClick != null ? 'button' : undefined}
+    >
+      {children}
+    </div>
+  )
+}
+
 // 共用頁面容器
 interface PageContainerProps {
   children: React.ReactNode

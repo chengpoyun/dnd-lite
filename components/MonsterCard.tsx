@@ -1,6 +1,7 @@
 import React from 'react';
 import type { CombatMonsterWithLogs, CombatDamageLog, ResistanceType } from '../lib/supabase';
 import { getDamageTypeDisplay, RESISTANCE_ICONS, RESISTANCE_COLORS, DAMAGE_TYPES } from '../utils/damageTypes';
+import { ListCard } from './ui';
 
 interface MonsterCardProps {
   monster: CombatMonsterWithLogs;
@@ -47,7 +48,7 @@ const MonsterCard: React.FC<MonsterCardProps> = ({
   }, [damage_logs]);
 
   return (
-    <div className="bg-slate-800 border border-slate-700 rounded-xl p-4 shadow-lg">
+    <ListCard className="rounded-xl shadow-lg">
       {/* 標題列 */}
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-xl font-bold">👹 {name} #{monster_number}</h3>
@@ -190,7 +191,7 @@ const MonsterCard: React.FC<MonsterCardProps> = ({
           </button>
         )}
       </div>
-    </div>
+    </ListCard>
   );
 };
 

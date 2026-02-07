@@ -1,6 +1,8 @@
 import React from 'react';
 import type { CharacterAbilityWithDetails } from '../lib/supabase';
 import { getDisplayValues } from '../services/abilityService';
+import { ListCard } from './ui';
+import { combineStyles, conditionalStyle } from '../styles/common';
 
 interface AbilityCardProps {
   characterAbility: CharacterAbilityWithDetails;
@@ -41,19 +43,15 @@ export const AbilityCard: React.FC<AbilityCardProps> = ({
   const hasUses = !isPassive && max_uses > 0;
 
   return (
-    <div
-      className={`bg-slate-800/30 rounded-xl border border-slate-700 overflow-hidden flex ${isDragging ? 'opacity-70 shadow-lg ring-2 ring-amber-500/50' : ''}`}
-    >
-      {dragHandle != null && (
-        <div className="flex items-center justify-center shrink-0 w-10 border-r border-slate-700 bg-slate-800/50 text-slate-500 touch-none cursor-grab active:cursor-grabbing [&:active]:bg-slate-700/50">
-          {dragHandle}
-        </div>
+    <ListCard
+      dragHandle={dragHandle}
+      onClick={onClick}
+      className={combineStyles(
+        'rounded-xl bg-slate-800/30',
+        conditionalStyle(isDragging, 'opacity-70 shadow-lg ring-2 ring-amber-500/50')
       )}
-      <div
-        className="p-4 cursor-pointer active:bg-slate-700/30 flex-1 min-w-0"
-        onClick={onClick}
-      >
-        <div className="flex items-center justify-between gap-3">
+    >
+      <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 flex-1 min-w-0">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 min-w-0">
@@ -90,7 +88,6 @@ export const AbilityCard: React.FC<AbilityCardProps> = ({
           {/* 箭頭圖示 */}
           <div className="text-slate-500 flex-shrink-0">▶</div>
         </div>
-      </div>
-    </div>
+    </ListCard>
   );
 };

@@ -6,6 +6,7 @@
 import React from 'react';
 import type { CharacterItem } from '../services/itemService';
 import { getDisplayValues } from '../services/itemService';
+import { ListCard } from './ui';
 
 interface ItemCardProps {
   item: CharacterItem;
@@ -16,10 +17,7 @@ export const ItemCard: React.FC<ItemCardProps> = ({ item, onClick }) => {
   const display = getDisplayValues(item);
 
   return (
-    <div
-      onClick={onClick}
-      className="bg-slate-800 border border-slate-700 rounded-lg p-4 hover:bg-slate-750 hover:border-slate-600 transition-all cursor-pointer"
-    >
+    <ListCard onClick={onClick}>
       <div className="flex items-start justify-between">
         <div className="flex-1">
           <div className="flex items-center gap-3 mb-2">
@@ -41,6 +39,6 @@ export const ItemCard: React.FC<ItemCardProps> = ({ item, onClick }) => {
           <div className="text-2xl font-bold text-slate-300">× {item.quantity}</div>
         </div>
       </div>
-    </div>
+    </ListCard>
   );
 };
