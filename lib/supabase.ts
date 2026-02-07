@@ -257,7 +257,7 @@ export interface Ability {
   name: string
   name_en: string | null  // 修改：英文名稱改為可選
   description: string
-  source: '種族' | '職業' | '專長' | '背景' | '其他'
+  source: '職業' | '種族' | '裝備' | '專長' | '背景' | '其他'
   recovery_type: '常駐' | '短休' | '長休'
   created_at?: string
   updated_at?: string
@@ -275,7 +275,7 @@ export interface CharacterAbility {
   name_override?: string | null
   name_en_override?: string | null
   description_override?: string | null
-  source_override?: '種族' | '職業' | '專長' | '背景' | '其他' | null
+  source_override?: '職業' | '種族' | '裝備' | '專長' | '背景' | '其他' | null
   recovery_type_override?: '常駐' | '短休' | '長休' | null
   created_at?: string
   updated_at?: string
@@ -288,7 +288,7 @@ export interface CharacterAbilityWithDetails extends CharacterAbility {
   displayName?: string
   displayNameEn?: string | null
   displayDescription?: string
-  displaySource?: '種族' | '職業' | '專長' | '背景' | '其他'
+  displaySource?: '職業' | '種族' | '裝備' | '專長' | '背景' | '其他'
   displayRecoveryType?: '常駐' | '短休' | '長休'
 }
 

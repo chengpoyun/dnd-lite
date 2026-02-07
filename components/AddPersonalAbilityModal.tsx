@@ -5,10 +5,10 @@
 
 import React, { useEffect, useState } from 'react';
 import { Modal } from './ui/Modal';
-import type { CreateCharacterAbilityData } from '../services/abilityService';
+import { ABILITY_SOURCE_ORDER, type CreateCharacterAbilityData } from '../services/abilityService';
 import { MODAL_CONTAINER_CLASS } from '../styles/modalStyles';
 
-const SOURCES = ['種族', '職業', '專長', '背景', '其他'] as const;
+const SOURCES = [...ABILITY_SOURCE_ORDER];
 const RECOVERY_TYPES = ['常駐', '短休', '長休'] as const;
 
 interface AddPersonalAbilityModalProps {
@@ -26,7 +26,7 @@ export const AddPersonalAbilityModal: React.FC<AddPersonalAbilityModalProps> = (
   initialName,
 }) => {
   const [name, setName] = useState('');
-  const [source, setSource] = useState<typeof SOURCES[number]>('種族');
+  const [source, setSource] = useState<typeof SOURCES[number]>('職業');
   const [recoveryType, setRecoveryType] = useState<typeof RECOVERY_TYPES[number]>('常駐');
   const [description, setDescription] = useState('');
   const [maxUses, setMaxUses] = useState(1);
@@ -35,7 +35,7 @@ export const AddPersonalAbilityModal: React.FC<AddPersonalAbilityModalProps> = (
   useEffect(() => {
     if (isOpen) {
       setName(initialName ?? '');
-      setSource('種族');
+      setSource('職業');
       setRecoveryType('常駐');
       setDescription('');
       setMaxUses(1);

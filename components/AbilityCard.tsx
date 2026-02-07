@@ -12,8 +12,9 @@ interface AbilityCardProps {
 }
 
 const sourceColors: Record<string, { bgLight: string; text: string }> = {
-  '種族': { bgLight: 'bg-green-500/20', text: 'text-green-400' },
   '職業': { bgLight: 'bg-blue-500/20', text: 'text-blue-400' },
+  '種族': { bgLight: 'bg-green-500/20', text: 'text-green-400' },
+  '裝備': { bgLight: 'bg-indigo-500/20', text: 'text-indigo-400' },
   '專長': { bgLight: 'bg-purple-500/20', text: 'text-purple-400' },
   '背景': { bgLight: 'bg-amber-500/20', text: 'text-amber-400' },
   '其他': { bgLight: 'bg-slate-500/20', text: 'text-slate-400' }
@@ -55,28 +56,27 @@ export const AbilityCard: React.FC<AbilityCardProps> = ({
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 flex-1 min-w-0">
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-3">
-                <h3 className="text-[20px] font-bold text-slate-200 truncate">{display.name}</h3>
-                {/* 來源標籤 */}
-                <span className={`text-[12px] px-1.5 py-0.5 rounded ${sourceColor.bgLight} ${sourceColor.text} font-bold`}>
-                  {display.source}
-                </span>
-                
-                {/* 恢復規則標籤 */}
-                <span className={`text-[12px] px-1.5 py-0.5 rounded ${recoveryColor.bgLight} ${recoveryColor.text} font-bold`}>
-                  {display.recovery_type}
-                </span>
-
-                {/* 使用次數顯示 */}
-                {hasUses && (
-                  <span className={`text-[12px] px-1.5 py-0.5 rounded font-bold ${
-                    current_uses > 0 
-                      ? 'bg-indigo-500/20 text-indigo-400' 
-                      : 'bg-slate-600/50 text-slate-400'
-                  }`}>
-                    {current_uses}/{max_uses}
+              <div className="flex items-center gap-2 min-w-0">
+                {/* 標題：可縮放並 truncate，讓右側標籤不需換行 */}
+                <h3 className="text-[20px] font-bold text-slate-200 truncate min-w-0 flex-1">{display.name}</h3>
+                {/* 來源／恢復／次數標籤：不縮放，同一行 */}
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <span className={`text-[12px] px-1.5 py-0.5 rounded ${sourceColor.bgLight} ${sourceColor.text} font-bold whitespace-nowrap`}>
+                    {display.source}
                   </span>
-                )}
+                  <span className={`text-[12px] px-1.5 py-0.5 rounded ${recoveryColor.bgLight} ${recoveryColor.text} font-bold whitespace-nowrap`}>
+                    {display.recovery_type}
+                  </span>
+                  {hasUses && (
+                    <span className={`text-[12px] px-1.5 py-0.5 rounded font-bold whitespace-nowrap ${
+                      current_uses > 0 
+                        ? 'bg-indigo-500/20 text-indigo-400' 
+                        : 'bg-slate-600/50 text-slate-400'
+                    }`}>
+                      {current_uses}/{max_uses}
+                    </span>
+                  )}
+                </div>
               </div>
               {/* 描述文字放在最多兩行，超過顯示... */}
               {display.description && (

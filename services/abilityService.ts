@@ -1,8 +1,13 @@
 import { supabase } from '../lib/supabase';
 import type { Ability, CharacterAbility, CharacterAbilityWithDetails } from '../lib/supabase';
 
+/** 能力來源顯示順序（篩選、表單選單、標籤等依此順序） */
+export const ABILITY_SOURCE_ORDER = ['職業', '種族', '裝備', '專長', '背景', '其他'] as const;
+
+export type AbilitySource = (typeof ABILITY_SOURCE_ORDER)[number];
+
 export interface AbilityFilters {
-  source?: '種族' | '職業' | '專長' | '背景' | '其他';
+  source?: AbilitySource;
   recoveryType?: '常駐' | '短休' | '長休';
   searchText?: string;
 }
@@ -11,7 +16,7 @@ export interface CreateAbilityData {
   name: string;
   name_en: string;  // 可以是空字串
   description: string;
-  source: '種族' | '職業' | '專長' | '背景' | '其他';
+  source: AbilitySource;
   recovery_type: '常駐' | '短休' | '長休';
 }
 
@@ -20,7 +25,7 @@ export interface CreateAbilityDataForUpload {
   name: string;
   name_en: string;
   description: string;
-  source: '種族' | '職業' | '專長' | '背景' | '其他';
+  source: AbilitySource;
   recovery_type: '常駐' | '短休' | '長休';
 }
 
@@ -28,7 +33,7 @@ export interface CreateAbilityDataForUpload {
 export interface CreateCharacterAbilityData {
   name: string;
   name_en: string;
-  source: '種族' | '職業' | '專長' | '背景' | '其他';
+  source: AbilitySource;
   recovery_type: '常駐' | '短休' | '長休';
   description?: string;
   max_uses?: number;
@@ -511,7 +516,7 @@ export async function updateCharacterAbility(
     name?: string;
     name_en?: string;
     description?: string;
-    source?: '種族' | '職業' | '專長' | '背景' | '其他';
+    source?: AbilitySource;
     recovery_type?: '常駐' | '短休' | '長休';
     max_uses?: number;
   },

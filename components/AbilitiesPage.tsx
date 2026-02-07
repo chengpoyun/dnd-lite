@@ -25,7 +25,9 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import { useToast } from '../hooks/useToast';
 import * as AbilityService from '../services/abilityService';
+import { ABILITY_SOURCE_ORDER } from '../services/abilityService';
 import type { CharacterAbilityWithDetails } from '../lib/supabase';
+import { FilterBar } from './ui/FilterBar';
 import { AbilityCard } from './AbilityCard';
 import { AbilityFormModal } from './AbilityFormModal';
 import AbilityDetailModal from './AbilityDetailModal';
@@ -88,6 +90,7 @@ export default function AbilitiesPage({ characterId }: AbilitiesPageProps) {
   const { showSuccess, showError } = useToast();
 
   const [characterAbilities, setCharacterAbilities] = useState<CharacterAbilityWithDetails[]>([]);
+  const [selectedSource, setSelectedSource] = useState<'all' | (typeof ABILITY_SOURCE_ORDER)[number]>('all');
   const [isLoading, setIsLoading] = useState(true);
   const [isSavingOrder, setIsSavingOrder] = useState(false);
 
@@ -122,8 +125,21 @@ export default function AbilitiesPage({ characterId }: AbilitiesPageProps) {
     }
   }, [characterId]);
 
-  // 顯示角色已擁有的能力（包含個人能力），順序已由 getCharacterAbilities 依 sort_order 排好
-  const displayAbilities = characterAbilities;
+  // 依來源篩選：全部或單一來源
+  const filteredAbilities = React.useMemo(() => {
+    if (selectedSource === 'all') return characterAbilities;
+    return characterAbilities.filter(
+      (ca) => AbilityService.getDisplayValues(ca).source === selectedSource
+    );
+  }, [characterAbilities, selectedSource]);
+
+  const filterOptions = React.useMemo(
+    () => [
+      { label: '全部', value: 'all' },
+      ...ABILITY_SOURCE_ORDER.map((s) => ({ label: s, value: s })),
+    ],
+    []
+  );
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -354,31 +370,42 @@ export default function AbilitiesPage({ characterId }: AbilitiesPageProps) {
           </button>
         </div>
 
+        {/* 來源篩選 */}
+        <FilterBar
+          options={filterOptions}
+          selectedValue={selectedSource}
+          onSelect={(v) => setSelectedSource(v as typeof selectedSource)}
+        />
+
         {/* 能力列表 */}
         {isLoading ? (
           <div className="text-center py-12 text-slate-400">載入中...</div>
-        ) : displayAbilities.length === 0 ? (
+        ) : filteredAbilities.length === 0 ? (
           <div className="text-center py-12 bg-slate-800 border border-slate-700 rounded-lg">
             <div className="text-slate-500 text-4xl mb-3">✨</div>
-            <p className="text-slate-400">還沒有特殊能力</p>
+            <p className="text-slate-400">
+              {selectedSource === 'all'
+                ? '還沒有特殊能力'
+                : `尚無「${selectedSource}」來源的能力`}
+            </p>
             <button
               onClick={handleAddClick}
               className="mt-4 px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors font-medium"
             >
-              新增第一個能力
+              {selectedSource === 'all' ? '新增第一個能力' : '獲得能力'}
             </button>
           </div>
-        ) : (
+        ) : selectedSource === 'all' ? (
           <div className="space-y-3">
             {isSavingOrder && (
               <div className="text-sm text-slate-400 mb-1">正在儲存順序…</div>
             )}
             <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
               <SortableContext
-                items={displayAbilities.map((ca) => ca.id)}
+                items={filteredAbilities.map((ca) => ca.id)}
                 strategy={verticalListSortingStrategy}
               >
-                {displayAbilities.map((charAbility) => (
+                {filteredAbilities.map((charAbility) => (
                   <SortableAbilityCard
                     key={charAbility.id}
                     characterAbility={charAbility}
@@ -387,6 +414,16 @@ export default function AbilitiesPage({ characterId }: AbilitiesPageProps) {
                 ))}
               </SortableContext>
             </DndContext>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {filteredAbilities.map((charAbility) => (
+              <AbilityCard
+                key={charAbility.id}
+                characterAbility={charAbility}
+                onClick={() => handleAbilityClick(charAbility)}
+              />
+            ))}
           </div>
         )}
       </div>

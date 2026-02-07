@@ -14,6 +14,7 @@ import React, { useState, useEffect } from 'react';
 import { useToast } from '../hooks/useToast';
 import * as ItemService from '../services/itemService';
 import type { CharacterItem, ItemCategory, CreateGlobalItemData, CreateGlobalItemDataForUpload, CreateCharacterItemData, UpdateCharacterItemData } from '../services/itemService';
+import { FilterBar } from './ui/FilterBar';
 import { LearnItemModal } from './LearnItemModal';
 import { AddPersonalItemModal } from './AddPersonalItemModal';
 import { GlobalItemFormModal } from './GlobalItemFormModal';
@@ -209,26 +210,11 @@ export default function ItemsPage({ characterId }: ItemsPageProps) {
         </div>
 
         {/* 類別篩選 */}
-        <div 
-          className="flex gap-2 mb-6 overflow-x-auto pb-2"
-          onTouchStart={(e) => e.stopPropagation()}
-          onTouchMove={(e) => e.stopPropagation()}
-          onTouchEnd={(e) => e.stopPropagation()}
-        >
-          {CATEGORIES.map((cat) => (
-            <button
-              key={cat.value}
-              onClick={() => setSelectedCategory(cat.value)}
-              className={`px-4 py-2 rounded-lg font-medium whitespace-nowrap transition-colors ${
-                selectedCategory === cat.value
-                  ? 'bg-amber-600 text-white shadow-md'
-                  : 'bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700'
-              }`}
-            >
-              {cat.label}
-            </button>
-          ))}
-        </div>
+        <FilterBar
+          options={CATEGORIES.map((c) => ({ label: c.label, value: c.value }))}
+          selectedValue={selectedCategory}
+          onSelect={(v) => setSelectedCategory(v as ItemCategory | 'all' | 'magic')}
+        />
 
         {/* 道具列表 */}
         {isLoading ? (

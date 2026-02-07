@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Modal } from './ui/Modal';
-import { CreateAbilityData, CreateAbilityDataForUpload, getDisplayValues } from '../services/abilityService';
+import { CreateAbilityData, CreateAbilityDataForUpload, getDisplayValues, ABILITY_SOURCE_ORDER } from '../services/abilityService';
 import type { CharacterAbilityWithDetails } from '../lib/supabase';
 import { MODAL_CONTAINER_CLASS } from '../styles/modalStyles';
 
@@ -14,12 +14,12 @@ interface AbilityFormModalProps {
     name: string;
     name_en: string;
     description: string;
-    source: '種族' | '職業' | '專長' | '背景' | '其他';
+    source: (typeof ABILITY_SOURCE_ORDER)[number];
     recovery_type: '常駐' | '短休' | '長休';
   } | null;
 }
 
-const SOURCES = ['種族', '職業', '專長', '背景', '其他'] as const;
+const SOURCES = [...ABILITY_SOURCE_ORDER];
 const RECOVERY_TYPES = ['常駐', '短休', '長休'] as const;
 
 export const AbilityFormModal: React.FC<AbilityFormModalProps> = ({
@@ -79,8 +79,11 @@ export const AbilityFormModal: React.FC<AbilityFormModalProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // 驗證必填欄位
-    if (!formData.name || !formData.description) {
+    // 驗證必填欄位（編輯自己的能力時效果說明為非必填）
+    if (!formData.name) {
+      return;
+    }
+    if (!editingAbility && !formData.description) {
       return;
     }
     if (isUpload && !formData.name_en) {
@@ -232,10 +235,10 @@ export const AbilityFormModal: React.FC<AbilityFormModalProps> = ({
           </div>
         </div>
 
-        {/* 效果說明 */}
+        {/* 效果說明（編輯自己的能力時為非必填） */}
         <div>
           <label className="block text-[14px] text-slate-400 mb-2">
-            效果說明 *
+            效果說明 {editingAbility ? '' : '*'}
             <span className="text-slate-500 ml-2 text-[12px]">（支援 Markdown 語法）</span>
           </label>
           <textarea

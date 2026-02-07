@@ -102,8 +102,9 @@ export const LearnAbilityModal: React.FC<LearnAbilityModalProps> = ({
   };
 
   const sourceColors: Record<string, string> = {
-    '種族': 'bg-green-500/20 text-green-400',
     '職業': 'bg-blue-500/20 text-blue-400',
+    '種族': 'bg-green-500/20 text-green-400',
+    '裝備': 'bg-indigo-500/20 text-indigo-400',
     '專長': 'bg-purple-500/20 text-purple-400',
     '背景': 'bg-amber-500/20 text-amber-400',
     '其他': 'bg-slate-500/20 text-slate-400'
