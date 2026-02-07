@@ -222,7 +222,7 @@ export class MulticlassService {
   /**
    * 重新計算角色的生命骰池
    */
-  private static async recalculateHitDicePools(characterId: string): Promise<void> {
+  static async recalculateHitDicePools(characterId: string): Promise<void> {
     try {
       // 載入所有職業
       const { data: classes } = await supabase

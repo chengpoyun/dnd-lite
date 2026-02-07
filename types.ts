@@ -97,6 +97,7 @@ export interface DieResult {
 
 // ===== 兼職系統類型 =====
 export interface ClassInfo {
+  id?: string; // 可選，用於編輯狀態與 DB 對應
   name: string;
   level: number;
   hitDie: 'd4' | 'd6' | 'd8' | 'd10' | 'd12';

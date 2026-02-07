@@ -110,6 +110,21 @@ export interface CharacterCurrency {
   updated_at?: string
 }
 
+export interface CharacterItem {
+  id: string
+  character_id: string
+  name: string
+  description?: string | null
+  quantity: number
+  weight: number
+  value_in_copper: number
+  item_type?: string | null
+  is_equipped: boolean
+  properties?: Record<string, unknown> | null
+  created_at?: string
+  updated_at?: string
+}
+
 export interface CharacterCombatAction {
   id: string
   character_id: string

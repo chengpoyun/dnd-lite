@@ -50,7 +50,7 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
   onSaveExtraData,
   onSaveAvatarUrl
 }) => {
-  const [activeModal, setActiveModal] = useState<'info' | 'multiclass' | 'abilities' | 'currency' | 'downtime' | 'renown' | 'skill_detail' | 'add_record' | 'edit_record' | null>(null);
+  const [activeModal, setActiveModal] = useState<'info' | 'multiclass' | 'abilities' | 'currency' | 'downtime' | 'renown' | 'exp' | 'skill_detail' | 'add_record' | 'edit_record' | null>(null);
   const [selectedSkill, setSelectedSkill] = useState<{ name: string; base: keyof CharacterStats['abilityScores'] } | null>(null);
   const [selectedRecord, setSelectedRecord] = useState<CustomRecord | null>(null);
   
@@ -1079,9 +1079,8 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
           <h3 className="text-base font-black text-slate-400 uppercase tracking-tighter">冒險紀錄</h3>
           <Button
             variant="secondary"
-            size="sm"
             onClick={openAddRecordModal}
-            className="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-amber-500 font-bold text-lg"
+            className="w-8 h-8 min-w-8 min-h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-amber-500 font-bold text-lg p-0"
           >
             +
           </Button>

@@ -7,9 +7,7 @@ import type {
   CharacterSkillProficiency, 
   CharacterCurrentStats, 
   CharacterCurrency, 
-  CharacterItem, 
-  CharacterSpell, 
-  CharacterSpellSlot, 
+  CharacterItem,
   CharacterCombatAction,
   FullCharacterData 
 } from '../lib/supabase'
@@ -412,9 +410,6 @@ export class DetailedCharacterService {
           skillProficiencies: [],
           currentStats,
           currency,
-          items: [],
-          spells: [],
-          spellSlots: [],
           combatActions: []
         }
       } else {
@@ -426,9 +421,6 @@ export class DetailedCharacterService {
           skillProficiencies: [],
           currentStats: null,
           currency: null,
-          items: [],
-          spells: [],
-          spellSlots: [],
           combatActions: []
         }
       }
@@ -1163,14 +1155,14 @@ export class DetailedCharacterService {
   // 獲取預設能力值（不寫入資料庫）
   private static getDefaultAbilityScores(): CharacterAbilityScores {
     return {
-      character_id: '', // 會在實際使用時忽略
+      id: '', // 預設物件，不寫入 DB
+      character_id: '',
       strength: 10,
       dexterity: 10,
       constitution: 10,
       intelligence: 10,
       wisdom: 10,
       charisma: 10,
-      created_at: '',
       updated_at: ''
     }
   }
@@ -1178,6 +1170,7 @@ export class DetailedCharacterService {
   // 獲取預設當前狀態（不寫入資料庫）
   private static getDefaultCurrentStats(): CharacterCurrentStats {
     return {
+      id: '', // 預設物件，不寫入 DB
       character_id: '',
       current_hp: 20,
       max_hp: 20,
@@ -1192,7 +1185,6 @@ export class DetailedCharacterService {
       spell_save_dc: 10,
       weapon_attack_bonus: 0,
       weapon_damage_bonus: 0,
-      created_at: '',
       updated_at: ''
     }
   }
@@ -1200,13 +1192,13 @@ export class DetailedCharacterService {
   // 獲取預設貨幣（不寫入資料庫）
   private static getDefaultCurrency(): CharacterCurrency {
     return {
+      id: '', // 預設物件，不寫入 DB
       character_id: '',
       copper: 0,
       silver: 0,
       electrum: 0,
       gp: 150,
       platinum: 0,
-      created_at: '',
       updated_at: ''
     }
   }
