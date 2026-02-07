@@ -87,6 +87,10 @@ export const STYLES = {
     withHandle: 'bg-slate-800 border border-slate-700 rounded-lg overflow-hidden flex',
     inner: 'p-4 flex-1 min-w-0',
     innerClickable: 'cursor-pointer active:bg-slate-700/30',
+    // 標題＋標籤列：空間不足時標籤換到下一行
+    titleRow: 'flex flex-wrap items-center gap-2 min-w-0',
+    title: 'shrink-0 max-w-full break-words',
+    tags: 'flex items-center gap-1.5 shrink-0 flex-wrap',
   },
 
   // 狀態

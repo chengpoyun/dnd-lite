@@ -87,6 +87,24 @@ export const Card: React.FC<CardProps> = ({
   )
 }
 
+// 列表卡片標題＋標籤列（ItemCard / AbilityCard 共用；空間不足時標籤換到下一行）
+interface ListCardTitleRowProps {
+  title: React.ReactNode
+  tags: React.ReactNode
+  className?: string
+}
+
+export const ListCardTitleRow: React.FC<ListCardTitleRowProps> = ({
+  title,
+  tags,
+  className = ''
+}) => (
+  <div className={combineStyles(STYLES.listCard.titleRow, className)}>
+    <div className={STYLES.listCard.title}>{title}</div>
+    <div className={STYLES.listCard.tags}>{tags}</div>
+  </div>
+)
+
 // 列表卡片基底（ItemCard / AbilityCard / MonsterCard 共用）
 interface ListCardProps {
   children: React.ReactNode

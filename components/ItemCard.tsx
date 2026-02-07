@@ -6,7 +6,7 @@
 import React from 'react';
 import type { CharacterItem } from '../services/itemService';
 import { getDisplayValues } from '../services/itemService';
-import { ListCard } from './ui';
+import { ListCard, ListCardTitleRow } from './ui';
 
 interface ItemCardProps {
   item: CharacterItem;
@@ -19,18 +19,23 @@ export const ItemCard: React.FC<ItemCardProps> = ({ item, onClick }) => {
   return (
     <ListCard onClick={onClick}>
       <div className="flex items-start justify-between">
-        <div className="flex-1">
-          <div className="flex items-center gap-3 mb-2">
-            <h3 className="text-lg font-bold text-slate-100">{display.displayName}</h3>
-            <span className="px-2 py-1 bg-amber-900/30 border border-amber-700 text-amber-400 text-xs rounded font-medium">
-              {display.displayCategory}
-            </span>
-            {display.displayIsMagic && (
-              <span className="px-2 py-1 bg-amber-900/40 border border-amber-700/60 text-amber-300 text-xs rounded font-medium">
-                魔法
-              </span>
-            )}
-          </div>
+        <div className="flex-1 min-w-0">
+          <ListCardTitleRow
+            className="mb-2"
+            title={<h3 className="text-lg font-bold text-slate-100">{display.displayName}</h3>}
+            tags={
+              <>
+                <span className="px-2 py-1 bg-amber-900/30 border border-amber-700 text-amber-400 text-xs rounded font-medium whitespace-nowrap">
+                  {display.displayCategory}
+                </span>
+                {display.displayIsMagic && (
+                  <span className="px-2 py-1 bg-amber-900/40 border border-amber-700/60 text-amber-300 text-xs rounded font-medium whitespace-nowrap">
+                    魔法
+                  </span>
+                )}
+              </>
+            }
+          />
           {display.displayDescription && (
             <p className="text-sm text-slate-400 line-clamp-2">{display.displayDescription}</p>
           )}
