@@ -434,6 +434,58 @@ const AuthenticatedApp: React.FC = () => {
     }
   }
 
+  // 保存武器命中加值
+  const saveWeaponAttackBonus = async (newBonus: number) => {
+    if (!currentCharacter || isSaving) return false
+    if (!await validateSessionBeforeSave()) return false
+    setIsSaving(true)
+    try {
+      const characterUpdate: CharacterUpdateData = {
+        character: currentCharacter,
+        currentStats: {
+          character_id: currentCharacter.id,
+          weapon_attack_bonus: newBonus
+        } as Partial<CharacterCurrentStats>
+      }
+      const success = await HybridDataManager.updateCharacter(currentCharacter.id, characterUpdate)
+      if (success) {
+        setStats(prev => ({ ...prev, weapon_attack_bonus: newBonus }))
+      }
+      return success
+    } catch (error) {
+      console.error('❌ 武器命中保存失敗:', error)
+      return false
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  // 保存武器傷害加值
+  const saveWeaponDamageBonus = async (newBonus: number) => {
+    if (!currentCharacter || isSaving) return false
+    if (!await validateSessionBeforeSave()) return false
+    setIsSaving(true)
+    try {
+      const characterUpdate: CharacterUpdateData = {
+        character: currentCharacter,
+        currentStats: {
+          character_id: currentCharacter.id,
+          weapon_damage_bonus: newBonus
+        } as Partial<CharacterCurrentStats>
+      }
+      const success = await HybridDataManager.updateCharacter(currentCharacter.id, characterUpdate)
+      if (success) {
+        setStats(prev => ({ ...prev, weapon_damage_bonus: newBonus }))
+      }
+      return success
+    } catch (error) {
+      console.error('❌ 武器傷害加值保存失敗:', error)
+      return false
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
   // 保存貨幣和經驗值
   const saveCurrencyAndExp = async (gp: number, exp: number) => {
     if (!currentCharacter || isSaving) return false
@@ -821,6 +873,8 @@ const AuthenticatedApp: React.FC = () => {
                 onSaveSpeed={saveSpeed}
                 onSaveSpellAttackBonus={saveSpellAttackBonus}
                 onSaveSpellSaveDC={saveSpellSaveDC}
+                onSaveWeaponAttackBonus={saveWeaponAttackBonus}
+                onSaveWeaponDamageBonus={saveWeaponDamageBonus}
                 showSpellStats={isSpellcaster(stats.classes?.map(c => c.name) || [stats.class])}
               />
             </Suspense>

@@ -87,6 +87,8 @@ export interface CharacterCurrentStats {
   speed: number
   spell_attack_bonus: number
   spell_save_dc: number
+  weapon_attack_bonus?: number
+  weapon_damage_bonus?: number
   extra_data?: {
     downtime?: number
     renown?: { used: number; total: number }

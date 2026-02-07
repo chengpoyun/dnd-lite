@@ -36,6 +36,8 @@ export interface CharacterStats {
   speed: number;
   spell_attack_bonus?: number;
   spell_save_dc?: number;
+  weapon_attack_bonus?: number;
+  weapon_damage_bonus?: number;
   abilityScores: {
     str: number;
     dex: number;

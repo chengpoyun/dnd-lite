@@ -48,6 +48,8 @@ interface CombatViewProps {
   onSaveSpeed?: (speed: number) => Promise<boolean>;
   onSaveSpellAttackBonus?: (bonus: number) => Promise<boolean>;
   onSaveSpellSaveDC?: (dc: number) => Promise<boolean>;
+  onSaveWeaponAttackBonus?: (bonus: number) => Promise<boolean>;
+  onSaveWeaponDamageBonus?: (bonus: number) => Promise<boolean>;
   showSpellStats?: boolean;
 }
 
@@ -61,6 +63,8 @@ export const CombatView: React.FC<CombatViewProps> = ({
   onSaveSpeed,
   onSaveSpellAttackBonus,
   onSaveSpellSaveDC,
+  onSaveWeaponAttackBonus,
+  onSaveWeaponDamageBonus,
   showSpellStats = false
 }) => {
   const spellcasterClassNames = stats.classes?.length
@@ -124,6 +128,8 @@ export const CombatView: React.FC<CombatViewProps> = ({
   const [isSpeedModalOpen, setIsSpeedModalOpen] = useState(false);
   const [isSpellAttackModalOpen, setIsSpellAttackModalOpen] = useState(false);
   const [isSpellDCModalOpen, setIsSpellDCModalOpen] = useState(false);
+  const [isWeaponAttackModalOpen, setIsWeaponAttackModalOpen] = useState(false);
+  const [isWeaponDamageModalOpen, setIsWeaponDamageModalOpen] = useState(false);
   const [isEndCombatConfirmOpen, setIsEndCombatConfirmOpen] = useState(false);
   const [isItemEditModalOpen, setIsItemEditModalOpen] = useState(false);
   const [isCategoryUsageModalOpen, setIsCategoryUsageModalOpen] = useState(false);
@@ -144,6 +150,8 @@ export const CombatView: React.FC<CombatViewProps> = ({
   const [tempSpeedValue, setTempSpeedValue] = useState('');
   const [tempSpellAttackValue, setTempSpellAttackValue] = useState('');
   const [tempSpellDCValue, setTempSpellDCValue] = useState('');
+  const [tempWeaponAttackValue, setTempWeaponAttackValue] = useState('');
+  const [tempWeaponDamageValue, setTempWeaponDamageValue] = useState('');
   
   const [tempCategoryCurrent, setTempCategoryCurrent] = useState('0');
   const [tempCategoryMax, setTempCategoryMax] = useState('1');
@@ -868,43 +876,71 @@ export const CombatView: React.FC<CombatViewProps> = ({
         );
       })()}
 
-      {/* 法術數據 - 只在法術頁面顯示 */}
-      {showSpellStats && (() => {
+      {/* 武器命中／武器傷害加值（所有職業）＋ 法術數據（法術頁面時）同一列 */}
+      {(() => {
         const summaryCardBase =
           "flex flex-col items-center justify-center bg-slate-900 rounded-xl border active:bg-slate-800 transition-colors cursor-pointer shadow-sm py-2";
-        const labelClass =
+        const weaponLabelClass =
+          "text-[20px] font-black text-amber-400/80 uppercase mb-1 tracking-tighter";
+        const spellLabelClass =
           "text-[20px] font-black text-purple-400/80 uppercase mb-1 tracking-tighter";
         const valueClass =
           "text-[24px] font-fantasy text-white leading-none font-bold";
-        const spellCards = [
+        const weaponCards = [
           {
-            key: "spell-attack",
+            key: "weapon-attack",
             onClick: () => {
-              setTempSpellAttackValue(stats.spell_attack_bonus?.toString() || "2");
-              setIsSpellAttackModalOpen(true);
+              setTempWeaponAttackValue(stats.weapon_attack_bonus?.toString() ?? "0");
+              setIsWeaponAttackModalOpen(true);
             },
-            label: "法術命中",
-            value: `+${stats.spell_attack_bonus ?? 2}`,
+            label: "武器命中",
+            value: `+${stats.weapon_attack_bonus ?? 0}`,
           },
           {
-            key: "spell-dc",
+            key: "weapon-damage",
             onClick: () => {
-              setTempSpellDCValue(stats.spell_save_dc?.toString() || "10");
-              setIsSpellDCModalOpen(true);
+              setTempWeaponDamageValue(stats.weapon_damage_bonus?.toString() ?? "0");
+              setIsWeaponDamageModalOpen(true);
             },
-            label: "法術DC",
-            value: stats.spell_save_dc ?? 10,
+            label: "武器傷害加值",
+            value: `${stats.weapon_damage_bonus != null && stats.weapon_damage_bonus >= 0 ? "+" : ""}${stats.weapon_damage_bonus ?? 0}`,
           },
         ];
+        const spellCards = showSpellStats
+          ? [
+              {
+                key: "spell-attack",
+                onClick: () => {
+                  setTempSpellAttackValue(stats.spell_attack_bonus?.toString() || "2");
+                  setIsSpellAttackModalOpen(true);
+                },
+                label: "法術命中",
+                value: `+${stats.spell_attack_bonus ?? 2}`,
+              },
+              {
+                key: "spell-dc",
+                onClick: () => {
+                  setTempSpellDCValue(stats.spell_save_dc?.toString() || "10");
+                  setIsSpellDCModalOpen(true);
+                },
+                label: "法術DC",
+                value: stats.spell_save_dc ?? 10,
+              },
+            ]
+          : [];
+        const allCards = [
+          ...weaponCards.map((c) => ({ ...c, labelClass: weaponLabelClass, borderClass: "border-amber-900/30" })),
+          ...spellCards.map((c) => ({ ...c, labelClass: spellLabelClass, borderClass: "border-purple-900/30" })),
+        ];
         return (
-          <div className="grid grid-cols-2 gap-1">
-            {spellCards.map(card => (
+          <div className={`grid gap-1 ${showSpellStats ? "grid-cols-4" : "grid-cols-2"}`}>
+            {allCards.map((card) => (
               <div
                 key={card.key}
                 onClick={card.onClick}
-                className={summaryCardBase + " border-purple-900/30"}
+                className={summaryCardBase + " " + card.borderClass}
               >
-                <span className={labelClass}>{card.label}</span>
+                <span className={card.labelClass}>{card.label}</span>
                 <span className={valueClass}>{card.value}</span>
               </div>
             ))}
@@ -1600,6 +1636,90 @@ export const CombatView: React.FC<CombatViewProps> = ({
             setIsSpellDCModalOpen(false); 
             setTempSpellDCValue(''); 
           }} className="bg-purple-600 hover:bg-purple-500">
+            套用
+          </ModalButton>
+        </div>
+      </Modal>
+
+      {/* 武器命中編輯彈窗 */}
+      <Modal 
+        isOpen={isWeaponAttackModalOpen} 
+        onClose={() => setIsWeaponAttackModalOpen(false)}
+        title="修改武器命中"
+        size="xs"
+      >
+        <ModalInput 
+          value={tempWeaponAttackValue} 
+          onChange={setTempWeaponAttackValue} 
+          placeholder={(stats.weapon_attack_bonus ?? 0).toString()} 
+          className="text-3xl font-mono text-center mb-4" 
+          autoFocus 
+        />
+        <div className="flex gap-2">
+          <ModalButton variant="secondary" onClick={() => setIsWeaponAttackModalOpen(false)}>
+            取消
+          </ModalButton>
+          <ModalButton variant="primary" onClick={() => { 
+            let finalValue;
+            const isCalculationInput = tempWeaponAttackValue.includes('+') || tempWeaponAttackValue.includes('-');
+            if (isCalculationInput) {
+              const result = handleValueInput(tempWeaponAttackValue, stats.weapon_attack_bonus ?? 0, { allowZero: true });
+              finalValue = result.isValid ? result.numericValue : (stats.weapon_attack_bonus ?? 0);
+            } else {
+              const numericValue = parseInt(tempWeaponAttackValue);
+              finalValue = !isNaN(numericValue) ? numericValue : (stats.weapon_attack_bonus ?? 0);
+            }
+            setStats(prev => ({ ...prev, weapon_attack_bonus: finalValue }));
+            if (onSaveWeaponAttackBonus) {
+              onSaveWeaponAttackBonus(finalValue).then(success => {
+                if (!success) console.error('❌ 武器命中保存失敗');
+              }).catch(err => console.error('❌ 武器命中保存錯誤:', err));
+            }
+            setIsWeaponAttackModalOpen(false); 
+            setTempWeaponAttackValue(''); 
+          }} className="bg-amber-600 hover:bg-amber-500">
+            套用
+          </ModalButton>
+        </div>
+      </Modal>
+
+      {/* 武器傷害加值編輯彈窗 */}
+      <Modal 
+        isOpen={isWeaponDamageModalOpen} 
+        onClose={() => setIsWeaponDamageModalOpen(false)}
+        title="修改武器傷害加值"
+        size="xs"
+      >
+        <ModalInput 
+          value={tempWeaponDamageValue} 
+          onChange={setTempWeaponDamageValue} 
+          placeholder={(stats.weapon_damage_bonus ?? 0).toString()} 
+          className="text-3xl font-mono text-center mb-4" 
+          autoFocus 
+        />
+        <div className="flex gap-2">
+          <ModalButton variant="secondary" onClick={() => setIsWeaponDamageModalOpen(false)}>
+            取消
+          </ModalButton>
+          <ModalButton variant="primary" onClick={() => { 
+            let finalValue;
+            const isCalculationInput = tempWeaponDamageValue.includes('+') || tempWeaponDamageValue.includes('-');
+            if (isCalculationInput) {
+              const result = handleValueInput(tempWeaponDamageValue, stats.weapon_damage_bonus ?? 0, { allowZero: true });
+              finalValue = result.isValid ? result.numericValue : (stats.weapon_damage_bonus ?? 0);
+            } else {
+              const numericValue = parseInt(tempWeaponDamageValue);
+              finalValue = !isNaN(numericValue) ? numericValue : (stats.weapon_damage_bonus ?? 0);
+            }
+            setStats(prev => ({ ...prev, weapon_damage_bonus: finalValue }));
+            if (onSaveWeaponDamageBonus) {
+              onSaveWeaponDamageBonus(finalValue).then(success => {
+                if (!success) console.error('❌ 武器傷害加值保存失敗');
+              }).catch(err => console.error('❌ 武器傷害加值保存錯誤:', err));
+            }
+            setIsWeaponDamageModalOpen(false); 
+            setTempWeaponDamageValue(''); 
+          }} className="bg-amber-600 hover:bg-amber-500">
             套用
           </ModalButton>
         </div>
