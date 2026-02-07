@@ -626,77 +626,98 @@ export class DetailedCharacterService {
     }
   }
 
-  // 專門更新 extra_data 的方法
+  // 專門更新 extra_data 的方法（修整期、名聲、自定義冒險紀錄等寫入 character_current_stats.extra_data）
   static async updateExtraData(characterId: string, extraData: any): Promise<boolean> {
     try {
-      console.log('🔧 updateExtraData 開始:', { characterId, extraData })
-      
       // 驗證 characterId
       if (!characterId || characterId.trim() === '' || characterId.length < 32) {
         console.error('❌ updateExtraData: 無效的 characterId:', characterId)
         return false
       }
 
+      // 確保 payload 可被 JSON 序列化並寫入 DB（移除 undefined、保留已知欄位）
+      const payload: Record<string, unknown> = {
+        downtime: extraData?.downtime ?? 0,
+        renown: extraData?.renown && typeof extraData.renown === 'object'
+          ? { used: Number(extraData.renown.used) || 0, total: Number(extraData.renown.total) || 0 }
+          : { used: 0, total: 0 },
+        prestige: extraData?.prestige && typeof extraData.prestige === 'object' ? extraData.prestige : { org: '', level: 0, rankName: '' },
+        customRecords: Array.isArray(extraData?.customRecords) ? extraData.customRecords : [],
+        attacks: Array.isArray(extraData?.attacks) ? extraData.attacks : []
+      }
+      if (extraData?.abilityBonuses && typeof extraData.abilityBonuses === 'object') payload.abilityBonuses = extraData.abilityBonuses
+      if (extraData?.modifierBonuses && typeof extraData.modifierBonuses === 'object') payload.modifierBonuses = extraData.modifierBonuses
+      if (extraData?.classes && Array.isArray(extraData.classes)) payload.classes = extraData.classes
+
       // 先查詢現有記錄，如果不存在則創建基本記錄
       const { data: existingStats, error: queryError } = await supabase
         .from('character_current_stats')
-        .select('*')
+        .select('id')
         .eq('character_id', characterId)
-        .single()
+        .maybeSingle()
 
       if (queryError) {
-        console.error('❌ 查詢現有狀態失敗:', queryError)
+        console.error('❌ updateExtraData 查詢現有狀態失敗:', queryError)
+        return false
       }
 
       if (existingStats) {
-        console.log('📝 記錄存在，更新 extra_data')
-        // 記錄存在，只更新 extra_data
-        const { error } = await supabase
+        // 記錄存在，只更新 extra_data，並用 select 確認有寫入
+        const { data: updated, error } = await supabase
           .from('character_current_stats')
-          .update({ extra_data: extraData, updated_at: new Date().toISOString() })
+          .update({ extra_data: payload, updated_at: new Date().toISOString() })
           .eq('character_id', characterId)
+          .select('id, extra_data')
+          .single()
 
         if (error) {
-          console.error('❌ 更新額外數據失敗:', error)
+          console.error('❌ updateExtraData 更新額外數據失敗:', error)
           return false
         }
-        console.log('✅ extra_data 更新成功')
-        this.clearCharacterCache(characterId)
-      } else {
-        console.log('➕ 記錄不存在，創建新記錄')
-        // 記錄不存在，創建新記錄with預設值
-        const { error } = await supabase
-          .from('character_current_stats')
-          .insert({
-            character_id: characterId,
-            current_hp: 1,
-            max_hp: 1,
-            temporary_hp: 0,
-            current_hit_dice: 0,
-            total_hit_dice: 1,
-            armor_class: 10,
-            initiative_bonus: 0,
-            speed: 30,
-            spell_attack_bonus: 2,
-            spell_save_dc: 10,
-            weapon_attack_bonus: 0,
-            weapon_damage_bonus: 0,
-            hit_die_type: 'd8',
-            extra_data: extraData,
-            updated_at: new Date().toISOString()
-          })
-
-        if (error) {
-          console.error('❌ 創建角色狀態記錄失敗:', error)
+        if (!updated) {
+          console.error('❌ updateExtraData 更新後未返回列（可能 RLS 或條件未匹配）')
           return false
         }
-        console.log('✅ 新記錄創建成功')
         this.clearCharacterCache(characterId)
+        return true
       }
 
+      // 記錄不存在，創建新記錄（含 extra_data）
+      const { data: inserted, error } = await supabase
+        .from('character_current_stats')
+        .insert({
+          character_id: characterId,
+          current_hp: 1,
+          max_hp: 1,
+          temporary_hp: 0,
+          current_hit_dice: 0,
+          total_hit_dice: 1,
+          armor_class: 10,
+          initiative_bonus: 0,
+          speed: 30,
+          spell_attack_bonus: 2,
+          spell_save_dc: 10,
+          weapon_attack_bonus: 0,
+          weapon_damage_bonus: 0,
+          hit_die_type: 'd8',
+          extra_data: payload,
+          updated_at: new Date().toISOString()
+        })
+        .select('id, extra_data')
+        .single()
+
+      if (error) {
+        console.error('❌ updateExtraData 創建角色狀態記錄失敗:', error)
+        return false
+      }
+      if (!inserted) {
+        console.error('❌ updateExtraData 插入後未返回列')
+        return false
+      }
+      this.clearCharacterCache(characterId)
       return true
     } catch (error) {
-      console.error('❌ 更新額外數據失敗:', error)
+      console.error('❌ updateExtraData 異常:', error)
       return false
     }
   }
