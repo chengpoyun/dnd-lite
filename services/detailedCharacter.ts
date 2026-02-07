@@ -470,6 +470,44 @@ export class DetailedCharacterService {
     }
   }
 
+  // 一次更新所有屬性額外調整值（寫入 character_ability_scores 的 *_bonus / *_modifier_bonus）
+  static async updateAbilityBonuses(
+    characterId: string,
+    abilityBonuses: Record<string, number>,
+    modifierBonuses: Record<string, number>
+  ): Promise<boolean> {
+    try {
+      if (!characterId || characterId.trim() === '' || characterId.length < 32) {
+        console.error('updateAbilityBonuses: 無效的 characterId:', characterId)
+        return false
+      }
+      const keys: { short: keyof Record<string, number>; db: 'strength' | 'dexterity' | 'constitution' | 'intelligence' | 'wisdom' | 'charisma' }[] = [
+        { short: 'str', db: 'strength' }, { short: 'dex', db: 'dexterity' }, { short: 'con', db: 'constitution' },
+        { short: 'int', db: 'intelligence' }, { short: 'wis', db: 'wisdom' }, { short: 'cha', db: 'charisma' }
+      ]
+      const row: Record<string, number | string> = { character_id: characterId }
+      for (const { short: k, db } of keys) {
+        row[`${db}_bonus`] = typeof abilityBonuses?.[k] === 'number' && Number.isFinite(abilityBonuses[k]) ? abilityBonuses[k] : 0
+        row[`${db}_modifier_bonus`] = typeof modifierBonuses?.[k] === 'number' && Number.isFinite(modifierBonuses[k]) ? modifierBonuses[k] : 0
+      }
+      row.updated_at = new Date().toISOString()
+      const { error } = await supabase
+        .from('character_ability_scores')
+        .upsert(row, { onConflict: 'character_id' })
+        .select('id')
+        .single()
+      if (error) {
+        console.error('❌ updateAbilityBonuses 失敗:', error)
+        return false
+      }
+      this.clearCharacterCache(characterId)
+      return true
+    } catch (error) {
+      console.error('❌ updateAbilityBonuses 異常:', error)
+      return false
+    }
+  }
+
   // 保存基礎屬性值（獨立函數）
   static async saveAbilityBaseValue(
     characterId: string,
@@ -626,7 +664,20 @@ export class DetailedCharacterService {
     }
   }
 
-  // 專門更新 extra_data 的方法（修整期、名聲、自定義冒險紀錄等寫入 character_current_stats.extra_data）
+  // 屬性鍵（與前端 ABILITY_KEYS 一致），用於正規化 abilityBonuses / modifierBonuses
+  private static readonly EXTRA_DATA_ABILITY_KEYS = ['str', 'dex', 'con', 'int', 'wis', 'cha'] as const
+
+  // 正規化為 { str, dex, con, int, wis, cha } 數字物件，確保可寫入 JSONB
+  private static normalizeAbilityBonusMap(obj: any): Record<string, number> {
+    const out: Record<string, number> = {}
+    for (const key of this.EXTRA_DATA_ABILITY_KEYS) {
+      const v = obj?.[key]
+      out[key] = typeof v === 'number' && Number.isFinite(v) ? v : 0
+    }
+    return out
+  }
+
+  // 專門更新 extra_data 的方法（修整期、名聲、屬性加成、自定義冒險紀錄等寫入 character_current_stats.extra_data）
   static async updateExtraData(characterId: string, extraData: any): Promise<boolean> {
     try {
       // 驗證 characterId
@@ -635,24 +686,10 @@ export class DetailedCharacterService {
         return false
       }
 
-      // 確保 payload 可被 JSON 序列化並寫入 DB（移除 undefined、保留已知欄位）
-      const payload: Record<string, unknown> = {
-        downtime: extraData?.downtime ?? 0,
-        renown: extraData?.renown && typeof extraData.renown === 'object'
-          ? { used: Number(extraData.renown.used) || 0, total: Number(extraData.renown.total) || 0 }
-          : { used: 0, total: 0 },
-        prestige: extraData?.prestige && typeof extraData.prestige === 'object' ? extraData.prestige : { org: '', level: 0, rankName: '' },
-        customRecords: Array.isArray(extraData?.customRecords) ? extraData.customRecords : [],
-        attacks: Array.isArray(extraData?.attacks) ? extraData.attacks : []
-      }
-      if (extraData?.abilityBonuses && typeof extraData.abilityBonuses === 'object') payload.abilityBonuses = extraData.abilityBonuses
-      if (extraData?.modifierBonuses && typeof extraData.modifierBonuses === 'object') payload.modifierBonuses = extraData.modifierBonuses
-      if (extraData?.classes && Array.isArray(extraData.classes)) payload.classes = extraData.classes
-
-      // 先查詢現有記錄，如果不存在則創建基本記錄
-      const { data: existingStats, error: queryError } = await supabase
+      // 先查詢現有記錄（含 extra_data），用於合併，避免只更新單一區塊時覆蓋其他欄位
+      const { data: existingRow, error: queryError } = await supabase
         .from('character_current_stats')
-        .select('id')
+        .select('id, extra_data')
         .eq('character_id', characterId)
         .maybeSingle()
 
@@ -661,7 +698,26 @@ export class DetailedCharacterService {
         return false
       }
 
-      if (existingStats) {
+      const existing = (existingRow?.extra_data ?? null) as Record<string, unknown> | null
+      const existingEd = existing && typeof existing === 'object' && !Array.isArray(existing) ? existing : {}
+
+      // 合併：以傳入的 extraData 為準，未傳則保留 DB 既有值。屬性額外調整值已改存 character_ability_scores，不寫入 extra_data
+      const payload: Record<string, unknown> = {
+        downtime: typeof extraData?.downtime === 'number' ? extraData.downtime : (typeof (existingEd as any)?.downtime === 'number' ? (existingEd as any).downtime : 0),
+        renown: extraData?.renown && typeof extraData.renown === 'object'
+          ? { used: Number(extraData.renown.used) || 0, total: Number(extraData.renown.total) || 0 }
+          : (existingEd as any)?.renown && typeof (existingEd as any).renown === 'object'
+            ? { used: Number((existingEd as any).renown.used) || 0, total: Number((existingEd as any).renown.total) || 0 }
+            : { used: 0, total: 0 },
+        prestige: extraData?.prestige && typeof extraData.prestige === 'object' ? extraData.prestige : (existingEd as any)?.prestige && typeof (existingEd as any).prestige === 'object' ? (existingEd as any).prestige : { org: '', level: 0, rankName: '' },
+        customRecords: Array.isArray(extraData?.customRecords) ? extraData.customRecords : Array.isArray((existingEd as any)?.customRecords) ? (existingEd as any).customRecords : [],
+        attacks: Array.isArray(extraData?.attacks) ? extraData.attacks : Array.isArray((existingEd as any)?.attacks) ? (existingEd as any).attacks : []
+      }
+
+      if (extraData?.classes && Array.isArray(extraData.classes)) payload.classes = extraData.classes
+      else if (Array.isArray((existingEd as any)?.classes)) payload.classes = (existingEd as any).classes
+
+      if (existingRow) {
         // 記錄存在，只更新 extra_data，並用 select 確認有寫入
         const { data: updated, error } = await supabase
           .from('character_current_stats')

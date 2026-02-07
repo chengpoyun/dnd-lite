@@ -235,6 +235,23 @@ const AuthenticatedApp: React.FC = () => {
     }
   }
 
+  // 保存屬性額外調整值（寫入 character_ability_scores 的 *_bonus / *_modifier_bonus）
+  const saveAbilityBonuses = async (abilityBonuses: Record<string, number>, modifierBonuses: Record<string, number>) => {
+    if (!currentCharacter || isSaving) return false
+    if (!await validateSessionBeforeSave()) return false
+    setIsSaving(true)
+    try {
+      const success = await DetailedCharacterService.updateAbilityBonuses(currentCharacter.id, abilityBonuses, modifierBonuses)
+      if (success) console.log('✅ 屬性加成保存成功')
+      return success
+    } catch (error) {
+      console.error('❌ 屬性加成保存失敗:', error)
+      return false
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
   // 保存當前HP
   const saveHP = async (currentHP: number, maxHP?: number) => {
     if (!currentCharacter || isSaving) return false
@@ -840,6 +857,7 @@ const AuthenticatedApp: React.FC = () => {
                   onSaveSavingThrowProficiencies={saveSavingThrowProficiencies}
                   onSaveCharacterBasicInfo={saveCharacterBasicInfo}
                   onSaveAbilityScores={saveAbilityScores}
+                  onSaveAbilityBonuses={saveAbilityBonuses}
                   onSaveCurrencyAndExp={saveCurrencyAndExp}
                   onSaveExtraData={saveExtraData}
                   onSaveAvatarUrl={saveAvatarUrl}

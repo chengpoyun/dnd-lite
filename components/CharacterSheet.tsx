@@ -13,6 +13,7 @@ interface CharacterSheetProps {
   onSaveSavingThrowProficiencies?: (proficiencies: string[]) => Promise<boolean>;
   onSaveCharacterBasicInfo?: (name: string, characterClass: string, level: number) => Promise<boolean>;
   onSaveAbilityScores?: (abilityScores: CharacterStats['abilityScores']) => Promise<boolean>;
+  onSaveAbilityBonuses?: (abilityBonuses: Record<string, number>, modifierBonuses: Record<string, number>) => Promise<boolean>;
   onSaveCurrencyAndExp?: (gp: number, exp: number) => Promise<boolean>;
   onSaveExtraData?: (extraData: any) => Promise<boolean>;
   onSaveAvatarUrl?: (avatarUrl: string) => Promise<boolean>;
@@ -44,6 +45,7 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
   onSaveSavingThrowProficiencies,
   onSaveCharacterBasicInfo,
   onSaveAbilityScores,
+  onSaveAbilityBonuses,
   onSaveCurrencyAndExp,
   onSaveExtraData,
   onSaveAvatarUrl
@@ -662,14 +664,9 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
       }
     }
     
-    // 保存加成數據到 extraData
-    if (onSaveExtraData) {
-      const newExtraData = {
-        ...stats.extraData,
-        abilityBonuses,
-        modifierBonuses
-      };
-      const success = await onSaveExtraData(newExtraData);
+    // 保存屬性額外調整值到 character_ability_scores（*_bonus / *_modifier_bonus）
+    if (onSaveAbilityBonuses) {
+      const success = await onSaveAbilityBonuses(abilityBonuses, modifierBonuses);
       if (success) {
         console.log('✅ 屬性加成保存成功');
       } else {

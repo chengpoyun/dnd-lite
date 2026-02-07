@@ -34,7 +34,8 @@ describe('CharacterSheet - 保存功能測試', () => {
   const mockOnSaveSkillProficiency = vi.fn()
   const mockOnSaveSavingThrowProficiencies = vi.fn()
   const mockOnSaveCharacterBasicInfo = vi.fn()
-  const mockOnSaveAbilityScores = vi.fn() 
+  const mockOnSaveAbilityScores = vi.fn()
+  const mockOnSaveAbilityBonuses = vi.fn()
   const mockOnSaveCurrencyAndExp = vi.fn()
   const mockOnSaveExtraData = vi.fn()
 
@@ -45,6 +46,7 @@ describe('CharacterSheet - 保存功能測試', () => {
     mockOnSaveSavingThrowProficiencies.mockResolvedValue(true)
     mockOnSaveCharacterBasicInfo.mockResolvedValue(true)
     mockOnSaveAbilityScores.mockResolvedValue(true)
+    mockOnSaveAbilityBonuses.mockResolvedValue(true)
     mockOnSaveCurrencyAndExp.mockResolvedValue(true)
     mockOnSaveExtraData.mockResolvedValue(true)
   })
@@ -58,6 +60,7 @@ describe('CharacterSheet - 保存功能測試', () => {
         onSaveSavingThrowProficiencies={mockOnSaveSavingThrowProficiencies}
         onSaveCharacterBasicInfo={mockOnSaveCharacterBasicInfo}
         onSaveAbilityScores={mockOnSaveAbilityScores}
+        onSaveAbilityBonuses={mockOnSaveAbilityBonuses}
         onSaveCurrencyAndExp={mockOnSaveCurrencyAndExp}
         onSaveExtraData={mockOnSaveExtraData}
       />
@@ -79,6 +82,7 @@ describe('CharacterSheet - 保存功能測試', () => {
     expect(mockOnSaveSavingThrowProficiencies).toBeDefined()
     expect(mockOnSaveCharacterBasicInfo).toBeDefined()
     expect(mockOnSaveAbilityScores).toBeDefined()
+    expect(mockOnSaveAbilityBonuses).toBeDefined()
     expect(mockOnSaveCurrencyAndExp).toBeDefined()
     expect(mockOnSaveExtraData).toBeDefined()
   })

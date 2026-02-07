@@ -127,9 +127,11 @@ export function buildCharacterStats(characterData: any, previousStats: Character
       return INITIAL_STATS.savingProficiencies
     })(),
     // 載入額外資料（修整期、名聲、自定義冒險紀錄等）- 支援 extra_data / extraData
+    // 屬性額外調整值優先從 character_ability_scores 的 *_bonus / *_modifier_bonus 讀取
     ...(() => {
       const raw = characterData.currentStats;
       const ed = raw?.extra_data ?? raw?.extraData;
+      const as = characterData.abilityScores;
       const downtime = typeof ed?.downtime === 'number' ? ed.downtime : INITIAL_STATS.downtime;
       const renownObj = ed?.renown;
       const renown =
@@ -139,15 +141,23 @@ export function buildCharacterStats(characterData: any, previousStats: Character
       const prestige = ed?.prestige && typeof ed.prestige === 'object' ? ed.prestige : INITIAL_STATS.prestige;
       const customRecords = Array.isArray(ed?.customRecords) ? ed.customRecords : INITIAL_STATS.customRecords;
       const attacks = Array.isArray(ed?.attacks) ? ed.attacks : INITIAL_STATS.attacks;
+      const abilityKeys = ['str', 'dex', 'con', 'int', 'wis', 'cha'] as const;
+      const dbAbilityMap = { str: 'strength', dex: 'dexterity', con: 'constitution', int: 'intelligence', wis: 'wisdom', cha: 'charisma' } as const;
+      const abilityBonuses: Record<string, number> = {};
+      const modifierBonuses: Record<string, number> = {};
+      for (const k of abilityKeys) {
+        const col = dbAbilityMap[k];
+        const bonusCol = `${col}_bonus` as keyof typeof as;
+        const modCol = `${col}_modifier_bonus` as keyof typeof as;
+        abilityBonuses[k] = typeof (as as any)?.[bonusCol] === 'number' ? (as as any)[bonusCol] : (ed?.abilityBonuses && typeof ed.abilityBonuses === 'object' ? (ed.abilityBonuses as any)[k] ?? 0 : 0);
+        modifierBonuses[k] = typeof (as as any)?.[modCol] === 'number' ? (as as any)[modCol] : (ed?.modifierBonuses && typeof ed.modifierBonuses === 'object' ? (ed.modifierBonuses as any)[k] ?? 0 : 0);
+      }
       return {
         downtime,
         renown,
         prestige,
         customRecords,
-        extraData: {
-          abilityBonuses: ed?.abilityBonuses && typeof ed.abilityBonuses === 'object' ? ed.abilityBonuses : {},
-          modifierBonuses: ed?.modifierBonuses && typeof ed.modifierBonuses === 'object' ? ed.modifierBonuses : {}
-        },
+        extraData: { abilityBonuses, modifierBonuses },
         attacks
       };
     })(),
