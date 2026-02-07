@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { CharacterStats } from '../types';
-import { evaluateValue, getModifier, setNormalValue, handleValueInput } from '../utils/helpers';
+import { evaluateValue, getModifier, getProfBonus, setNormalValue, handleValueInput } from '../utils/helpers';
+import { STAT_LABELS, SKILLS_MAP, ABILITY_KEYS } from '../utils/characterConstants';
 import { formatHitDicePools, getTotalCurrentHitDice, useHitDie, recoverHitDiceOnLongRest } from '../utils/classUtils';
 import { HybridDataManager } from '../services/hybridDataManager';
 import { MulticlassService } from '../services/multiclassService';
@@ -135,6 +136,8 @@ export const CombatView: React.FC<CombatViewProps> = ({
   const [isCategoryUsageModalOpen, setIsCategoryUsageModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<'action' | 'bonus' | 'reaction' | null>(null);
   
+  const [isBonusTableExpanded, setIsBonusTableExpanded] = useState(false);
+
   const [isRestOptionsOpen, setIsRestOptionsOpen] = useState(false);
   const [isShortRestDetailOpen, setIsShortRestDetailOpen] = useState(false);
   const [isLongRestConfirmOpen, setIsLongRestConfirmOpen] = useState(false);
@@ -902,7 +905,7 @@ export const CombatView: React.FC<CombatViewProps> = ({
               setTempWeaponDamageValue(stats.weapon_damage_bonus?.toString() ?? "0");
               setIsWeaponDamageModalOpen(true);
             },
-            label: "武器傷害加值",
+            label: "傷害加值",
             value: `${stats.weapon_damage_bonus != null && stats.weapon_damage_bonus >= 0 ? "+" : ""}${stats.weapon_damage_bonus ?? 0}`,
           },
         ];
@@ -947,6 +950,77 @@ export const CombatView: React.FC<CombatViewProps> = ({
           </div>
         );
       })()}
+
+      {/* 可展開的加值表：屬性豁免 3x2 + 技能加值 3x6 */}
+      <div className="rounded-xl border border-slate-800 bg-slate-900 overflow-hidden">
+        <button
+          type="button"
+          onClick={() => setIsBonusTableExpanded(prev => !prev)}
+          className="w-full flex items-center justify-between px-3 py-2.5 bg-slate-800/50 hover:bg-slate-800 transition-colors text-left"
+        >
+          <span className="text-[16px] font-black text-slate-300 uppercase tracking-tighter">屬性豁免與技能加值</span>
+          <span className={`text-slate-500 transition-transform ${isBonusTableExpanded ? 'rotate-180' : ''}`}>▼</span>
+        </button>
+        {isBonusTableExpanded && (() => {
+          const profBonus = getProfBonus(stats.level ?? 1);
+          const profs = stats.proficiencies ?? {};
+          const saveProfs = stats.savingProficiencies ?? [];
+          return (
+            <div className="p-2 space-y-3 border-t border-slate-800">
+              {/* 屬性豁免 3x2 */}
+              <div>
+                <span className="text-xs font-black text-slate-500 uppercase tracking-wider block mb-1.5">屬性豁免</span>
+                <div className="grid grid-cols-3 grid-rows-2 gap-1.5">
+                  {ABILITY_KEYS.map(key => {
+                    const score = (stats.abilityScores?.[key] ?? 10) + ((stats.extraData?.abilityBonuses as Record<string, number>)?.[key] || 0);
+                    const modBonus = (stats.extraData?.modifierBonuses as Record<string, number>)?.[key] || 0;
+                    const mod = getModifier(score) + modBonus;
+                    const isSaveProf = saveProfs.includes(key);
+                    const saveBonus = isSaveProf ? mod + profBonus : mod;
+                    return (
+                      <div
+                        key={key}
+                        className={`flex items-center justify-between px-2 py-1.5 rounded-lg border text-sm ${isSaveProf ? 'bg-amber-500/10 border-amber-500/30' : 'bg-slate-800/50 border-slate-700/50'}`}
+                      >
+                        <span className="font-bold text-slate-300">{STAT_LABELS[key]}豁免</span>
+                        <span className={`font-mono font-black ${saveBonus >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                          {saveBonus >= 0 ? '+' : ''}{saveBonus}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+              {/* 技能加值 3x6 */}
+              <div>
+                <span className="text-xs font-black text-slate-500 uppercase tracking-wider block mb-1.5">技能加值</span>
+                <div className="grid grid-cols-3 grid-rows-6 gap-1.5">
+                  {SKILLS_MAP.map(skill => {
+                    const baseScore = stats.abilityScores?.[skill.base] ?? 10;
+                    const abilityBonus = (stats.extraData?.abilityBonuses as Record<string, number>)?.[skill.base] || 0;
+                    const finalScore = baseScore + abilityBonus;
+                    const modifierBonus = (stats.extraData?.modifierBonuses as Record<string, number>)?.[skill.base] || 0;
+                    const finalModifier = getModifier(finalScore) + modifierBonus;
+                    const profLevel = profs[skill.name] || 0;
+                    const bonus = finalModifier + (profLevel * profBonus);
+                    return (
+                      <div
+                        key={skill.name}
+                        className={`flex items-center justify-between px-2 py-1.5 rounded-lg border text-sm ${profLevel > 0 ? 'bg-amber-500/10 border-amber-500/30' : 'bg-slate-800/50 border-slate-700/50'}`}
+                      >
+                        <span className="font-bold text-slate-300 truncate">{skill.name}</span>
+                        <span className={`font-mono font-black shrink-0 ml-1 ${bonus >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                          {bonus >= 0 ? '+' : ''}{bonus}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          );
+        })()}
+      </div>
 
       <ActionList 
         title="職業資源" 
