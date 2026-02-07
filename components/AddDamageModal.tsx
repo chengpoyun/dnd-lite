@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Modal } from './ui/Modal';
 import CombatService from '../services/combatService';
-import type { ResistanceType } from '../lib/supabase';
+import type { ResistanceType, CombatDamageLog } from '../lib/supabase';
 import { DAMAGE_TYPES, calculateActualDamage } from '../utils/damageTypes';
 import { useToast } from '../hooks/useToast';
 import { MODAL_CONTAINER_CLASS } from '../styles/modalStyles';
@@ -18,6 +18,8 @@ interface AddDamageModalProps {
   monsterId: string;
   monsterNumber: number;
   monsterResistances: Record<string, ResistanceType>; // 怪物已知抗性
+  /** 編輯模式：整組傷害（同 created_at），null 為新增模式 */
+  editingLogs?: CombatDamageLog[] | null;
   onSuccess: () => void;
   onConflict: () => Promise<boolean>;
 }
@@ -28,17 +30,37 @@ const AddDamageModal: React.FC<AddDamageModalProps> = ({
   monsterId,
   monsterNumber,
   monsterResistances,
+  editingLogs = null,
   onSuccess,
   onConflict
 }) => {
   const { showSuccess, showError } = useToast();
+  const isEditMode = editingLogs != null && editingLogs.length > 0;
   const [entries, setEntries] = useState<DamageEntry[]>([
     { originalValue: '', type: 'slashing', resistanceType: 'normal' }
   ]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // 當傷害類型改變時，自動設定已知抗性
+  // 同步 editingLogs：編輯模式預填整組（帶入原始傷害數值，僅用 damage_value_origin）
   useEffect(() => {
+    if (isOpen && isEditMode && editingLogs) {
+      setEntries(editingLogs.map(log => ({
+        originalValue: String(log.damage_value_origin ?? 0),
+        type: log.damage_type,
+        resistanceType: log.resistance_type
+      })));
+    } else if (isOpen && !isEditMode) {
+      setEntries([{
+        originalValue: '',
+        type: 'slashing',
+        resistanceType: monsterResistances['slashing'] ?? 'normal'
+      }]);
+    }
+  }, [isOpen, isEditMode, editingLogs, monsterResistances]);
+
+  // 當傷害類型改變時，自動設定已知抗性（編輯模式不覆寫，由 sync editingLogs 負責）
+  useEffect(() => {
+    if (isEditMode) return;
     const newEntries = entries.map(entry => {
       const knownResistance = monsterResistances[entry.type];
       if (knownResistance && entry.resistanceType === 'normal') {
@@ -47,11 +69,23 @@ const AddDamageModal: React.FC<AddDamageModalProps> = ({
       return entry;
     });
     setEntries(newEntries);
-  }, [monsterResistances]); // 只在 monsterResistances 變化時執行
+  }, [monsterResistances, isEditMode]); // 只在 monsterResistances 變化時執行
 
   // 重置表單
   const resetForm = () => {
-    setEntries([{ originalValue: '', type: 'slashing', resistanceType: 'normal' }]);
+    if (isEditMode && editingLogs?.length) {
+      setEntries(editingLogs.map(log => ({
+        originalValue: String(log.damage_value_origin ?? 0),
+        type: log.damage_type,
+        resistanceType: log.resistance_type
+      })));
+    } else {
+      setEntries([{
+        originalValue: '',
+        type: 'slashing',
+        resistanceType: monsterResistances['slashing'] ?? 'normal'
+      }]);
+    }
   };
 
   // 新增傷害條目
@@ -66,7 +100,11 @@ const AddDamageModal: React.FC<AddDamageModalProps> = ({
       return;
     }
     
-    setEntries([...entries, { originalValue: '', type: availableType.value, resistanceType: 'normal' }]);
+    setEntries([...entries, {
+      originalValue: '',
+      type: availableType.value,
+      resistanceType: monsterResistances[availableType.value] ?? 'normal'
+    }]);
   };
 
   // 移除傷害條目
@@ -121,11 +159,14 @@ const AddDamageModal: React.FC<AddDamageModalProps> = ({
   const totalOriginal = calculatedEntries.reduce((sum, e) => sum + e.originalDamage, 0);
   const totalActual = calculatedEntries.reduce((sum, e) => sum + e.actualDamage, 0);
 
-  // 提交傷害
-  const handleSubmit = async () => {
-    // 驗證輸入（只要原始傷害大於 0 就可以，即使實際傷害為 0 也要記錄）
-    const validEntries = calculatedEntries.filter(e => e.originalDamage > 0);
+  // 有輸入原始傷害的條目（用於驗證與新增）
+  const validEntries = useMemo(
+    () => calculatedEntries.filter(e => e.originalDamage > 0),
+    [calculatedEntries]
+  );
 
+  // 提交傷害（新增或編輯）
+  const handleSubmit = async () => {
     if (validEntries.length === 0) {
       showError('請輸入至少一項傷害');
       return;
@@ -138,38 +179,120 @@ const AddDamageModal: React.FC<AddDamageModalProps> = ({
 
     setIsSubmitting(true);
 
-    // 準備傷害數據（使用實際傷害值，包含 0 傷害的免疫記錄）
-    const damages = validEntries.map(e => ({
-      value: e.actualDamage,  // 包括免疫導致的 0 傷害
-      type: e.type,
-      resistanceType: e.resistanceType
-    }));
+    if (isEditMode && editingLogs?.length) {
+      // 編輯模式：前 N 筆對應既有 log 更新，可多可少（複合傷害／刪列）
+      const existingCount = Math.min(calculatedEntries.length, editingLogs.length);
+      const updates = calculatedEntries.slice(0, existingCount).map((e, i) => ({
+        logId: editingLogs[i].id,
+        value: e.actualDamage,
+        type: e.type,
+        resistanceType: e.resistanceType,
+        originalValue: e.originalDamage
+      }));
 
-    // 收集需要更新的抗性（非 normal 且與已知不同）
-    const resistancesToUpdate: Record<string, ResistanceType> = {};
-    validEntries.forEach(e => {
-      if (e.resistanceType !== 'normal' && monsterResistances[e.type] !== e.resistanceType) {
-        resistancesToUpdate[e.type] = e.resistanceType;
+      let result = { success: true as boolean, error: undefined as string | undefined };
+      if (updates.length > 0) {
+        result = await CombatService.updateDamageLogBatch(monsterId, updates);
+        if (!result.success) {
+          showError(result.error || '更新傷害失敗');
+          setIsSubmitting(false);
+          return;
+        }
       }
-    });
 
-    // 新增傷害記錄
-    const result = await CombatService.addDamage(monsterId, damages);
+      // 新增的複合傷害（編輯時多出來的列）
+      if (calculatedEntries.length > editingLogs.length) {
+        const newEntries = calculatedEntries
+          .slice(editingLogs.length)
+          .filter(e => e.originalDamage > 0)
+          .map(e => ({
+            value: e.actualDamage,
+            type: e.type,
+            resistanceType: e.resistanceType,
+            originalValue: e.originalDamage
+          }));
+        if (newEntries.length > 0) {
+          result = await CombatService.addDamage(monsterId, newEntries, {
+            createdAt: editingLogs[0].created_at
+          });
+          if (result.success) {
+            const resistancesToUpdate: Record<string, ResistanceType> = {};
+            newEntries.forEach(e => {
+              if (e.resistanceType !== 'normal' && monsterResistances[e.type] !== e.resistanceType) {
+                resistancesToUpdate[e.type] = e.resistanceType;
+              }
+            });
+            if (Object.keys(resistancesToUpdate).length > 0) {
+              await CombatService.updateMonsterResistances(monsterId, resistancesToUpdate);
+            }
+          }
+        }
+      }
 
+      // 刪除的列（編輯時少掉的列）
+      if (calculatedEntries.length < editingLogs.length && result.success) {
+        const idsToDelete = editingLogs.slice(calculatedEntries.length).map(l => l.id);
+        result = await CombatService.deleteDamageLogBatch(idsToDelete, monsterId);
+      }
+
+      if (result.success) {
+        showSuccess('已更新傷害');
+        resetForm();
+        onSuccess();
+        onClose();
+      } else {
+        showError(result.error || '更新傷害失敗');
+      }
+    } else {
+      // 新增模式（僅 validEntries 送出）
+      const damages = validEntries.map(e => ({
+        value: e.actualDamage,
+        type: e.type,
+        resistanceType: e.resistanceType,
+        originalValue: e.originalDamage
+      }));
+      const resistancesToUpdate: Record<string, ResistanceType> = {};
+      validEntries.forEach(e => {
+        if (e.resistanceType !== 'normal' && monsterResistances[e.type] !== e.resistanceType) {
+          resistancesToUpdate[e.type] = e.resistanceType;
+        }
+      });
+      const result = await CombatService.addDamage(monsterId, damages);
+      if (result.success) {
+        if (Object.keys(resistancesToUpdate).length > 0) {
+          await CombatService.updateMonsterResistances(monsterId, resistancesToUpdate);
+        }
+        showSuccess(`已記錄 ${totalActual} 點傷害`);
+        resetForm();
+        onSuccess();
+        onClose();
+      } else {
+        showError(result.error || '記錄傷害失敗');
+      }
+    }
+
+    setIsSubmitting(false);
+  };
+
+  // 編輯模式：刪除此筆傷害（整組）
+  const handleDeleteGroup = async () => {
+    if (!isEditMode || !editingLogs?.length) return;
+    const n = editingLogs.length;
+    const msg = n > 1
+      ? `確定要刪除此筆傷害？（共 ${n} 種傷害類型）`
+      : '確定要刪除此筆傷害？';
+    if (!window.confirm(msg)) return;
+    if (await onConflict()) return;
+    setIsSubmitting(true);
+    const result = await CombatService.deleteDamageLogBatch(editingLogs.map(l => l.id), monsterId);
     if (result.success) {
-      // 更新怪物抗性（如果有新發現）
-      if (Object.keys(resistancesToUpdate).length > 0) {
-        await CombatService.updateMonsterResistances(monsterId, resistancesToUpdate);
-      }
-      
-      showSuccess(`已記錄 ${totalActual} 點傷害`);
+      showSuccess('已刪除傷害');
       resetForm();
       onSuccess();
       onClose();
     } else {
-      showError(result.error || '記錄傷害失敗');
+      showError(result.error || '刪除失敗');
     }
-
     setIsSubmitting(false);
   };
 
@@ -193,7 +316,9 @@ const AddDamageModal: React.FC<AddDamageModalProps> = ({
           </div>
         )}
 
-        <h2 className="text-xl font-bold mb-4">👹 怪物 #{monsterNumber} - 新增傷害</h2>
+        <h2 className="text-xl font-bold mb-4">
+          {isEditMode ? `👹 怪物 #${monsterNumber} - 編輯傷害` : `👹 怪物 #${monsterNumber} - 新增傷害`}
+        </h2>
 
         {/* 提示文字 */}
         <div className="mb-4 p-3 bg-blue-900/30 border border-blue-700 rounded-lg text-sm text-blue-300">
@@ -233,7 +358,7 @@ const AddDamageModal: React.FC<AddDamageModalProps> = ({
                   })}
                 </select>
 
-                {/* 移除按鈕 */}
+                {/* 移除按鈕（多筆時可移除） */}
                 {entries.length > 1 && (
                   <button
                     onClick={() => removeEntry(index)}
@@ -299,14 +424,15 @@ const AddDamageModal: React.FC<AddDamageModalProps> = ({
           ))}
         </div>
 
-        {/* 複合傷害按鈕 */}
-        <button
-          onClick={addEntry}
-          className="w-full mt-4 mb-4 px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          disabled={entries.length >= DAMAGE_TYPES.length}
-        >
-          ➕ 複合傷害
-        </button>
+        {/* 複合傷害按鈕（新增與編輯模式皆可新增列） */}
+        {entries.length < DAMAGE_TYPES.length && (
+          <button
+            onClick={addEntry}
+            className="w-full mt-4 mb-4 px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            ➕ 複合傷害
+          </button>
+        )}
 
         {/* 總計 */}
         <div className="mb-4 p-3 bg-slate-900 rounded-lg">
@@ -325,21 +451,32 @@ const AddDamageModal: React.FC<AddDamageModalProps> = ({
         </div>
 
         {/* 操作按鈕 */}
-        <div className="flex gap-3">
-          <button
-            onClick={handleClose}
-            className="flex-1 px-6 py-3 bg-slate-700 hover:bg-slate-600 rounded-lg font-medium transition-colors"
-            disabled={isSubmitting}
-          >
-            取消
-          </button>
-          <button
-            onClick={handleSubmit}
-            className="flex-1 px-6 py-3 bg-orange-600 hover:bg-orange-700 rounded-lg font-medium transition-colors disabled:opacity-50"
-            disabled={isSubmitting || totalOriginal === 0}
-          >
-            確認新增
-          </button>
+        <div className="flex flex-col gap-2">
+          <div className="flex gap-3">
+            <button
+              onClick={handleClose}
+              className="flex-1 px-6 py-3 bg-slate-700 hover:bg-slate-600 rounded-lg font-medium transition-colors"
+              disabled={isSubmitting}
+            >
+              取消
+            </button>
+            <button
+              onClick={handleSubmit}
+              className="flex-1 px-6 py-3 bg-orange-600 hover:bg-orange-700 rounded-lg font-medium transition-colors disabled:opacity-50"
+              disabled={isSubmitting || validEntries.length === 0}
+            >
+              {isEditMode ? '確認更新' : '確認新增'}
+            </button>
+          </div>
+          {isEditMode && (
+            <button
+              onClick={handleDeleteGroup}
+              className="w-full px-6 py-2.5 bg-red-900/50 hover:bg-red-900/70 border border-red-700 rounded-lg font-medium text-red-300 transition-colors disabled:opacity-50"
+              disabled={isSubmitting}
+            >
+              刪除此筆傷害
+            </button>
+          )}
         </div>
       </div>
     </Modal>

@@ -1,5 +1,5 @@
 import React from 'react';
-import type { CombatMonsterWithLogs, ResistanceType } from '../lib/supabase';
+import type { CombatMonsterWithLogs, CombatDamageLog, ResistanceType } from '../lib/supabase';
 import { getDamageTypeDisplay, RESISTANCE_ICONS, RESISTANCE_COLORS, DAMAGE_TYPES } from '../utils/damageTypes';
 
 interface MonsterCardProps {
@@ -8,6 +8,8 @@ interface MonsterCardProps {
   onAdjustAC: () => void;
   onAdjustSettings: () => void;
   onDelete: () => void;
+  /** 點擊該組任一行時傳入整組傷害（同 created_at） */
+  onDamageLogClick?: (group: CombatDamageLog[]) => void;
 }
 
 const MonsterCard: React.FC<MonsterCardProps> = ({ 
@@ -15,7 +17,8 @@ const MonsterCard: React.FC<MonsterCardProps> = ({
   onAddDamage, 
   onAdjustAC,
   onAdjustSettings,
-  onDelete 
+  onDelete,
+  onDamageLogClick
 }) => {
   const { monster_number, name, ac_min, ac_max, total_damage, damage_logs, resistances, notes } = monster;
 
@@ -138,9 +141,13 @@ const MonsterCard: React.FC<MonsterCardProps> = ({
                   return (
                     <div 
                       key={log.id} 
+                      role={onDamageLogClick ? 'button' : undefined}
+                      tabIndex={onDamageLogClick ? 0 : undefined}
+                      onClick={onDamageLogClick ? () => onDamageLogClick(group) : undefined}
+                      onKeyDown={onDamageLogClick ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onDamageLogClick(group); } } : undefined}
                       className={`text-sm px-3 py-2 ${
                         log.damage_value === 0 ? 'opacity-60' : ''
-                      }`}
+                      } ${onDamageLogClick ? 'cursor-pointer hover:bg-slate-800 transition-colors' : ''}`}
                     >
                       <span className={log.damage_value === 0 ? 'line-through text-slate-500' : ''}>
                         {getDamageTypeDisplay(log.damage_type)}

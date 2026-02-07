@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../hooks/useToast';
 import CombatService from '../services/combatService';
-import type { CombatSession, CombatMonsterWithLogs, ResistanceType } from '../lib/supabase';
+import type { CombatSession, CombatMonsterWithLogs, CombatDamageLog, ResistanceType } from '../lib/supabase';
 import MonsterCard from './MonsterCard';
 import AddDamageModal from './AddDamageModal';
 import AddMonsterModal from './AddMonsterModal';
@@ -33,6 +33,7 @@ const MonstersPage: React.FC = () => {
   const [errorModalOpen, setErrorModalOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [selectedMonsterId, setSelectedMonsterId] = useState<string>('');
+  const [editingDamageLogs, setEditingDamageLogs] = useState<CombatDamageLog[] | null>(null);
   const [deleteMonsterModalOpen, setDeleteMonsterModalOpen] = useState(false);
   const [pendingDeleteMonsterId, setPendingDeleteMonsterId] = useState<string | null>(null);
 
@@ -223,6 +224,13 @@ const MonstersPage: React.FC = () => {
    */
   const openDamageModal = (monsterId: string) => {
     setSelectedMonsterId(monsterId);
+    setEditingDamageLogs(null);
+    setDamageModalOpen(true);
+  };
+
+  const openEditDamageModal = (monsterId: string, group: CombatDamageLog[]) => {
+    setSelectedMonsterId(monsterId);
+    setEditingDamageLogs(group);
     setDamageModalOpen(true);
   };
 
@@ -386,6 +394,7 @@ const MonstersPage: React.FC = () => {
                 onAddDamage={() => openDamageModal(monster.id)}
                 onAdjustAC={() => openACModal(monster.id)}
                 onAdjustSettings={() => openSettingsModal(monster.id)}
+                onDamageLogClick={(group) => openEditDamageModal(monster.id, group)}
                 onDelete={() => openDeleteMonsterModal(monster.id)}
               />
             ))}
@@ -417,10 +426,11 @@ const MonstersPage: React.FC = () => {
 
       <AddDamageModal
         isOpen={damageModalOpen}
-        onClose={() => setDamageModalOpen(false)}
+        onClose={() => { setEditingDamageLogs(null); setDamageModalOpen(false); }}
         monsterId={selectedMonsterId}
         monsterNumber={monsters.find(m => m.id === selectedMonsterId)?.monster_number || 0}
         monsterResistances={monsters.find(m => m.id === selectedMonsterId)?.resistances || {}}
+        editingLogs={editingDamageLogs}
         onSuccess={() => refreshCombatData()}
         onConflict={() => checkConflict()}
       />

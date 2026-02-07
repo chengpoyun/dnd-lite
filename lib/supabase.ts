@@ -245,6 +245,7 @@ export interface CombatDamageLog {
   id: string
   monster_id: string
   damage_value: number
+  damage_value_origin: number | null
   damage_type: string
   resistance_type: ResistanceType
   created_at: string

@@ -541,6 +541,7 @@ export class CombatService {
 
   /**
    * 新增傷害記錄
+   * @param options.createdAt 若提供（編輯時補加複合傷害），新列會使用此時間，與同組顯示
    */
   static async addDamage(
     monsterId: string,
@@ -548,7 +549,9 @@ export class CombatService {
       value: number;
       type: string;
       resistanceType: ResistanceType;
-    }>
+      originalValue: number;
+    }>,
+    options?: { createdAt?: string }
   ): Promise<{ success: boolean; error?: string }> {
     try {
       // 計算總傷害
@@ -565,13 +568,20 @@ export class CombatService {
         return { success: false, error: '怪物不存在' };
       }
 
-      // 插入傷害記錄
-      const logsToInsert = damages.map(d => ({
-        monster_id: monsterId,
-        damage_value: d.value,
-        damage_type: d.type,
-        resistance_type: d.resistanceType
-      }));
+      // 插入傷害記錄（含原始傷害供編輯還原；可指定 created_at 以歸入同一組）
+      const logsToInsert = damages.map(d => {
+        const row: Record<string, unknown> = {
+          monster_id: monsterId,
+          damage_value: d.value,
+          damage_value_origin: d.originalValue,
+          damage_type: d.type,
+          resistance_type: d.resistanceType
+        };
+        if (options?.createdAt != null) {
+          row.created_at = options.createdAt;
+        }
+        return row;
+      });
 
       const { error: logsError } = await supabase
         .from('combat_damage_logs')
@@ -596,6 +606,151 @@ export class CombatService {
       return { success: true };
     } catch (error) {
       console.error('新增傷害異常:', error);
+      return { success: false, error: String(error) };
+    }
+  }
+
+  /**
+   * 重算該怪物累計傷害並寫回 combat_monsters（供 update/delete 傷害記錄後共用）
+   */
+  static async recalcMonsterTotalDamage(monsterId: string): Promise<{ success: boolean; error?: string }> {
+    try {
+      const { data: logs, error: fetchError } = await supabase
+        .from('combat_damage_logs')
+        .select('damage_value')
+        .eq('monster_id', monsterId);
+
+      if (fetchError) {
+        console.error('查詢傷害記錄失敗:', fetchError);
+        return { success: false, error: fetchError.message };
+      }
+
+      const totalDamage = (logs || []).reduce((sum, row) => sum + (row.damage_value ?? 0), 0);
+
+      const { error: updateError } = await supabase
+        .from('combat_monsters')
+        .update({ total_damage: totalDamage })
+        .eq('id', monsterId);
+
+      if (updateError) {
+        console.error('更新累計傷害失敗:', updateError);
+        return { success: false, error: updateError.message };
+      }
+
+      return { success: true };
+    } catch (error) {
+      console.error('重算累計傷害異常:', error);
+      return { success: false, error: String(error) };
+    }
+  }
+
+  /**
+   * 更新單筆傷害記錄，並重算該怪物 total_damage
+   */
+  static async updateDamageLog(
+    logId: string,
+    monsterId: string,
+    payload: { value: number; type: string; resistanceType: ResistanceType; originalValue: number }
+  ): Promise<{ success: boolean; error?: string }> {
+    try {
+      const { error } = await supabase
+        .from('combat_damage_logs')
+        .update({
+          damage_value: payload.value,
+          damage_value_origin: payload.originalValue,
+          damage_type: payload.type,
+          resistance_type: payload.resistanceType
+        })
+        .eq('id', logId);
+
+      if (error) {
+        console.error('更新傷害記錄失敗:', error);
+        return { success: false, error: error.message };
+      }
+
+      return this.recalcMonsterTotalDamage(monsterId);
+    } catch (error) {
+      console.error('更新傷害記錄異常:', error);
+      return { success: false, error: String(error) };
+    }
+  }
+
+  /**
+   * 批次更新多筆傷害記錄，最後重算一次 total_damage
+   */
+  static async updateDamageLogBatch(
+    monsterId: string,
+    updates: Array<{ logId: string; value: number; type: string; resistanceType: ResistanceType; originalValue: number }>
+  ): Promise<{ success: boolean; error?: string }> {
+    try {
+      for (const u of updates) {
+        const { error } = await supabase
+          .from('combat_damage_logs')
+          .update({
+            damage_value: u.value,
+            damage_value_origin: u.originalValue,
+            damage_type: u.type,
+            resistance_type: u.resistanceType
+          })
+          .eq('id', u.logId);
+
+        if (error) {
+          console.error('批次更新傷害記錄失敗:', error);
+          return { success: false, error: error.message };
+        }
+      }
+
+      return this.recalcMonsterTotalDamage(monsterId);
+    } catch (error) {
+      console.error('批次更新傷害記錄異常:', error);
+      return { success: false, error: String(error) };
+    }
+  }
+
+  /**
+   * 刪除單筆傷害記錄，並重算該怪物 total_damage
+   */
+  static async deleteDamageLog(logId: string, monsterId: string): Promise<{ success: boolean; error?: string }> {
+    try {
+      const { error } = await supabase
+        .from('combat_damage_logs')
+        .delete()
+        .eq('id', logId);
+
+      if (error) {
+        console.error('刪除傷害記錄失敗:', error);
+        return { success: false, error: error.message };
+      }
+
+      return this.recalcMonsterTotalDamage(monsterId);
+    } catch (error) {
+      console.error('刪除傷害記錄異常:', error);
+      return { success: false, error: String(error) };
+    }
+  }
+
+  /**
+   * 批次刪除多筆傷害記錄，最後重算一次 total_damage
+   */
+  static async deleteDamageLogBatch(logIds: string[], monsterId: string): Promise<{ success: boolean; error?: string }> {
+    try {
+      if (logIds.length === 0) {
+        return this.recalcMonsterTotalDamage(monsterId);
+      }
+
+      const { error } = await supabase
+        .from('combat_damage_logs')
+        .delete()
+        .in('id', logIds);
+
+      if (error) {
+        console.error('批次刪除傷害記錄失敗:', error);
+        return { success: false, error: error.message };
+      }
+
+      return this.recalcMonsterTotalDamage(monsterId);
+    } catch (error) {
+      console.error('批次刪除傷害記錄異常:', error);
       return { success: false, error: String(error) };
     }
   }
