@@ -46,6 +46,7 @@ export default function ItemsPage({ characterId }: ItemsPageProps) {
   // Modal 狀態
   const [isLearnModalOpen, setIsLearnModalOpen] = useState(false);
   const [isAddPersonalModalOpen, setIsAddPersonalModalOpen] = useState(false);
+  const [addPersonalInitialName, setAddPersonalInitialName] = useState('');
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [uploadFromCharacterItem, setUploadFromCharacterItem] = useState<CharacterItem | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -290,8 +291,9 @@ export default function ItemsPage({ characterId }: ItemsPageProps) {
         isOpen={isLearnModalOpen}
         onClose={() => setIsLearnModalOpen(false)}
         onLearnItem={handleLearnItem}
-        onCreateNew={() => {
+        onCreateNew={(initialName) => {
           setIsLearnModalOpen(false);
+          setAddPersonalInitialName(initialName ?? '');
           setIsAddPersonalModalOpen(true);
         }}
         learnedItemIds={learnedItemIds}
@@ -299,8 +301,12 @@ export default function ItemsPage({ characterId }: ItemsPageProps) {
 
       <AddPersonalItemModal
         isOpen={isAddPersonalModalOpen}
-        onClose={() => setIsAddPersonalModalOpen(false)}
+        onClose={() => {
+          setIsAddPersonalModalOpen(false);
+          setAddPersonalInitialName('');
+        }}
         onSubmit={handleAddPersonalItem}
+        initialName={addPersonalInitialName}
       />
 
       <GlobalItemFormModal

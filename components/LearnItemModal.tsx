@@ -9,7 +9,7 @@ interface LearnItemModalProps {
   isOpen: boolean;
   onClose: () => void;
   onLearnItem: (itemId: string) => Promise<void>;
-  onCreateNew: () => void;
+  onCreateNew: (initialName?: string) => void;
   learnedItemIds: string[];
 }
 
@@ -88,7 +88,7 @@ export const LearnItemModal: React.FC<LearnItemModalProps> = ({
               取消
             </button>
             <button
-              onClick={onCreateNew}
+              onClick={() => onCreateNew(searchText.trim() || undefined)}
               className="px-4 py-2 rounded-lg bg-amber-600 text-white font-bold active:bg-amber-700 whitespace-nowrap"
             >
               新增個人物品

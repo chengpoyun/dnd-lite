@@ -3,7 +3,7 @@
  * 必填：名稱、類別；選填：描述、數量
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Modal } from './ui/Modal';
 import type { ItemCategory, CreateCharacterItemData } from '../services/itemService';
 import { MODAL_CONTAINER_CLASS } from '../styles/modalStyles';
@@ -14,12 +14,15 @@ interface AddPersonalItemModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (data: CreateCharacterItemData) => Promise<void>;
+  /** 預填名稱（例如從獲得物品搜尋欄帶入） */
+  initialName?: string;
 }
 
 export const AddPersonalItemModal: React.FC<AddPersonalItemModalProps> = ({
   isOpen,
   onClose,
   onSubmit,
+  initialName,
 }) => {
   const [name, setName] = useState('');
   const [category, setCategory] = useState<ItemCategory>('裝備');
@@ -27,6 +30,12 @@ export const AddPersonalItemModal: React.FC<AddPersonalItemModalProps> = ({
   const [quantity, setQuantity] = useState(1);
   const [isMagic, setIsMagic] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      setName(initialName ?? '');
+    }
+  }, [isOpen, initialName]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
