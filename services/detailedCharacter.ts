@@ -661,6 +661,7 @@ export class DetailedCharacterService {
           return false
         }
         console.log('✅ extra_data 更新成功')
+        this.clearCharacterCache(characterId)
       } else {
         console.log('➕ 記錄不存在，創建新記錄')
         // 記錄不存在，創建新記錄with預設值
@@ -690,6 +691,7 @@ export class DetailedCharacterService {
           return false
         }
         console.log('✅ 新記錄創建成功')
+        this.clearCharacterCache(characterId)
       }
 
       return true

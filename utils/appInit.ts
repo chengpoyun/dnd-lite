@@ -126,16 +126,31 @@ export function buildCharacterStats(characterData: any, previousStats: Character
       }
       return INITIAL_STATS.savingProficiencies
     })(),
-    // 載入額外資料（修整期、名聲等）
-    downtime: characterData.currentStats?.extra_data?.downtime || INITIAL_STATS.downtime,
-    renown: characterData.currentStats?.extra_data?.renown || INITIAL_STATS.renown,
-    prestige: characterData.currentStats?.extra_data?.prestige || INITIAL_STATS.prestige,
-    customRecords: characterData.currentStats?.extra_data?.customRecords || INITIAL_STATS.customRecords,
-    extraData: {
-      abilityBonuses: characterData.currentStats?.extra_data?.abilityBonuses || {},
-      modifierBonuses: characterData.currentStats?.extra_data?.modifierBonuses || {}
-    },
-    attacks: characterData.currentStats?.extra_data?.attacks || INITIAL_STATS.attacks,
+    // 載入額外資料（修整期、名聲、自定義冒險紀錄等）- 支援 extra_data / extraData
+    ...(() => {
+      const raw = characterData.currentStats;
+      const ed = raw?.extra_data ?? raw?.extraData;
+      const downtime = typeof ed?.downtime === 'number' ? ed.downtime : INITIAL_STATS.downtime;
+      const renownObj = ed?.renown;
+      const renown =
+        renownObj && typeof renownObj === 'object' && typeof renownObj.used === 'number' && typeof renownObj.total === 'number'
+          ? { used: renownObj.used, total: renownObj.total }
+          : INITIAL_STATS.renown;
+      const prestige = ed?.prestige && typeof ed.prestige === 'object' ? ed.prestige : INITIAL_STATS.prestige;
+      const customRecords = Array.isArray(ed?.customRecords) ? ed.customRecords : INITIAL_STATS.customRecords;
+      const attacks = Array.isArray(ed?.attacks) ? ed.attacks : INITIAL_STATS.attacks;
+      return {
+        downtime,
+        renown,
+        prestige,
+        customRecords,
+        extraData: {
+          abilityBonuses: ed?.abilityBonuses && typeof ed.abilityBonuses === 'object' ? ed.abilityBonuses : {},
+          modifierBonuses: ed?.modifierBonuses && typeof ed.modifierBonuses === 'object' ? ed.modifierBonuses : {}
+        },
+        attacks
+      };
+    })(),
     // 載入生命骰資料
     hitDice: {
       current: characterData.currentStats?.current_hit_dice || INITIAL_STATS.hitDice.current,
@@ -144,23 +159,26 @@ export function buildCharacterStats(characterData: any, previousStats: Character
     },
     
     // 載入兼職系統資料（新增）
-    classes: characterData.currentStats?.extra_data?.classes ? 
-      characterData.currentStats.extra_data.classes.map((c: any, index: number) => ({
-        id: c.id || `class-${index}`,
-        name: c.name,
-        level: c.level,
-        hitDie: c.hitDie || getClassHitDie(c.name),
-        isPrimary: c.isPrimary
-      })) :
-      (characterData.classes && characterData.classes.length > 0 ? 
-        characterData.classes.map((c: any) => ({
-          id: `legacy-${c.class_name}`,
-          name: c.class_name,
-          level: c.class_level,
-          hitDie: c.hit_die,
-          isPrimary: c.is_primary
-        })) : undefined), // 無資料時使用傳統模式
-    
+    classes: (() => {
+      const ed = characterData.currentStats?.extra_data ?? characterData.currentStats?.extraData;
+      return ed?.classes
+        ? ed.classes.map((c: any, index: number) => ({
+            id: c.id || `class-${index}`,
+            name: c.name,
+            level: c.level,
+            hitDie: c.hitDie || getClassHitDie(c.name),
+            isPrimary: c.isPrimary
+          }))
+        : (characterData.classes && characterData.classes.length > 0
+            ? characterData.classes.map((c: any) => ({
+                id: `legacy-${c.class_name}`,
+                name: c.class_name,
+                level: c.class_level,
+                hitDie: c.hit_die,
+                isPrimary: c.is_primary
+              }))
+            : undefined);
+    })(),
     hitDicePools: characterData.hitDicePools ? {
       d12: { 
         current: characterData.hitDicePools.d12_current, 
