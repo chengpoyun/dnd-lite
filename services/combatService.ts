@@ -234,6 +234,20 @@ export class CombatService {
     error?: string 
   }> {
     try {
+      // 若同 session 已有同名怪物，沿用其屬性
+      const { data: sameNameMonster } = await supabase
+        .from('combat_monsters')
+        .select('ac_min, ac_max, max_hp, resistances')
+        .eq('session_code', sessionCode)
+        .eq('name', name)
+        .limit(1)
+        .maybeSingle();
+
+      const acMin = sameNameMonster?.ac_min ?? knownAC ?? 0;
+      const acMax = sameNameMonster?.ac_max ?? knownAC ?? 99;
+      const maxHp = sameNameMonster?.max_hp ?? maxHP;
+      const resistancesToUse = (sameNameMonster?.resistances ?? resistances) || {};
+
       // 獲取當前最大怪物編號
       const { data: existing } = await supabase
         .from('combat_monsters')
@@ -246,17 +260,17 @@ export class CombatService {
         ? existing[0].monster_number + 1 
         : 1;
 
-      // 準備批次插入的數據
+      // 準備批次插入的數據（同名則已沿用現有屬性）
       const monstersToInsert = Array.from({ length: count }, (_, i) => ({
         session_code: sessionCode,
         monster_number: startNumber + i,
         name,
-        ac_min: knownAC ?? 0, // 如果已知 AC，ac_min 和 ac_max 相同
-        ac_max: knownAC ?? 99, // 未知 AC 時預設範圍為 0-99
-        max_hp: maxHP, // 已知最大HP或 null
+        ac_min: acMin,
+        ac_max: acMax,
+        max_hp: maxHp,
         total_damage: 0,
         is_dead: false,
-        resistances: resistances || {}
+        resistances: resistancesToUse
       }));
 
       // 批次插入
@@ -369,6 +383,94 @@ export class CombatService {
       return { success: true, newRange: { min: newMin, max: newMax } };
     } catch (error) {
       console.error('更新 AC 範圍異常:', error);
+      return { success: false, error: String(error) };
+    }
+  }
+
+  /**
+   * 直接設定 AC 範圍（設定頁使用，強制覆蓋當前值）
+   * 顯示為 [ac_min] < AC <= [ac_max]，須滿足 ac_min < ac_max
+   */
+  static async setACRange(
+    monsterId: string,
+    acMin: number,
+    acMax: number
+  ): Promise<{ success: boolean; error?: string }> {
+    try {
+      if (acMin < 0 || acMin > 99 || acMax < 0 || acMax > 99) {
+        return { success: false, error: 'AC 下限與上限須在 0–99 之間' };
+      }
+      if (acMin >= acMax) {
+        return { success: false, error: 'AC 下限須小於上限' };
+      }
+      const { data: monster, error: fetchError } = await supabase
+        .from('combat_monsters')
+        .select('name, session_code')
+        .eq('id', monsterId)
+        .single();
+
+      if (fetchError || !monster) {
+        return { success: false, error: '怪物不存在' };
+      }
+
+      const { error: updateError } = await supabase
+        .from('combat_monsters')
+        .update({ ac_min: acMin, ac_max: acMax })
+        .eq('session_code', monster.session_code)
+        .eq('name', monster.name);
+
+      if (updateError) {
+        console.error('設定 AC 範圍失敗:', updateError);
+        return { success: false, error: updateError.message };
+      }
+
+      return { success: true };
+    } catch (error) {
+      console.error('設定 AC 範圍異常:', error);
+      return { success: false, error: String(error) };
+    }
+  }
+
+  /**
+   * 更新怪物名稱（設定頁使用），會同步套用至同 session 內所有同名的怪物
+   */
+  static async updateMonsterName(
+    monsterId: string,
+    newName: string
+  ): Promise<{ success: boolean; error?: string }> {
+    try {
+      const trimmed = newName.trim();
+      if (!trimmed) {
+        return { success: false, error: '名稱不可為空' };
+      }
+      const { data: monster, error: fetchError } = await supabase
+        .from('combat_monsters')
+        .select('name, session_code')
+        .eq('id', monsterId)
+        .single();
+
+      if (fetchError || !monster) {
+        return { success: false, error: '怪物不存在' };
+      }
+
+      if (trimmed === monster.name) {
+        return { success: true };
+      }
+
+      const { error: updateError } = await supabase
+        .from('combat_monsters')
+        .update({ name: trimmed })
+        .eq('session_code', monster.session_code)
+        .eq('name', monster.name);
+
+      if (updateError) {
+        console.error('更新怪物名稱失敗:', updateError);
+        return { success: false, error: updateError.message };
+      }
+
+      return { success: true };
+    } catch (error) {
+      console.error('更新怪物名稱異常:', error);
       return { success: false, error: String(error) };
     }
   }

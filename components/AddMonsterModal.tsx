@@ -29,7 +29,7 @@ const AddMonsterModal: React.FC<AddMonsterModalProps> = ({
   onConfirm
 }) => {
   const { showError } = useToast();
-  const [name, setName] = useState('怪物');
+  const [name, setName] = useState('');
   const [count, setCount] = useState('1');
   const [knownAC, setKnownAC] = useState('');
   const [maxHP, setMaxHP] = useState('');
@@ -38,7 +38,7 @@ const AddMonsterModal: React.FC<AddMonsterModalProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const resetForm = () => {
-    setName('怪物');
+    setName('');
     setCount('1');
     setKnownAC('');
     setMaxHP('');

@@ -45,14 +45,16 @@ const MonsterSettingsModal: React.FC<MonsterSettingsModalProps> = ({
 }) => {
   const { showSuccess, showError } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
-  // AC 設定
-  const [knownAC, setKnownAC] = useState<string>(
-    currentACRange.max !== null && currentACRange.min === currentACRange.max
-      ? String(currentACRange.max)
-      : ''
+
+  // 怪物名稱（編輯後會套用至同 session 內所有同名怪物）
+  const [nameInput, setNameInput] = useState<string>(monsterName);
+
+  // AC 範圍：ac_min、ac_max，顯示為 [ac_min] < AC <= [ac_max]
+  const [acMinInput, setAcMinInput] = useState<string>(String(currentACRange.min));
+  const [acMaxInput, setAcMaxInput] = useState<string>(
+    currentACRange.max !== null ? String(currentACRange.max) : ''
   );
-  
+
   // HP 設定
   const [maxHP, setMaxHP] = useState<string>(
     currentMaxHP !== null && currentMaxHP >= 0 ? String(currentMaxHP) : ''
@@ -65,14 +67,10 @@ const MonsterSettingsModal: React.FC<MonsterSettingsModalProps> = ({
   // 初始化狀態
   useEffect(() => {
     if (isOpen) {
+      setNameInput(monsterName);
       setResistances(currentResistances || {});
-      
-      // 重新設定 AC
-      if (currentACRange.max !== null && currentACRange.min === currentACRange.max) {
-        setKnownAC(String(currentACRange.max));
-      } else {
-        setKnownAC('');
-      }
+      setAcMinInput(String(currentACRange.min));
+      setAcMaxInput(currentACRange.max !== null ? String(currentACRange.max) : '');
 
       // 重新設定 HP
       if (currentMaxHP !== null && currentMaxHP >= 0) {
@@ -81,11 +79,13 @@ const MonsterSettingsModal: React.FC<MonsterSettingsModalProps> = ({
         setMaxHP('');
       }
     }
-  }, [isOpen, currentResistances, currentACRange, currentMaxHP]);
+  }, [isOpen, monsterName, currentResistances, currentACRange, currentMaxHP]);
 
   const resetForm = () => {
+    setNameInput(monsterName);
     setResistances({});
-    setKnownAC('');
+    setAcMinInput('0');
+    setAcMaxInput('99');
     setMaxHP('');
   };
 
@@ -97,16 +97,25 @@ const MonsterSettingsModal: React.FC<MonsterSettingsModalProps> = ({
 
     setIsSubmitting(true);
 
-    // 更新 AC（如果有變更）
-    if (knownAC.trim()) {
-      const acValue = parseInt(knownAC);
-      if (!isNaN(acValue) && acValue >= 1 && acValue <= 99) {
-        const acResult = await CombatService.updateACRange(monsterId, acValue, true);
-        if (!acResult.success) {
-          showError(acResult.error || '更新 AC 失敗');
-          setIsSubmitting(false);
-          return;
-        }
+    // 更新怪物名稱：會套用至同 session 內所有同名怪物
+    if (nameInput.trim() && nameInput.trim() !== monsterName) {
+      const nameResult = await CombatService.updateMonsterName(monsterId, nameInput.trim());
+      if (!nameResult.success) {
+        showError(nameResult.error || '更新名稱失敗');
+        setIsSubmitting(false);
+        return;
+      }
+    }
+
+    // 更新 AC 範圍：使用者輸入的 ac_min、ac_max 強制覆蓋當前值
+    const acMin = parseInt(acMinInput.trim(), 10);
+    const acMax = parseInt(acMaxInput.trim(), 10);
+    if (acMinInput.trim() !== '' && acMaxInput.trim() !== '' && !isNaN(acMin) && !isNaN(acMax)) {
+      const acResult = await CombatService.setACRange(monsterId, acMin, acMax);
+      if (!acResult.success) {
+        showError(acResult.error || '更新 AC 範圍失敗');
+        setIsSubmitting(false);
+        return;
       }
     }
 
@@ -175,25 +184,42 @@ const MonsterSettingsModal: React.FC<MonsterSettingsModalProps> = ({
           </div>
         )}
 
-        <h2 className="text-xl font-bold mb-4">⚙️ {monsterName} #{monsterNumber} - 設定</h2>
+        <h2 className="text-xl font-bold mb-4">⚙️ #{monsterNumber} - 設定</h2>
 
-        {/* AC 設定 */}
+        {/* 怪物名稱：編輯後會套用至同 session 內所有同名怪物 */}
         <div className={INPUT_ROW_CLASS}>
-          <label className={INPUT_LABEL_CLASS}>AC</label>
+          <label className={INPUT_LABEL_CLASS}>怪物名稱</label>
+          <input
+            type="text"
+            value={nameInput}
+            onChange={(e) => setNameInput(e.target.value)}
+            placeholder="名稱"
+            className={INPUT_CLASS}
+          />
+        </div>
+
+        {/* 一列 [ac_min] < AC <= [ac_max]，填寫後儲存會強制覆蓋當前值；input 應撐滿整行 */}
+        <div className={`${INPUT_ROW_CLASS} flex-nowrap w-full items-center`}>
           <input
             type="number"
-            value={knownAC}
-            onChange={(e) => setKnownAC(e.target.value)}
-            placeholder={
-              currentACRange.max === null
-                ? `${currentACRange.min} < AC`
-                : currentACRange.min === currentACRange.max
-                ? `${currentACRange.max}`
-                : `${currentACRange.min} < AC <= ${currentACRange.max}`
-            }
-            className={INPUT_CLASS}
-            min="1"
+            value={acMinInput}
+            onChange={(e) => setAcMinInput(e.target.value)}
+            placeholder="min"
+            className={`${INPUT_CLASS} text-center mx-1`}
+            min="0"
             max="99"
+            style={{ flex: '1 1 0%' }}
+          />
+          <span className="text-sm font-medium text-slate-300 shrink-0">&lt; AC &lt;=</span>
+          <input
+            type="number"
+            value={acMaxInput}
+            onChange={(e) => setAcMaxInput(e.target.value)}
+            placeholder="max"
+            className={`${INPUT_CLASS} text-center mx-1`}
+            min="0"
+            max="99"
+            style={{ flex: '1 1 0%' }}
           />
         </div>
 

@@ -66,23 +66,20 @@ const MonsterCard: React.FC<MonsterCardProps> = ({
         </div>
       </div>
 
-      {/* AC 範圍 - 可點擊調整 */}
-      <button
-        onClick={onAdjustAC}
-        className="mb-3 w-full p-3 bg-slate-900 hover:bg-slate-800 rounded-lg transition-colors text-left"
-      >
+      {/* AC 範圍（僅顯示，無法點擊） */}
+      <div className="mb-3 w-full p-3 bg-slate-900 rounded-lg text-left">
         <span className="text-slate-400 text-sm">AC 範圍：</span>
         <span className="ml-2 text-lg font-mono text-blue-400">
           {ac_min === 0 && ac_max === 99
             ? '?'
-            : ac_max === null 
+            : ac_max === null
             ? `${ac_min} < AC`
             : ac_min + 1 === ac_max
             ? `AC = ${ac_max}`
             : `${ac_min} < AC <= ${ac_max}`
           }
         </span>
-      </button>
+      </div>
 
       {/* 已知抗性顯示 */}
       {resistances && Object.keys(resistances).length > 0 && (
