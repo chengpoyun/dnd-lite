@@ -15,6 +15,7 @@ import { useToast } from '../hooks/useToast';
 import * as ItemService from '../services/itemService';
 import type { CharacterItem, ItemCategory, CreateGlobalItemData, CreateGlobalItemDataForUpload, CreateCharacterItemData, UpdateCharacterItemData } from '../services/itemService';
 import { FilterBar } from './ui/FilterBar';
+import { ItemCard } from './ItemCard';
 import { LearnItemModal } from './LearnItemModal';
 import { AddPersonalItemModal } from './AddPersonalItemModal';
 import { GlobalItemFormModal } from './GlobalItemFormModal';
@@ -26,7 +27,6 @@ const CATEGORIES: { label: string; value: ItemCategory | 'all' | 'magic' }[] = [
   { label: '全部', value: 'all' },
   { label: '裝備', value: '裝備' },
   { label: '藥水', value: '藥水' },
-  { label: '素材', value: '素材' },
   { label: 'MH素材', value: 'MH素材' },
   { label: '雜項', value: '雜項' },
   { label: '魔法物品', value: 'magic' }
@@ -236,38 +236,13 @@ export default function ItemsPage({ characterId }: ItemsPageProps) {
           </div>
         ) : (
           <div className="space-y-3">
-            {filteredItems.map((item) => {
-              const display = ItemService.getDisplayValues(item);
-              return (
-                <div
-                  key={item.id}
-                  onClick={() => handleItemClick(item)}
-                  className="bg-slate-800 border border-slate-700 rounded-lg p-4 hover:bg-slate-750 hover:border-slate-600 transition-all cursor-pointer"
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h3 className="text-lg font-bold text-slate-100">{display.displayName}</h3>
-                        <span className="px-2 py-1 bg-amber-900/30 border border-amber-700 text-amber-400 text-xs rounded font-medium">
-                          {display.displayCategory}
-                        </span>
-                        {display.displayIsMagic && (
-                          <span className="px-2 py-1 bg-amber-900/40 border border-amber-700/60 text-amber-300 text-xs rounded font-medium">
-                            魔法
-                          </span>
-                        )}
-                      </div>
-                      {display.displayDescription && (
-                        <p className="text-sm text-slate-400 line-clamp-2">{display.displayDescription}</p>
-                      )}
-                    </div>
-                    <div className="text-right ml-4">
-                      <div className="text-2xl font-bold text-slate-300">× {item.quantity}</div>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+            {filteredItems.map((item) => (
+              <ItemCard
+                key={item.id}
+                item={item}
+                onClick={() => handleItemClick(item)}
+              />
+            ))}
           </div>
         )}
       </div>

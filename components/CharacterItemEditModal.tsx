@@ -15,7 +15,7 @@ interface CharacterItemEditModalProps {
   onSubmit: (characterItemId: string, updates: UpdateCharacterItemData) => Promise<void>;
 }
 
-const CATEGORIES: ItemCategory[] = ['裝備', '藥水', '素材', 'MH素材', '雜項'];
+const CATEGORIES: ItemCategory[] = ['裝備', '藥水', 'MH素材', '雜項'];
 
 export const CharacterItemEditModal: React.FC<CharacterItemEditModalProps> = ({
   isOpen,

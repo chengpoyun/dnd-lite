@@ -21,7 +21,7 @@ interface GlobalItemFormModalProps {
   uploadInitialData?: UploadInitialData | null;
 }
 
-const CATEGORIES: ItemCategory[] = ['裝備', '藥水', '素材', 'MH素材', '雜項'];
+const CATEGORIES: ItemCategory[] = ['裝備', '藥水', 'MH素材', '雜項'];
 
 export const GlobalItemFormModal: React.FC<GlobalItemFormModalProps> = ({
   isOpen,
