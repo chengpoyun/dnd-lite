@@ -97,6 +97,7 @@ export default function AbilitiesPage({ characterId }: AbilitiesPageProps) {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isLearnModalOpen, setIsLearnModalOpen] = useState(false);
   const [isAddPersonalModalOpen, setIsAddPersonalModalOpen] = useState(false);
+  const [addPersonalInitialName, setAddPersonalInitialName] = useState('');
   const [uploadFromCharacterAbility, setUploadFromCharacterAbility] = useState<CharacterAbilityWithDetails | null>(null);
   const [selectedCharacterAbility, setSelectedCharacterAbility] = useState<CharacterAbilityWithDetails | null>(null);
   const [editingCharacterAbility, setEditingCharacterAbility] = useState<CharacterAbilityWithDetails | null>(null);
@@ -332,8 +333,9 @@ export default function AbilitiesPage({ characterId }: AbilitiesPageProps) {
     setIsLearnModalOpen(true);
   };
 
-  // 從 learn modal 開啟新增 modal
-  const handleOpenCreateModal = () => {
+  // 從 learn modal 開啟新增 modal（可帶入搜尋欄名稱）
+  const handleOpenCreateModal = (initialName?: string) => {
+    setAddPersonalInitialName(initialName ?? '');
     setEditingCharacterAbility(null);
     setIsAddPersonalModalOpen(true);
   };
@@ -414,8 +416,12 @@ export default function AbilitiesPage({ characterId }: AbilitiesPageProps) {
 
       <AddPersonalAbilityModal
         isOpen={isAddPersonalModalOpen}
-        onClose={() => setIsAddPersonalModalOpen(false)}
+        onClose={() => {
+          setIsAddPersonalModalOpen(false);
+          setAddPersonalInitialName('');
+        }}
         onSubmit={handleAddPersonalAbility}
+        initialName={addPersonalInitialName}
       />
 
       <AbilityDetailModal

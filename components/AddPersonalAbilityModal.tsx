@@ -15,12 +15,15 @@ interface AddPersonalAbilityModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (data: CreateCharacterAbilityData) => Promise<void>;
+  /** 預填名稱（例如從獲得能力搜尋欄帶入） */
+  initialName?: string;
 }
 
 export const AddPersonalAbilityModal: React.FC<AddPersonalAbilityModalProps> = ({
   isOpen,
   onClose,
   onSubmit,
+  initialName,
 }) => {
   const [name, setName] = useState('');
   const [source, setSource] = useState<typeof SOURCES[number]>('種族');
@@ -31,14 +34,14 @@ export const AddPersonalAbilityModal: React.FC<AddPersonalAbilityModalProps> = (
 
   useEffect(() => {
     if (isOpen) {
-      setName('');
+      setName(initialName ?? '');
       setSource('種族');
       setRecoveryType('常駐');
       setDescription('');
       setMaxUses(1);
       setIsSubmitting(false);
     }
-  }, [isOpen]);
+  }, [isOpen, initialName]);
 
   useEffect(() => {
     if (recoveryType === '常駐') {

@@ -8,7 +8,7 @@ interface LearnAbilityModalProps {
   isOpen: boolean;
   onClose: () => void;
   onLearnAbility: (abilityId: string, maxUses: number) => Promise<void>;
-  onCreateNew: () => void;
+  onCreateNew: (initialName?: string) => void;
   learnedAbilityIds: string[];
 }
 
@@ -214,7 +214,7 @@ export const LearnAbilityModal: React.FC<LearnAbilityModalProps> = ({
             <button
               onClick={() => {
                 onClose();
-                onCreateNew();
+                onCreateNew(searchText.trim() || undefined);
               }}
               className="px-4 py-2 rounded-lg bg-amber-600 text-white hover:bg-amber-700 transition-colors font-medium whitespace-nowrap"
             >
