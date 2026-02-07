@@ -17,7 +17,7 @@ const MonsterCard: React.FC<MonsterCardProps> = ({
   onAdjustSettings,
   onDelete 
 }) => {
-  const { monster_number, name, ac_min, ac_max, total_damage, damage_logs, resistances } = monster;
+  const { monster_number, name, ac_min, ac_max, total_damage, damage_logs, resistances, notes } = monster;
 
   // 將傷害記錄按 created_at 分組（同一次複合傷害）
   const groupedDamageLogs = React.useMemo(() => {
@@ -100,6 +100,14 @@ const MonsterCard: React.FC<MonsterCardProps> = ({
               );
             })}
           </div>
+        </div>
+      )}
+
+      {/* 備註（僅此隻怪物，有資料時顯示） */}
+      {notes != null && notes.trim() !== '' && (
+        <div className="mb-3 p-3 bg-slate-900 rounded-lg">
+          <span className="text-slate-400 text-sm">📝 備註：</span>
+          <p className="mt-1 text-slate-300 text-sm whitespace-pre-wrap">{notes.trim()}</p>
         </div>
       )}
 

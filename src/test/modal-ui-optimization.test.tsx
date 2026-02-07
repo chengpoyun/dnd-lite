@@ -140,6 +140,7 @@ describe('Modal UI 優化測試', () => {
       currentACRange: { min: 0, max: null },
       currentMaxHP: 46,
       currentResistances: {},
+      currentNotes: null as string | null,
       onSuccess: mockOnSuccess,
       onConflict: mockOnConflict,
     };
@@ -151,16 +152,16 @@ describe('Modal UI 優化測試', () => {
     it('應該顯示橫向排列的 AC 和 HP 輸入框', () => {
       render(<MonsterSettingsModal {...defaultProps} />);
 
-      // 檢查標籤存在
-      expect(screen.getByText('AC')).toBeInTheDocument();
+      // 檢查 AC 與 HP 相關內容存在（AC 為 "< AC <=" 區塊，HP 為「最大 HP」）
+      expect(screen.getByText(/< AC <=/)).toBeInTheDocument();
       expect(screen.getByText('最大 HP')).toBeInTheDocument();
 
-      // 檢查輸入框存在
-      const inputs = screen.getAllByRole('spinbutton');
-      expect(inputs).toHaveLength(2); // AC 和 HP
+      // 檢查數字輸入框存在：AC 兩格（min/max）+ HP 一格
+      const spinbuttons = screen.getAllByRole('spinbutton');
+      expect(spinbuttons).toHaveLength(3);
     });
 
-    it('AC placeholder 應該顯示目前的 AC 範圍', () => {
+    it('AC 輸入框應顯示目前的 AC 範圍', () => {
       render(
         <MonsterSettingsModal
           {...defaultProps}
@@ -168,8 +169,10 @@ describe('Modal UI 優化測試', () => {
         />
       );
 
-      const acInput = screen.getAllByRole('spinbutton')[0];
-      expect(acInput).toHaveAttribute('placeholder', '10 < AC <= 15');
+      const acMinInput = screen.getAllByRole('spinbutton')[0];
+      const acMaxInput = screen.getAllByRole('spinbutton')[1];
+      expect(acMinInput).toHaveValue(10);
+      expect(acMaxInput).toHaveValue(15);
     });
 
     it('HP placeholder 應該顯示目前的 HP 值', () => {
@@ -180,7 +183,7 @@ describe('Modal UI 優化測試', () => {
         />
       );
 
-      const hpInput = screen.getAllByRole('spinbutton')[1];
+      const hpInput = screen.getAllByRole('spinbutton')[2];
       expect(hpInput).toHaveAttribute('placeholder', '46');
     });
 
@@ -192,7 +195,7 @@ describe('Modal UI 優化測試', () => {
         />
       );
 
-      const hpInput = screen.getAllByRole('spinbutton')[1];
+      const hpInput = screen.getAllByRole('spinbutton')[2];
       expect(hpInput).toHaveAttribute('placeholder', '未知');
     });
 
@@ -210,8 +213,9 @@ describe('Modal UI 優化測試', () => {
     it('輸入框應該使用與 AddMonsterModal 相同的寬度計算', () => {
       render(<MonsterSettingsModal {...defaultProps} />);
 
-      const inputs = screen.getAllByRole('spinbutton');
-      inputs.forEach(input => {
+      const spinbuttons = screen.getAllByRole('spinbutton');
+      expect(spinbuttons.length).toBeGreaterThanOrEqual(1);
+      spinbuttons.forEach(input => {
         expect(input.className).toContain('w-[calc(100%-5.5rem)]');
       });
     });

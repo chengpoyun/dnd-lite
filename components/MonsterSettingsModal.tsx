@@ -27,6 +27,7 @@ interface MonsterSettingsModalProps {
   currentACRange: { min: number; max: number | null };
   currentMaxHP: number | null;
   currentResistances: Record<string, ResistanceType>;
+  currentNotes: string | null;
   onSuccess: () => void;
   onConflict: () => Promise<boolean>;
 }
@@ -40,6 +41,7 @@ const MonsterSettingsModal: React.FC<MonsterSettingsModalProps> = ({
   currentACRange,
   currentMaxHP,
   currentResistances,
+  currentNotes,
   onSuccess,
   onConflict
 }) => {
@@ -48,6 +50,9 @@ const MonsterSettingsModal: React.FC<MonsterSettingsModalProps> = ({
 
   // 怪物名稱（編輯後會套用至同 session 內所有同名怪物）
   const [nameInput, setNameInput] = useState<string>(monsterName);
+
+  // 備註（僅此隻怪物，不與同名怪物共用）
+  const [notesInput, setNotesInput] = useState<string>(currentNotes ?? '');
 
   // AC 範圍：ac_min、ac_max，顯示為 [ac_min] < AC <= [ac_max]
   const [acMinInput, setAcMinInput] = useState<string>(String(currentACRange.min));
@@ -68,6 +73,7 @@ const MonsterSettingsModal: React.FC<MonsterSettingsModalProps> = ({
   useEffect(() => {
     if (isOpen) {
       setNameInput(monsterName);
+      setNotesInput(currentNotes ?? '');
       setResistances(currentResistances || {});
       setAcMinInput(String(currentACRange.min));
       setAcMaxInput(currentACRange.max !== null ? String(currentACRange.max) : '');
@@ -79,10 +85,11 @@ const MonsterSettingsModal: React.FC<MonsterSettingsModalProps> = ({
         setMaxHP('');
       }
     }
-  }, [isOpen, monsterName, currentResistances, currentACRange, currentMaxHP]);
+  }, [isOpen, monsterName, currentNotes, currentResistances, currentACRange, currentMaxHP]);
 
   const resetForm = () => {
     setNameInput(monsterName);
+    setNotesInput(currentNotes ?? '');
     setResistances({});
     setAcMinInput('0');
     setAcMaxInput('99');
@@ -155,6 +162,14 @@ const MonsterSettingsModal: React.FC<MonsterSettingsModalProps> = ({
         setIsSubmitting(false);
         return;
       }
+    }
+
+    // 更新備註（僅此隻怪物）
+    const notesResult = await CombatService.updateMonsterNotes(monsterId, notesInput.trim() || null);
+    if (!notesResult.success) {
+      showError(notesResult.error || '更新備註失敗');
+      setIsSubmitting(false);
+      return;
     }
 
     showSuccess('設定已更新');
@@ -270,6 +285,18 @@ const MonsterSettingsModal: React.FC<MonsterSettingsModalProps> = ({
               </div>
             </div>
           )}
+        </div>
+
+        {/* 備註（僅此隻怪物顯示，不與同名怪物共用） */}
+        <div className={`${INPUT_ROW_CLASS} items-start`}>
+          <label className={INPUT_LABEL_CLASS}>備註</label>
+          <textarea
+            value={notesInput}
+            onChange={(e) => setNotesInput(e.target.value)}
+            placeholder="選填，僅此隻怪物顯示"
+            className={INPUT_CLASS}
+            rows={3}
+          />
         </div>
 
         {/* 操作按鈕 */}

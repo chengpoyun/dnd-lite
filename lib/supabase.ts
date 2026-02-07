@@ -235,6 +235,7 @@ export interface CombatMonster {
   total_damage: number
   is_dead: boolean
   resistances: Record<string, ResistanceType>
+  notes: string | null
   created_at: string
 }
 

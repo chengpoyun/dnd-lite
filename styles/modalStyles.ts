@@ -9,7 +9,7 @@ export const MODAL_CONTAINER_CLASS = "bg-slate-800 rounded-xl px-3 py-3 w-full r
 
 // ===== 輸入行樣式（橫向佈局：label + input）=====
 export const INPUT_ROW_CLASS = "flex items-center gap-2 mb-3";
-export const INPUT_LABEL_CLASS = "text-sm font-medium text-slate-300 w-20 shrink-0";
+export const INPUT_LABEL_CLASS = "text-sm font-medium text-slate-300 w-20 shrink-0 text-center";
 export const INPUT_CLASS = "w-[calc(100%-5.5rem)] px-3 py-2.5 bg-slate-700/50 border border-slate-600 rounded-lg text-white placeholder:text-slate-500 focus:outline-none focus:border-amber-500 focus:bg-slate-700";
 
 // ===== 全寬輸入框樣式 =====

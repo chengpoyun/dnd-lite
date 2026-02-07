@@ -458,6 +458,7 @@ const MonstersPage: React.FC = () => {
         }
         currentMaxHP={monsters.find(m => m.id === selectedMonsterId)?.max_hp || null}
         currentResistances={monsters.find(m => m.id === selectedMonsterId)?.resistances || {}}
+        currentNotes={monsters.find(m => m.id === selectedMonsterId)?.notes ?? null}
         onSuccess={() => refreshCombatData()}
         onConflict={() => checkConflict()}
       />

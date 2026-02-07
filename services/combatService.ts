@@ -270,7 +270,8 @@ export class CombatService {
         max_hp: maxHp,
         total_damage: 0,
         is_dead: false,
-        resistances: resistancesToUse
+        resistances: resistancesToUse,
+        notes: null
       }));
 
       // 批次插入
@@ -471,6 +472,31 @@ export class CombatService {
       return { success: true };
     } catch (error) {
       console.error('更新怪物名稱異常:', error);
+      return { success: false, error: String(error) };
+    }
+  }
+
+  /**
+   * 更新怪物備註（設定頁使用），僅更新此隻怪物，不與同名怪物共用
+   */
+  static async updateMonsterNotes(
+    monsterId: string,
+    notes: string | null
+  ): Promise<{ success: boolean; error?: string }> {
+    try {
+      const { error } = await supabase
+        .from('combat_monsters')
+        .update({ notes })
+        .eq('id', monsterId);
+
+      if (error) {
+        console.error('更新怪物備註失敗:', error);
+        return { success: false, error: error.message };
+      }
+
+      return { success: true };
+    } catch (error) {
+      console.error('更新怪物備註異常:', error);
       return { success: false, error: String(error) };
     }
   }
