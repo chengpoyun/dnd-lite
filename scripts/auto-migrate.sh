@@ -52,9 +52,9 @@ echo -e "${GREEN}📄 找到 $migration_count 個遷移文件${NC}"
 echo -e "${BLUE}📋 當前遷移狀態:${NC}"
 $SUPABASE_CLI migration list || true
 
-# 執行推送
+# 執行推送（支援傳入 --include-all 等參數）
 echo -e "${YELLOW}⬆️ 推送遷移到遠程資料庫...${NC}"
-echo "Y" | $SUPABASE_CLI db push
+echo "Y" | $SUPABASE_CLI db push "$@"
 
 # 檢查結果
 if [ $? -eq 0 ]; then

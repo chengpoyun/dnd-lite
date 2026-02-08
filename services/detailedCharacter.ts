@@ -736,18 +736,26 @@ export class DetailedCharacterService {
         .insert({
           character_id: characterId,
           current_hp: 1,
-          max_hp: 1,
           temporary_hp: 0,
           current_hit_dice: 0,
           total_hit_dice: 1,
-          armor_class: 10,
-          initiative_bonus: 0,
-          speed: 30,
-          spell_attack_bonus: 2,
-          spell_save_dc: 10,
-          weapon_attack_bonus: 0,
-          weapon_damage_bonus: 0,
           hit_die_type: 'd8',
+          max_hp_basic: 1,
+          max_hp_bonus: 0,
+          ac_basic: 10,
+          ac_bonus: 0,
+          initiative_basic: 0,
+          initiative_bonus: 0,
+          speed_basic: 30,
+          speed_bonus: 0,
+          attack_hit_basic: 0,
+          attack_hit_bonus: 0,
+          attack_damage_basic: 0,
+          attack_damage_bonus: 0,
+          spell_hit_basic: 2,
+          spell_hit_bonus: 0,
+          spell_dc_basic: 10,
+          spell_dc_bonus: 0,
           extra_data: payload,
           updated_at: new Date().toISOString()
         })
@@ -1103,6 +1111,9 @@ export class DetailedCharacterService {
       proficienciesRecord[sp.skill_name] = sp.proficiency_level
     })
 
+    const cs = fullData.currentStats
+    const hpMax = (cs.max_hp_basic ?? 1) + (cs.max_hp_bonus ?? 0)
+
     return {
       name: fullData.character.name,
       class: fullData.character.character_class || (fullData.character as any).class || '戰士',
@@ -1110,7 +1121,7 @@ export class DetailedCharacterService {
       exp: fullData.character.experience,
       hp: {
         current: fullData.currentStats.current_hp,
-        max: fullData.currentStats.max_hp,
+        max: hpMax,
         temp: fullData.currentStats.temporary_hp
       },
       hitDice: {
@@ -1118,13 +1129,14 @@ export class DetailedCharacterService {
         total: fullData.currentStats.total_hit_dice,
         die: fullData.currentStats.hit_die_type
       },
-      ac: fullData.currentStats.armor_class,
-      initiative: fullData.currentStats.initiative_bonus,
-      speed: fullData.currentStats.speed,
-      spell_attack_bonus: fullData.currentStats.spell_attack_bonus ?? 2,
-      spell_save_dc: fullData.currentStats.spell_save_dc ?? 10,
-      weapon_attack_bonus: fullData.currentStats.weapon_attack_bonus ?? 0,
-      weapon_damage_bonus: fullData.currentStats.weapon_damage_bonus ?? 0,
+      ac: { basic: cs.ac_basic ?? 10, bonus: cs.ac_bonus ?? 0 },
+      initiative: { basic: cs.initiative_basic ?? 0, bonus: cs.initiative_bonus ?? 0 },
+      speed: { basic: cs.speed_basic ?? 30, bonus: cs.speed_bonus ?? 0 },
+      maxHp: { basic: cs.max_hp_basic ?? 1, bonus: cs.max_hp_bonus ?? 0 },
+      attackHit: { basic: cs.attack_hit_basic ?? 0, bonus: cs.attack_hit_bonus ?? 0 },
+      attackDamage: { basic: cs.attack_damage_basic ?? 0, bonus: cs.attack_damage_bonus ?? 0 },
+      spellHit: { basic: cs.spell_hit_basic ?? 2, bonus: cs.spell_hit_bonus ?? 0 },
+      spellDc: { basic: cs.spell_dc_basic ?? 10, bonus: cs.spell_dc_bonus ?? 0 },
       abilityScores: {
         str: fullData.abilityScores.strength,
         dex: fullData.abilityScores.dexterity,
@@ -1135,6 +1147,21 @@ export class DetailedCharacterService {
       },
       savingProficiencies: savingProficienciesArray as any,
       proficiencies: proficienciesRecord,
+      skillBonuses: (() => {
+        const out: Record<string, number> = {}
+        fullData.skillProficiencies.forEach((p: any) => {
+          if (p?.skill_name != null && typeof p.misc_bonus === 'number') out[p.skill_name] = p.misc_bonus
+        })
+        return Object.keys(out).length ? out : undefined
+      })(),
+      saveBonuses: (() => {
+        const abilityMap: Record<string, string> = { strength: 'str', dexterity: 'dex', constitution: 'con', intelligence: 'int', wisdom: 'wis', charisma: 'cha' }
+        const out: Record<string, number> = {}
+        fullData.savingThrows.forEach((s: any) => {
+          if (s?.ability != null && typeof s.misc_bonus === 'number') out[abilityMap[s.ability] ?? s.ability] = s.misc_bonus
+        })
+        return Object.keys(out).length ? out : undefined
+      })(),
       downtime: 0,
       renown: { used: 0, total: 0 },
       prestige: { org: '', level: 0, rankName: '' },
@@ -1173,18 +1200,26 @@ export class DetailedCharacterService {
       id: '', // 預設物件，不寫入 DB
       character_id: '',
       current_hp: 20,
-      max_hp: 20,
       temporary_hp: 0,
       current_hit_dice: 1,
       total_hit_dice: 1,
       hit_die_type: 'd8',
-      armor_class: 10,
+      max_hp_basic: 20,
+      max_hp_bonus: 0,
+      ac_basic: 10,
+      ac_bonus: 0,
+      initiative_basic: 0,
       initiative_bonus: 0,
-      speed: 30,
-      spell_attack_bonus: 2,
-      spell_save_dc: 10,
-      weapon_attack_bonus: 0,
-      weapon_damage_bonus: 0,
+      speed_basic: 30,
+      speed_bonus: 0,
+      attack_hit_basic: 0,
+      attack_hit_bonus: 0,
+      attack_damage_basic: 0,
+      attack_damage_bonus: 0,
+      spell_hit_basic: 2,
+      spell_hit_bonus: 0,
+      spell_dc_basic: 10,
+      spell_dc_bonus: 0,
       updated_at: ''
     }
   }
@@ -1232,23 +1267,39 @@ export class DetailedCharacterService {
   }
 
   private static async createCurrentStats(characterId: string, stats?: CharacterStats): Promise<CharacterCurrentStats> {
+    const acVal = typeof stats?.ac === 'object' ? (stats.ac.basic + stats.ac.bonus) : (stats?.ac ?? 10)
+    const initVal = typeof stats?.initiative === 'object' ? (stats.initiative.basic + stats.initiative.bonus) : (stats?.initiative ?? 0)
+    const speedVal = typeof stats?.speed === 'object' ? (stats.speed.basic + stats.speed.bonus) : (stats?.speed ?? 30)
+    const attackHitVal = typeof stats?.attackHit === 'object' ? (stats.attackHit.basic + stats.attackHit.bonus) : (stats?.attackHit ?? (stats as any)?.weapon_attack_bonus ?? 0)
+    const attackDmgVal = typeof stats?.attackDamage === 'object' ? (stats.attackDamage.basic + stats.attackDamage.bonus) : (stats?.attackDamage ?? (stats as any)?.weapon_damage_bonus ?? 0)
+    const spellHitVal = typeof stats?.spellHit === 'object' ? (stats.spellHit.basic + stats.spellHit.bonus) : (stats?.spellHit ?? (stats as any)?.spell_attack_bonus ?? 2)
+    const spellDcVal = typeof stats?.spellDc === 'object' ? (stats.spellDc.basic + stats.spellDc.bonus) : (stats?.spellDc ?? (stats as any)?.spell_save_dc ?? 10)
+
     const { data, error } = await supabase
       .from('character_current_stats')
       .insert([{
         character_id: characterId,
-        current_hp: stats?.hp.current || 20,
-        max_hp: stats?.hp.max || 20,
-        temporary_hp: stats?.hp.temp || 0,
-        current_hit_dice: stats?.hitDice.current || 1,
-        total_hit_dice: stats?.hitDice.total || 1,
-        hit_die_type: stats?.hitDice.die || 'd8',
-        armor_class: stats?.ac || 10,
-        initiative_bonus: stats?.initiative || 0,
-        speed: stats?.speed || 30,
-        spell_attack_bonus: stats?.spell_attack_bonus ?? 2,
-        spell_save_dc: stats?.spell_save_dc ?? 10,
-        weapon_attack_bonus: stats?.weapon_attack_bonus ?? 0,
-        weapon_damage_bonus: stats?.weapon_damage_bonus ?? 0
+        current_hp: stats?.hp?.current ?? 20,
+        max_hp_basic: typeof stats?.maxHp === 'object' ? stats.maxHp.basic : (stats?.hp?.max ?? 20),
+        max_hp_bonus: typeof stats?.maxHp === 'object' ? stats.maxHp.bonus : 0,
+        temporary_hp: stats?.hp?.temp ?? 0,
+        current_hit_dice: stats?.hitDice?.current ?? 1,
+        total_hit_dice: stats?.hitDice?.total ?? 1,
+        hit_die_type: stats?.hitDice?.die ?? 'd8',
+        ac_basic: typeof stats?.ac === 'object' ? stats.ac.basic : acVal,
+        ac_bonus: typeof stats?.ac === 'object' ? stats.ac.bonus : 0,
+        initiative_basic: typeof stats?.initiative === 'object' ? stats.initiative.basic : initVal,
+        initiative_bonus: typeof stats?.initiative === 'object' ? stats.initiative.bonus : 0,
+        speed_basic: typeof stats?.speed === 'object' ? stats.speed.basic : speedVal,
+        speed_bonus: typeof stats?.speed === 'object' ? stats.speed.bonus : 0,
+        attack_hit_basic: typeof stats?.attackHit === 'object' ? stats.attackHit.basic : attackHitVal,
+        attack_hit_bonus: typeof stats?.attackHit === 'object' ? stats.attackHit.bonus : 0,
+        attack_damage_basic: typeof stats?.attackDamage === 'object' ? stats.attackDamage.basic : attackDmgVal,
+        attack_damage_bonus: typeof stats?.attackDamage === 'object' ? stats.attackDamage.bonus : 0,
+        spell_hit_basic: typeof stats?.spellHit === 'object' ? stats.spellHit.basic : spellHitVal,
+        spell_hit_bonus: typeof stats?.spellHit === 'object' ? stats.spellHit.bonus : 0,
+        spell_dc_basic: typeof stats?.spellDc === 'object' ? stats.spellDc.basic : spellDcVal,
+        spell_dc_bonus: typeof stats?.spellDc === 'object' ? stats.spellDc.bonus : 0
       }])
       .select()
       .single()

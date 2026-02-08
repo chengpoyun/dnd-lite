@@ -269,7 +269,8 @@ const AuthenticatedApp: React.FC = () => {
       
       // 如果提供了最大HP，也一起更新
       if (maxHP !== undefined) {
-        updateData.max_hp = maxHP
+        updateData.max_hp_basic = maxHP
+        updateData.max_hp_bonus = (typeof (stats as any).maxHp === 'object' && (stats as any).maxHp ? (stats as any).maxHp.bonus : 0) ?? 0
       }
       
       const characterUpdate: CharacterUpdateData = {
@@ -302,13 +303,18 @@ const AuthenticatedApp: React.FC = () => {
       const characterUpdate: CharacterUpdateData = {
         currentStats: {
           character_id: currentCharacter.id,
-          armor_class: ac
+          ac_basic: ac,
+          ac_bonus: (typeof stats.ac === 'object' && stats.ac ? (stats.ac as any).bonus : 0) ?? 0
         } as Partial<CharacterCurrentStats>
       }
       
       const success = await HybridDataManager.updateCharacter(currentCharacter.id, characterUpdate)
       if (success) {
         console.log('✅ AC保存成功')
+        setStats(prev => ({
+          ...prev,
+          ac: { basic: ac, bonus: (typeof prev.ac === 'object' && prev.ac ? (prev.ac as any).bonus : 0) ?? 0 }
+        }))
       }
       return success
     } catch (error) {
@@ -332,13 +338,18 @@ const AuthenticatedApp: React.FC = () => {
       const characterUpdate: CharacterUpdateData = {
         currentStats: {
           character_id: currentCharacter.id,
-          initiative_bonus: initiative
+          initiative_basic: initiative,
+          initiative_bonus: (typeof stats.initiative === 'object' && stats.initiative ? (stats.initiative as any).bonus : 0) ?? 0
         } as Partial<CharacterCurrentStats>
       }
       
       const success = await HybridDataManager.updateCharacter(currentCharacter.id, characterUpdate)
       if (success) {
         console.log('✅ 先攻值保存成功')
+        setStats(prev => ({
+          ...prev,
+          initiative: { basic: initiative, bonus: (typeof prev.initiative === 'object' && prev.initiative ? (prev.initiative as any).bonus : 0) ?? 0 }
+        }))
       }
       return success
     } catch (error) {
@@ -362,13 +373,18 @@ const AuthenticatedApp: React.FC = () => {
       const characterUpdate: CharacterUpdateData = {
         currentStats: {
           character_id: currentCharacter.id,
-          speed: speed
+          speed_basic: speed,
+          speed_bonus: (typeof stats.speed === 'object' && stats.speed ? (stats.speed as any).bonus : 0) ?? 0
         } as Partial<CharacterCurrentStats>
       }
       
       const success = await HybridDataManager.updateCharacter(currentCharacter.id, characterUpdate)
       if (success) {
         console.log('✅ 速度值保存成功')
+        setStats(prev => ({
+          ...prev,
+          speed: { basic: speed, bonus: (typeof prev.speed === 'object' && prev.speed ? (prev.speed as any).bonus : 0) ?? 0 }
+        }))
       }
       return success
     } catch (error) {
@@ -393,17 +409,17 @@ const AuthenticatedApp: React.FC = () => {
         character: currentCharacter,
         currentStats: {
           character_id: currentCharacter.id,
-          spell_attack_bonus: newBonus
+          spell_hit_basic: newBonus,
+          spell_hit_bonus: (typeof (stats as any).spellHit === 'object' && (stats as any).spellHit ? (stats as any).spellHit.bonus : 0) ?? 0
         } as Partial<CharacterCurrentStats>
       }
       
       const success = await HybridDataManager.updateCharacter(currentCharacter.id, characterUpdate)
       if (success) {
-        console.log('✅ 法術攻擊加值保存成功')
-        // 更新本地狀態
+        console.log('✅ 法術命中保存成功')
         setStats(prev => ({
           ...prev,
-          spell_attack_bonus: newBonus
+          spellHit: { basic: newBonus, bonus: (typeof (prev as any).spellHit === 'object' && (prev as any).spellHit ? (prev as any).spellHit.bonus : 0) ?? 0 }
         }))
       }
       return success
@@ -429,17 +445,17 @@ const AuthenticatedApp: React.FC = () => {
         character: currentCharacter,
         currentStats: {
           character_id: currentCharacter.id,
-          spell_save_dc: newDC
+          spell_dc_basic: newDC,
+          spell_dc_bonus: (typeof (stats as any).spellDc === 'object' && (stats as any).spellDc ? (stats as any).spellDc.bonus : 0) ?? 0
         } as Partial<CharacterCurrentStats>
       }
       
       const success = await HybridDataManager.updateCharacter(currentCharacter.id, characterUpdate)
       if (success) {
-        console.log('✅ 法術豁免DC保存成功')
-        // 更新本地狀態
+        console.log('✅ 法術DC保存成功')
         setStats(prev => ({
           ...prev,
-          spell_save_dc: newDC
+          spellDc: { basic: newDC, bonus: (typeof (prev as any).spellDc === 'object' && (prev as any).spellDc ? (prev as any).spellDc.bonus : 0) ?? 0 }
         }))
       }
       return success
@@ -461,12 +477,13 @@ const AuthenticatedApp: React.FC = () => {
         character: currentCharacter,
         currentStats: {
           character_id: currentCharacter.id,
-          weapon_attack_bonus: newBonus
+          attack_hit_basic: newBonus,
+          attack_hit_bonus: (typeof (stats as any).attackHit === 'object' && (stats as any).attackHit ? (stats as any).attackHit.bonus : 0) ?? 0
         } as Partial<CharacterCurrentStats>
       }
       const success = await HybridDataManager.updateCharacter(currentCharacter.id, characterUpdate)
       if (success) {
-        setStats(prev => ({ ...prev, weapon_attack_bonus: newBonus }))
+        setStats(prev => ({ ...prev, attackHit: { basic: newBonus, bonus: (typeof (prev as any).attackHit === 'object' && (prev as any).attackHit ? (prev as any).attackHit.bonus : 0) ?? 0 } }))
       }
       return success
     } catch (error) {
@@ -487,12 +504,13 @@ const AuthenticatedApp: React.FC = () => {
         character: currentCharacter,
         currentStats: {
           character_id: currentCharacter.id,
-          weapon_damage_bonus: newBonus
+          attack_damage_basic: newBonus,
+          attack_damage_bonus: (typeof (stats as any).attackDamage === 'object' && (stats as any).attackDamage ? (stats as any).attackDamage.bonus : 0) ?? 0
         } as Partial<CharacterCurrentStats>
       }
       const success = await HybridDataManager.updateCharacter(currentCharacter.id, characterUpdate)
       if (success) {
-        setStats(prev => ({ ...prev, weapon_damage_bonus: newBonus }))
+        setStats(prev => ({ ...prev, attackDamage: { basic: newBonus, bonus: (typeof (prev as any).attackDamage === 'object' && (prev as any).attackDamage ? (prev as any).attackDamage.bonus : 0) ?? 0 } }))
       }
       return success
     } catch (error) {

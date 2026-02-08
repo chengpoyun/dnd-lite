@@ -77,19 +77,37 @@ export interface CharacterCurrentStats {
   id: string
   character_id: string
   current_hp: number
-  max_hp: number
   temporary_hp: number
   current_hit_dice: number
   total_hit_dice: number
   hit_die_type: string
-  armor_class: number
-  initiative_bonus: number
-  speed: number
-  spell_attack_bonus: number
-  spell_save_dc: number
+  combat_notes?: string | null
+  // 新格式 basic+bonus（migration 後）
+  max_hp_basic?: number
+  max_hp_bonus?: number
+  ac_basic?: number
+  ac_bonus?: number
+  initiative_basic?: number
+  initiative_bonus?: number
+  speed_basic?: number
+  speed_bonus?: number
+  attack_hit_basic?: number
+  attack_hit_bonus?: number
+  attack_damage_basic?: number
+  attack_damage_bonus?: number
+  spell_hit_basic?: number
+  spell_hit_bonus?: number
+  spell_dc_basic?: number
+  spell_dc_bonus?: number
+  // 舊格式（migration 前向後相容）
+  max_hp?: number
+  armor_class?: number
+  initiative_bonus?: number
+  speed?: number
   weapon_attack_bonus?: number
   weapon_damage_bonus?: number
-  combat_notes?: string | null
+  spell_attack_bonus?: number
+  spell_save_dc?: number
   extra_data?: {
     downtime?: number
     renown?: { used: number; total: number }

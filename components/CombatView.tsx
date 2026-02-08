@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { CharacterStats } from '../types';
 import { evaluateValue, getModifier, getProfBonus, setNormalValue, handleValueInput } from '../utils/helpers';
 import { STAT_LABELS, SKILLS_MAP, ABILITY_KEYS } from '../utils/characterConstants';
+import { getFinalCombatStat, getBasicCombatStat, getFinalSavingThrow, getFinalSkillBonus } from '../utils/characterAttributes';
 import { formatHitDicePools, getTotalCurrentHitDice, useHitDie, recoverHitDiceOnLongRest } from '../utils/classUtils';
 import { HybridDataManager } from '../services/hybridDataManager';
 import { MulticlassService } from '../services/multiclassService';
@@ -828,7 +829,7 @@ export const CombatView: React.FC<CombatViewProps> = ({
           {
             key: "ac",
             onClick: () => {
-              setTempACValue(stats.ac.toString());
+              setTempACValue(getBasicCombatStat(stats, 'ac').toString());
               setIsACModalOpen(true);
             },
             containerClass:
@@ -836,12 +837,12 @@ export const CombatView: React.FC<CombatViewProps> = ({
             labelClass: `${labelBase} text-amber-500/80`,
             valueClass: valueBase,
             label: "AC",
-            value: stats.ac,
+            value: getFinalCombatStat(stats, 'ac'),
           },
           {
             key: "initiative",
             onClick: () => {
-              setTempInitiativeValue(stats.initiative.toString());
+              setTempInitiativeValue(getBasicCombatStat(stats, 'initiative').toString());
               setIsInitiativeModalOpen(true);
             },
             containerClass:
@@ -849,12 +850,12 @@ export const CombatView: React.FC<CombatViewProps> = ({
             labelClass: `${labelBase} text-indigo-400/80`,
             valueClass: valueBase,
             label: "先攻",
-            value: `+${stats.initiative}`,
+            value: `+${getFinalCombatStat(stats, 'initiative')}`,
           },
           {
             key: "speed",
             onClick: () => {
-              setTempSpeedValue(stats.speed.toString());
+              setTempSpeedValue(getBasicCombatStat(stats, 'speed').toString());
               setIsSpeedModalOpen(true);
             },
             containerClass:
@@ -862,7 +863,7 @@ export const CombatView: React.FC<CombatViewProps> = ({
             labelClass: `${labelBase} text-cyan-400/80`,
             valueClass: valueBase,
             label: "速度",
-            value: stats.speed,
+            value: getFinalCombatStat(stats, 'speed'),
           },
         ];
 
@@ -897,20 +898,20 @@ export const CombatView: React.FC<CombatViewProps> = ({
           {
             key: "weapon-attack",
             onClick: () => {
-              setTempWeaponAttackValue(stats.weapon_attack_bonus?.toString() ?? "0");
+              setTempWeaponAttackValue(getBasicCombatStat(stats, 'attackHit').toString());
               setIsWeaponAttackModalOpen(true);
             },
-            label: "武器命中",
-            value: `+${stats.weapon_attack_bonus ?? 0}`,
+            label: "攻擊命中",
+            value: `+${getFinalCombatStat(stats, 'attackHit')}`,
           },
           {
             key: "weapon-damage",
             onClick: () => {
-              setTempWeaponDamageValue(stats.weapon_damage_bonus?.toString() ?? "0");
+              setTempWeaponDamageValue(getBasicCombatStat(stats, 'attackDamage').toString());
               setIsWeaponDamageModalOpen(true);
             },
-            label: "傷害加值",
-            value: `${stats.weapon_damage_bonus != null && stats.weapon_damage_bonus >= 0 ? "+" : ""}${stats.weapon_damage_bonus ?? 0}`,
+            label: "攻擊傷害",
+            value: (() => { const v = getFinalCombatStat(stats, 'attackDamage'); return `${v >= 0 ? "+" : ""}${v}`; })(),
           },
         ];
         const spellCards = showSpellStats
@@ -918,20 +919,20 @@ export const CombatView: React.FC<CombatViewProps> = ({
               {
                 key: "spell-attack",
                 onClick: () => {
-                  setTempSpellAttackValue(stats.spell_attack_bonus?.toString() || "2");
+                  setTempSpellAttackValue(getBasicCombatStat(stats, 'spellHit').toString());
                   setIsSpellAttackModalOpen(true);
                 },
                 label: "法術命中",
-                value: `+${stats.spell_attack_bonus ?? 2}`,
+                value: `+${getFinalCombatStat(stats, 'spellHit')}`,
               },
               {
                 key: "spell-dc",
                 onClick: () => {
-                  setTempSpellDCValue(stats.spell_save_dc?.toString() || "10");
+                  setTempSpellDCValue(getBasicCombatStat(stats, 'spellDc').toString());
                   setIsSpellDCModalOpen(true);
                 },
                 label: "法術DC",
-                value: stats.spell_save_dc ?? 10,
+                value: getFinalCombatStat(stats, 'spellDc'),
               },
             ]
           : [];
@@ -982,7 +983,6 @@ export const CombatView: React.FC<CombatViewProps> = ({
           <span className={`text-slate-500 transition-transform ${isBonusTableExpanded ? 'rotate-180' : ''}`}>▼</span>
         </button>
         {isBonusTableExpanded && (() => {
-          const profBonus = getProfBonus(stats.level ?? 1);
           const profs = stats.proficiencies ?? {};
           const saveProfs = stats.savingProficiencies ?? [];
           return (
@@ -992,11 +992,8 @@ export const CombatView: React.FC<CombatViewProps> = ({
                 <span className="text-xs font-black text-slate-500 uppercase tracking-wider block mb-1.5">屬性豁免</span>
                 <div className="grid grid-cols-3 grid-rows-2 gap-1.5">
                   {ABILITY_KEYS.map(key => {
-                    const score = (stats.abilityScores?.[key] ?? 10) + ((stats.extraData?.abilityBonuses as Record<string, number>)?.[key] || 0);
-                    const modBonus = (stats.extraData?.modifierBonuses as Record<string, number>)?.[key] || 0;
-                    const mod = getModifier(score) + modBonus;
+                    const saveBonus = getFinalSavingThrow(stats, key);
                     const isSaveProf = saveProfs.includes(key);
-                    const saveBonus = isSaveProf ? mod + profBonus : mod;
                     return (
                       <div
                         key={key}
@@ -1016,13 +1013,8 @@ export const CombatView: React.FC<CombatViewProps> = ({
                 <span className="text-xs font-black text-slate-500 uppercase tracking-wider block mb-1.5">技能加值</span>
                 <div className="grid grid-cols-3 grid-rows-6 gap-1.5">
                   {SKILLS_MAP.map(skill => {
-                    const baseScore = stats.abilityScores?.[skill.base] ?? 10;
-                    const abilityBonus = (stats.extraData?.abilityBonuses as Record<string, number>)?.[skill.base] || 0;
-                    const finalScore = baseScore + abilityBonus;
-                    const modifierBonus = (stats.extraData?.modifierBonuses as Record<string, number>)?.[skill.base] || 0;
-                    const finalModifier = getModifier(finalScore) + modifierBonus;
+                    const bonus = getFinalSkillBonus(stats, skill.name);
                     const profLevel = profs[skill.name] || 0;
-                    const bonus = finalModifier + (profLevel * profBonus);
                     return (
                       <div
                         key={skill.name}
@@ -1467,7 +1459,7 @@ export const CombatView: React.FC<CombatViewProps> = ({
         <ModalInput 
           value={tempACValue} 
           onChange={setTempACValue} 
-          placeholder={stats.ac.toString()} 
+          placeholder={getBasicCombatStat(stats, 'ac').toString()} 
           className="text-3xl font-mono text-center mb-4" 
           autoFocus 
         />
@@ -1478,12 +1470,14 @@ export const CombatView: React.FC<CombatViewProps> = ({
           <ModalButton 
             variant="primary" 
             onClick={() => { 
-              const result = handleValueInput(tempACValue, stats.ac, {
+              const baseVal = getBasicCombatStat(stats, 'ac');
+              const result = handleValueInput(tempACValue, baseVal, {
                 minValue: 1,
                 allowZero: false
               });
               if (result.isValid) {
-                setStats(prev => ({ ...prev, ac: result.numericValue }));
+                const bonus = typeof stats.ac === 'object' && stats.ac ? (stats.ac as any).bonus : 0;
+                setStats(prev => ({ ...prev, ac: { basic: result.numericValue, bonus } }));
                 
                 // 保存AC到資料庫
                 if (onSaveAC) {
@@ -1515,7 +1509,7 @@ export const CombatView: React.FC<CombatViewProps> = ({
         <ModalInput 
           value={tempInitiativeValue} 
           onChange={setTempInitiativeValue} 
-          placeholder={stats.initiative.toString()} 
+          placeholder={getBasicCombatStat(stats, 'initiative').toString()} 
           className="text-3xl font-mono text-center mb-4" 
           autoFocus 
         />
@@ -1529,24 +1523,16 @@ export const CombatView: React.FC<CombatViewProps> = ({
             let finalValue;
             const isCalculationInput = tempInitiativeValue.includes('+') || tempInitiativeValue.includes('-');
             
+            const baseVal = getBasicCombatStat(stats, 'initiative');
             if (isCalculationInput) {
-              // 運算模式
-              const result = handleValueInput(tempInitiativeValue, stats.initiative, {
-                allowZero: true
-              });
-              finalValue = result.isValid ? result.numericValue : stats.initiative;
+              const result = handleValueInput(tempInitiativeValue, baseVal, { allowZero: true });
+              finalValue = result.isValid ? result.numericValue : baseVal;
             } else {
-              // 純數字模式 - 直接設定
               const numericValue = parseInt(tempInitiativeValue);
-              if (!isNaN(numericValue)) {
-                finalValue = numericValue;
-              } else {
-                finalValue = stats.initiative; // 無效輸入時保持原值
-              }
+              finalValue = !isNaN(numericValue) ? numericValue : baseVal;
             }
-            
-            console.log('Setting initiative from', stats.initiative, 'to', finalValue);
-            setStats(prev => ({ ...prev, initiative: finalValue }));
+            const bonus = typeof stats.initiative === 'object' && stats.initiative ? (stats.initiative as any).bonus : 0;
+            setStats(prev => ({ ...prev, initiative: { basic: finalValue, bonus } }));
 
             // 保存先攻值到資料庫
             if (onSaveInitiative) {
@@ -1577,7 +1563,7 @@ export const CombatView: React.FC<CombatViewProps> = ({
         <ModalInput 
           value={tempSpeedValue} 
           onChange={setTempSpeedValue} 
-          placeholder={stats.speed.toString()} 
+          placeholder={getBasicCombatStat(stats, 'speed').toString()} 
           className="text-3xl font-mono text-center mb-4" 
           autoFocus 
         />
@@ -1591,25 +1577,16 @@ export const CombatView: React.FC<CombatViewProps> = ({
             let finalValue;
             const isCalculationInput = tempSpeedValue.includes('+') || tempSpeedValue.includes('-');
             
+            const baseVal = getBasicCombatStat(stats, 'speed');
             if (isCalculationInput) {
-              // 運算模式
-              const result = handleValueInput(tempSpeedValue, stats.speed, {
-                minValue: 0,
-                allowZero: true
-              });
-              finalValue = result.isValid ? result.numericValue : stats.speed;
+              const result = handleValueInput(tempSpeedValue, baseVal, { minValue: 0, allowZero: true });
+              finalValue = result.isValid ? result.numericValue : baseVal;
             } else {
-              // 純數字模式 - 直接設定
               const numericValue = parseInt(tempSpeedValue);
-              if (!isNaN(numericValue) && numericValue >= 0) {
-                finalValue = numericValue;
-              } else {
-                finalValue = stats.speed; // 無效輸入時保持原值
-              }
+              finalValue = (!isNaN(numericValue) && numericValue >= 0) ? numericValue : baseVal;
             }
-            
-            console.log('Setting speed from', stats.speed, 'to', finalValue);
-            setStats(prev => ({ ...prev, speed: finalValue }));
+            const bonus = typeof stats.speed === 'object' && stats.speed ? (stats.speed as any).bonus : 0;
+            setStats(prev => ({ ...prev, speed: { basic: finalValue, bonus } }));
 
             // 保存速度值到資料庫
             if (onSaveSpeed) {
@@ -1640,7 +1617,7 @@ export const CombatView: React.FC<CombatViewProps> = ({
         <ModalInput 
           value={tempSpellAttackValue} 
           onChange={setTempSpellAttackValue} 
-          placeholder={(stats.spell_attack_bonus ?? 2).toString()} 
+          placeholder={getBasicCombatStat(stats, 'spellHit').toString()} 
           className="text-3xl font-mono text-center mb-4" 
           autoFocus 
         />
@@ -1652,26 +1629,18 @@ export const CombatView: React.FC<CombatViewProps> = ({
             let finalValue;
             const isCalculationInput = tempSpellAttackValue.includes('+') || tempSpellAttackValue.includes('-');
             
+            const baseVal = getBasicCombatStat(stats, 'spellHit');
             if (isCalculationInput) {
-              // 運算模式
-              const result = handleValueInput(tempSpellAttackValue, stats.spell_attack_bonus ?? 2, {
-                allowZero: true
-              });
-              finalValue = result.isValid ? result.numericValue : (stats.spell_attack_bonus ?? 2);
+              const result = handleValueInput(tempSpellAttackValue, baseVal, { allowZero: true });
+              finalValue = result.isValid ? result.numericValue : baseVal;
             } else {
-              // 純數字模式 - 直接設定
               const numericValue = parseInt(tempSpellAttackValue);
-              if (!isNaN(numericValue)) {
-                finalValue = numericValue;
-              } else {
-                finalValue = stats.spell_attack_bonus ?? 2; // 無效輸入時保持原值
-              }
+              finalValue = !isNaN(numericValue) ? numericValue : baseVal;
             }
-            
-            console.log('Setting spell attack bonus from', stats.spell_attack_bonus, 'to', finalValue);
-            setStats(prev => ({ ...prev, spell_attack_bonus: finalValue }));
+            const bonus = typeof stats.spellHit === 'object' && stats.spellHit ? (stats.spellHit as any).bonus : 0;
+            setStats(prev => ({ ...prev, spellHit: { basic: finalValue, bonus } }));
 
-            // 保存法術攻擊加值到資料庫
+            // 保存法術命中到資料庫
             if (onSaveSpellAttackBonus) {
               onSaveSpellAttackBonus(finalValue).then(success => {
                 if (!success) {
@@ -1700,7 +1669,7 @@ export const CombatView: React.FC<CombatViewProps> = ({
         <ModalInput 
           value={tempSpellDCValue} 
           onChange={setTempSpellDCValue} 
-          placeholder={(stats.spell_save_dc ?? 10).toString()} 
+          placeholder={getBasicCombatStat(stats, 'spellDc').toString()} 
           className="text-3xl font-mono text-center mb-4" 
           autoFocus 
         />
@@ -1712,27 +1681,18 @@ export const CombatView: React.FC<CombatViewProps> = ({
             let finalValue;
             const isCalculationInput = tempSpellDCValue.includes('+') || tempSpellDCValue.includes('-');
             
+            const baseVal = getBasicCombatStat(stats, 'spellDc');
             if (isCalculationInput) {
-              // 運算模式
-              const result = handleValueInput(tempSpellDCValue, stats.spell_save_dc ?? 10, {
-                minValue: 0,
-                allowZero: true
-              });
-              finalValue = result.isValid ? result.numericValue : (stats.spell_save_dc ?? 10);
+              const result = handleValueInput(tempSpellDCValue, baseVal, { minValue: 0, allowZero: true });
+              finalValue = result.isValid ? result.numericValue : baseVal;
             } else {
-              // 純數字模式 - 直接設定
               const numericValue = parseInt(tempSpellDCValue);
-              if (!isNaN(numericValue) && numericValue >= 0) {
-                finalValue = numericValue;
-              } else {
-                finalValue = stats.spell_save_dc ?? 10; // 無效輸入時保持原值
-              }
+              finalValue = (!isNaN(numericValue) && numericValue >= 0) ? numericValue : baseVal;
             }
-            
-            console.log('Setting spell save DC from', stats.spell_save_dc, 'to', finalValue);
-            setStats(prev => ({ ...prev, spell_save_dc: finalValue }));
+            const bonus = typeof stats.spellDc === 'object' && stats.spellDc ? (stats.spellDc as any).bonus : 0;
+            setStats(prev => ({ ...prev, spellDc: { basic: finalValue, bonus } }));
 
-            // 保存法術豁免DC到資料庫
+            // 保存法術DC到資料庫
             if (onSaveSpellSaveDC) {
               onSaveSpellSaveDC(finalValue).then(success => {
                 if (!success) {
@@ -1751,17 +1711,17 @@ export const CombatView: React.FC<CombatViewProps> = ({
         </div>
       </Modal>
 
-      {/* 武器命中編輯彈窗 */}
+      {/* 攻擊命中編輯彈窗 */}
       <Modal 
         isOpen={isWeaponAttackModalOpen} 
         onClose={() => setIsWeaponAttackModalOpen(false)}
-        title="修改武器命中"
+        title="修改攻擊命中"
         size="xs"
       >
         <ModalInput 
           value={tempWeaponAttackValue} 
           onChange={setTempWeaponAttackValue} 
-          placeholder={(stats.weapon_attack_bonus ?? 0).toString()} 
+          placeholder={getBasicCombatStat(stats, 'attackHit').toString()} 
           className="text-3xl font-mono text-center mb-4" 
           autoFocus 
         />
@@ -1772,14 +1732,16 @@ export const CombatView: React.FC<CombatViewProps> = ({
           <ModalButton variant="primary" onClick={() => { 
             let finalValue;
             const isCalculationInput = tempWeaponAttackValue.includes('+') || tempWeaponAttackValue.includes('-');
+            const baseVal = getBasicCombatStat(stats, 'attackHit');
             if (isCalculationInput) {
-              const result = handleValueInput(tempWeaponAttackValue, stats.weapon_attack_bonus ?? 0, { allowZero: true });
-              finalValue = result.isValid ? result.numericValue : (stats.weapon_attack_bonus ?? 0);
+              const result = handleValueInput(tempWeaponAttackValue, baseVal, { allowZero: true });
+              finalValue = result.isValid ? result.numericValue : baseVal;
             } else {
               const numericValue = parseInt(tempWeaponAttackValue);
-              finalValue = !isNaN(numericValue) ? numericValue : (stats.weapon_attack_bonus ?? 0);
+              finalValue = !isNaN(numericValue) ? numericValue : baseVal;
             }
-            setStats(prev => ({ ...prev, weapon_attack_bonus: finalValue }));
+            const bonus = typeof stats.attackHit === 'object' && stats.attackHit ? (stats.attackHit as any).bonus : 0;
+            setStats(prev => ({ ...prev, attackHit: { basic: finalValue, bonus } }));
             if (onSaveWeaponAttackBonus) {
               onSaveWeaponAttackBonus(finalValue).then(success => {
                 if (!success) console.error('❌ 武器命中保存失敗');
@@ -1793,17 +1755,17 @@ export const CombatView: React.FC<CombatViewProps> = ({
         </div>
       </Modal>
 
-      {/* 武器傷害加值編輯彈窗 */}
+      {/* 攻擊傷害編輯彈窗 */}
       <Modal 
         isOpen={isWeaponDamageModalOpen} 
         onClose={() => setIsWeaponDamageModalOpen(false)}
-        title="修改武器傷害加值"
+        title="修改攻擊傷害"
         size="xs"
       >
         <ModalInput 
           value={tempWeaponDamageValue} 
           onChange={setTempWeaponDamageValue} 
-          placeholder={(stats.weapon_damage_bonus ?? 0).toString()} 
+          placeholder={getBasicCombatStat(stats, 'attackDamage').toString()} 
           className="text-3xl font-mono text-center mb-4" 
           autoFocus 
         />
@@ -1814,14 +1776,16 @@ export const CombatView: React.FC<CombatViewProps> = ({
           <ModalButton variant="primary" onClick={() => { 
             let finalValue;
             const isCalculationInput = tempWeaponDamageValue.includes('+') || tempWeaponDamageValue.includes('-');
+            const baseVal = getBasicCombatStat(stats, 'attackDamage');
             if (isCalculationInput) {
-              const result = handleValueInput(tempWeaponDamageValue, stats.weapon_damage_bonus ?? 0, { allowZero: true });
-              finalValue = result.isValid ? result.numericValue : (stats.weapon_damage_bonus ?? 0);
+              const result = handleValueInput(tempWeaponDamageValue, baseVal, { allowZero: true });
+              finalValue = result.isValid ? result.numericValue : baseVal;
             } else {
               const numericValue = parseInt(tempWeaponDamageValue);
-              finalValue = !isNaN(numericValue) ? numericValue : (stats.weapon_damage_bonus ?? 0);
+              finalValue = !isNaN(numericValue) ? numericValue : baseVal;
             }
-            setStats(prev => ({ ...prev, weapon_damage_bonus: finalValue }));
+            const bonus = typeof stats.attackDamage === 'object' && stats.attackDamage ? (stats.attackDamage as any).bonus : 0;
+            setStats(prev => ({ ...prev, attackDamage: { basic: finalValue, bonus } }));
             if (onSaveWeaponDamageBonus) {
               onSaveWeaponDamageBonus(finalValue).then(success => {
                 if (!success) console.error('❌ 武器傷害加值保存失敗');

@@ -16,7 +16,7 @@
 | `App.tsx` | 中央狀態、Tab 路由、`stats` / `setStats`、`onSaveXxx` callbacks |
 | `components/` | 頁面與 Modal；`ui/` 下為共用 UI（如 `Modal.tsx`、`FilterBar.tsx`） |
 | `services/` | 資料存取：`hybridDataManager.ts`、`detailedCharacter.ts` 等 |
-| `utils/` | helpers、`characterConstants.ts`、`appInit.ts`（組裝 CharacterStats） |
+| `utils/` | helpers、`characterConstants.ts`、`appInit.ts`（組裝 CharacterStats）、`characterAttributes.ts`（basic+bonus 計算） |
 | `styles/` | `modalStyles.ts`、`common.ts`（STYLES、combatStyles、combineStyles） |
 | `types.ts` | `CharacterStats`、`CustomRecord`、`ClassInfo` 等前端型別 |
 | `lib/supabase.ts` | DB 型別（`CharacterCurrentStats` 等） |
@@ -81,6 +81,32 @@ flowchart TD
 - [utils/characterConstants.ts](utils/characterConstants.ts)：`STAT_LABELS`、`SKILLS_MAP`、`ABILITY_KEYS`（與 CharacterSheet、CombatView 共用）
 - `types.ts`：`CharacterStats`、`CustomRecord`、`ClassInfo` 等
 - `lib/supabase.ts`：DB 對應型別（`CharacterCurrentStats` 含 `combat_notes` 等）
+
+### 5.1 屬性 basic + bonus 規則
+
+- **basic + bonus = final**：戰鬥屬性（AC、先攻、速度、HP max、攻擊命中、攻擊傷害、法術命中、法術 DC）皆採此結構。
+- **basic 可編輯**：使用者可直接編輯 basic 值。
+- **bonus 唯讀**：bonus 為唯讀顯示，未來可顯示各來源（例：+2 from skillA, +1 from itemB）；migration 時既有資料 bonus 預設為 0。
+- 取得 final 值請使用 [utils/characterAttributes.ts](utils/characterAttributes.ts)：
+  - `getFinalCombatStat(stats, key)`：AC、先攻、速度、maxHp、attackHit、attackDamage、spellHit、spellDc
+  - `getBasicCombatStat(stats, key)`：取得 basic（供編輯用）
+  - `getFinalSavingThrow(stats, abilityKey)`：6 豁免
+  - `getFinalSkillBonus(stats, skillName)`：18 技能
+
+### 5.2 DB 欄位與 CharacterStats 對應
+
+| CharacterStats key | DB 欄位 (character_current_stats) |
+|--------------------|-----------------------------------|
+| ac                 | ac_basic, ac_bonus                |
+| initiative         | initiative_basic, initiative_bonus|
+| speed              | speed_basic, speed_bonus          |
+| maxHp              | max_hp_basic, max_hp_bonus        |
+| attackHit          | attack_hit_basic, attack_hit_bonus（原 weapon_attack_bonus 更名為攻擊命中） |
+| attackDamage       | attack_damage_basic, attack_damage_bonus（原 weapon_damage_bonus 更名為攻擊傷害） |
+| spellHit           | spell_hit_basic, spell_hit_bonus（法術命中） |
+| spellDc            | spell_dc_basic, spell_dc_bonus（法術 DC）   |
+| skillBonuses       | character_skill_proficiencies.misc_bonus    |
+| saveBonuses        | character_saving_throws.misc_bonus          |
 
 ---
 

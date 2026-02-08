@@ -31,13 +31,20 @@ export interface CharacterStats {
   // 新增：兼職系統支援
   classes?: ClassInfo[];  // 職業列表
   hitDicePools?: HitDicePools;  // 多種生命骰池
-  ac: number;
-  initiative: number;
-  speed: number;
+  ac: number | { basic: number; bonus: number };
+  initiative: number | { basic: number; bonus: number };
+  speed: number | { basic: number; bonus: number };
   spell_attack_bonus?: number;
   spell_save_dc?: number;
   weapon_attack_bonus?: number;
   weapon_damage_bonus?: number;
+  maxHp?: { basic: number; bonus: number };
+  attackHit?: { basic: number; bonus: number };
+  attackDamage?: { basic: number; bonus: number };
+  spellHit?: { basic: number; bonus: number };
+  spellDc?: { basic: number; bonus: number };
+  skillBonuses?: Record<string, number>;
+  saveBonuses?: Record<string, number>;
   abilityScores: {
     str: number;
     dex: number;

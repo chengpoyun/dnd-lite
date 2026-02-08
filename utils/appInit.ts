@@ -39,19 +39,36 @@ export function buildCharacterStats(characterData: any, previousStats: Character
     avatarUrl: characterData.character.avatar_url || INITIAL_STATS.avatarUrl,
     hp: {
       current: characterData.currentStats?.current_hp || INITIAL_STATS.hp.current,
-      max: characterData.currentStats?.max_hp || INITIAL_STATS.hp.max,
+      max: (() => {
+        const cs = characterData.currentStats;
+        if (cs?.max_hp_basic !== undefined) return (cs.max_hp_basic ?? 1) + (cs.max_hp_bonus ?? 0);
+        return cs?.max_hp || INITIAL_STATS.hp.max;
+      })(),
       temp: characterData.currentStats?.temporary_hp || INITIAL_STATS.hp.temp
     },
-    ac: characterData.currentStats?.armor_class || INITIAL_STATS.ac,
+    ...(() => {
+      const cs = characterData.currentStats;
+      const hasNew = cs?.ac_basic !== undefined;
+      return hasNew ? {
+        ac: { basic: cs?.ac_basic ?? 10, bonus: cs?.ac_bonus ?? 0 },
+        initiative: { basic: cs?.initiative_basic ?? 0, bonus: cs?.initiative_bonus ?? 0 },
+        speed: { basic: cs?.speed_basic ?? 30, bonus: cs?.speed_bonus ?? 0 },
+        maxHp: { basic: cs?.max_hp_basic ?? 1, bonus: cs?.max_hp_bonus ?? 0 },
+        attackHit: { basic: cs?.attack_hit_basic ?? 0, bonus: cs?.attack_hit_bonus ?? 0 },
+        attackDamage: { basic: cs?.attack_damage_basic ?? 0, bonus: cs?.attack_damage_bonus ?? 0 },
+        spellHit: { basic: cs?.spell_hit_basic ?? 2, bonus: cs?.spell_hit_bonus ?? 0 },
+        spellDc: { basic: cs?.spell_dc_basic ?? 10, bonus: cs?.spell_dc_bonus ?? 0 },
+      } : {
+        ac: cs?.armor_class ?? INITIAL_STATS.ac,
+        initiative: cs?.initiative_bonus !== undefined ? cs.initiative_bonus : (characterData.abilityScores?.dexterity ? getModifier(characterData.abilityScores.dexterity) : 0),
+        speed: cs?.speed ?? INITIAL_STATS.speed,
+        weapon_attack_bonus: cs?.weapon_attack_bonus ?? INITIAL_STATS.weapon_attack_bonus ?? 0,
+        weapon_damage_bonus: cs?.weapon_damage_bonus ?? INITIAL_STATS.weapon_damage_bonus ?? 0,
+        spell_attack_bonus: cs?.spell_attack_bonus ?? INITIAL_STATS.spell_attack_bonus ?? 2,
+        spell_save_dc: cs?.spell_save_dc ?? INITIAL_STATS.spell_save_dc ?? 10,
+      };
+    })(),
     combatNotes: characterData.currentStats?.combat_notes ?? null,
-    initiative: characterData.currentStats?.initiative_bonus !== undefined 
-      ? characterData.currentStats.initiative_bonus 
-      : (characterData.abilityScores?.dexterity ? getModifier(characterData.abilityScores.dexterity) : 0),
-    speed: characterData.currentStats?.speed || INITIAL_STATS.speed,
-    spell_attack_bonus: characterData.currentStats?.spell_attack_bonus ?? INITIAL_STATS.spell_attack_bonus ?? 2,
-    spell_save_dc: characterData.currentStats?.spell_save_dc ?? INITIAL_STATS.spell_save_dc ?? 10,
-    weapon_attack_bonus: characterData.currentStats?.weapon_attack_bonus ?? INITIAL_STATS.weapon_attack_bonus ?? 0,
-    weapon_damage_bonus: characterData.currentStats?.weapon_damage_bonus ?? INITIAL_STATS.weapon_damage_bonus ?? 0,
     abilityScores: {
       str: characterData.abilityScores?.strength || INITIAL_STATS.abilityScores.str,
       dex: characterData.abilityScores?.dexterity || INITIAL_STATS.abilityScores.dex,
@@ -189,6 +206,25 @@ export function buildCharacterStats(characterData: any, previousStats: Character
                 isPrimary: c.is_primary
               }))
             : undefined);
+    })(),
+    skillBonuses: (() => {
+      const profs = characterData.skillProficiencies;
+      if (!Array.isArray(profs)) return undefined;
+      const out: Record<string, number> = {};
+      profs.forEach((p: any) => {
+        if (p?.skill_name != null && typeof p.misc_bonus === 'number') out[p.skill_name] = p.misc_bonus;
+      });
+      return Object.keys(out).length > 0 ? out : undefined;
+    })(),
+    saveBonuses: (() => {
+      const saves = characterData.savingThrows;
+      if (!Array.isArray(saves)) return undefined;
+      const abilityMap: Record<string, string> = { strength: 'str', dexterity: 'dex', constitution: 'con', intelligence: 'int', wisdom: 'wis', charisma: 'cha' };
+      const out: Record<string, number> = {};
+      saves.forEach((s: any) => {
+        if (s?.ability != null && typeof s.misc_bonus === 'number') out[abilityMap[s.ability] ?? s.ability] = s.misc_bonus;
+      });
+      return Object.keys(out).length > 0 ? out : undefined;
     })(),
     hitDicePools: characterData.hitDicePools ? {
       d12: { 
