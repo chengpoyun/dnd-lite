@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { CharacterStats, CustomRecord } from '../types';
 import { getModifier, getProfBonus, evaluateValue, handleValueInput, handleDecimalInput, formatDecimal } from '../utils/helpers';
 import { STAT_LABELS, SKILLS_MAP, ABILITY_KEYS } from '../utils/characterConstants';
-import { getAvailableClasses, getClassHitDie, formatClassDisplay } from '../utils/classUtils';
+import { getAvailableClasses, getClassHitDie, formatClassDisplay, calculateHitDiceTotals } from '../utils/classUtils';
 import { PageContainer, Card, Button, Title, Subtitle, Input, BackButton } from './ui';
 import { STYLES, combineStyles } from '../styles/common';
 
@@ -247,42 +247,60 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
     setNewClassName('');
     setNewClassLevel('1');
     
-    // 自動保存多職業資料
     const totalLevel = updatedClasses.reduce((sum, c) => sum + c.level, 0);
     const primaryClass = updatedClasses.find(c => c.isPrimary) || updatedClasses[0];
-    
-    // 同時保存基本信息和多職業資料
-    const basicInfoPromise = onSaveCharacterBasicInfo ? 
-      onSaveCharacterBasicInfo(stats.name, primaryClass.name, totalLevel) : 
-      Promise.resolve(true);
-      
-    const multiclassPromise = onSaveExtraData ? 
-      onSaveExtraData({ ...stats.extraData, classes: updatedClasses }) : 
-      Promise.resolve(true);
+    const validClasses = updatedClasses.map(c => ({
+      ...c,
+      level: Math.max(1, parseInt(String(c.level)) || 1)
+    }));
     
     try {
-      const [basicSuccess, extraSuccess] = await Promise.all([basicInfoPromise, multiclassPromise]);
-      
-      if (basicSuccess && extraSuccess) {
-        console.log('✅ 新增兼職保存成功');
-        // 更新本地狀態
-        setStats(prev => ({ 
-          ...prev, 
-          class: primaryClass.name,
-          level: totalLevel,
-          classes: updatedClasses.map(c => ({
-            id: c.id,
-            name: c.name,
-            level: c.level,
-            hitDie: getClassHitDie(c.name),
-            isPrimary: c.isPrimary
-          }))
-        }));
-        // 關閉模態框
-        setActiveModal(null);
-      } else {
-        console.error('❌ 新增兼職保存失敗', { basicSuccess, extraSuccess });
+      if (onSaveCharacterBasicInfo) {
+        const basicSuccess = await onSaveCharacterBasicInfo(stats.name, primaryClass.name, totalLevel);
+        if (!basicSuccess) {
+          console.error('❌ 基本信息保存失敗');
+          return;
+        }
       }
+      
+      // 持久化到 character_classes 並重新計算生命骰池
+      if (characterId) {
+        const { MulticlassService } = await import('../services/multiclassService');
+        const { supabase } = await import('../lib/supabase');
+        await supabase.from('character_classes').delete().eq('character_id', characterId);
+        for (const classInfo of validClasses) {
+          await supabase.from('character_classes').insert({
+            character_id: characterId,
+            class_name: classInfo.name,
+            class_level: classInfo.level,
+            hit_die: getClassHitDie(classInfo.name),
+            is_primary: classInfo.isPrimary
+          });
+        }
+        await MulticlassService.recalculateHitDicePools(characterId);
+      }
+      
+      if (onSaveExtraData) {
+        await onSaveExtraData({ ...stats.extraData, classes: validClasses });
+      }
+      
+      const newClassesWithHitDie = validClasses.map(c => ({
+        id: c.id,
+        name: c.name,
+        level: c.level,
+        hitDie: getClassHitDie(c.name),
+        isPrimary: c.isPrimary
+      }));
+      const newHitDicePools = calculateHitDiceTotals(newClassesWithHitDie);
+      
+      setStats(prev => ({ 
+        ...prev, 
+        class: primaryClass.name,
+        level: totalLevel,
+        classes: newClassesWithHitDie,
+        hitDicePools: newHitDicePools
+      }));
+      setActiveModal(null);
     } catch (error) {
       console.error('❌ 新增兼職保存錯誤:', error);
     }
@@ -552,19 +570,22 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
       // 3. 重新計算並保存生命骰池
       await MulticlassService.recalculateHitDicePools(characterId);
       
-      // 4. 更新本地狀態
+      // 4. 更新本地狀態（含複合職業生命骰 3d10+1d6 等）
+      const newClasses = validClasses.map(c => ({
+        id: c.id,
+        name: c.name,
+        level: c.level,
+        hitDie: getClassHitDie(c.name),
+        isPrimary: c.isPrimary
+      }));
+      const newHitDicePools = calculateHitDiceTotals(newClasses);
       setStats(prev => ({ 
         ...prev, 
         name: editInfo.name,
         class: primaryClass.name,
         level: totalLevel,
-        classes: validClasses.map(c => ({
-          id: c.id,
-          name: c.name,
-          level: c.level,
-          hitDie: getClassHitDie(c.name),
-          isPrimary: c.isPrimary
-        }))
+        classes: newClasses,
+        hitDicePools: newHitDicePools
       }));
       
       setActiveModal(null);

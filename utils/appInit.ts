@@ -1,6 +1,6 @@
 import type { CharacterStats } from '../types';
 import { getModifier } from './helpers';
-import { getClassHitDie } from './classUtils';
+import { getClassHitDie, calculateHitDiceTotals } from './classUtils';
 import { ensureDisplayClass, migrateLegacyCharacterStats, needsMulticlassMigration } from './migrationHelpers';
 
 export const INITIAL_STATS: CharacterStats = {
@@ -213,6 +213,13 @@ export function buildCharacterStats(characterData: any, previousStats: Character
   let finalStats = extractedStats;
   if (needsMulticlassMigration(extractedStats)) {
     finalStats = migrateLegacyCharacterStats(extractedStats);
+  }
+  // 有複合職業但無生命骰池時，從職業推算（3d10+1d6 等）
+  if (finalStats.classes && finalStats.classes.length > 0 && !finalStats.hitDicePools) {
+    finalStats = {
+      ...finalStats,
+      hitDicePools: calculateHitDiceTotals(finalStats.classes)
+    };
   }
   return ensureDisplayClass(finalStats);
 }

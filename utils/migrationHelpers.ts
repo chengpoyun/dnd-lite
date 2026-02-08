@@ -20,14 +20,16 @@ export const migrateLegacyCharacterStats = (stats: CharacterStats): CharacterSta
     isPrimary: true
   }];
 
-  // Calculate hit dice pools from the legacy data
+  // Calculate hit dice pools from the legacy data (correct totals from class levels)
   const migratedHitDicePools = calculateHitDiceTotals(migratedClasses);
   
-  // Update hit dice to match legacy data (preserve both current and total)
-  const legacyHitDie = stats.hitDice.die as 'd12' | 'd10' | 'd8' | 'd6';
-  if (migratedHitDicePools[legacyHitDie]) {
-    migratedHitDicePools[legacyHitDie].current = stats.hitDice.current;
-    migratedHitDicePools[legacyHitDie].total = stats.hitDice.total; // Preserve original total
+  // Sync current count to correct die type from class (NOT stats.hitDice.die - DB hit_die_type may be wrong, e.g. default d8 for wizard)
+  const correctHitDie = migratedClasses[0].hitDie as 'd12' | 'd10' | 'd8' | 'd6';
+  if (migratedHitDicePools[correctHitDie]) {
+    migratedHitDicePools[correctHitDie].current = Math.min(
+      stats.hitDice.current,
+      migratedHitDicePools[correctHitDie].total
+    );
   }
 
   // Migration completed silently to reduce console noise

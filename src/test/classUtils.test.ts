@@ -435,6 +435,35 @@ describe('classUtils - D&D 5E 職業工具函數', () => {
 
         expect(migratedFighter.hitDicePools!.d10).toEqual({ current: 4, total: 7 })
       })
+
+      it('法師應使用 d6 生命骰，即使 DB 存了錯誤的 d8', () => {
+        const wizardWithWrongDie: CharacterStats = {
+          name: "五等法師",
+          class: "法師",
+          level: 5,
+          exp: 6500,
+          hp: { current: 20, max: 25, temp: 0 },
+          hitDice: { current: 5, total: 5, die: "d8" }, // DB 錯誤預設 d8
+          ac: 12,
+          initiative: 2,
+          speed: 30,
+          abilityScores: { str: 8, dex: 14, con: 12, int: 16, wis: 14, cha: 10 },
+          proficiencies: {},
+          savingProficiencies: ["int", "wis"],
+          downtime: 0,
+          renown: { used: 0, total: 0 },
+          prestige: { org: "", level: 0, rankName: "" },
+          customRecords: [],
+          attacks: [],
+          currency: { cp: 0, sp: 0, ep: 0, gp: 0, pp: 0 }
+        }
+        const migrated = migrateLegacyCharacterStats(wizardWithWrongDie)
+        // 法師應為 5d6，不應有 d8
+        expect(migrated.hitDicePools!.d6).toEqual({ current: 5, total: 5 })
+        expect(migrated.hitDicePools!.d8).toEqual({ current: 0, total: 0 })
+        expect(migrated.hitDicePools!.d10).toEqual({ current: 0, total: 0 })
+        expect(migrated.hitDicePools!.d12).toEqual({ current: 0, total: 0 })
+      })
     })
 
     describe('validateMulticlassData', () => {
