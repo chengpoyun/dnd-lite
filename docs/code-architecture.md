@@ -58,6 +58,7 @@ flowchart TD
 - 內容包在 [MODAL_CONTAINER_CLASS](styles/modalStyles.ts) 內
 - Props：`isOpen`、`onClose`、資料與 `onSave`/`onDelete` callback
 - 獨立檔案：`XxxModal.tsx`（如 CombatNoteModal、ItemDetailModal）
+- 戰鬥頁數字編輯共用 [NumberEditModal](components/NumberEditModal.tsx)（可選顯示 bonus 來源），其餘彈窗為 CombatHPModal、CombatItemEditModal、CategoryUsageModal、RestOptionsModal、ShortRestDetailModal、LongRestConfirmModal、EndCombatConfirmModal 等獨立元件
 
 ### Page 元件
 

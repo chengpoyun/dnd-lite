@@ -1,19 +1,26 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { CharacterStats } from '../types';
-import { evaluateValue, getModifier, getProfBonus, setNormalValue, handleValueInput } from '../utils/helpers';
+import { evaluateValue, getModifier, getProfBonus, handleValueInput } from '../utils/helpers';
 import { STAT_LABELS, SKILLS_MAP, ABILITY_KEYS } from '../utils/characterConstants';
-import { getFinalCombatStat, getBasicCombatStat, getFinalSavingThrow, getFinalSkillBonus } from '../utils/characterAttributes';
+import { getFinalCombatStat, getBasicCombatStat, getFinalSavingThrow, getFinalSkillBonus, type CombatStatKey } from '../utils/characterAttributes';
 import { formatHitDicePools, getTotalCurrentHitDice, useHitDie, recoverHitDiceOnLongRest } from '../utils/classUtils';
 import { HybridDataManager } from '../services/hybridDataManager';
 import { MulticlassService } from '../services/multiclassService';
 import { resetAbilityUses } from '../services/abilityService';
 import { PageContainer, Card, Button, Title, Subtitle, Input } from './ui';
-import { Modal, ModalButton, ModalInput } from './ui/Modal';
 import { STYLES } from '../styles/common';
 import type { CharacterCombatAction as DatabaseCombatItem } from '../lib/supabase';
-import { MODAL_CONTAINER_CLASS } from '../styles/modalStyles';
 import { isSpellcaster } from '../utils/spellUtils';
 import CombatNoteModal from './CombatNoteModal';
+import NumberEditModal from './NumberEditModal';
+import EndCombatConfirmModal from './EndCombatConfirmModal';
+import LongRestConfirmModal from './LongRestConfirmModal';
+import RestOptionsModal from './RestOptionsModal';
+import ShortRestDetailModal from './ShortRestDetailModal';
+import CategoryUsageModal from './CategoryUsageModal';
+import CombatHPModal from './CombatHPModal';
+import CombatItemEditModal from './CombatItemEditModal';
+import type { ItemEditValues } from './CombatItemEditModal';
 
 interface CombatItem {
   id: string;
@@ -128,13 +135,7 @@ export const CombatView: React.FC<CombatViewProps> = ({
   
   const [isEditMode, setIsEditMode] = useState(false);
   const [isHPModalOpen, setIsHPModalOpen] = useState(false);
-  const [isACModalOpen, setIsACModalOpen] = useState(false);
-  const [isInitiativeModalOpen, setIsInitiativeModalOpen] = useState(false);
-  const [isSpeedModalOpen, setIsSpeedModalOpen] = useState(false);
-  const [isSpellAttackModalOpen, setIsSpellAttackModalOpen] = useState(false);
-  const [isSpellDCModalOpen, setIsSpellDCModalOpen] = useState(false);
-  const [isWeaponAttackModalOpen, setIsWeaponAttackModalOpen] = useState(false);
-  const [isWeaponDamageModalOpen, setIsWeaponDamageModalOpen] = useState(false);
+  const [numberEditState, setNumberEditState] = useState<{ key: CombatStatKey | null; value: string }>({ key: null, value: '' });
   const [isEndCombatConfirmOpen, setIsEndCombatConfirmOpen] = useState(false);
   const [isItemEditModalOpen, setIsItemEditModalOpen] = useState(false);
   const [isCategoryUsageModalOpen, setIsCategoryUsageModalOpen] = useState(false);
@@ -151,24 +152,7 @@ export const CombatView: React.FC<CombatViewProps> = ({
   const [activeCategory, setActiveCategory] = useState<ItemCategory>('action');
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
 
-  const [tempHPValue, setTempHPValue] = useState('');
-  const [tempMaxHPValue, setTempMaxHPValue] = useState('');
-  const [tempACValue, setTempACValue] = useState('');
-  const [tempInitiativeValue, setTempInitiativeValue] = useState('');
-  const [tempSpeedValue, setTempSpeedValue] = useState('');
-  const [tempSpellAttackValue, setTempSpellAttackValue] = useState('');
-  const [tempSpellDCValue, setTempSpellDCValue] = useState('');
-  const [tempWeaponAttackValue, setTempWeaponAttackValue] = useState('');
-  const [tempWeaponDamageValue, setTempWeaponDamageValue] = useState('');
-  
-  const [tempCategoryCurrent, setTempCategoryCurrent] = useState('0');
-  const [tempCategoryMax, setTempCategoryMax] = useState('1');
-  
-  const [formName, setFormName] = useState('');
-  const [formIcon, setFormIcon] = useState('✨');
-  const [formCurrent, setFormCurrent] = useState('1');
-  const [formMax, setFormMax] = useState('1');
-  const [formRecovery, setFormRecovery] = useState<'round' | 'short' | 'long'>('round');
+
 
   // 從資料庫載入戰鬥項目
   useEffect(() => {
@@ -305,11 +289,6 @@ export const CombatView: React.FC<CombatViewProps> = ({
     if (isEditMode) {
       setEditingItemId(id);
       setActiveCategory(category);
-      setFormName(item.name);
-      setFormIcon(item.icon);
-      setFormCurrent(item.current.toString());
-      setFormMax(item.max.toString());
-      setFormRecovery(item.recovery);
       setIsItemEditModalOpen(true);
       return;
     }
@@ -371,78 +350,36 @@ export const CombatView: React.FC<CombatViewProps> = ({
   const handleOpenAddModal = (category: ItemCategory) => {
     setEditingItemId(null);
     setActiveCategory(category);
-    setFormName('');
-    setFormIcon('✨');
-    setFormCurrent('1');
-    setFormMax('1');
-    setFormRecovery(category === 'resource' ? 'long' : 'round');
     setIsItemEditModalOpen(true);
   };
 
   const handleOpenCategoryUsageModal = (category: 'action' | 'bonus' | 'reaction') => {
     setEditingCategory(category);
-    setTempCategoryCurrent(categoryUsages[category].current.toString());
-    setTempCategoryMax(categoryUsages[category].max.toString());
     setIsCategoryUsageModalOpen(true);
   };
 
-  const handleSaveCategoryUsage = () => {
+  const handleSaveCategoryUsage = (current: number, max: number) => {
     if (!editingCategory) return;
-    
-    const currentResult = handleValueInput(tempCategoryCurrent, undefined, {
-      minValue: 0,
-      allowZero: true
-    });
-    
-    const maxResult = handleValueInput(tempCategoryMax, undefined, {
-      minValue: 1,
-      allowZero: false
-    });
-    
-    if (!currentResult.isValid || !maxResult.isValid) {
-      setIsCategoryUsageModalOpen(false);
-      return;
-    }
-    
     setCategoryUsages(prev => ({
       ...prev,
-      [editingCategory]: {
-        current: Math.min(currentResult.numericValue, maxResult.numericValue),
-        max: maxResult.numericValue
-      }
+      [editingCategory]: { current, max }
     }));
     setIsCategoryUsageModalOpen(false);
   };
 
-  const handleSaveItem = async () => {
-    if (!formName.trim()) return;
+  const handleSaveItemValues = async (values: ItemEditValues) => {
     if (!characterId) {
       console.error('❌ 無法保存項目：沒有角色ID');
       return;
     }
-
-    // 使用通用數值處理函數
-    const currentResult = setNormalValue(formCurrent, 0, true); // 允許0作為剩餘次數
-    const maxResult = setNormalValue(formMax, 1, false); // 最大值不能為0
-    
-    if (!currentResult.isValid || !maxResult.isValid) {
-      setIsItemEditModalOpen(false);
-      return;
-    }
-
-    const currentValue = currentResult.numericValue;
-    const maxValue = maxResult.numericValue;
-
+    const { name: formName, icon: formIcon, current: currentValue, max: maxValue, recovery: formRecovery } = values;
     const setter = activeCategory === 'action' ? setActions : activeCategory === 'bonus' ? setBonusActions : activeCategory === 'reaction' ? setReactions : setResources;
 
     if (editingItemId) {
-      // 編輯現有項目
       const updatedItem = { name: formName, icon: formIcon, current: currentValue, max: maxValue, recovery: formRecovery };
-      setter(prev => prev.map(item => 
+      setter(prev => prev.map(item =>
         item.id === editingItemId ? { ...item, ...updatedItem } : item
       ));
-      
-      // 更新資料庫
       try {
         await updateItemInDatabase(editingItemId, activeCategory, currentValue, {
           name: formName,
@@ -455,7 +392,6 @@ export const CombatView: React.FC<CombatViewProps> = ({
         console.error('❌ 項目更新失敗:', error);
       }
     } else {
-      // 創建新項目
       const newItemId = `item-${Date.now()}`;
       const newItem: CombatItem = {
         id: newItemId,
@@ -466,8 +402,6 @@ export const CombatView: React.FC<CombatViewProps> = ({
         recovery: formRecovery
       };
       setter(prev => [...prev, newItem]);
-      
-      // 保存到資料庫
       try {
         await HybridDataManager.createCombatItem({
           character_id: characterId,
@@ -483,7 +417,6 @@ export const CombatView: React.FC<CombatViewProps> = ({
         console.log('✅ 新項目創建成功:', formName);
       } catch (error) {
         console.error('❌ 新項目創建失敗:', error);
-        // 如果保存失敗，從本地狀態移除
         setter(prev => prev.filter(item => item.id !== newItemId));
       }
     }
@@ -813,11 +746,7 @@ export const CombatView: React.FC<CombatViewProps> = ({
         const cards = [
           {
             key: "hp",
-            onClick: () => {
-              setTempHPValue(stats.hp.current.toString());
-              setTempMaxHPValue(stats.hp.max.toString());
-              setIsHPModalOpen(true);
-            },
+            onClick: () => setIsHPModalOpen(true),
             containerClass:
               `${summaryCardBase} ${hpColors.border}`,
             labelClass: `${labelBase} ${hpColors.label}`,
@@ -829,8 +758,7 @@ export const CombatView: React.FC<CombatViewProps> = ({
           {
             key: "ac",
             onClick: () => {
-              setTempACValue(getBasicCombatStat(stats, 'ac').toString());
-              setIsACModalOpen(true);
+              setNumberEditState({ key: 'ac', value: getBasicCombatStat(stats, 'ac').toString() });
             },
             containerClass:
               `${summaryCardBase} border-amber-900/30`,
@@ -842,8 +770,7 @@ export const CombatView: React.FC<CombatViewProps> = ({
           {
             key: "initiative",
             onClick: () => {
-              setTempInitiativeValue(getBasicCombatStat(stats, 'initiative').toString());
-              setIsInitiativeModalOpen(true);
+              setNumberEditState({ key: 'initiative', value: getBasicCombatStat(stats, 'initiative').toString() });
             },
             containerClass:
               `${summaryCardBase} border-indigo-900/30`,
@@ -855,8 +782,7 @@ export const CombatView: React.FC<CombatViewProps> = ({
           {
             key: "speed",
             onClick: () => {
-              setTempSpeedValue(getBasicCombatStat(stats, 'speed').toString());
-              setIsSpeedModalOpen(true);
+              setNumberEditState({ key: 'speed', value: getBasicCombatStat(stats, 'speed').toString() });
             },
             containerClass:
               `${summaryCardBase} border-cyan-900/30`,
@@ -898,8 +824,7 @@ export const CombatView: React.FC<CombatViewProps> = ({
           {
             key: "weapon-attack",
             onClick: () => {
-              setTempWeaponAttackValue(getBasicCombatStat(stats, 'attackHit').toString());
-              setIsWeaponAttackModalOpen(true);
+              setNumberEditState({ key: 'attackHit', value: getBasicCombatStat(stats, 'attackHit').toString() });
             },
             label: "攻擊命中",
             value: `+${getFinalCombatStat(stats, 'attackHit')}`,
@@ -907,8 +832,7 @@ export const CombatView: React.FC<CombatViewProps> = ({
           {
             key: "weapon-damage",
             onClick: () => {
-              setTempWeaponDamageValue(getBasicCombatStat(stats, 'attackDamage').toString());
-              setIsWeaponDamageModalOpen(true);
+              setNumberEditState({ key: 'attackDamage', value: getBasicCombatStat(stats, 'attackDamage').toString() });
             },
             label: "攻擊傷害",
             value: (() => { const v = getFinalCombatStat(stats, 'attackDamage'); return `${v >= 0 ? "+" : ""}${v}`; })(),
@@ -919,8 +843,7 @@ export const CombatView: React.FC<CombatViewProps> = ({
               {
                 key: "spell-attack",
                 onClick: () => {
-                  setTempSpellAttackValue(getBasicCombatStat(stats, 'spellHit').toString());
-                  setIsSpellAttackModalOpen(true);
+                  setNumberEditState({ key: 'spellHit', value: getBasicCombatStat(stats, 'spellHit').toString() });
                 },
                 label: "法術命中",
                 value: `+${getFinalCombatStat(stats, 'spellHit')}`,
@@ -928,8 +851,7 @@ export const CombatView: React.FC<CombatViewProps> = ({
               {
                 key: "spell-dc",
                 onClick: () => {
-                  setTempSpellDCValue(getBasicCombatStat(stats, 'spellDc').toString());
-                  setIsSpellDCModalOpen(true);
+                  setNumberEditState({ key: 'spellDc', value: getBasicCombatStat(stats, 'spellDc').toString() });
                 },
                 label: "法術DC",
                 value: getFinalCombatStat(stats, 'spellDc'),
@@ -1102,722 +1024,149 @@ export const CombatView: React.FC<CombatViewProps> = ({
       )}
 
       {/* 統一的新增/編輯項目彈窗 */}
-      <Modal 
-        isOpen={isItemEditModalOpen} 
-        onClose={() => setIsItemEditModalOpen(false)}
-        size="xs"
-      >
-        <div className={`${MODAL_CONTAINER_CLASS} relative`}>
-          <h2 className="text-xl font-bold mb-5">{editingItemId ? '編輯項目' : '新增項目'}</h2>
-          
-          <div className="space-y-4">
-          <div className="grid grid-cols-[64px_1fr_1fr] gap-3">
-            <ModalInput 
-              value={formIcon} 
-              onChange={setFormIcon} 
-              placeholder="圖示" 
-              className="text-center text-xl" 
-            />
-            <ModalInput 
-              value={formName} 
-              onChange={setFormName} 
-              placeholder="名稱" 
-              className="col-span-2" 
-              autoFocus 
-            />
-          </div>
-          
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <span className="text-[16px] text-slate-500 font-black block mb-1 uppercase tracking-widest text-center">剩餘次數</span>
-              <ModalInput 
-                value={formCurrent} 
-                onChange={setFormCurrent} 
-                className="text-xl font-mono text-center" 
-              />
-            </div>
-            <div>
-              <span className="text-[16px] text-slate-500 font-black block mb-1 uppercase tracking-widest text-center">最大</span>
-              <ModalInput 
-                value={formMax} 
-                onChange={setFormMax} 
-                className="text-xl font-mono text-center" 
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <span className="text-[16px] text-slate-500 font-black block uppercase ml-1 tracking-widest">恢復週期</span>
-            <div className="flex bg-slate-950 p-1 rounded-xl border border-slate-800">
-              <button onClick={() => setFormRecovery('round')} className={`flex-1 py-2 rounded-lg text-[16px] font-black uppercase transition-all ${formRecovery === 'round' ? 'bg-slate-800 text-white shadow-sm' : 'text-slate-600'}`}>每回合</button>
-              <button onClick={() => setFormRecovery('short')} className={`flex-1 py-2 rounded-lg text-[16px] font-black uppercase transition-all ${formRecovery === 'short' ? 'bg-amber-600 text-white shadow-sm' : 'text-slate-600'}`}>短休</button>
-              <button onClick={() => setFormRecovery('long')} className={`flex-1 py-2 rounded-lg text-[16px] font-black uppercase transition-all ${formRecovery === 'long' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-600'}`}>長休</button>
-            </div>
-          </div>
-
-          <div className="flex gap-2 pt-2">
-            <ModalButton variant="secondary" onClick={() => setIsItemEditModalOpen(false)}>
-              取消
-            </ModalButton>
-            <ModalButton variant="primary" onClick={handleSaveItem} className="bg-indigo-600 hover:bg-indigo-500">
-              儲存
-            </ModalButton>
-          </div>
-        </div>
-        </div>
-      </Modal>
+      {(() => {
+        const itemEditList = activeCategory === 'action' ? actions : activeCategory === 'bonus' ? bonusActions : activeCategory === 'reaction' ? reactions : resources;
+        const itemEditInitialValues: ItemEditValues = editingItemId
+          ? (() => {
+              const item = itemEditList.find(i => i.id === editingItemId);
+              return item ? { name: item.name, icon: item.icon, current: item.current, max: item.max, recovery: item.recovery } : { name: '', icon: '✨', current: 1, max: 1, recovery: 'round' };
+            })()
+          : { name: '', icon: '✨', current: 1, max: 1, recovery: activeCategory === 'resource' ? 'long' : 'round' };
+        return (
+          <CombatItemEditModal
+            isOpen={isItemEditModalOpen}
+            onClose={() => setIsItemEditModalOpen(false)}
+            mode={editingItemId ? 'edit' : 'add'}
+            category={activeCategory}
+            initialValues={itemEditInitialValues}
+            onSave={handleSaveItemValues}
+          />
+        );
+      })()}
 
       {/* 分類使用次數編輯彈窗 */}
-      <Modal 
-        isOpen={isCategoryUsageModalOpen && !!editingCategory} 
+      <CategoryUsageModal
+        isOpen={isCategoryUsageModalOpen && !!editingCategory}
         onClose={() => setIsCategoryUsageModalOpen(false)}
-        size="xs"
-      >
-        <div className={`${MODAL_CONTAINER_CLASS} relative`}>
-          <h2 className="text-xl font-bold mb-5">{editingCategory === 'action' ? '動作使用次數' : editingCategory === 'bonus' ? '附贈動作使用次數' : '反應使用次數'}</h2>
-          
-          <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <span className="text-[16px] text-slate-500 font-black block mb-1 uppercase tracking-widest text-center">剩餘次數</span>
-              <ModalInput 
-                value={tempCategoryCurrent} 
-                onChange={setTempCategoryCurrent} 
-                className="text-xl font-mono text-center" 
-              />
-            </div>
-            <div>
-              <span className="text-[16px] text-slate-500 font-black block mb-1 uppercase tracking-widest text-center">每回合最大</span>
-              <ModalInput 
-                value={tempCategoryMax} 
-                onChange={setTempCategoryMax} 
-                className="text-xl font-mono text-center" 
-              />
-            </div>
-          </div>
-          <div className="flex gap-2 pt-2">
-            <ModalButton variant="secondary" onClick={() => setIsCategoryUsageModalOpen(false)}>
-              取消
-            </ModalButton>
-            <ModalButton variant="primary" onClick={handleSaveCategoryUsage}>
-              儲存
-            </ModalButton>
-          </div>
-        </div>
-        </div>
-      </Modal>
+        category={editingCategory}
+        current={editingCategory ? categoryUsages[editingCategory].current : 0}
+        max={editingCategory ? categoryUsages[editingCategory].max : 1}
+        onSave={handleSaveCategoryUsage}
+      />
 
       {/* 長休確認彈窗 */}
-      <Modal 
-        isOpen={isRestOptionsOpen && isLongRestConfirmOpen} 
+      <LongRestConfirmModal
+        isOpen={isRestOptionsOpen && isLongRestConfirmOpen}
         onClose={() => setIsLongRestConfirmOpen(false)}
-        title="確定要長休？"
-        size="xs"
-      >
-        <p className="text-slate-500 text-[16px] text-center mb-6">這將完全恢復 HP、重置所有法術位與職業資源。</p>
-        <div className="flex gap-3">
-          <ModalButton variant="secondary" onClick={() => setIsLongRestConfirmOpen(false)}>
-            返回
-          </ModalButton>
-          <ModalButton variant="primary" onClick={handleLongRest} className="bg-indigo-600 hover:bg-indigo-500">
-            確認長休
-          </ModalButton>
-        </div>
-      </Modal>
+        onConfirm={handleLongRest}
+      />
 
       {/* 短休詳情彈窗 */}
-      <Modal 
-        isOpen={isRestOptionsOpen && isShortRestDetailOpen} 
+      <ShortRestDetailModal
+        isOpen={isRestOptionsOpen && isShortRestDetailOpen}
         onClose={() => setIsShortRestDetailOpen(false)}
-        title="正在短休..."
-        size="sm"
-      >
-        <div className="bg-slate-950/50 p-4 rounded-2xl border border-slate-800 mb-6 space-y-4">
-          {stats.hitDicePools ? (
-            // Multiclass hit dice display
-            <div className="space-y-3">
-              <div className="flex justify-between items-center px-1">
-                <span className="text-xs font-black text-slate-500 uppercase">生命骰池</span>
-                <span className="text-lg font-mono font-black text-amber-500">
-                  {formatHitDicePools(stats.hitDicePools, 'current')}
-                </span>
-              </div>
-              
-              {/* Hit dice selection buttons */}
-              <div className="grid grid-cols-2 gap-2">
-                {getAvailableHitDice().map(({ dieType, current, total }) => (
-                  <button
-                    key={dieType}
-                    onClick={() => rollMulticlassHitDie(dieType)}
-                    disabled={current <= 0 || stats.hp.current >= stats.hp.max}
-                    className={`py-3 px-2 rounded-lg font-bold text-sm transition-all ${
-                      current > 0 && stats.hp.current < stats.hp.max
-                        ? 'bg-amber-600 text-white active:scale-95 shadow-lg'
-                        : 'bg-slate-800 text-slate-600 cursor-not-allowed'
-                    }`}
-                  >
-                    <div className="text-xs opacity-70 uppercase">{dieType}</div>
-                    <div className="font-mono">{current}/{total}</div>
-                  </button>
-                ))}
-              </div>
-            </div>
-          ) : (
-            // Legacy single hit die display
-            <div className="flex justify-between items-center px-1">
-              <span className="text-xs font-black text-slate-500 uppercase">生命骰 ({stats.hitDice.die})</span>
-              <span className={`text-lg font-mono font-black ${stats.hitDice.current > 0 ? 'text-amber-500' : 'text-slate-600'}`}>
-                {stats.hitDice.current} <span className="text-xs text-slate-700">/ {stats.hitDice.total}</span>
-              </span>
-            </div>
-          )}
-          
-          <div className="flex justify-between items-center px-1 border-t border-slate-800 pt-3">
-            <span className="text-[16px] font-black text-slate-500 uppercase">目前生命值</span>
-            <span className="text-lg font-mono font-black text-white">{stats.hp.current} / {stats.hp.max}</span>
-          </div>
-          {lastRestRoll && (
-            <div className="mt-2 bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-3 flex items-center justify-between">
-                      <div className="text-xs text-emerald-500 font-bold">上一次恢復</div>
-                      <span className="text-emerald-400 font-mono text-lg">
-                        +{lastRestRoll.die}{lastRestRoll.mod >= 0 ? `+${lastRestRoll.mod}` : lastRestRoll.mod}
-                      </span>
-            </div>
-          )}
-        </div>
-        <div className="flex flex-col gap-3">
-          {/* Legacy hit die button for single-class characters */}
-          {!stats.hitDicePools && (
-            <button 
-              onClick={rollHitDie} 
-              disabled={stats.hitDice.current <= 0 || stats.hp.current >= stats.hp.max} 
-              className="py-4 bg-amber-600 disabled:bg-slate-800 text-white rounded-xl font-black text-lg shadow-lg active:scale-95"
-            >
-              🎲 消耗生命骰
-            </button>
-          )}
-          <ModalButton variant="primary" onClick={() => { handleShortRest(); setIsShortRestDetailOpen(false); setIsRestOptionsOpen(false); }} className="w-full py-4 bg-emerald-600 hover:bg-emerald-500 text-lg">
-            完成短休
-          </ModalButton>
-        </div>
-      </Modal>
+        stats={{ hp: stats.hp, hitDice: stats.hitDice, hitDicePools: stats.hitDicePools }}
+        lastRestRoll={lastRestRoll}
+        formatHitDicePools={formatHitDicePools}
+        getAvailableHitDice={getAvailableHitDice}
+        onRollHitDie={rollHitDie}
+        onRollMulticlassHitDie={rollMulticlassHitDie}
+        onCompleteShortRest={() => {
+          handleShortRest();
+          setIsShortRestDetailOpen(false);
+          setIsRestOptionsOpen(false);
+        }}
+      />
 
       {/* 休息選項彈窗 */}
-      <Modal 
-        isOpen={isRestOptionsOpen && !isLongRestConfirmOpen && !isShortRestDetailOpen} 
+      <RestOptionsModal
+        isOpen={isRestOptionsOpen && !isLongRestConfirmOpen && !isShortRestDetailOpen}
         onClose={() => setIsRestOptionsOpen(false)}
-        title="選擇休息方式"
-        size="sm"
-      >
-        <div className="space-y-4">
-          <button onClick={() => setIsShortRestDetailOpen(true)} className="w-full bg-slate-800 border border-slate-700 p-5 rounded-2xl flex items-center gap-4 group active:bg-slate-700">
-            <div className="w-12 h-12 bg-amber-500/20 rounded-xl flex items-center justify-center text-2xl">🔥</div>
-            <div className="text-left">
-              <div className="text-[16px] font-bold text-amber-500">短休 (Short Rest)</div>
-              <div className="text-[16px] text-slate-500 font-bold uppercase">恢復部分資源與擲骰療傷</div>
-            </div>
-          </button>
-          <button onClick={() => setIsLongRestConfirmOpen(true)} className="w-full bg-indigo-950/30 border border-indigo-500/30 p-5 rounded-2xl flex items-center gap-4 group active:bg-indigo-900/40">
-            <div className="w-12 h-12 bg-indigo-500/20 rounded-xl flex items-center justify-center text-2xl">💤</div>
-            <div className="text-left">
-              <div className="text-[16px] font-bold text-indigo-400">長休 (Long Rest)</div>
-              <div className="text-[16px] text-slate-500 font-bold uppercase">完全恢復 HP 與所有資源</div>
-            </div>
-          </button>
-          <button onClick={() => setIsRestOptionsOpen(false)} className="w-full py-3 text-slate-600 font-black text-[16px] uppercase tracking-widest pt-4">取消</button>
-        </div>
-      </Modal>
-
+        onChooseShortRest={() => setIsShortRestDetailOpen(true)}
+        onChooseLongRest={() => setIsLongRestConfirmOpen(true)}
+      />
 
       {/* HP 編輯彈窗 */}
-      <Modal 
-        isOpen={isHPModalOpen} 
+      <CombatHPModal
+        isOpen={isHPModalOpen}
         onClose={() => setIsHPModalOpen(false)}
-        size="sm"
-      >
-        <div className={`${MODAL_CONTAINER_CLASS} relative`}>
-          <h2 className="text-xl font-bold mb-5">修改 HP</h2>
-          
-          <div className="space-y-4">
-            <div>
-              <span className="text-[16px] text-slate-500 font-black block mb-2 uppercase tracking-widest">當前HP</span>
-              <ModalInput 
-                value={tempHPValue} 
-                onChange={setTempHPValue} 
-                placeholder={stats.hp.current.toString()} 
-                className="text-3xl font-mono text-center" 
-                autoFocus 
-              />
-            </div>
-            
-            <div>
-              <span className="text-[16px] text-slate-500 font-black block mb-2 uppercase tracking-widest">最大HP</span>
-              <ModalInput 
-                value={tempMaxHPValue} 
-                onChange={setTempMaxHPValue} 
-                placeholder={stats.hp.max.toString()} 
-                className="text-3xl font-mono text-center" 
-              />
-            </div>
-          </div>
-          <div className="flex gap-2 mt-6">
-            <ModalButton variant="secondary" onClick={() => {
-              setIsHPModalOpen(false);
-              setTempHPValue('');
-              setTempMaxHPValue('');
-            }}>
-              取消
-            </ModalButton>
-            <ModalButton 
-              variant="primary" 
-              onClick={() => { 
-              console.log('Current HP Input:', tempHPValue);
-              console.log('Max HP Input:', tempMaxHPValue);
-              
-              // 處理當前HP
-              let finalCurrentHP = stats.hp.current;
-              if (tempHPValue.trim()) {
-                const isCalculationInput = tempHPValue.includes('+') || tempHPValue.includes('-');
-                
-                if (isCalculationInput) {
-                  const result = handleValueInput(tempHPValue, stats.hp.current, {
-                    minValue: 0,
-                    maxValue: stats.hp.max,
-                    allowZero: true
-                  });
-                  finalCurrentHP = result.isValid ? result.numericValue : stats.hp.current;
-                } else {
-                  const numericValue = parseInt(tempHPValue);
-                  if (!isNaN(numericValue) && numericValue >= 0) {
-                    finalCurrentHP = numericValue;
-                  }
-                }
-              }
-                  
-              // 處理最大HP
-              let finalMaxHP = stats.hp.max;
-              if (tempMaxHPValue.trim()) {
-                const isCalculationInput = tempMaxHPValue.includes('+') || tempMaxHPValue.includes('-');
-                
-                if (isCalculationInput) {
-                  const result = handleValueInput(tempMaxHPValue, stats.hp.max, {
-                    minValue: 1,
-                    allowZero: false
-                  });
-                  finalMaxHP = result.isValid ? result.numericValue : stats.hp.max;
-                } else {
-                  const numericValue = parseInt(tempMaxHPValue);
-                  if (!isNaN(numericValue) && numericValue >= 1) {
-                    finalMaxHP = numericValue;
-                  }
-                }
-              }
-              
-              // 確保當前HP不超過最大HP
-              finalCurrentHP = Math.min(finalCurrentHP, finalMaxHP);
-              
-              console.log('Final Current HP:', finalCurrentHP);
-              console.log('Final Max HP:', finalMaxHP);
-              
-              setStats(prev => ({ 
-                ...prev, 
-                hp: { 
-                  current: finalCurrentHP,
-                  max: finalMaxHP
-                } 
-              }));
+        currentHP={stats.hp.current}
+        maxHP={stats.hp.max}
+        onSave={(current, max) => {
+          setStats(prev => ({ ...prev, hp: { ...prev.hp, current, max } }));
+          onSaveHP?.(current, max)?.catch(e => console.error('❌ HP保存錯誤:', e));
+          setIsHPModalOpen(false);
+        }}
+      />
 
-              // 保存HP到資料庫
-              if (onSaveHP) {
-                onSaveHP(finalCurrentHP, finalMaxHP).then(success => {
-                  if (!success) {
-                    console.error('❌ HP保存失敗');
-                  }
-                }).catch(error => {
-                  console.error('❌ HP保存錯誤:', error);
-                });
-              }
-              
-              setIsHPModalOpen(false); 
-              setTempHPValue(''); 
-              setTempMaxHPValue('');
-            }}
-          >
-            套用
-          </ModalButton>
-        </div>
-        </div>
-      </Modal>
-
-      {/* AC 編輯彈窗 */}
-      <Modal 
-        isOpen={isACModalOpen} 
-        onClose={() => setIsACModalOpen(false)}
-        title="修改防禦等級 (AC)"
-        size="xs"
-      >
-        <ModalInput 
-          value={tempACValue} 
-          onChange={setTempACValue} 
-          placeholder={getBasicCombatStat(stats, 'ac').toString()} 
-          className="text-3xl font-mono text-center mb-4" 
-          autoFocus 
+      {/* 單一數字編輯彈窗（AC、先攻、速度、法術命中、法術 DC、攻擊命中、攻擊傷害） */}
+      {numberEditState.key && (
+        <NumberEditModal
+          isOpen={true}
+          onClose={() => setNumberEditState({ key: null, value: '' })}
+          title={
+            numberEditState.key === 'ac' ? '修改防禦等級 (AC)' :
+            numberEditState.key === 'initiative' ? '修改先攻調整值' :
+            numberEditState.key === 'speed' ? '修改速度' :
+            numberEditState.key === 'spellHit' ? '修改法術命中' :
+            numberEditState.key === 'spellDc' ? '修改法術DC' :
+            numberEditState.key === 'attackHit' ? '修改攻擊命中' :
+            numberEditState.key === 'attackDamage' ? '修改攻擊傷害' : ''
+          }
+          size="xs"
+          value={numberEditState.value}
+          onChange={(v) => setNumberEditState(prev => ({ ...prev, value: v }))}
+          placeholder={getBasicCombatStat(stats, numberEditState.key).toString()}
+          minValue={numberEditState.key === 'ac' ? 1 : 0}
+          allowZero={numberEditState.key !== 'ac'}
+          applyButtonClassName={
+            numberEditState.key === 'ac' ? 'bg-amber-600 hover:bg-amber-500' :
+            numberEditState.key === 'initiative' ? 'bg-indigo-600 hover:bg-indigo-500' :
+            numberEditState.key === 'speed' ? 'bg-cyan-600 hover:bg-cyan-500' :
+            (numberEditState.key === 'spellHit' || numberEditState.key === 'spellDc') ? 'bg-purple-600 hover:bg-purple-500' :
+            'bg-amber-600 hover:bg-amber-500'
+          }
+          onApply={(numericValue) => {
+            const key = numberEditState.key;
+            if (!key) return;
+            const getBonus = (s: CharacterStats, k: CombatStatKey) => {
+              const v = (s as any)[k];
+              return typeof v === 'object' && v && typeof (v as any).bonus === 'number' ? (v as any).bonus : 0;
+            };
+            const bonus = getBonus(stats, key);
+            if (key === 'ac') {
+              setStats(prev => ({ ...prev, ac: { basic: numericValue, bonus } }));
+              onSaveAC?.(numericValue)?.catch(e => console.error('❌ AC保存錯誤:', e));
+            } else if (key === 'initiative') {
+              setStats(prev => ({ ...prev, initiative: { basic: numericValue, bonus } }));
+              onSaveInitiative?.(numericValue)?.catch(e => console.error('❌ 先攻值保存錯誤:', e));
+            } else if (key === 'speed') {
+              setStats(prev => ({ ...prev, speed: { basic: numericValue, bonus } }));
+              onSaveSpeed?.(numericValue)?.catch(e => console.error('❌ 速度值保存錯誤:', e));
+            } else if (key === 'spellHit') {
+              setStats(prev => ({ ...prev, spellHit: { basic: numericValue, bonus } }));
+              onSaveSpellAttackBonus?.(numericValue)?.catch(e => console.error('❌ 法術命中保存錯誤:', e));
+            } else if (key === 'spellDc') {
+              setStats(prev => ({ ...prev, spellDc: { basic: numericValue, bonus } }));
+              onSaveSpellSaveDC?.(numericValue)?.catch(e => console.error('❌ 法術DC保存錯誤:', e));
+            } else if (key === 'attackHit') {
+              setStats(prev => ({ ...prev, attackHit: { basic: numericValue, bonus } }));
+              onSaveWeaponAttackBonus?.(numericValue)?.catch(e => console.error('❌ 攻擊命中保存錯誤:', e));
+            } else if (key === 'attackDamage') {
+              setStats(prev => ({ ...prev, attackDamage: { basic: numericValue, bonus } }));
+              onSaveWeaponDamageBonus?.(numericValue)?.catch(e => console.error('❌ 攻擊傷害保存錯誤:', e));
+            }
+            setNumberEditState({ key: null, value: '' });
+          }}
         />
-        <div className="flex gap-2">
-          <ModalButton variant="secondary" onClick={() => setIsACModalOpen(false)}>
-            取消
-          </ModalButton>
-          <ModalButton 
-            variant="primary" 
-            onClick={() => { 
-              const baseVal = getBasicCombatStat(stats, 'ac');
-              const result = handleValueInput(tempACValue, baseVal, {
-                minValue: 1,
-                allowZero: false
-              });
-              if (result.isValid) {
-                const bonus = typeof stats.ac === 'object' && stats.ac ? (stats.ac as any).bonus : 0;
-                setStats(prev => ({ ...prev, ac: { basic: result.numericValue, bonus } }));
-                
-                // 保存AC到資料庫
-                if (onSaveAC) {
-                  onSaveAC(result.numericValue).then(success => {
-                    if (!success) {
-                      console.error('❌ AC保存失敗');
-                    }
-                  }).catch(error => {
-                    console.error('❌ AC保存錯誤:', error);
-                  });
-                }
-              }
-              setIsACModalOpen(false); 
-              setTempACValue(''); 
-            }}
-          >
-            套用
-          </ModalButton>
-        </div>
-      </Modal>
-
-      {/* 先攻編輯彈窗 */}
-      <Modal 
-        isOpen={isInitiativeModalOpen} 
-        onClose={() => setIsInitiativeModalOpen(false)}
-        title="修改先攻調整值"
-        size="xs"
-      >
-        <ModalInput 
-          value={tempInitiativeValue} 
-          onChange={setTempInitiativeValue} 
-          placeholder={getBasicCombatStat(stats, 'initiative').toString()} 
-          className="text-3xl font-mono text-center mb-4" 
-          autoFocus 
-        />
-        <div className="flex gap-2">
-          <ModalButton variant="secondary" onClick={() => setIsInitiativeModalOpen(false)}>
-            取消
-          </ModalButton>
-          <ModalButton variant="primary" onClick={() => { 
-            // 如果輸入純數字，直接設定為該值
-            // 如果輸入運算表達式（如+2），則基於當前值計算
-            let finalValue;
-            const isCalculationInput = tempInitiativeValue.includes('+') || tempInitiativeValue.includes('-');
-            
-            const baseVal = getBasicCombatStat(stats, 'initiative');
-            if (isCalculationInput) {
-              const result = handleValueInput(tempInitiativeValue, baseVal, { allowZero: true });
-              finalValue = result.isValid ? result.numericValue : baseVal;
-            } else {
-              const numericValue = parseInt(tempInitiativeValue);
-              finalValue = !isNaN(numericValue) ? numericValue : baseVal;
-            }
-            const bonus = typeof stats.initiative === 'object' && stats.initiative ? (stats.initiative as any).bonus : 0;
-            setStats(prev => ({ ...prev, initiative: { basic: finalValue, bonus } }));
-
-            // 保存先攻值到資料庫
-            if (onSaveInitiative) {
-              onSaveInitiative(finalValue).then(success => {
-                if (!success) {
-                  console.error('❌ 先攻值保存失敗');
-                }
-              }).catch(error => {
-                console.error('❌ 先攻值保存錯誤:', error);
-              });
-            }
-
-            setIsInitiativeModalOpen(false); 
-            setTempInitiativeValue(''); 
-          }} className="bg-indigo-600 hover:bg-indigo-500">
-            套用
-          </ModalButton>
-        </div>
-      </Modal>
-
-      {/* 速度編輯彈窗 */}
-      <Modal 
-        isOpen={isSpeedModalOpen} 
-        onClose={() => setIsSpeedModalOpen(false)}
-        title="修改速度"
-        size="xs"
-      >
-        <ModalInput 
-          value={tempSpeedValue} 
-          onChange={setTempSpeedValue} 
-          placeholder={getBasicCombatStat(stats, 'speed').toString()} 
-          className="text-3xl font-mono text-center mb-4" 
-          autoFocus 
-        />
-        <div className="flex gap-2">
-          <ModalButton variant="secondary" onClick={() => setIsSpeedModalOpen(false)}>
-            取消
-          </ModalButton>
-          <ModalButton variant="primary" onClick={() => { 
-            // 如果輸入純數字，直接設定為該值
-            // 如果輸入運算表達式（如+5），則基於當前值計算
-            let finalValue;
-            const isCalculationInput = tempSpeedValue.includes('+') || tempSpeedValue.includes('-');
-            
-            const baseVal = getBasicCombatStat(stats, 'speed');
-            if (isCalculationInput) {
-              const result = handleValueInput(tempSpeedValue, baseVal, { minValue: 0, allowZero: true });
-              finalValue = result.isValid ? result.numericValue : baseVal;
-            } else {
-              const numericValue = parseInt(tempSpeedValue);
-              finalValue = (!isNaN(numericValue) && numericValue >= 0) ? numericValue : baseVal;
-            }
-            const bonus = typeof stats.speed === 'object' && stats.speed ? (stats.speed as any).bonus : 0;
-            setStats(prev => ({ ...prev, speed: { basic: finalValue, bonus } }));
-
-            // 保存速度值到資料庫
-            if (onSaveSpeed) {
-              onSaveSpeed(finalValue).then(success => {
-                if (!success) {
-                  console.error('❌ 速度值保存失敗');
-                }
-              }).catch(error => {
-                console.error('❌ 速度值保存錯誤:', error);
-              });
-            }
-
-            setIsSpeedModalOpen(false); 
-            setTempSpeedValue(''); 
-          }} className="bg-cyan-600 hover:bg-cyan-500">
-            套用
-          </ModalButton>
-        </div>
-      </Modal>
-
-      {/* 法術攻擊加值編輯彈窗 */}
-      <Modal 
-        isOpen={isSpellAttackModalOpen} 
-        onClose={() => setIsSpellAttackModalOpen(false)}
-        title="修改法術命中"
-        size="xs"
-      >
-        <ModalInput 
-          value={tempSpellAttackValue} 
-          onChange={setTempSpellAttackValue} 
-          placeholder={getBasicCombatStat(stats, 'spellHit').toString()} 
-          className="text-3xl font-mono text-center mb-4" 
-          autoFocus 
-        />
-        <div className="flex gap-2">
-          <ModalButton variant="secondary" onClick={() => setIsSpellAttackModalOpen(false)}>
-            取消
-          </ModalButton>
-          <ModalButton variant="primary" onClick={() => { 
-            let finalValue;
-            const isCalculationInput = tempSpellAttackValue.includes('+') || tempSpellAttackValue.includes('-');
-            
-            const baseVal = getBasicCombatStat(stats, 'spellHit');
-            if (isCalculationInput) {
-              const result = handleValueInput(tempSpellAttackValue, baseVal, { allowZero: true });
-              finalValue = result.isValid ? result.numericValue : baseVal;
-            } else {
-              const numericValue = parseInt(tempSpellAttackValue);
-              finalValue = !isNaN(numericValue) ? numericValue : baseVal;
-            }
-            const bonus = typeof stats.spellHit === 'object' && stats.spellHit ? (stats.spellHit as any).bonus : 0;
-            setStats(prev => ({ ...prev, spellHit: { basic: finalValue, bonus } }));
-
-            // 保存法術命中到資料庫
-            if (onSaveSpellAttackBonus) {
-              onSaveSpellAttackBonus(finalValue).then(success => {
-                if (!success) {
-                  console.error('❌ 法術攻擊加值保存失敗');
-                }
-              }).catch(error => {
-                console.error('❌ 法術攻擊加值保存錯誤:', error);
-              });
-            }
-
-            setIsSpellAttackModalOpen(false); 
-            setTempSpellAttackValue(''); 
-          }} className="bg-purple-600 hover:bg-purple-500">
-            套用
-          </ModalButton>
-        </div>
-      </Modal>
-
-      {/* 法術豁免DC編輯彈窗 */}
-      <Modal 
-        isOpen={isSpellDCModalOpen} 
-        onClose={() => setIsSpellDCModalOpen(false)}
-        title="修改法術DC"
-        size="xs"
-      >
-        <ModalInput 
-          value={tempSpellDCValue} 
-          onChange={setTempSpellDCValue} 
-          placeholder={getBasicCombatStat(stats, 'spellDc').toString()} 
-          className="text-3xl font-mono text-center mb-4" 
-          autoFocus 
-        />
-        <div className="flex gap-2">
-          <ModalButton variant="secondary" onClick={() => setIsSpellDCModalOpen(false)}>
-            取消
-          </ModalButton>
-          <ModalButton variant="primary" onClick={() => { 
-            let finalValue;
-            const isCalculationInput = tempSpellDCValue.includes('+') || tempSpellDCValue.includes('-');
-            
-            const baseVal = getBasicCombatStat(stats, 'spellDc');
-            if (isCalculationInput) {
-              const result = handleValueInput(tempSpellDCValue, baseVal, { minValue: 0, allowZero: true });
-              finalValue = result.isValid ? result.numericValue : baseVal;
-            } else {
-              const numericValue = parseInt(tempSpellDCValue);
-              finalValue = (!isNaN(numericValue) && numericValue >= 0) ? numericValue : baseVal;
-            }
-            const bonus = typeof stats.spellDc === 'object' && stats.spellDc ? (stats.spellDc as any).bonus : 0;
-            setStats(prev => ({ ...prev, spellDc: { basic: finalValue, bonus } }));
-
-            // 保存法術DC到資料庫
-            if (onSaveSpellSaveDC) {
-              onSaveSpellSaveDC(finalValue).then(success => {
-                if (!success) {
-                  console.error('❌ 法術豁免DC保存失敗');
-                }
-              }).catch(error => {
-                console.error('❌ 法術豁免DC保存錯誤:', error);
-              });
-            }
-
-            setIsSpellDCModalOpen(false); 
-            setTempSpellDCValue(''); 
-          }} className="bg-purple-600 hover:bg-purple-500">
-            套用
-          </ModalButton>
-        </div>
-      </Modal>
-
-      {/* 攻擊命中編輯彈窗 */}
-      <Modal 
-        isOpen={isWeaponAttackModalOpen} 
-        onClose={() => setIsWeaponAttackModalOpen(false)}
-        title="修改攻擊命中"
-        size="xs"
-      >
-        <ModalInput 
-          value={tempWeaponAttackValue} 
-          onChange={setTempWeaponAttackValue} 
-          placeholder={getBasicCombatStat(stats, 'attackHit').toString()} 
-          className="text-3xl font-mono text-center mb-4" 
-          autoFocus 
-        />
-        <div className="flex gap-2">
-          <ModalButton variant="secondary" onClick={() => setIsWeaponAttackModalOpen(false)}>
-            取消
-          </ModalButton>
-          <ModalButton variant="primary" onClick={() => { 
-            let finalValue;
-            const isCalculationInput = tempWeaponAttackValue.includes('+') || tempWeaponAttackValue.includes('-');
-            const baseVal = getBasicCombatStat(stats, 'attackHit');
-            if (isCalculationInput) {
-              const result = handleValueInput(tempWeaponAttackValue, baseVal, { allowZero: true });
-              finalValue = result.isValid ? result.numericValue : baseVal;
-            } else {
-              const numericValue = parseInt(tempWeaponAttackValue);
-              finalValue = !isNaN(numericValue) ? numericValue : baseVal;
-            }
-            const bonus = typeof stats.attackHit === 'object' && stats.attackHit ? (stats.attackHit as any).bonus : 0;
-            setStats(prev => ({ ...prev, attackHit: { basic: finalValue, bonus } }));
-            if (onSaveWeaponAttackBonus) {
-              onSaveWeaponAttackBonus(finalValue).then(success => {
-                if (!success) console.error('❌ 武器命中保存失敗');
-              }).catch(err => console.error('❌ 武器命中保存錯誤:', err));
-            }
-            setIsWeaponAttackModalOpen(false); 
-            setTempWeaponAttackValue(''); 
-          }} className="bg-amber-600 hover:bg-amber-500">
-            套用
-          </ModalButton>
-        </div>
-      </Modal>
-
-      {/* 攻擊傷害編輯彈窗 */}
-      <Modal 
-        isOpen={isWeaponDamageModalOpen} 
-        onClose={() => setIsWeaponDamageModalOpen(false)}
-        title="修改攻擊傷害"
-        size="xs"
-      >
-        <ModalInput 
-          value={tempWeaponDamageValue} 
-          onChange={setTempWeaponDamageValue} 
-          placeholder={getBasicCombatStat(stats, 'attackDamage').toString()} 
-          className="text-3xl font-mono text-center mb-4" 
-          autoFocus 
-        />
-        <div className="flex gap-2">
-          <ModalButton variant="secondary" onClick={() => setIsWeaponDamageModalOpen(false)}>
-            取消
-          </ModalButton>
-          <ModalButton variant="primary" onClick={() => { 
-            let finalValue;
-            const isCalculationInput = tempWeaponDamageValue.includes('+') || tempWeaponDamageValue.includes('-');
-            const baseVal = getBasicCombatStat(stats, 'attackDamage');
-            if (isCalculationInput) {
-              const result = handleValueInput(tempWeaponDamageValue, baseVal, { allowZero: true });
-              finalValue = result.isValid ? result.numericValue : baseVal;
-            } else {
-              const numericValue = parseInt(tempWeaponDamageValue);
-              finalValue = !isNaN(numericValue) ? numericValue : baseVal;
-            }
-            const bonus = typeof stats.attackDamage === 'object' && stats.attackDamage ? (stats.attackDamage as any).bonus : 0;
-            setStats(prev => ({ ...prev, attackDamage: { basic: finalValue, bonus } }));
-            if (onSaveWeaponDamageBonus) {
-              onSaveWeaponDamageBonus(finalValue).then(success => {
-                if (!success) console.error('❌ 武器傷害加值保存失敗');
-              }).catch(err => console.error('❌ 武器傷害加值保存錯誤:', err));
-            }
-            setIsWeaponDamageModalOpen(false); 
-            setTempWeaponDamageValue(''); 
-          }} className="bg-amber-600 hover:bg-amber-500">
-            套用
-          </ModalButton>
-        </div>
-      </Modal>
+      )}
 
       {/* 結束戰鬥確認彈窗 */}
-      <Modal 
-        isOpen={isEndCombatConfirmOpen} 
+      <EndCombatConfirmModal
+        isOpen={isEndCombatConfirmOpen}
         onClose={() => setIsEndCombatConfirmOpen(false)}
-        title="結束戰鬥"
-        size="xs"
-      >
-        <p className="text-slate-500 text-[16px] text-center mb-6">
-          確定要結束當前戰鬥嗎？這將重置戰鬥計時器並恢復所有每回合資源。
-        </p>
-        <div className="flex gap-3">
-          <ModalButton variant="secondary" onClick={() => setIsEndCombatConfirmOpen(false)}>
-            取消
-          </ModalButton>
-          <ModalButton variant="danger" onClick={confirmEndCombat}>
-            結束戰鬥
-          </ModalButton>
-        </div>
-      </Modal>
+        onConfirm={confirmEndCombat}
+      />
     </div>
   );
 };
