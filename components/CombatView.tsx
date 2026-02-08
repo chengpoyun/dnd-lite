@@ -12,6 +12,7 @@ import { STYLES } from '../styles/common';
 import type { CharacterCombatAction as DatabaseCombatItem } from '../lib/supabase';
 import { MODAL_CONTAINER_CLASS } from '../styles/modalStyles';
 import { isSpellcaster } from '../utils/spellUtils';
+import CombatNoteModal from './CombatNoteModal';
 
 interface CombatItem {
   id: string;
@@ -51,6 +52,7 @@ interface CombatViewProps {
   onSaveSpellSaveDC?: (dc: number) => Promise<boolean>;
   onSaveWeaponAttackBonus?: (bonus: number) => Promise<boolean>;
   onSaveWeaponDamageBonus?: (bonus: number) => Promise<boolean>;
+  onSaveCombatNotes?: (notes: string | null) => Promise<boolean>;
   showSpellStats?: boolean;
 }
 
@@ -66,6 +68,7 @@ export const CombatView: React.FC<CombatViewProps> = ({
   onSaveSpellSaveDC,
   onSaveWeaponAttackBonus,
   onSaveWeaponDamageBonus,
+  onSaveCombatNotes,
   showSpellStats = false
 }) => {
   const spellcasterClassNames = stats.classes?.length
@@ -137,6 +140,7 @@ export const CombatView: React.FC<CombatViewProps> = ({
   const [editingCategory, setEditingCategory] = useState<'action' | 'bonus' | 'reaction' | null>(null);
   
   const [isBonusTableExpanded, setIsBonusTableExpanded] = useState(false);
+  const [isNoteModalOpen, setIsNoteModalOpen] = useState(false);
 
   const [isRestOptionsOpen, setIsRestOptionsOpen] = useState(false);
   const [isShortRestDetailOpen, setIsShortRestDetailOpen] = useState(false);
@@ -951,6 +955,22 @@ export const CombatView: React.FC<CombatViewProps> = ({
         );
       })()}
 
+      {/* 筆記列：武器命中值下方、加值表上方 */}
+      {onSaveCombatNotes && (
+        <button
+          type="button"
+          onClick={() => setIsNoteModalOpen(true)}
+          className="w-full flex flex-col items-start gap-1 px-3 py-2 rounded-xl border border-slate-800 bg-slate-900 hover:bg-slate-800 transition-colors text-left"
+        >
+          <span className="text-xs font-black text-slate-500 uppercase tracking-wider">筆記</span>
+          {(stats.combatNotes ?? '').trim() ? (
+            <span className="text-sm text-slate-300 whitespace-pre-wrap break-words w-full">{stats.combatNotes}</span>
+          ) : (
+            <span className="text-sm text-slate-600">點擊新增筆記</span>
+          )}
+        </button>
+      )}
+
       {/* 可展開的加值表：屬性豁免 3x2 + 技能加值 3x6 */}
       <div className="rounded-xl border border-slate-800 bg-slate-900 overflow-hidden">
         <button
@@ -1072,6 +1092,22 @@ export const CombatView: React.FC<CombatViewProps> = ({
         categoryUsage={categoryUsages.reaction}
         onEditCategoryUsage={() => handleOpenCategoryUsageModal('reaction')}
       />
+
+      {/* 戰鬥筆記 Modal */}
+      {onSaveCombatNotes && (
+        <CombatNoteModal
+          isOpen={isNoteModalOpen}
+          onClose={() => setIsNoteModalOpen(false)}
+          initialValue={stats.combatNotes ?? ''}
+          onSave={async (value) => {
+            const success = await onSaveCombatNotes(value);
+            if (success) {
+              setStats(prev => ({ ...prev, combatNotes: value ?? null }));
+            }
+            return success;
+          }}
+        />
+      )}
 
       {/* 統一的新增/編輯項目彈窗 */}
       <Modal 

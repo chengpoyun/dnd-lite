@@ -575,6 +575,23 @@ const AuthenticatedApp: React.FC = () => {
     }
   }
 
+  // 保存戰鬥筆記
+  const saveCombatNotes = async (notes: string | null) => {
+    if (!currentCharacter || isSaving) return false;
+    if (!(await validateSessionBeforeSave())) return false;
+    setIsSaving(true);
+    try {
+      const success = await DetailedCharacterService.updateCurrentStats(currentCharacter.id, { combat_notes: notes });
+      if (success) console.log('✅ 戰鬥筆記保存成功');
+      return success;
+    } catch (error) {
+      console.error('❌ 戰鬥筆記保存失敗:', error);
+      return false;
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   // 保存額外數據（downtime、renown、自定義記錄等）
   const saveExtraData = async (extraData: any) => {
     if (!currentCharacter || isSaving) return false
@@ -893,6 +910,7 @@ const AuthenticatedApp: React.FC = () => {
                 onSaveSpellSaveDC={saveSpellSaveDC}
                 onSaveWeaponAttackBonus={saveWeaponAttackBonus}
                 onSaveWeaponDamageBonus={saveWeaponDamageBonus}
+                onSaveCombatNotes={saveCombatNotes}
                 showSpellStats={isSpellcaster(stats.classes?.map(c => c.name) || [stats.class])}
               />
             </Suspense>

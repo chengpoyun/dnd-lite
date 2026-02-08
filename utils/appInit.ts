@@ -43,6 +43,7 @@ export function buildCharacterStats(characterData: any, previousStats: Character
       temp: characterData.currentStats?.temporary_hp || INITIAL_STATS.hp.temp
     },
     ac: characterData.currentStats?.armor_class || INITIAL_STATS.ac,
+    combatNotes: characterData.currentStats?.combat_notes ?? null,
     initiative: characterData.currentStats?.initiative_bonus !== undefined 
       ? characterData.currentStats.initiative_bonus 
       : (characterData.abilityScores?.dexterity ? getModifier(characterData.abilityScores.dexterity) : 0),

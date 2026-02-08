@@ -89,6 +89,7 @@ export interface CharacterCurrentStats {
   spell_save_dc: number
   weapon_attack_bonus?: number
   weapon_damage_bonus?: number
+  combat_notes?: string | null
   extra_data?: {
     downtime?: number
     renown?: { used: number; total: number }

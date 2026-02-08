@@ -67,6 +67,7 @@ export interface CharacterStats {
     pp: number;
   };
   avatarUrl?: string;
+  combatNotes?: string | null;
   customRecords: CustomRecord[];
   // 額外資料：屬性和調整值加成
   extraData?: {
