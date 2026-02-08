@@ -7,6 +7,12 @@
 // ===== Modal 容器樣式 =====
 export const MODAL_CONTAINER_CLASS = "bg-slate-800 rounded-xl px-3 py-3 w-full relative";
 
+// ===== Modal 內文文字（深色背景用，確保可讀性）=====
+/** 標籤、加值列表、總加值等一般內文 */
+export const MODAL_BODY_TEXT_CLASS = "text-base text-slate-300";
+/** 備註、說明等次要文字 */
+export const MODAL_DESCRIPTION_CLASS = "text-xs text-slate-400";
+
 // ===== 輸入行樣式（橫向佈局：label + input）=====
 export const INPUT_ROW_CLASS = "flex items-center gap-2 mb-3";
 export const INPUT_LABEL_CLASS = "text-sm font-medium text-slate-300 w-20 shrink-0 text-center";

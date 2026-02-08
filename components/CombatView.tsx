@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { CharacterStats } from '../types';
 import { evaluateValue, getModifier, getProfBonus, handleValueInput } from '../utils/helpers';
 import { STAT_LABELS, SKILLS_MAP, ABILITY_KEYS } from '../utils/characterConstants';
-import { getFinalCombatStat, getBasicCombatStat, getFinalSavingThrow, getFinalSkillBonus, type CombatStatKey } from '../utils/characterAttributes';
+import { getFinalCombatStat, getBasicCombatStat, getFinalAbilityModifier, getFinalSavingThrow, getFinalSkillBonus, type CombatStatKey } from '../utils/characterAttributes';
 import { formatHitDicePools, getTotalCurrentHitDice, useHitDie, recoverHitDiceOnLongRest } from '../utils/classUtils';
 import { HybridDataManager } from '../services/hybridDataManager';
 import { MulticlassService } from '../services/multiclassService';
@@ -1126,6 +1126,18 @@ export const CombatView: React.FC<CombatViewProps> = ({
             (numberEditState.key === 'spellHit' || numberEditState.key === 'spellDc') ? 'bg-purple-600 hover:bg-purple-500' :
             'bg-amber-600 hover:bg-amber-500'
           }
+          {...(numberEditState.key === 'ac' && (() => {
+            const acBonus = typeof (stats as any).ac === 'object' && (stats as any).ac && typeof (stats as any).ac.bonus === 'number' ? (stats as any).ac.bonus : 0;
+            const dexMod = getFinalAbilityModifier(stats, 'dex');
+            return {
+              bonusValue: dexMod + acBonus,
+              bonusSources: [
+                { label: '敏捷調整值', value: dexMod },
+                ...(acBonus !== 0 ? [{ label: '其他', value: acBonus }] : []),
+              ],
+              description: 'AC = 基礎值 + 敏捷調整值 + 其他加值',
+            };
+          })())}
           onApply={(numericValue) => {
             const key = numberEditState.key;
             if (!key) return;

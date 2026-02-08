@@ -65,7 +65,8 @@ describe('buildCharacterStats - basic+bonus 結構', () => {
     expect((result as any).spellHit).toEqual({ basic: 6, bonus: 0 });
     expect((result as any).spellDc).toEqual({ basic: 14, bonus: 0 });
 
-    expect(getFinalCombatStat(result, 'ac')).toBe(16);
+    // AC = basic + 敏捷調整值 + bonus = 14 + 2 (dex 14) + 2 = 18
+    expect(getFinalCombatStat(result, 'ac')).toBe(18);
     expect(getFinalCombatStat(result, 'maxHp')).toBe(30);
   });
 
@@ -92,7 +93,8 @@ describe('buildCharacterStats - basic+bonus 結構', () => {
 
     const result = buildCharacterStats(characterData, PREV_STATS);
 
-    expect(getFinalCombatStat(result, 'ac')).toBe(16);
+    // AC = basic + 敏捷調整值 + bonus；armor_class 16 視為 basic，dex 14 => +2，故 16+2+0=18
+    expect(getFinalCombatStat(result, 'ac')).toBe(18);
     expect(getFinalCombatStat(result, 'maxHp')).toBe(30);
     expect(getFinalCombatStat(result, 'attackHit')).toBe(5);
     expect(getFinalCombatStat(result, 'attackDamage')).toBe(3);

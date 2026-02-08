@@ -5,7 +5,7 @@
 import React from 'react';
 import { Modal, ModalButton, ModalInput } from './ui/Modal';
 import { handleValueInput } from '../utils/helpers';
-import { MODAL_CONTAINER_CLASS } from '../styles/modalStyles';
+import { MODAL_CONTAINER_CLASS, MODAL_BODY_TEXT_CLASS, MODAL_DESCRIPTION_CLASS } from '../styles/modalStyles';
 
 export interface BonusSource {
   label: string;
@@ -26,6 +26,8 @@ interface NumberEditModalProps {
   onApply: (numericValue: number) => void;
   bonusValue?: number;
   bonusSources?: BonusSource[];
+  /** Optional note (e.g. AC formula: basic + 敏捷調整值 + 其他 bonus) */
+  description?: string;
 }
 
 export default function NumberEditModal({
@@ -42,6 +44,7 @@ export default function NumberEditModal({
   onApply,
   bonusValue,
   bonusSources,
+  description,
 }: NumberEditModalProps) {
   const baseValue = parseFloat(placeholder) || 0;
 
@@ -58,25 +61,31 @@ export default function NumberEditModal({
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={title} size={size}>
       <div className={MODAL_CONTAINER_CLASS}>
-        <ModalInput
-          value={value}
-          onChange={onChange}
-          placeholder={placeholder}
-          className="text-3xl font-mono text-center mb-4"
-          autoFocus
-        />
-        {(bonusValue !== undefined && bonusValue !== null) && (
-          <div className="text-sm text-slate-500 text-center mb-2">
-            加值：{bonusValue >= 0 ? '+' : ''}{bonusValue}
-          </div>
+        <div className="flex items-center gap-2 mb-4">
+          <span className={`${MODAL_BODY_TEXT_CLASS} shrink-0`}>基礎值</span>
+          <ModalInput
+            value={value}
+            onChange={onChange}
+            placeholder={placeholder}
+            className="text-2xl font-mono flex-1"
+            autoFocus
+          />
+        </div>
+        {description && (
+          <p className={`${MODAL_DESCRIPTION_CLASS} text-center mb-3`}>{description}</p>
         )}
         {bonusSources && bonusSources.length > 0 && (
-          <div className="text-xs text-slate-500 space-y-0.5 mb-3">
+          <div className={`${MODAL_BODY_TEXT_CLASS} space-y-0.5 mb-2`}>
             {bonusSources.map((s, i) => (
               <div key={i}>
                 {s.label} {s.value >= 0 ? '+' : ''}{s.value}
               </div>
             ))}
+          </div>
+        )}
+        {(bonusValue !== undefined && bonusValue !== null) && (
+          <div className={`${MODAL_BODY_TEXT_CLASS} mb-3`}>
+            總加值：{bonusValue >= 0 ? '+' : ''}{bonusValue}
           </div>
         )}
         <div className="flex gap-2">

@@ -94,7 +94,7 @@ export function getFinalCombatStat(
 ): number {
   switch (key) {
     case 'ac':
-      return getBasicBonusFinal((stats as any).ac, 10);
+      return getBasicValue((stats as any).ac, 10) + getFinalAbilityModifier(stats, 'dex') + getBonusValue((stats as any).ac);
     case 'initiative':
       return getBasicBonusFinal((stats as any).initiative, 0);
     case 'speed':

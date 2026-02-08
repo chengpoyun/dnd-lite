@@ -37,7 +37,8 @@ function createMockStats(overrides: Partial<CharacterStats> = {}): CharacterStat
 describe('characterAttributes - getFinalCombatStat', () => {
   it('應支援舊格式 flat 數值', () => {
     const stats = createMockStats({ ac: 16, initiative: 3, speed: 30 });
-    expect(getFinalCombatStat(stats, 'ac')).toBe(16);
+    // AC = basic + 敏捷調整值 + bonus；flat 16 視為 basic，dex 14 => +2，故 16+2+0=18
+    expect(getFinalCombatStat(stats, 'ac')).toBe(18);
     expect(getFinalCombatStat(stats, 'initiative')).toBe(3);
     expect(getFinalCombatStat(stats, 'speed')).toBe(30);
   });
@@ -48,9 +49,19 @@ describe('characterAttributes - getFinalCombatStat', () => {
       initiative: { basic: 2, bonus: 1 } as any,
       speed: { basic: 25, bonus: 5 } as any,
     });
-    expect(getFinalCombatStat(stats, 'ac')).toBe(16);
+    // AC = basic + 敏捷調整值 + bonus = 14 + 2 (dex 14) + 2 = 18
+    expect(getFinalCombatStat(stats, 'ac')).toBe(18);
     expect(getFinalCombatStat(stats, 'initiative')).toBe(3);
     expect(getFinalCombatStat(stats, 'speed')).toBe(30);
+  });
+
+  it('AC 應為 basic + 敏捷調整值 + bonus', () => {
+    const stats = createMockStats({
+      ac: { basic: 10, bonus: 1 } as any,
+      abilityScores: { str: 10, dex: 14, con: 10, int: 10, wis: 10, cha: 10 },
+    });
+    expect(getFinalAbilityModifier(stats, 'dex')).toBe(2);
+    expect(getFinalCombatStat(stats, 'ac')).toBe(10 + 2 + 1);
   });
 
   it('應正確計算 maxHp', () => {
@@ -93,10 +104,12 @@ describe('characterAttributes - getFinalCombatStat', () => {
     expect(getFinalCombatStat(statsNew, 'spellDc')).toBe(14);
   });
 
-  it('bonus=0 時應回傳 basic', () => {
+  it('AC bonus=0 時為 basic + 敏捷調整值', () => {
     const stats = createMockStats({
       ac: { basic: 10, bonus: 0 } as any,
+      abilityScores: { str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10 },
     });
+    expect(getFinalAbilityModifier(stats, 'dex')).toBe(0);
     expect(getFinalCombatStat(stats, 'ac')).toBe(10);
   });
 
