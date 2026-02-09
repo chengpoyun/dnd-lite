@@ -21,6 +21,7 @@ import CategoryUsageModal from './CategoryUsageModal';
 import CombatHPModal from './CombatHPModal';
 import CombatItemEditModal from './CombatItemEditModal';
 import type { ItemEditValues } from './CombatItemEditModal';
+import CombatStatEditModal from './CombatStatEditModal';
 
 interface CombatItem {
   id: string;
@@ -43,8 +44,8 @@ interface CombatItem {
 }
 
 const STORAGE_KEYS = {
-
-};
+  COMBAT_STATE: 'dnd-lite-combat-state',
+} as const;
 
 type ItemCategory = 'action' | 'bonus' | 'reaction' | 'resource';
 
@@ -61,6 +62,7 @@ interface CombatViewProps {
   onSaveWeaponAttackBonus?: (bonus: number) => Promise<boolean>;
   onSaveWeaponDamageBonus?: (bonus: number) => Promise<boolean>;
   onSaveCombatNotes?: (notes: string | null) => Promise<boolean>;
+  onSaveExtraData?: (extraData: Record<string, unknown>) => Promise<boolean>;
   showSpellStats?: boolean;
 }
 
@@ -77,6 +79,7 @@ export const CombatView: React.FC<CombatViewProps> = ({
   onSaveWeaponAttackBonus,
   onSaveWeaponDamageBonus,
   onSaveCombatNotes,
+  onSaveExtraData,
   showSpellStats = false
 }) => {
   const spellcasterClassNames = stats.classes?.length
@@ -136,6 +139,9 @@ export const CombatView: React.FC<CombatViewProps> = ({
   const [isEditMode, setIsEditMode] = useState(false);
   const [isHPModalOpen, setIsHPModalOpen] = useState(false);
   const [numberEditState, setNumberEditState] = useState<{ key: CombatStatKey | null; value: string }>({ key: null, value: '' });
+  const [isAttackHitModalOpen, setIsAttackHitModalOpen] = useState(false);
+  /** 攻擊命中 modal 內目前選擇的屬性（用於即時顯示對應修正值與來源敘述） */
+  const [attackHitModalAbility, setAttackHitModalAbility] = useState<'str' | 'dex'>('str');
   const [isEndCombatConfirmOpen, setIsEndCombatConfirmOpen] = useState(false);
   const [isItemEditModalOpen, setIsItemEditModalOpen] = useState(false);
   const [isCategoryUsageModalOpen, setIsCategoryUsageModalOpen] = useState(false);
@@ -152,7 +158,12 @@ export const CombatView: React.FC<CombatViewProps> = ({
   const [activeCategory, setActiveCategory] = useState<ItemCategory>('action');
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
 
-
+  // 攻擊命中 modal 開啟時，同步目前選擇的屬性以正確顯示加值
+  useEffect(() => {
+    if (isAttackHitModalOpen) {
+      setAttackHitModalAbility(stats.extraData?.attackHitAbility ?? 'str');
+    }
+  }, [isAttackHitModalOpen, stats.extraData?.attackHitAbility]);
 
   // 從資料庫載入戰鬥項目
   useEffect(() => {
@@ -204,11 +215,11 @@ export const CombatView: React.FC<CombatViewProps> = ({
   }, [characterId, isCaster]);
 
   // 分類映射 - 前端到資料庫
-  const mapCategoryToDb = (category: ItemCategory): string => {
-    const mapping = {
+  const mapCategoryToDb = (category: ItemCategory): DatabaseCombatItem['category'] => {
+    const mapping: Record<ItemCategory, DatabaseCombatItem['category']> = {
       'action': 'action',
       'bonus': 'bonus_action',
-      'reaction': 'reaction', 
+      'reaction': 'reaction',
       'resource': 'resource'
     };
     return mapping[category];
@@ -226,8 +237,8 @@ export const CombatView: React.FC<CombatViewProps> = ({
   };
 
   // 恢復類型映射 - 前端到資料庫
-  const mapRecoveryToDb = (recovery: 'round' | 'short' | 'long'): string => {
-    const mapping = {
+  const mapRecoveryToDb = (recovery: 'round' | 'short' | 'long'): DatabaseCombatItem['recovery_type'] => {
+    const mapping: Record<'round' | 'short' | 'long', DatabaseCombatItem['recovery_type']> = {
       'round': 'turn',
       'short': 'short_rest',
       'long': 'long_rest'
@@ -322,7 +333,7 @@ export const CombatView: React.FC<CombatViewProps> = ({
   };
 
   // 更新資料庫中的項目使用次數
-  const updateItemInDatabase = async (itemId: string, category: string, newCurrent: number, additionalFields?: { name?: string, icon?: string, max_uses?: number, recovery?: string }) => {
+  const updateItemInDatabase = async (itemId: string, category: string, newCurrent: number, additionalFields?: { name?: string, icon?: string, max_uses?: number, recovery?: 'round' | 'short' | 'long' }) => {
     try {
       const combatItems = await HybridDataManager.getCombatItems(characterId);
       const dbItem = combatItems.find(item => item.id === itemId);
@@ -823,9 +834,7 @@ export const CombatView: React.FC<CombatViewProps> = ({
         const weaponCards = [
           {
             key: "weapon-attack",
-            onClick: () => {
-              setNumberEditState({ key: 'attackHit', value: getBasicCombatStat(stats, 'attackHit').toString() });
-            },
+            onClick: () => setIsAttackHitModalOpen(true),
             label: "攻擊命中",
             value: `+${getFinalCombatStat(stats, 'attackHit')}`,
           },
@@ -1099,7 +1108,42 @@ export const CombatView: React.FC<CombatViewProps> = ({
         }}
       />
 
-      {/* 單一數字編輯彈窗（AC、先攻、速度、法術命中、法術 DC、攻擊命中、攻擊傷害） */}
+      {/* 攻擊命中：使用 CombatStatEditModal（力量/敏捷 + 基礎值 + 加值） */}
+      <CombatStatEditModal<'str' | 'dex'>
+        title="修改攻擊命中"
+        isOpen={isAttackHitModalOpen}
+        onClose={() => setIsAttackHitModalOpen(false)}
+        basicValue={getBasicCombatStat(stats, 'attackHit')}
+        segmentOptions={[
+          { value: 'str', label: '力量' },
+          { value: 'dex', label: '敏捷', activeClassName: 'bg-cyan-600 text-white shadow-sm' },
+        ]}
+        segmentValue={stats.extraData?.attackHitAbility ?? 'str'}
+        onSegmentChange={setAttackHitModalAbility}
+        bonusValue={getFinalAbilityModifier(stats, attackHitModalAbility) + getProfBonus(stats.level ?? 1) + (typeof (stats as any).attackHit === 'object' && (stats as any).attackHit && typeof (stats as any).attackHit.bonus === 'number' ? (stats as any).attackHit.bonus : 0)}
+        bonusSources={[
+          { label: attackHitModalAbility === 'str' ? '力量修正值' : '敏捷修正值', value: getFinalAbilityModifier(stats, attackHitModalAbility) },
+          { label: '熟練加值', value: getProfBonus(stats.level ?? 1) },
+          ...(typeof (stats as any).attackHit === 'object' && (stats as any).attackHit && (stats as any).attackHit.bonus !== 0 ? [{ label: '其他', value: (stats as any).attackHit.bonus as number }] : []),
+        ]}
+        description="攻擊命中 = 基礎值 + 屬性修正值 + 熟練加值 + 其他加值"
+        onSave={(basic, ability) => {
+          const prevBonus = typeof (stats as any).attackHit === 'object' && (stats as any).attackHit && typeof (stats as any).attackHit.bonus === 'number' ? (stats as any).attackHit.bonus : 0;
+          setStats(prev => ({
+            ...prev,
+            attackHit: { basic, bonus: prevBonus },
+            ...(ability != null ? { extraData: { ...prev.extraData, attackHitAbility: ability } } : {}),
+          }));
+          onSaveWeaponAttackBonus?.(basic)?.catch(e => console.error('❌ 攻擊命中保存錯誤:', e));
+          if (ability != null && ability !== (stats.extraData?.attackHitAbility ?? 'str')) {
+            onSaveExtraData?.({ ...stats.extraData, attack_hit_ability: ability })?.catch(e => console.error('❌ 攻擊屬性保存錯誤:', e));
+          }
+          setIsAttackHitModalOpen(false);
+        }}
+        applyButtonClassName="bg-amber-600 hover:bg-amber-500"
+      />
+
+      {/* 單一數字編輯彈窗（AC、先攻、速度、法術命中、法術 DC、攻擊傷害） */}
       {numberEditState.key && (
         <NumberEditModal
           isOpen={true}
@@ -1110,7 +1154,6 @@ export const CombatView: React.FC<CombatViewProps> = ({
             numberEditState.key === 'speed' ? '修改速度' :
             numberEditState.key === 'spellHit' ? '修改法術命中' :
             numberEditState.key === 'spellDc' ? '修改法術DC' :
-            numberEditState.key === 'attackHit' ? '修改攻擊命中' :
             numberEditState.key === 'attackDamage' ? '修改攻擊傷害' : ''
           }
           size="xs"
@@ -1138,6 +1181,26 @@ export const CombatView: React.FC<CombatViewProps> = ({
               description: 'AC = 基礎值 + 敏捷調整值 + 其他加值',
             };
           })())}
+          {...(numberEditState.key === 'initiative' && (() => {
+            const initBonus = typeof (stats as any).initiative === 'object' && (stats as any).initiative && typeof (stats as any).initiative.bonus === 'number' ? (stats as any).initiative.bonus : 0;
+            const dexMod = getFinalAbilityModifier(stats, 'dex');
+            return {
+              bonusValue: dexMod + initBonus,
+              bonusSources: [
+                { label: '敏捷調整值', value: dexMod },
+                ...(initBonus !== 0 ? [{ label: '其他', value: initBonus }] : []),
+              ],
+              description: '先攻 = 基礎值 + 敏捷調整值 + 其他加值',
+            };
+          })())}
+          {...(numberEditState.key === 'speed' && (() => {
+            const speedBonus = typeof (stats as any).speed === 'object' && (stats as any).speed && typeof (stats as any).speed.bonus === 'number' ? (stats as any).speed.bonus : 0;
+            return {
+              bonusValue: speedBonus,
+              bonusSources: speedBonus !== 0 ? [{ label: '其他', value: speedBonus }] : [],
+              description: '速度 = 基礎值 + 其他加值',
+            };
+          })())}
           onApply={(numericValue) => {
             const key = numberEditState.key;
             if (!key) return;
@@ -1161,9 +1224,6 @@ export const CombatView: React.FC<CombatViewProps> = ({
             } else if (key === 'spellDc') {
               setStats(prev => ({ ...prev, spellDc: { basic: numericValue, bonus } }));
               onSaveSpellSaveDC?.(numericValue)?.catch(e => console.error('❌ 法術DC保存錯誤:', e));
-            } else if (key === 'attackHit') {
-              setStats(prev => ({ ...prev, attackHit: { basic: numericValue, bonus } }));
-              onSaveWeaponAttackBonus?.(numericValue)?.catch(e => console.error('❌ 攻擊命中保存錯誤:', e));
             } else if (key === 'attackDamage') {
               setStats(prev => ({ ...prev, attackDamage: { basic: numericValue, bonus } }));
               onSaveWeaponDamageBonus?.(numericValue)?.catch(e => console.error('❌ 攻擊傷害保存錯誤:', e));

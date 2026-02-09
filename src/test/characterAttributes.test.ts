@@ -39,7 +39,8 @@ describe('characterAttributes - getFinalCombatStat', () => {
     const stats = createMockStats({ ac: 16, initiative: 3, speed: 30 });
     // AC = basic + 敏捷調整值 + bonus；flat 16 視為 basic，dex 14 => +2，故 16+2+0=18
     expect(getFinalCombatStat(stats, 'ac')).toBe(18);
-    expect(getFinalCombatStat(stats, 'initiative')).toBe(3);
+    // 先攻 = basic + 敏捷調整值 + bonus；flat 3 視為 basic，dex 14 => +2，故 3+2+0=5
+    expect(getFinalCombatStat(stats, 'initiative')).toBe(5);
     expect(getFinalCombatStat(stats, 'speed')).toBe(30);
   });
 
@@ -51,8 +52,18 @@ describe('characterAttributes - getFinalCombatStat', () => {
     });
     // AC = basic + 敏捷調整值 + bonus = 14 + 2 (dex 14) + 2 = 18
     expect(getFinalCombatStat(stats, 'ac')).toBe(18);
-    expect(getFinalCombatStat(stats, 'initiative')).toBe(3);
+    // 先攻 = basic + 敏捷調整值 + bonus = 2 + 2 (dex 14) + 1 = 5
+    expect(getFinalCombatStat(stats, 'initiative')).toBe(5);
     expect(getFinalCombatStat(stats, 'speed')).toBe(30);
+  });
+
+  it('先攻應為 basic + 敏捷調整值 + bonus', () => {
+    const stats = createMockStats({
+      initiative: { basic: 0, bonus: 1 } as any,
+      abilityScores: { str: 10, dex: 14, con: 10, int: 10, wis: 10, cha: 10 },
+    });
+    expect(getFinalAbilityModifier(stats, 'dex')).toBe(2);
+    expect(getFinalCombatStat(stats, 'initiative')).toBe(0 + 2 + 1);
   });
 
   it('AC 應為 basic + 敏捷調整值 + bonus', () => {
@@ -79,14 +90,24 @@ describe('characterAttributes - getFinalCombatStat', () => {
       weapon_attack_bonus: 5,
       weapon_damage_bonus: 3,
     });
-    expect(getFinalCombatStat(stats, 'attackHit')).toBe(5);
+    // attackHit = basic + 屬性(str) + 熟練 + bonus；flat 5 視為 basic，str 16 => +3，level 5 => prof 3，故 5+3+3+0=11
+    expect(getFinalCombatStat(stats, 'attackHit')).toBe(11);
     expect(getFinalCombatStat(stats, 'attackDamage')).toBe(3);
     const statsNew = createMockStats({
       attackHit: { basic: 4, bonus: 1 } as any,
       attackDamage: { basic: 2, bonus: 1 } as any,
     });
-    expect(getFinalCombatStat(statsNew, 'attackHit')).toBe(5);
+    expect(getFinalCombatStat(statsNew, 'attackHit')).toBe(4 + 3 + 3 + 1); // basic + str mod + prof + bonus
     expect(getFinalCombatStat(statsNew, 'attackDamage')).toBe(3);
+  });
+
+  it('attackHit 可依 extraData.attackHitAbility 使用敏捷', () => {
+    const stats = createMockStats({
+      attackHit: { basic: 2, bonus: 0 } as any,
+      extraData: { attackHitAbility: 'dex' as const },
+    });
+    // str 16 => +3, dex 14 => +2；使用 dex 時為 2 + 2 + 3 + 0 = 7
+    expect(getFinalCombatStat(stats, 'attackHit')).toBe(7);
   });
 
   it('應支援 spellHit、spellDc', () => {
@@ -115,7 +136,8 @@ describe('characterAttributes - getFinalCombatStat', () => {
 
   it('missing 欄位時應回傳合理預設', () => {
     const stats = createMockStats();
-    expect(getFinalCombatStat(stats, 'attackHit')).toBe(0);
+    // attackHit = 0 + str mod + prof + 0 = 3 + 3 = 6（level 5, str 16）
+    expect(getFinalCombatStat(stats, 'attackHit')).toBe(6);
     expect(getFinalCombatStat(stats, 'attackDamage')).toBe(0);
     expect(getFinalCombatStat(stats, 'spellHit')).toBe(0);
     expect(getFinalCombatStat(stats, 'spellDc')).toBe(0);

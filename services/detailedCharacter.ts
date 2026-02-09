@@ -703,7 +703,8 @@ export class DetailedCharacterService {
             : { used: 0, total: 0 },
         prestige: extraData?.prestige && typeof extraData.prestige === 'object' ? extraData.prestige : (existingEd as any)?.prestige && typeof (existingEd as any).prestige === 'object' ? (existingEd as any).prestige : { org: '', level: 0, rankName: '' },
         customRecords: Array.isArray(extraData?.customRecords) ? extraData.customRecords : Array.isArray((existingEd as any)?.customRecords) ? (existingEd as any).customRecords : [],
-        attacks: Array.isArray(extraData?.attacks) ? extraData.attacks : Array.isArray((existingEd as any)?.attacks) ? (existingEd as any).attacks : []
+        attacks: Array.isArray(extraData?.attacks) ? extraData.attacks : Array.isArray((existingEd as any)?.attacks) ? (existingEd as any).attacks : [],
+        attack_hit_ability: extraData?.attack_hit_ability ?? extraData?.attackHitAbility ?? (existingEd as any)?.attack_hit_ability ?? 'str'
       }
 
       if (extraData?.classes && Array.isArray(extraData.classes)) payload.classes = extraData.classes

@@ -3,6 +3,7 @@
  */
 import React, { useState, useEffect } from 'react';
 import { Modal, ModalButton, ModalInput } from './ui/Modal';
+import { SegmentBar } from './ui/SegmentBar';
 import { setNormalValue } from '../utils/helpers';
 import { MODAL_CONTAINER_CLASS } from '../styles/modalStyles';
 
@@ -116,29 +117,15 @@ export default function CombatItemEditModal({
           </div>
           <div className="space-y-2">
             <span className="text-[16px] text-slate-500 font-black block uppercase ml-1 tracking-widest">恢復週期</span>
-            <div className="flex bg-slate-950 p-1 rounded-xl border border-slate-800">
-              <button
-                type="button"
-                onClick={() => setRecovery('round')}
-                className={`flex-1 py-2 rounded-lg text-[16px] font-black uppercase transition-all ${recovery === 'round' ? 'bg-slate-800 text-white shadow-sm' : 'text-slate-600'}`}
-              >
-                每回合
-              </button>
-              <button
-                type="button"
-                onClick={() => setRecovery('short')}
-                className={`flex-1 py-2 rounded-lg text-[16px] font-black uppercase transition-all ${recovery === 'short' ? 'bg-amber-600 text-white shadow-sm' : 'text-slate-600'}`}
-              >
-                短休
-              </button>
-              <button
-                type="button"
-                onClick={() => setRecovery('long')}
-                className={`flex-1 py-2 rounded-lg text-[16px] font-black uppercase transition-all ${recovery === 'long' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-600'}`}
-              >
-                長休
-              </button>
-            </div>
+            <SegmentBar<ItemEditRecovery>
+              value={recovery}
+              onChange={setRecovery}
+              options={[
+                { value: 'round', label: '每回合' },
+                { value: 'short', label: '短休', activeClassName: 'bg-amber-600 text-white shadow-sm' },
+                { value: 'long', label: '長休', activeClassName: 'bg-indigo-600 text-white shadow-sm' },
+              ]}
+            />
           </div>
           <div className="flex gap-2 pt-2">
             <ModalButton variant="secondary" onClick={onClose}>

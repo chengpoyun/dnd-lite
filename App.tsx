@@ -929,6 +929,7 @@ const AuthenticatedApp: React.FC = () => {
                 onSaveWeaponAttackBonus={saveWeaponAttackBonus}
                 onSaveWeaponDamageBonus={saveWeaponDamageBonus}
                 onSaveCombatNotes={saveCombatNotes}
+                onSaveExtraData={saveExtraData}
                 showSpellStats={isSpellcaster(stats.classes?.map(c => c.name) || [stats.class])}
               />
             </Suspense>

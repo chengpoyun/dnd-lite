@@ -88,7 +88,6 @@ flowchart TD
 - **basic + bonus = final**：戰鬥屬性（AC、先攻、速度、HP max、攻擊命中、攻擊傷害、法術命中、法術 DC）皆採此結構。
 - **basic 可編輯**：使用者可直接編輯 basic 值。
 - **bonus 唯讀**：bonus 為唯讀顯示，未來可顯示各來源（例：+2 from skillA, +1 from itemB）；migration 時既有資料 bonus 預設為 0。
-- **AC 特別規則**：AC final = basic + **敏捷調整值** + 其他 bonus（`ac_bonus`）。敏捷調整值視為 AC 的加值來源之一，顯示在 AC 編輯 modal 的 bonus source list；公式備註為「AC = basic + 敏捷調整值 + 其他 bonus」。穿著重甲時不加敏捷——以後用別的方式判斷，本階段一律計入敏捷。
 - 取得 final 值請使用 [utils/characterAttributes.ts](utils/characterAttributes.ts)：
   - `getFinalCombatStat(stats, key)`：AC、先攻、速度、maxHp、attackHit、attackDamage、spellHit、spellDc
   - `getBasicCombatStat(stats, key)`：取得 basic（供編輯用）

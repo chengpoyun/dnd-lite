@@ -175,7 +175,11 @@ export function buildCharacterStats(characterData: any, previousStats: Character
         renown,
         prestige,
         customRecords,
-        extraData: { abilityBonuses, modifierBonuses },
+        extraData: {
+          abilityBonuses,
+          modifierBonuses,
+          attackHitAbility: ed?.attack_hit_ability ?? ed?.attackHitAbility ?? 'str',
+        },
         attacks
       };
     })(),

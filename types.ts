@@ -94,6 +94,8 @@ export interface CharacterStats {
       wis?: number;
       cha?: number;
     };
+    /** 攻擊命中/傷害使用的屬性：力量或敏捷，預設力量 */
+    attackHitAbility?: 'str' | 'dex';
   };
 }
 

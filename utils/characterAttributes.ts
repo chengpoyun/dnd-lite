@@ -96,7 +96,7 @@ export function getFinalCombatStat(
     case 'ac':
       return getBasicValue((stats as any).ac, 10) + getFinalAbilityModifier(stats, 'dex') + getBonusValue((stats as any).ac);
     case 'initiative':
-      return getBasicBonusFinal((stats as any).initiative, 0);
+      return getBasicValue((stats as any).initiative, 0) + getFinalAbilityModifier(stats, 'dex') + getBonusValue((stats as any).initiative);
     case 'speed':
       return getBasicBonusFinal((stats as any).speed, 30);
     case 'maxHp': {
@@ -106,7 +106,8 @@ export function getFinalCombatStat(
     }
     case 'attackHit': {
       const v = (stats as any).attackHit ?? (stats as any).weapon_attack_bonus;
-      return getBasicBonusFinal(v, 0);
+      const abilityKey = (stats.extraData?.attackHitAbility ?? 'str') as 'str' | 'dex';
+      return getBasicValue(v, 0) + getFinalAbilityModifier(stats, abilityKey) + getProfBonus(stats.level ?? 1) + getBonusValue(v);
     }
     case 'attackDamage': {
       const v = (stats as any).attackDamage ?? (stats as any).weapon_damage_bonus;

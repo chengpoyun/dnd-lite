@@ -68,6 +68,8 @@ describe('buildCharacterStats - basic+bonus 結構', () => {
     // AC = basic + 敏捷調整值 + bonus = 14 + 2 (dex 14) + 2 = 18
     expect(getFinalCombatStat(result, 'ac')).toBe(18);
     expect(getFinalCombatStat(result, 'maxHp')).toBe(30);
+    // attackHit = basic + 屬性(str) + 熟練 + bonus = 5 + 2 (str 14) + 3 (level 5) + 0 = 10
+    expect(getFinalCombatStat(result, 'attackHit')).toBe(10);
   });
 
   it('應向後相容舊 DB 格式（flat 數值）', () => {
@@ -96,7 +98,8 @@ describe('buildCharacterStats - basic+bonus 結構', () => {
     // AC = basic + 敏捷調整值 + bonus；armor_class 16 視為 basic，dex 14 => +2，故 16+2+0=18
     expect(getFinalCombatStat(result, 'ac')).toBe(18);
     expect(getFinalCombatStat(result, 'maxHp')).toBe(30);
-    expect(getFinalCombatStat(result, 'attackHit')).toBe(5);
+    // attackHit = basic + str + 熟練 + bonus；weapon_attack_bonus 5 視為 basic，str 14 => +2，level 5 => prof 3，故 5+2+3+0=10
+    expect(getFinalCombatStat(result, 'attackHit')).toBe(10);
     expect(getFinalCombatStat(result, 'attackDamage')).toBe(3);
     expect(getFinalCombatStat(result, 'spellHit')).toBe(6);
     expect(getFinalCombatStat(result, 'spellDc')).toBe(14);
