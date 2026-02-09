@@ -1264,7 +1264,7 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
             <div className="space-y-4">
               <div className="space-y-1">
                 <label className="text-[14px] font-black text-slate-500 uppercase ml-1">名稱</label>
-                <input type="text" value={editInfo.name} onChange={(e) => setEditInfo({ ...editInfo, name: e.target.value })} className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white outline-none" autoFocus />
+                <input type="text" value={editInfo.name} onChange={(e) => setEditInfo({ ...editInfo, name: e.target.value })} className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white outline-none" />
               </div>
               
               {/* 職業與等級編輯 */}
@@ -1406,7 +1406,7 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
             <div className="space-y-6">
               <div className="space-y-4">
                 <label className="text-[14px] font-black text-amber-500 uppercase ml-1">持有金幣 (GP)</label>
-                <input type="text" value={tempGPValue} onChange={(e) => setTempGPValue(e.target.value)} className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-3xl font-mono text-center text-amber-500 focus:outline-none" placeholder={formatDecimal(stats.currency.gp)} autoFocus />
+                <input type="text" value={tempGPValue} onChange={(e) => setTempGPValue(e.target.value)} className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-3xl font-mono text-center text-amber-500 focus:outline-none" placeholder={formatDecimal(stats.currency.gp)} />
                 <div className="text-center mt-2">
                   <span className="text-[14px] text-slate-500 uppercase font-black tracking-widest">計算結果</span>
                   <div className="flex items-center justify-center gap-3 text-lg font-bold">
@@ -1433,7 +1433,7 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
             <div className="space-y-6">
               <div className="space-y-4">
                 <label className="text-[14px] font-black text-emerald-400 uppercase ml-1">經驗值 (EXP)</label>
-                <input type="text" value={tempExpValue} onChange={(e) => setTempExpValue(e.target.value)} className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-3xl font-mono text-center text-emerald-400 focus:outline-none" placeholder={stats.exp.toString()} autoFocus />
+                <input type="text" value={tempExpValue} onChange={(e) => setTempExpValue(e.target.value)} className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-3xl font-mono text-center text-emerald-400 focus:outline-none" placeholder={stats.exp.toString()} />
                 <div className="text-center mt-2">
                   <span className="text-[14px] text-slate-500 uppercase font-black tracking-widest">計算結果</span>
                   <div className="flex items-center justify-center gap-3 text-lg font-bold">
@@ -1459,7 +1459,7 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
             <h3 className="text-base font-fantasy text-amber-500 mb-6 border-b border-slate-800 pb-2">修整期</h3>
             <div className="space-y-6">
               <div className="text-center">
-                <input type="text" value={tempDowntimeValue} onChange={(e) => setTempDowntimeValue(e.target.value)} className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-4 text-4xl font-mono text-center text-white focus:outline-none" placeholder={stats.downtime.toString()} autoFocus />
+                <input type="text" value={tempDowntimeValue} onChange={(e) => setTempDowntimeValue(e.target.value)} className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-4 text-4xl font-mono text-center text-white focus:outline-none" placeholder={stats.downtime.toString()} />
                 <div className="text-center mt-3">
                   <span className="text-[14px] text-slate-500 uppercase font-black tracking-widest">預覽結果</span>
                   <div className="flex items-center justify-center gap-3 text-lg font-bold">
@@ -1487,7 +1487,7 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
               <div className="space-y-4">
                 <div className="space-y-1">
                   <label className="text-[14px] font-black text-slate-500 uppercase ml-1">名聲 (使用)</label>
-                  <input type="text" value={tempRenownUsedValue} onChange={(e) => setTempRenownUsedValue(e.target.value)} className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-2xl font-mono text-center text-white focus:outline-none" placeholder={stats.renown.used.toString()} autoFocus />
+                  <input type="text" value={tempRenownUsedValue} onChange={(e) => setTempRenownUsedValue(e.target.value)} className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-2xl font-mono text-center text-white focus:outline-none" placeholder={stats.renown.used.toString()} />
                   <div className="flex items-center justify-center gap-2 mt-1">
                     <span className="text-[14px] text-slate-600 font-bold">{stats.renown.used}</span>
                     <span className="text-[14px] text-slate-700">→</span>
@@ -1523,7 +1523,7 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
             <div className="space-y-4">
               <div className="space-y-1">
                 <label className="text-[14px] font-black text-slate-500 uppercase ml-1">名稱</label>
-                <input type="text" value={newRecord.name} onChange={(e) => setNewRecord({ ...newRecord, name: e.target.value })} className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white outline-none" placeholder="例如：皇家古生物學院" autoFocus />
+                <input type="text" value={newRecord.name} onChange={(e) => setNewRecord({ ...newRecord, name: e.target.value })} className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white outline-none" placeholder="例如：皇家古生物學院" />
               </div>
               <div className="space-y-1">
                 <label className="text-[14px] font-black text-slate-500 uppercase ml-1">數值</label>

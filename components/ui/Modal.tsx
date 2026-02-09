@@ -101,7 +101,7 @@ export const ModalInput: React.FC<ModalInputProps> = ({
       value={value}
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
-      autoFocus={autoFocus}
+      autoFocus={false}
       className={`w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-white outline-none ${className}`}
     />
   );

@@ -68,7 +68,6 @@ const JoinCombatModal: React.FC<JoinCombatModalProps> = ({
             placeholder=""
             className={`${INPUT_FULL_WIDTH_CLASS} text-center text-3xl font-mono tracking-wider`}
             maxLength={3}
-            autoFocus
           />
         </div>
 

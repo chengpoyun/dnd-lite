@@ -160,7 +160,6 @@ export const LearnAbilityModal: React.FC<LearnAbilityModalProps> = ({
                   value={maxUses}
                   onChange={(e) => setMaxUses(parseInt(e.target.value) || 0)}
                   className="w-full bg-slate-800 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500"
-                  autoFocus
                 />
                 <p className="text-xs text-slate-500 mt-2">
                   💡 每個角色的使用次數可能不同，請根據角色等級或能力來源設定
