@@ -5,7 +5,7 @@ import React, { useState, useEffect } from 'react';
 import { Modal, ModalButton, ModalInput } from './ui/Modal';
 import { SegmentBar } from './ui/SegmentBar';
 import { setNormalValue } from '../utils/helpers';
-import { MODAL_CONTAINER_CLASS } from '../styles/modalStyles';
+import { MODAL_CONTAINER_CLASS, MODAL_BUTTON_CANCEL_CLASS } from '../styles/modalStyles';
 
 export type ItemEditRecovery = 'round' | 'short' | 'long';
 
@@ -128,7 +128,7 @@ export default function CombatItemEditModal({
             />
           </div>
           <div className="flex gap-2 pt-2">
-            <ModalButton variant="secondary" onClick={onClose}>
+            <ModalButton variant="secondary" className={MODAL_BUTTON_CANCEL_CLASS} onClick={onClose}>
               取消
             </ModalButton>
             <ModalButton variant="primary" onClick={handleSave} className="bg-indigo-600 hover:bg-indigo-500">

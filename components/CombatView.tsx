@@ -1156,6 +1156,8 @@ export const CombatView: React.FC<CombatViewProps> = ({
           ...(typeof (stats as any).attackHit === 'object' && (stats as any).attackHit && (stats as any).attackHit.bonus !== 0 ? [{ label: '其他', value: (stats as any).attackHit.bonus as number }] : []),
         ]}
         description="攻擊命中 = 基礎值 + 屬性調整值 + 熟練加值 + 其他加值"
+        finalValue={getFinalCombatStat(stats, 'attackHit')}
+        resetBasicValue={0}
         onSave={(basic, ability) => {
           const prevBonus = typeof (stats as any).attackHit === 'object' && (stats as any).attackHit && typeof (stats as any).attackHit.bonus === 'number' ? (stats as any).attackHit.bonus : 0;
           setStats(prev => ({
@@ -1190,6 +1192,8 @@ export const CombatView: React.FC<CombatViewProps> = ({
           ...(typeof (stats as any).attackDamage === 'object' && (stats as any).attackDamage && (stats as any).attackDamage.bonus !== 0 ? [{ label: '其他', value: (stats as any).attackDamage.bonus as number }] : []),
         ]}
         description="攻擊傷害 = 基礎值 + 屬性修正值 + 其他加值"
+        finalValue={getFinalCombatStat(stats, 'attackDamage')}
+        resetBasicValue={0}
         onSave={(basic, ability) => {
           const prevBonus = typeof (stats as any).attackDamage === 'object' && (stats as any).attackDamage && typeof (stats as any).attackDamage.bonus === 'number' ? (stats as any).attackDamage.bonus : 0;
           setStats(prev => ({
@@ -1226,6 +1230,8 @@ export const CombatView: React.FC<CombatViewProps> = ({
           ...(typeof (stats as any).spellHit === 'object' && (stats as any).spellHit && (stats as any).spellHit.bonus !== 0 ? [{ label: '其他', value: (stats as any).spellHit.bonus as number }] : []),
         ]}
         description="法術命中 = 基礎值 + 屬性修正值 + 熟練加值 + 其他加值"
+        finalValue={getFinalCombatStat(stats, 'spellHit')}
+        resetBasicValue={0}
         onSave={(basic, ability) => {
           const prevBonus = typeof (stats as any).spellHit === 'object' && (stats as any).spellHit && typeof (stats as any).spellHit.bonus === 'number' ? (stats as any).spellHit.bonus : 0;
           setStats(prev => ({
@@ -1262,6 +1268,8 @@ export const CombatView: React.FC<CombatViewProps> = ({
           ...(typeof (stats as any).spellDc === 'object' && (stats as any).spellDc && (stats as any).spellDc.bonus !== 0 ? [{ label: '其他', value: (stats as any).spellDc.bonus as number }] : []),
         ]}
         description="法術DC = 基礎值(8) + 屬性修正值 + 熟練加值 + 其他加值"
+        finalValue={getFinalCombatStat(stats, 'spellDc')}
+        resetBasicValue={8}
         onSave={(basic, ability) => {
           const prevBonus = typeof (stats as any).spellDc === 'object' && (stats as any).spellDc && typeof (stats as any).spellDc.bonus === 'number' ? (stats as any).spellDc.bonus : 0;
           setStats(prev => ({
@@ -1331,6 +1339,8 @@ export const CombatView: React.FC<CombatViewProps> = ({
               description: '速度 = 基礎值 + 其他加值',
             };
           })())}
+          finalValue={numberEditState.key ? getFinalCombatStat(stats, numberEditState.key) : undefined}
+          resetValue={numberEditState.key === 'ac' ? 10 : numberEditState.key === 'initiative' ? 0 : numberEditState.key === 'speed' ? 30 : undefined}
           onApply={(numericValue) => {
             const key = numberEditState.key;
             if (!key) return;

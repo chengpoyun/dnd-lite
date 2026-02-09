@@ -5,7 +5,7 @@
 import React from 'react';
 import { Modal, ModalButton, ModalInput } from './ui/Modal';
 import { handleValueInput } from '../utils/helpers';
-import { MODAL_CONTAINER_CLASS, MODAL_BODY_TEXT_CLASS, MODAL_DESCRIPTION_CLASS } from '../styles/modalStyles';
+import { MODAL_CONTAINER_CLASS, MODAL_BODY_TEXT_CLASS, MODAL_DESCRIPTION_CLASS, MODAL_BUTTON_CANCEL_CLASS, MODAL_BUTTON_RESET_CLASS } from '../styles/modalStyles';
 
 export interface BonusSource {
   label: string;
@@ -28,6 +28,10 @@ interface NumberEditModalProps {
   bonusSources?: BonusSource[];
   /** Optional note (e.g. AC formula: basic + 敏捷調整值 + 其他 bonus) */
   description?: string;
+  /** 最終總計（basic + 加值）；有傳則顯示此值，否則由 placeholder + bonusValue 計算 */
+  finalValue?: number;
+  /** 重置按鈕還原的基礎值（如 AC=10、先攻=0、速度=30） */
+  resetValue?: number;
 }
 
 export default function NumberEditModal({
@@ -45,8 +49,11 @@ export default function NumberEditModal({
   bonusValue,
   bonusSources,
   description,
+  finalValue,
+  resetValue,
 }: NumberEditModalProps) {
   const baseValue = parseFloat(placeholder) || 0;
+  const displayTotal = finalValue ?? (baseValue + (bonusValue ?? 0));
 
   const handleApply = () => {
     const result = handleValueInput(value, baseValue, {
@@ -83,13 +90,16 @@ export default function NumberEditModal({
             ))}
           </div>
         )}
-        {(bonusValue !== undefined && bonusValue !== null) && (
+        {(finalValue !== undefined || bonusValue !== undefined) && (
           <div className={`${MODAL_BODY_TEXT_CLASS} mb-3`}>
-            總加值：{bonusValue >= 0 ? '+' : ''}{bonusValue}
+            最終總計：{displayTotal >= 0 ? '+' : ''}{displayTotal}
           </div>
         )}
         <div className="flex gap-2">
-          <ModalButton variant="secondary" onClick={onClose}>
+          <ModalButton variant="secondary" className={MODAL_BUTTON_RESET_CLASS} onClick={() => onChange(resetValue !== undefined ? String(resetValue) : placeholder)}>
+            重置
+          </ModalButton>
+          <ModalButton variant="secondary" className={MODAL_BUTTON_CANCEL_CLASS} onClick={onClose}>
             取消
           </ModalButton>
           <ModalButton

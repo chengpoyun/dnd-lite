@@ -30,6 +30,12 @@ export const BUTTON_SECONDARY_CLASS = "flex-1 px-6 py-3 bg-slate-700 hover:bg-sl
 export const BUTTON_WARNING_CLASS = "flex-1 px-6 py-3 bg-orange-600 hover:bg-orange-700 rounded-lg font-medium text-white transition-colors disabled:opacity-50";
 export const BUTTON_DANGER_CLASS = "flex-1 px-6 py-3 bg-amber-600 hover:bg-amber-700 rounded-lg font-medium text-white transition-colors disabled:opacity-50";
 
+// ===== Modal 內與 ModalButton 搭配的按鈕樣式（className，與 variant 並用）=====
+/** 取消／次要：灰底 + 邊框，清楚可辨 */
+export const MODAL_BUTTON_CANCEL_CLASS = "!bg-slate-600 hover:!bg-slate-500 text-slate-100 border border-slate-500";
+/** 重置／還原：琥珀色系，與取消區分 */
+export const MODAL_BUTTON_RESET_CLASS = "!bg-amber-900/70 hover:!bg-amber-800/80 text-amber-100 border border-amber-700/60";
+
 // ===== 摺疊區塊樣式 =====
 export const COLLAPSIBLE_BUTTON_CLASS = "w-full flex items-center justify-between p-3 bg-slate-900 hover:bg-slate-800 rounded-lg transition-colors text-left";
 export const COLLAPSIBLE_CONTENT_CLASS = "mt-2 p-3 bg-slate-900 rounded-lg max-h-64 overflow-y-auto";

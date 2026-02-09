@@ -2,7 +2,8 @@
  * RestOptionsModal - 選擇休息方式（短休 / 長休 / 取消）
  */
 import React from 'react';
-import { Modal } from './ui/Modal';
+import { Modal, ModalButton } from './ui/Modal';
+import { MODAL_BUTTON_CANCEL_CLASS } from '../styles/modalStyles';
 
 interface RestOptionsModalProps {
   isOpen: boolean;
@@ -42,13 +43,9 @@ export default function RestOptionsModal({
             <div className="text-[16px] text-slate-500 font-bold uppercase">完全恢復 HP 與所有資源</div>
           </div>
         </button>
-        <button
-          type="button"
-          onClick={onClose}
-          className="w-full py-3 text-slate-600 font-black text-[16px] uppercase tracking-widest pt-4"
-        >
+        <ModalButton variant="secondary" className={`${MODAL_BUTTON_CANCEL_CLASS} w-full`} onClick={onClose}>
           取消
-        </button>
+        </ModalButton>
       </div>
     </Modal>
   );

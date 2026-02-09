@@ -84,14 +84,16 @@ describe('NumberEditModal', () => {
     expect(onApply).not.toHaveBeenCalled();
   });
 
-  it('有傳 bonusValue 時畫面顯示加值', () => {
+  it('有傳 bonusValue 時畫面顯示最終總計（placeholder + bonusValue）', () => {
     render(
       <NumberEditModal
         {...defaultProps}
+        placeholder="10"
         bonusValue={2}
       />
     );
-    expect(screen.getByText(/加值：\+2/)).toBeInTheDocument();
+    const row = screen.getByText((_, el) => (el?.textContent?.trim() ?? '') === '最終總計：+12');
+    expect(row).toBeInTheDocument();
   });
 
   it('有傳 bonusSources 時畫面顯示來源列表', () => {
@@ -130,5 +132,40 @@ describe('NumberEditModal', () => {
     render(<NumberEditModal {...defaultProps} onClose={onClose} />);
     fireEvent.click(screen.getByText('取消'));
     expect(onClose).toHaveBeenCalled();
+  });
+
+  it('點擊重置時呼叫 onChange(placeholder)，且不呼叫 onClose、不呼叫 onApply', () => {
+    const onChange = vi.fn();
+    const onClose = vi.fn();
+    const onApply = vi.fn();
+    render(
+      <NumberEditModal
+        {...defaultProps}
+        value="99"
+        onChange={onChange}
+        onClose={onClose}
+        onApply={onApply}
+        placeholder="14"
+      />
+    );
+    fireEvent.click(screen.getByText('重置'));
+    expect(onChange).toHaveBeenCalledWith('14');
+    expect(onClose).not.toHaveBeenCalled();
+    expect(onApply).not.toHaveBeenCalled();
+  });
+
+  it('傳入 resetValue 時點擊重置呼叫 onChange(resetValue)', () => {
+    const onChange = vi.fn();
+    render(
+      <NumberEditModal
+        {...defaultProps}
+        value="99"
+        onChange={onChange}
+        placeholder="14"
+        resetValue={10}
+      />
+    );
+    fireEvent.click(screen.getByText('重置'));
+    expect(onChange).toHaveBeenCalledWith('10');
   });
 });

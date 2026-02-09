@@ -4,7 +4,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Modal, ModalButton } from './ui/Modal';
-import { MODAL_CONTAINER_CLASS, INPUT_FULL_WIDTH_CLASS } from '../styles/modalStyles';
+import { MODAL_CONTAINER_CLASS, INPUT_FULL_WIDTH_CLASS, MODAL_BUTTON_CANCEL_CLASS } from '../styles/modalStyles';
 
 interface CombatNoteModalProps {
   isOpen: boolean;
@@ -64,7 +64,7 @@ export default function CombatNoteModal({
             <ModalButton variant="primary" onClick={handleSave} className="min-w-0 truncate">
               儲存
             </ModalButton>
-            <ModalButton variant="secondary" onClick={handleCancel} className="min-w-0 truncate">
+            <ModalButton variant="secondary" onClick={handleCancel} className={`${MODAL_BUTTON_CANCEL_CLASS} min-w-0 truncate`}>
               取消
             </ModalButton>
             {hasContent && (

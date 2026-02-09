@@ -3,6 +3,7 @@
  */
 import React from 'react';
 import { Modal, ModalButton } from './ui/Modal';
+import { MODAL_BUTTON_CANCEL_CLASS } from '../styles/modalStyles';
 
 interface LongRestConfirmModalProps {
   isOpen: boolean;
@@ -21,7 +22,7 @@ export default function LongRestConfirmModal({
         這將完全恢復 HP、重置所有法術位與職業資源。
       </p>
       <div className="flex gap-3">
-        <ModalButton variant="secondary" onClick={onClose}>
+        <ModalButton variant="secondary" className={MODAL_BUTTON_CANCEL_CLASS} onClick={onClose}>
           返回
         </ModalButton>
         <ModalButton variant="primary" onClick={onConfirm} className="bg-indigo-600 hover:bg-indigo-500">

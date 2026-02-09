@@ -6,7 +6,7 @@ import React, { useState, useEffect } from 'react';
 import { Modal, ModalButton, ModalInput } from './ui/Modal';
 import { SegmentBar, type SegmentBarOption } from './ui/SegmentBar';
 import { handleValueInput } from '../utils/helpers';
-import { MODAL_CONTAINER_CLASS, MODAL_BODY_TEXT_CLASS, MODAL_DESCRIPTION_CLASS } from '../styles/modalStyles';
+import { MODAL_CONTAINER_CLASS, MODAL_BODY_TEXT_CLASS, MODAL_DESCRIPTION_CLASS, MODAL_BUTTON_CANCEL_CLASS, MODAL_BUTTON_RESET_CLASS } from '../styles/modalStyles';
 
 export interface BonusSourceItem {
   label: string;
@@ -31,6 +31,10 @@ interface CombatStatEditModalProps<T extends string = string> {
   allowZero?: boolean;
   applyButtonClassName?: string;
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl';
+  /** 最終總計（basic + 加值）；有傳則顯示此值，否則由 basicValue + bonusValue 計算 */
+  finalValue?: number;
+  /** 重置按鈕還原的基礎值（如攻擊命中/傷害/法術命中=0、法術DC=8） */
+  resetBasicValue?: number;
 }
 
 export default function CombatStatEditModal<T extends string = string>({
@@ -49,9 +53,12 @@ export default function CombatStatEditModal<T extends string = string>({
   allowZero = true,
   applyButtonClassName = 'bg-amber-600 hover:bg-amber-500',
   size = 'xs',
+  finalValue,
+  resetBasicValue,
 }: CombatStatEditModalProps<T>) {
   const [value, setValue] = useState(basicValue.toString());
   const [segment, setSegment] = useState<T | undefined>(segmentValue);
+  const displayTotal = finalValue ?? (basicValue + (bonusValue ?? 0));
 
   useEffect(() => {
     if (isOpen) {
@@ -68,6 +75,11 @@ export default function CombatStatEditModal<T extends string = string>({
     if (result.isValid) {
       onSave(result.numericValue, segment);
     }
+  };
+
+  const handleReset = () => {
+    setValue((resetBasicValue !== undefined ? resetBasicValue : basicValue).toString());
+    setSegment(segmentValue);
   };
 
   return (
@@ -107,13 +119,16 @@ export default function CombatStatEditModal<T extends string = string>({
             ))}
           </div>
         )}
-        {(bonusValue !== undefined && bonusValue !== null) && (
+        {(finalValue !== undefined || bonusValue !== undefined) && (
           <div className={`${MODAL_BODY_TEXT_CLASS} mb-3`}>
-            總加值：{bonusValue >= 0 ? '+' : ''}{bonusValue}
+            最終總計：{displayTotal >= 0 ? '+' : ''}{displayTotal}
           </div>
         )}
         <div className="flex gap-2">
-          <ModalButton variant="secondary" onClick={onClose}>
+          <ModalButton variant="secondary" className={MODAL_BUTTON_RESET_CLASS} onClick={handleReset}>
+            重置
+          </ModalButton>
+          <ModalButton variant="secondary" className={MODAL_BUTTON_CANCEL_CLASS} onClick={onClose}>
             取消
           </ModalButton>
           <ModalButton

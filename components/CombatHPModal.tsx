@@ -5,7 +5,7 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, ModalButton, ModalInput } from './ui/Modal';
 import { handleValueInput } from '../utils/helpers';
-import { MODAL_CONTAINER_CLASS, MODAL_BODY_TEXT_CLASS, MODAL_DESCRIPTION_CLASS } from '../styles/modalStyles';
+import { MODAL_CONTAINER_CLASS, MODAL_BODY_TEXT_CLASS, MODAL_DESCRIPTION_CLASS, MODAL_BUTTON_CANCEL_CLASS, MODAL_BUTTON_RESET_CLASS } from '../styles/modalStyles';
 
 interface CombatHPModalProps {
   isOpen: boolean;
@@ -122,11 +122,16 @@ export default function CombatHPModal({
         </div>
 
         <div className="flex flex-wrap gap-2 mt-4">
-          <ModalButton variant="secondary" onClick={handleReset}>
+          <ModalButton
+            variant="secondary"
+            className={MODAL_BUTTON_RESET_CLASS}
+            onClick={handleReset}
+          >
             重置
           </ModalButton>
           <ModalButton
             variant="secondary"
+            className={MODAL_BUTTON_CANCEL_CLASS}
             onClick={() => {
               setTempCurrent('');
               setTempTemp('');
