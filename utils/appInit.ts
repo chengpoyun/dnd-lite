@@ -179,6 +179,7 @@ export function buildCharacterStats(characterData: any, previousStats: Character
           abilityBonuses,
           modifierBonuses,
           attackHitAbility: ed?.attack_hit_ability ?? ed?.attackHitAbility ?? 'str',
+          spellHitAbility: ed?.spell_hit_ability ?? ed?.spellHitAbility ?? 'int',
         },
         attacks
       };

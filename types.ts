@@ -94,8 +94,10 @@ export interface CharacterStats {
       wis?: number;
       cha?: number;
     };
-    /** 攻擊命中/傷害使用的屬性：力量或敏捷，預設力量 */
+    /** 攻擊命中與攻擊傷害共用：力量或敏捷，預設力量 */
     attackHitAbility?: 'str' | 'dex';
+    /** 法術命中與法術DC共用：智力/感知/魅力，預設智力 */
+    spellHitAbility?: 'int' | 'wis' | 'cha';
   };
 }
 

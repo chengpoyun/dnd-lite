@@ -140,8 +140,14 @@ export const CombatView: React.FC<CombatViewProps> = ({
   const [isHPModalOpen, setIsHPModalOpen] = useState(false);
   const [numberEditState, setNumberEditState] = useState<{ key: CombatStatKey | null; value: string }>({ key: null, value: '' });
   const [isAttackHitModalOpen, setIsAttackHitModalOpen] = useState(false);
-  /** 攻擊命中 modal 內目前選擇的屬性（用於即時顯示對應修正值與來源敘述） */
+  /** 攻擊命中 modal 內目前選擇的屬性（用於即時顯示對應調整值與來源敘述） */
   const [attackHitModalAbility, setAttackHitModalAbility] = useState<'str' | 'dex'>('str');
+  const [isAttackDamageModalOpen, setIsAttackDamageModalOpen] = useState(false);
+  const [attackDamageModalAbility, setAttackDamageModalAbility] = useState<'str' | 'dex'>('str');
+  const [isSpellHitModalOpen, setIsSpellHitModalOpen] = useState(false);
+  const [spellHitModalAbility, setSpellHitModalAbility] = useState<'int' | 'wis' | 'cha'>('int');
+  const [isSpellDcModalOpen, setIsSpellDcModalOpen] = useState(false);
+  const [spellDcModalAbility, setSpellDcModalAbility] = useState<'int' | 'wis' | 'cha'>('int');
   const [isEndCombatConfirmOpen, setIsEndCombatConfirmOpen] = useState(false);
   const [isItemEditModalOpen, setIsItemEditModalOpen] = useState(false);
   const [isCategoryUsageModalOpen, setIsCategoryUsageModalOpen] = useState(false);
@@ -164,6 +170,15 @@ export const CombatView: React.FC<CombatViewProps> = ({
       setAttackHitModalAbility(stats.extraData?.attackHitAbility ?? 'str');
     }
   }, [isAttackHitModalOpen, stats.extraData?.attackHitAbility]);
+  useEffect(() => {
+    if (isAttackDamageModalOpen) setAttackDamageModalAbility(stats.extraData?.attackHitAbility ?? 'str');
+  }, [isAttackDamageModalOpen, stats.extraData?.attackHitAbility]);
+  useEffect(() => {
+    if (isSpellHitModalOpen) setSpellHitModalAbility(stats.extraData?.spellHitAbility ?? 'int');
+  }, [isSpellHitModalOpen, stats.extraData?.spellHitAbility]);
+  useEffect(() => {
+    if (isSpellDcModalOpen) setSpellDcModalAbility(stats.extraData?.spellHitAbility ?? 'int');
+  }, [isSpellDcModalOpen, stats.extraData?.spellHitAbility]);
 
   // 從資料庫載入戰鬥項目
   useEffect(() => {
@@ -840,9 +855,7 @@ export const CombatView: React.FC<CombatViewProps> = ({
           },
           {
             key: "weapon-damage",
-            onClick: () => {
-              setNumberEditState({ key: 'attackDamage', value: getBasicCombatStat(stats, 'attackDamage').toString() });
-            },
+            onClick: () => setIsAttackDamageModalOpen(true),
             label: "攻擊傷害",
             value: (() => { const v = getFinalCombatStat(stats, 'attackDamage'); return `${v >= 0 ? "+" : ""}${v}`; })(),
           },
@@ -851,17 +864,13 @@ export const CombatView: React.FC<CombatViewProps> = ({
           ? [
               {
                 key: "spell-attack",
-                onClick: () => {
-                  setNumberEditState({ key: 'spellHit', value: getBasicCombatStat(stats, 'spellHit').toString() });
-                },
+                onClick: () => setIsSpellHitModalOpen(true),
                 label: "法術命中",
                 value: `+${getFinalCombatStat(stats, 'spellHit')}`,
               },
               {
                 key: "spell-dc",
-                onClick: () => {
-                  setNumberEditState({ key: 'spellDc', value: getBasicCombatStat(stats, 'spellDc').toString() });
-                },
+                onClick: () => setIsSpellDcModalOpen(true),
                 label: "法術DC",
                 value: getFinalCombatStat(stats, 'spellDc'),
               },
@@ -1122,11 +1131,11 @@ export const CombatView: React.FC<CombatViewProps> = ({
         onSegmentChange={setAttackHitModalAbility}
         bonusValue={getFinalAbilityModifier(stats, attackHitModalAbility) + getProfBonus(stats.level ?? 1) + (typeof (stats as any).attackHit === 'object' && (stats as any).attackHit && typeof (stats as any).attackHit.bonus === 'number' ? (stats as any).attackHit.bonus : 0)}
         bonusSources={[
-          { label: attackHitModalAbility === 'str' ? '力量修正值' : '敏捷修正值', value: getFinalAbilityModifier(stats, attackHitModalAbility) },
+          { label: attackHitModalAbility === 'str' ? '力量調整值' : '敏捷調整值', value: getFinalAbilityModifier(stats, attackHitModalAbility) },
           { label: '熟練加值', value: getProfBonus(stats.level ?? 1) },
           ...(typeof (stats as any).attackHit === 'object' && (stats as any).attackHit && (stats as any).attackHit.bonus !== 0 ? [{ label: '其他', value: (stats as any).attackHit.bonus as number }] : []),
         ]}
-        description="攻擊命中 = 基礎值 + 屬性修正值 + 熟練加值 + 其他加值"
+        description="攻擊命中 = 基礎值 + 屬性調整值 + 熟練加值 + 其他加值"
         onSave={(basic, ability) => {
           const prevBonus = typeof (stats as any).attackHit === 'object' && (stats as any).attackHit && typeof (stats as any).attackHit.bonus === 'number' ? (stats as any).attackHit.bonus : 0;
           setStats(prev => ({
@@ -1143,7 +1152,113 @@ export const CombatView: React.FC<CombatViewProps> = ({
         applyButtonClassName="bg-amber-600 hover:bg-amber-500"
       />
 
-      {/* 單一數字編輯彈窗（AC、先攻、速度、法術命中、法術 DC、攻擊傷害） */}
+      {/* 攻擊傷害：basic + 力量/敏捷 + bonus（與攻擊命中共用 attackHitAbility） */}
+      <CombatStatEditModal<'str' | 'dex'>
+        title="修改攻擊傷害"
+        isOpen={isAttackDamageModalOpen}
+        onClose={() => setIsAttackDamageModalOpen(false)}
+        basicValue={getBasicCombatStat(stats, 'attackDamage')}
+        segmentOptions={[
+          { value: 'str', label: '力量' },
+          { value: 'dex', label: '敏捷', activeClassName: 'bg-cyan-600 text-white shadow-sm' },
+        ]}
+        segmentValue={stats.extraData?.attackHitAbility ?? 'str'}
+        onSegmentChange={setAttackDamageModalAbility}
+        bonusValue={getFinalAbilityModifier(stats, attackDamageModalAbility) + (typeof (stats as any).attackDamage === 'object' && (stats as any).attackDamage && typeof (stats as any).attackDamage.bonus === 'number' ? (stats as any).attackDamage.bonus : 0)}
+        bonusSources={[
+          { label: attackDamageModalAbility === 'str' ? '力量修正值' : '敏捷修正值', value: getFinalAbilityModifier(stats, attackDamageModalAbility) },
+          ...(typeof (stats as any).attackDamage === 'object' && (stats as any).attackDamage && (stats as any).attackDamage.bonus !== 0 ? [{ label: '其他', value: (stats as any).attackDamage.bonus as number }] : []),
+        ]}
+        description="攻擊傷害 = 基礎值 + 屬性修正值 + 其他加值"
+        onSave={(basic, ability) => {
+          const prevBonus = typeof (stats as any).attackDamage === 'object' && (stats as any).attackDamage && typeof (stats as any).attackDamage.bonus === 'number' ? (stats as any).attackDamage.bonus : 0;
+          setStats(prev => ({
+            ...prev,
+            attackDamage: { basic, bonus: prevBonus },
+            ...(ability != null ? { extraData: { ...prev.extraData, attackHitAbility: ability } } : {}),
+          }));
+          onSaveWeaponDamageBonus?.(basic)?.catch(e => console.error('❌ 攻擊傷害保存錯誤:', e));
+          if (ability != null && ability !== (stats.extraData?.attackHitAbility ?? 'str')) {
+            onSaveExtraData?.({ ...stats.extraData, attack_hit_ability: ability })?.catch(e => console.error('❌ 攻擊屬性保存錯誤:', e));
+          }
+          setIsAttackDamageModalOpen(false);
+        }}
+        applyButtonClassName="bg-amber-600 hover:bg-amber-500"
+      />
+
+      {/* 法術命中：basic(0) + 智力/感知/魅力 + 熟練加值 + bonus */}
+      <CombatStatEditModal<'int' | 'wis' | 'cha'>
+        title="修改法術命中"
+        isOpen={isSpellHitModalOpen}
+        onClose={() => setIsSpellHitModalOpen(false)}
+        basicValue={getBasicCombatStat(stats, 'spellHit')}
+        segmentOptions={[
+          { value: 'int', label: '智力' },
+          { value: 'wis', label: '感知', activeClassName: 'bg-amber-600 text-white shadow-sm' },
+          { value: 'cha', label: '魅力', activeClassName: 'bg-rose-600 text-white shadow-sm' },
+        ]}
+        segmentValue={stats.extraData?.spellHitAbility ?? 'int'}
+        onSegmentChange={setSpellHitModalAbility}
+        bonusValue={getFinalAbilityModifier(stats, spellHitModalAbility) + getProfBonus(stats.level ?? 1) + (typeof (stats as any).spellHit === 'object' && (stats as any).spellHit && typeof (stats as any).spellHit.bonus === 'number' ? (stats as any).spellHit.bonus : 0)}
+        bonusSources={[
+          { label: spellHitModalAbility === 'int' ? '智力修正值' : spellHitModalAbility === 'wis' ? '感知修正值' : '魅力修正值', value: getFinalAbilityModifier(stats, spellHitModalAbility) },
+          { label: '熟練加值', value: getProfBonus(stats.level ?? 1) },
+          ...(typeof (stats as any).spellHit === 'object' && (stats as any).spellHit && (stats as any).spellHit.bonus !== 0 ? [{ label: '其他', value: (stats as any).spellHit.bonus as number }] : []),
+        ]}
+        description="法術命中 = 基礎值 + 屬性修正值 + 熟練加值 + 其他加值"
+        onSave={(basic, ability) => {
+          const prevBonus = typeof (stats as any).spellHit === 'object' && (stats as any).spellHit && typeof (stats as any).spellHit.bonus === 'number' ? (stats as any).spellHit.bonus : 0;
+          setStats(prev => ({
+            ...prev,
+            spellHit: { basic, bonus: prevBonus },
+            ...(ability != null ? { extraData: { ...prev.extraData, spellHitAbility: ability } } : {}),
+          }));
+          onSaveSpellAttackBonus?.(basic)?.catch(e => console.error('❌ 法術命中保存錯誤:', e));
+          if (ability != null && ability !== (stats.extraData?.spellHitAbility ?? 'int')) {
+            onSaveExtraData?.({ ...stats.extraData, spell_hit_ability: ability })?.catch(e => console.error('❌ 法術命中屬性保存錯誤:', e));
+          }
+          setIsSpellHitModalOpen(false);
+        }}
+        applyButtonClassName="bg-purple-600 hover:bg-purple-500"
+      />
+
+      {/* 法術DC：basic(8) + 智力/感知/魅力 + bonus（與法術命中共用 spellHitAbility） */}
+      <CombatStatEditModal<'int' | 'wis' | 'cha'>
+        title="修改法術DC"
+        isOpen={isSpellDcModalOpen}
+        onClose={() => setIsSpellDcModalOpen(false)}
+        basicValue={getBasicCombatStat(stats, 'spellDc')}
+        segmentOptions={[
+          { value: 'int', label: '智力' },
+          { value: 'wis', label: '感知', activeClassName: 'bg-amber-600 text-white shadow-sm' },
+          { value: 'cha', label: '魅力', activeClassName: 'bg-rose-600 text-white shadow-sm' },
+        ]}
+        segmentValue={stats.extraData?.spellHitAbility ?? 'int'}
+        onSegmentChange={setSpellDcModalAbility}
+        bonusValue={getFinalAbilityModifier(stats, spellDcModalAbility) + getProfBonus(stats.level ?? 1) + (typeof (stats as any).spellDc === 'object' && (stats as any).spellDc && typeof (stats as any).spellDc.bonus === 'number' ? (stats as any).spellDc.bonus : 0)}
+        bonusSources={[
+          { label: spellDcModalAbility === 'int' ? '智力修正值' : spellDcModalAbility === 'wis' ? '感知修正值' : '魅力修正值', value: getFinalAbilityModifier(stats, spellDcModalAbility) },
+          { label: '熟練加值', value: getProfBonus(stats.level ?? 1) },
+          ...(typeof (stats as any).spellDc === 'object' && (stats as any).spellDc && (stats as any).spellDc.bonus !== 0 ? [{ label: '其他', value: (stats as any).spellDc.bonus as number }] : []),
+        ]}
+        description="法術DC = 基礎值(8) + 屬性修正值 + 熟練加值 + 其他加值"
+        onSave={(basic, ability) => {
+          const prevBonus = typeof (stats as any).spellDc === 'object' && (stats as any).spellDc && typeof (stats as any).spellDc.bonus === 'number' ? (stats as any).spellDc.bonus : 0;
+          setStats(prev => ({
+            ...prev,
+            spellDc: { basic, bonus: prevBonus },
+            ...(ability != null ? { extraData: { ...prev.extraData, spellHitAbility: ability } } : {}),
+          }));
+          onSaveSpellSaveDC?.(basic)?.catch(e => console.error('❌ 法術DC保存錯誤:', e));
+          if (ability != null && ability !== (stats.extraData?.spellHitAbility ?? 'int')) {
+            onSaveExtraData?.({ ...stats.extraData, spell_hit_ability: ability })?.catch(e => console.error('❌ 法術屬性保存錯誤:', e));
+          }
+          setIsSpellDcModalOpen(false);
+        }}
+        applyButtonClassName="bg-purple-600 hover:bg-purple-500"
+      />
+
+      {/* 單一數字編輯彈窗（AC、先攻、速度） */}
       {numberEditState.key && (
         <NumberEditModal
           isOpen={true}
@@ -1151,10 +1266,7 @@ export const CombatView: React.FC<CombatViewProps> = ({
           title={
             numberEditState.key === 'ac' ? '修改防禦等級 (AC)' :
             numberEditState.key === 'initiative' ? '修改先攻調整值' :
-            numberEditState.key === 'speed' ? '修改速度' :
-            numberEditState.key === 'spellHit' ? '修改法術命中' :
-            numberEditState.key === 'spellDc' ? '修改法術DC' :
-            numberEditState.key === 'attackDamage' ? '修改攻擊傷害' : ''
+            numberEditState.key === 'speed' ? '修改速度' : ''
           }
           size="xs"
           value={numberEditState.value}
@@ -1165,9 +1277,7 @@ export const CombatView: React.FC<CombatViewProps> = ({
           applyButtonClassName={
             numberEditState.key === 'ac' ? 'bg-amber-600 hover:bg-amber-500' :
             numberEditState.key === 'initiative' ? 'bg-indigo-600 hover:bg-indigo-500' :
-            numberEditState.key === 'speed' ? 'bg-cyan-600 hover:bg-cyan-500' :
-            (numberEditState.key === 'spellHit' || numberEditState.key === 'spellDc') ? 'bg-purple-600 hover:bg-purple-500' :
-            'bg-amber-600 hover:bg-amber-500'
+            numberEditState.key === 'speed' ? 'bg-cyan-600 hover:bg-cyan-500' : 'bg-slate-600'
           }
           {...(numberEditState.key === 'ac' && (() => {
             const acBonus = typeof (stats as any).ac === 'object' && (stats as any).ac && typeof (stats as any).ac.bonus === 'number' ? (stats as any).ac.bonus : 0;
@@ -1218,15 +1328,6 @@ export const CombatView: React.FC<CombatViewProps> = ({
             } else if (key === 'speed') {
               setStats(prev => ({ ...prev, speed: { basic: numericValue, bonus } }));
               onSaveSpeed?.(numericValue)?.catch(e => console.error('❌ 速度值保存錯誤:', e));
-            } else if (key === 'spellHit') {
-              setStats(prev => ({ ...prev, spellHit: { basic: numericValue, bonus } }));
-              onSaveSpellAttackBonus?.(numericValue)?.catch(e => console.error('❌ 法術命中保存錯誤:', e));
-            } else if (key === 'spellDc') {
-              setStats(prev => ({ ...prev, spellDc: { basic: numericValue, bonus } }));
-              onSaveSpellSaveDC?.(numericValue)?.catch(e => console.error('❌ 法術DC保存錯誤:', e));
-            } else if (key === 'attackDamage') {
-              setStats(prev => ({ ...prev, attackDamage: { basic: numericValue, bonus } }));
-              onSaveWeaponDamageBonus?.(numericValue)?.catch(e => console.error('❌ 攻擊傷害保存錯誤:', e));
             }
             setNumberEditState({ key: null, value: '' });
           }}

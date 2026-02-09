@@ -70,6 +70,9 @@ describe('buildCharacterStats - basic+bonus 結構', () => {
     expect(getFinalCombatStat(result, 'maxHp')).toBe(30);
     // attackHit = basic + 屬性(str) + 熟練 + bonus = 5 + 2 (str 14) + 3 (level 5) + 0 = 10
     expect(getFinalCombatStat(result, 'attackHit')).toBe(10);
+    expect(getFinalCombatStat(result, 'attackDamage')).toBe(5);   // 3 + 2 + 0
+    expect(getFinalCombatStat(result, 'spellHit')).toBe(9);       // 6 + 0 + 3 + 0
+    expect(getFinalCombatStat(result, 'spellDc')).toBe(17);      // 14 + 0 + 3 + 0
   });
 
   it('應向後相容舊 DB 格式（flat 數值）', () => {
@@ -100,9 +103,11 @@ describe('buildCharacterStats - basic+bonus 結構', () => {
     expect(getFinalCombatStat(result, 'maxHp')).toBe(30);
     // attackHit = basic + str + 熟練 + bonus；weapon_attack_bonus 5 視為 basic，str 14 => +2，level 5 => prof 3，故 5+2+3+0=10
     expect(getFinalCombatStat(result, 'attackHit')).toBe(10);
-    expect(getFinalCombatStat(result, 'attackDamage')).toBe(3);
-    expect(getFinalCombatStat(result, 'spellHit')).toBe(6);
-    expect(getFinalCombatStat(result, 'spellDc')).toBe(14);
+    // attackDamage = basic 3 + str(14)=>+2 + 0 = 5
+    expect(getFinalCombatStat(result, 'attackDamage')).toBe(5);
+    // spellHit = basic 6 + int(10)=>0 + prof(3) + 0 = 9
+    expect(getFinalCombatStat(result, 'spellHit')).toBe(9);
+    expect(getFinalCombatStat(result, 'spellDc')).toBe(17);      // 14 + 0 + 3 + 0
   });
 
   it('既有值 migration 到 basic、bonus=0', () => {

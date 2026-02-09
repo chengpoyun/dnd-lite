@@ -80,7 +80,7 @@ export function getBasicCombatStat(
     }
     case 'spellDc': {
       const v = (stats as any).spellDc ?? (stats as any).spell_save_dc;
-      return getBasicValue(v, 0);
+      return getBasicValue(v, 8);
     }
   }
 }
@@ -111,15 +111,18 @@ export function getFinalCombatStat(
     }
     case 'attackDamage': {
       const v = (stats as any).attackDamage ?? (stats as any).weapon_damage_bonus;
-      return getBasicBonusFinal(v, 0);
+      const abilityKey = (stats.extraData?.attackHitAbility ?? 'str') as 'str' | 'dex';
+      return getBasicValue(v, 0) + getFinalAbilityModifier(stats, abilityKey) + getBonusValue(v);
     }
     case 'spellHit': {
       const v = (stats as any).spellHit ?? (stats as any).spell_attack_bonus;
-      return getBasicBonusFinal(v, 0);
+      const abilityKey = (stats.extraData?.spellHitAbility ?? 'int') as 'int' | 'wis' | 'cha';
+      return getBasicValue(v, 0) + getFinalAbilityModifier(stats, abilityKey) + getProfBonus(stats.level ?? 1) + getBonusValue(v);
     }
     case 'spellDc': {
       const v = (stats as any).spellDc ?? (stats as any).spell_save_dc;
-      return getBasicBonusFinal(v, 0);
+      const abilityKey = (stats.extraData?.spellHitAbility ?? 'int') as 'int' | 'wis' | 'cha';
+      return getBasicValue(v, 8) + getFinalAbilityModifier(stats, abilityKey) + getProfBonus(stats.level ?? 1) + getBonusValue(v);
     }
   }
 }
