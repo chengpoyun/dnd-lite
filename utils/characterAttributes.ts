@@ -2,10 +2,14 @@
  * 角色屬性計算 - basic + bonus = final
  * 供各 Page 與 buildCharacterStats 使用
  */
-import type { CharacterStats } from '../types';
+import type { CharacterStats, ClassInfo } from '../types';
 import { getModifier, getProfBonus } from './helpers';
 import { SKILLS_MAP } from './characterConstants';
 import { ABILITY_KEYS } from './characterConstants';
+import { getClassHitDie, getTotalLevel } from './classUtils';
+
+const HIT_DIE_MAX: Record<string, number> = { d4: 4, d6: 6, d8: 8, d10: 10, d12: 12 };
+const HIT_DIE_AVG: Record<string, number> = { d4: 3, d6: 4, d8: 5, d10: 6, d12: 7 };
 
 export type CombatStatKey =
   | 'ac'
@@ -48,6 +52,35 @@ function getBonusValue(value: number | BasicBonusValue | undefined): number {
 }
 
 /**
+ * 最大 HP 預設 basic（公式）：第 1 級＝初始職業生命骰最大值；第 2～總等級＝每級依該級所屬職業加該職業生命骰平均；+ 體質×總等級。
+ * 等級取得順序＝stats.classes 陣列順序，classes[0] 為第 1～L₀ 級。
+ */
+export function getDefaultMaxHpBasic(stats: CharacterStats): number {
+  const conMod = getFinalAbilityModifier(stats, 'con');
+  const classes = stats.classes?.length
+    ? stats.classes
+    : (stats.class ? [{ name: stats.class, level: stats.level ?? 1, hitDie: getClassHitDie(stats.class), isPrimary: true }] as ClassInfo[] : []);
+
+  if (!classes.length) return Math.max(1, 1 + conMod);
+
+  const totalLevel = getTotalLevel(classes);
+  let sum = 0;
+  let levelIndex = 1;
+  for (let c = 0; c < classes.length; c++) {
+    const cls = classes[c];
+    const die = cls.hitDie;
+    const max = HIT_DIE_MAX[die] ?? 8;
+    const avg = HIT_DIE_AVG[die] ?? 5;
+    for (let i = 0; i < cls.level; i++) {
+      if (levelIndex === 1) sum += max;
+      else sum += avg;
+      levelIndex++;
+    }
+  }
+  return sum + conMod * totalLevel;
+}
+
+/**
  * 取得戰鬥屬性的 basic 值（僅可編輯 basic，bonus 唯讀）
  */
 export function getBasicCombatStat(
@@ -63,8 +96,9 @@ export function getBasicCombatStat(
       return getBasicValue((stats as any).speed, 30);
     case 'maxHp': {
       const maxHp = (stats as any).maxHp;
-      if (maxHp !== undefined) return getBasicValue(maxHp, 1);
-      return stats.hp?.max ?? 1;
+      const storedBasic = getBasicValue(maxHp, 0);
+      if (maxHp !== undefined && storedBasic !== 0) return storedBasic;
+      return getDefaultMaxHpBasic(stats);
     }
     case 'attackHit': {
       const v = (stats as any).attackHit ?? (stats as any).weapon_attack_bonus;
@@ -101,8 +135,10 @@ export function getFinalCombatStat(
       return getBasicBonusFinal((stats as any).speed, 30);
     case 'maxHp': {
       const maxHp = (stats as any).maxHp;
-      if (maxHp !== undefined) return getBasicBonusFinal(maxHp, 1);
-      return stats.hp?.max ?? 1;
+      const storedBasic = getBasicValue(maxHp, 0);
+      const bonus = getBonusValue(maxHp);
+      if (maxHp !== undefined && storedBasic !== 0) return storedBasic + bonus;
+      return getDefaultMaxHpBasic(stats) + bonus;
     }
     case 'attackHit': {
       const v = (stats as any).attackHit ?? (stats as any).weapon_attack_bonus;

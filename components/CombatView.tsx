@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { CharacterStats } from '../types';
 import { evaluateValue, getModifier, getProfBonus, handleValueInput } from '../utils/helpers';
 import { STAT_LABELS, SKILLS_MAP, ABILITY_KEYS } from '../utils/characterConstants';
-import { getFinalCombatStat, getBasicCombatStat, getFinalAbilityModifier, getFinalSavingThrow, getFinalSkillBonus, type CombatStatKey } from '../utils/characterAttributes';
+import { getFinalCombatStat, getBasicCombatStat, getFinalAbilityModifier, getFinalSavingThrow, getFinalSkillBonus, getDefaultMaxHpBasic, type CombatStatKey } from '../utils/characterAttributes';
 import { formatHitDicePools, getTotalCurrentHitDice, useHitDie, recoverHitDiceOnLongRest } from '../utils/classUtils';
 import { HybridDataManager } from '../services/hybridDataManager';
 import { MulticlassService } from '../services/multiclassService';
@@ -53,7 +53,7 @@ interface CombatViewProps {
   stats: CharacterStats;
   setStats: React.Dispatch<React.SetStateAction<CharacterStats>>;
   characterId?: string; // 從 App.tsx 傳入的角色 ID
-  onSaveHP?: (currentHP: number, maxHP?: number) => Promise<boolean>;
+  onSaveHP?: (currentHP: number, temporaryHP?: number, maxHpBasic?: number) => Promise<boolean>;
   onSaveAC?: (ac: number) => Promise<boolean>;
   onSaveInitiative?: (initiative: number) => Promise<boolean>;
   onSaveSpeed?: (speed: number) => Promise<boolean>;
@@ -526,7 +526,8 @@ export const CombatView: React.FC<CombatViewProps> = ({
   };
 
   const handleLongRest = () => {
-    const newCurrentHP = stats.hp.max; // 長休恢復滿血
+    const effectiveMax = getFinalCombatStat(stats, 'maxHp');
+    const newCurrentHP = effectiveMax; // 長休恢復滿血
     
     if (stats.hitDicePools) {
       // Multiclass hit dice recovery
@@ -572,7 +573,8 @@ export const CombatView: React.FC<CombatViewProps> = ({
     const total = Math.max(0, roll + conMod);
     setLastRestRoll({ die: roll, mod: conMod, total });
     
-    const newCurrentHP = Math.min(stats.hp.max, stats.hp.current + total);
+    const effectiveMax = getFinalCombatStat(stats, 'maxHp');
+    const newCurrentHP = Math.min(effectiveMax, stats.hp.current + total);
     setStats(prev => ({
       ...prev,
       hp: { ...prev.hp, current: newCurrentHP },
@@ -600,7 +602,8 @@ export const CombatView: React.FC<CombatViewProps> = ({
     
     try {
       const updatedPools = useHitDie(stats.hitDicePools, dieType, 1);
-      const newCurrentHP = Math.min(stats.hp.max, stats.hp.current + total);
+      const effectiveMax = getFinalCombatStat(stats, 'maxHp');
+      const newCurrentHP = Math.min(effectiveMax, stats.hp.current + total);
       
       setStats(prev => ({
         ...prev,
@@ -665,7 +668,9 @@ export const CombatView: React.FC<CombatViewProps> = ({
     return mins > 0 ? `${mins}分 ${secs}秒` : `${secs}秒`;
   };
 
-  const hpRatio = stats.hp.current / (stats.hp.max || 1);
+  // 使用公式或儲存值作為有效最大 HP（等級/職業變動時會更新）
+  const effectiveMaxHp = getFinalCombatStat(stats, 'maxHp');
+  const hpRatio = stats.hp.current / (effectiveMaxHp || 1);
   const getHPColorClasses = () => {
     if (hpRatio <= 0.25) return { border: 'border-red-500/50', text: 'text-red-400', label: 'text-red-500/80' };
     if (hpRatio <= 0.5) return { border: 'border-amber-500/50', text: 'text-amber-400', label: 'text-amber-500/80' };
@@ -778,7 +783,9 @@ export const CombatView: React.FC<CombatViewProps> = ({
             labelClass: `${labelBase} ${hpColors.label}`,
             valueClass: `${valueBase} ${hpColors.text}`,
             label: "HP",
-            value: `${stats.hp.current}/${stats.hp.max}`,
+            value: (stats.hp.temp ?? 0) !== 0
+              ? <>{stats.hp.current}<span className="text-purple-400"> +{stats.hp.temp}</span></>
+              : stats.hp.current,
             style: { paddingBottom: '3px' },
           },
           {
@@ -1109,11 +1116,24 @@ export const CombatView: React.FC<CombatViewProps> = ({
         isOpen={isHPModalOpen}
         onClose={() => setIsHPModalOpen(false)}
         currentHP={stats.hp.current}
-        maxHP={stats.hp.max}
-        onSave={(current, max) => {
-          setStats(prev => ({ ...prev, hp: { ...prev.hp, current, max } }));
-          onSaveHP?.(current, max)?.catch(e => console.error('❌ HP保存錯誤:', e));
-          setIsHPModalOpen(false);
+        temporaryHP={stats.hp.temp ?? 0}
+        maxHpBasic={getBasicCombatStat(stats, 'maxHp')}
+        maxHpBonus={typeof (stats as any).maxHp === 'object' && (stats as any).maxHp ? ((stats as any).maxHp.bonus ?? 0) : 0}
+        defaultMaxHpBasic={getDefaultMaxHpBasic(stats)}
+        onSave={(current, temp, maxBasic) => {
+          setStats(prev => {
+            const bonus = typeof (prev as any).maxHp === 'object' && (prev as any).maxHp ? ((prev as any).maxHp.bonus ?? 0) : 0;
+            const newMax =
+              maxBasic !== undefined
+                ? (maxBasic === 0 ? getDefaultMaxHpBasic(prev) + bonus : maxBasic + bonus)
+                : prev.hp.max;
+            return {
+              ...prev,
+              hp: { ...prev.hp, current, temp, max: newMax },
+              ...(maxBasic !== undefined ? { maxHp: { basic: maxBasic, bonus } } : {}),
+            };
+          });
+          onSaveHP?.(current, temp, maxBasic)?.catch(e => console.error('❌ HP保存錯誤:', e));
         }}
       />
 

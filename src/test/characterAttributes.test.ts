@@ -1,9 +1,11 @@
 import { describe, it, expect } from 'vitest';
 import {
   getFinalCombatStat,
+  getBasicCombatStat,
   getFinalAbilityModifier,
   getFinalSavingThrow,
   getFinalSkillBonus,
+  getDefaultMaxHpBasic,
 } from '../../utils/characterAttributes';
 import type { CharacterStats } from '../../types';
 import { SKILLS_MAP, ABILITY_KEYS } from '../../utils/characterConstants';
@@ -77,7 +79,8 @@ describe('characterAttributes - getFinalCombatStat', () => {
 
   it('應正確計算 maxHp', () => {
     const stats = createMockStats();
-    expect(getFinalCombatStat(stats, 'maxHp')).toBe(30);
+    // 無 maxHp 或 basic=0 時用公式：戰士5級 d10 => 10+4*6+con(14)*5 = 44
+    expect(getFinalCombatStat(stats, 'maxHp')).toBe(getDefaultMaxHpBasic(stats));
     const statsWithBonus = createMockStats({
       hp: { current: 35, max: 35, temp: 0 },
       maxHp: { basic: 30, bonus: 5 } as any,
@@ -147,6 +150,63 @@ describe('characterAttributes - getFinalCombatStat', () => {
     expect(getFinalCombatStat(stats, 'spellHit')).toBe(3);
     // spellDc = 8（預設 basic）+ int mod + prof + 0 = 8 + 0 + 3 = 11
     expect(getFinalCombatStat(stats, 'spellDc')).toBe(11);
+  });
+});
+
+describe('characterAttributes - getDefaultMaxHpBasic', () => {
+  it('單一職業 1 級：預設 basic = 該職業生命骰最大值 + con×1', () => {
+    const stats = createMockStats({
+      class: '法師',
+      level: 1,
+      abilityScores: { str: 10, dex: 10, con: 14, int: 10, wis: 10, cha: 10 },
+    });
+    // 法師 d6 max=6, con 14 => +2, 故 6+2=8
+    expect(getDefaultMaxHpBasic(stats)).toBe(8);
+  });
+
+  it('單一職業多級：預設 basic = 生命骰最大值 + (等級-1)×該骰平均 + con×等級', () => {
+    const stats = createMockStats({
+      class: '戰士',
+      level: 5,
+      abilityScores: { str: 14, dex: 10, con: 14, int: 10, wis: 10, cha: 10 },
+    });
+    // 戰士 d10 max=10, avg=6; 10 + 4*6 + 2*5 = 10+24+10 = 44
+    expect(getDefaultMaxHpBasic(stats)).toBe(44);
+  });
+
+  it('多職業：依等級取得順序，第1級用 classes[0] 骰最大，第2～總等級每級用該級所屬職業骰平均', () => {
+    const stats = createMockStats({
+      level: 5,
+      classes: [
+        { name: '法師', level: 2, hitDie: 'd6', isPrimary: false },
+        { name: '戰士', level: 3, hitDie: 'd10', isPrimary: true },
+      ],
+      abilityScores: { str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10 },
+    });
+    // 第1級法師 d6 max=6, 第2級法師 d6 avg=4, 第3～5級戰士 d10 avg=6 each → 6+4+6+6+6=28, con 10 => 0, 總計 28
+    expect(getDefaultMaxHpBasic(stats)).toBe(28);
+  });
+});
+
+describe('characterAttributes - getFinalCombatStat/getBasicCombatStat maxHp 未覆寫/覆寫', () => {
+  it('maxHp.basic === 0 時使用公式 getDefaultMaxHpBasic', () => {
+    const stats = createMockStats({
+      maxHp: { basic: 0, bonus: 2 } as any,
+      class: '戰士',
+      level: 5,
+      abilityScores: { str: 14, dex: 10, con: 14, int: 10, wis: 10, cha: 10 },
+    });
+    const expectedBasic = 44; // 10+4*6+2*5
+    expect(getBasicCombatStat(stats, 'maxHp')).toBe(expectedBasic);
+    expect(getFinalCombatStat(stats, 'maxHp')).toBe(expectedBasic + 2);
+  });
+
+  it('maxHp.basic !== 0 時使用儲存值', () => {
+    const stats = createMockStats({
+      maxHp: { basic: 30, bonus: 5 } as any,
+    });
+    expect(getBasicCombatStat(stats, 'maxHp')).toBe(30);
+    expect(getFinalCombatStat(stats, 'maxHp')).toBe(35);
   });
 });
 

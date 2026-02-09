@@ -53,7 +53,8 @@ export function buildCharacterStats(characterData: any, previousStats: Character
         ac: { basic: cs?.ac_basic ?? 10, bonus: cs?.ac_bonus ?? 0 },
         initiative: { basic: cs?.initiative_basic ?? 0, bonus: cs?.initiative_bonus ?? 0 },
         speed: { basic: cs?.speed_basic ?? 30, bonus: cs?.speed_bonus ?? 0 },
-        maxHp: { basic: cs?.max_hp_basic ?? 1, bonus: cs?.max_hp_bonus ?? 0 },
+        // basic 0 = 使用公式（等級/體質）；非 0 = 使用儲存值。未存時預設 0 才能隨等級/體質更新
+        maxHp: { basic: cs?.max_hp_basic ?? 0, bonus: cs?.max_hp_bonus ?? 0 },
         attackHit: { basic: cs?.attack_hit_basic ?? 0, bonus: cs?.attack_hit_bonus ?? 0 },
         attackDamage: { basic: cs?.attack_damage_basic ?? 0, bonus: cs?.attack_damage_bonus ?? 0 },
         spellHit: { basic: cs?.spell_hit_basic ?? 2, bonus: cs?.spell_hit_bonus ?? 0 },

@@ -185,6 +185,8 @@ const AuthenticatedApp: React.FC = () => {
       const success = await HybridDataManager.updateCharacter(currentCharacter.id, characterUpdate)
       if (success) {
         console.log('✅ 角色基本信息保存成功')
+        // 立即更新本地狀態，讓戰鬥頁最大 HP 等依等級/職業的公式即時更新
+        setStats(prev => ({ ...prev, name, class: characterClass, level }))
       }
       return success
     } catch (error) {
@@ -252,34 +254,49 @@ const AuthenticatedApp: React.FC = () => {
     }
   }
 
-  // 保存當前HP
-  const saveHP = async (currentHP: number, maxHP?: number) => {
+  // 保存 HP：當前、暫時、最大 HP basic（0=用公式）
+  const saveHP = async (currentHP: number, temporaryHP?: number, maxHpBasic?: number) => {
     if (!currentCharacter || isSaving) return false
-    
-    // 驗證 session
+
     if (!await validateSessionBeforeSave()) return false
-    
+
     setIsSaving(true)
     try {
-      console.log('❤️ 保存HP:', { currentHP, maxHP })
       const updateData: Partial<CharacterCurrentStats> = {
         character_id: currentCharacter.id,
-        current_hp: currentHP
+        current_hp: currentHP,
       }
-      
-      // 如果提供了最大HP，也一起更新
-      if (maxHP !== undefined) {
-        updateData.max_hp_basic = maxHP
+      if (temporaryHP !== undefined) {
+        updateData.temporary_hp = temporaryHP
+      }
+      if (maxHpBasic !== undefined) {
+        updateData.max_hp_basic = maxHpBasic
         updateData.max_hp_bonus = (typeof (stats as any).maxHp === 'object' && (stats as any).maxHp ? (stats as any).maxHp.bonus : 0) ?? 0
       }
-      
+
       const characterUpdate: CharacterUpdateData = {
-        currentStats: updateData
+        currentStats: updateData,
       }
-      
       const success = await HybridDataManager.updateCharacter(currentCharacter.id, characterUpdate)
       if (success) {
         console.log('✅ HP保存成功')
+        // 更新本地狀態，讓最大 HP（含公式）與當前/暫時 HP 即時反映
+        setStats(prev => ({
+          ...prev,
+          hp: {
+            ...prev.hp,
+            current: currentHP,
+            ...(temporaryHP !== undefined ? { temp: temporaryHP } : {})
+          },
+          ...(maxHpBasic !== undefined
+            ? {
+                maxHp: {
+                  basic: maxHpBasic,
+                  bonus: (typeof (prev as any).maxHp === 'object' && (prev as any).maxHp ? (prev as any).maxHp.bonus : 0) ?? 0
+                }
+              }
+            : {})
+        }))
       }
       return success
     } catch (error) {

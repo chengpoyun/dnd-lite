@@ -1,33 +1,44 @@
 /**
- * CombatHPModal - 編輯當前 HP / 最大 HP（雙欄位、運算式）
+ * CombatHPModal - 編輯當前 HP、暫時生命、最大 HP（basic+bonus）
+ * 左：當前 HP；右：暫時生命。最大 HP = 基礎值 + 其他加值；basic=0 時用公式，可重置。
  */
 import React, { useState, useEffect } from 'react';
 import { Modal, ModalButton, ModalInput } from './ui/Modal';
 import { handleValueInput } from '../utils/helpers';
-import { MODAL_CONTAINER_CLASS } from '../styles/modalStyles';
+import { MODAL_CONTAINER_CLASS, MODAL_BODY_TEXT_CLASS, MODAL_DESCRIPTION_CLASS } from '../styles/modalStyles';
 
 interface CombatHPModalProps {
   isOpen: boolean;
   onClose: () => void;
   currentHP: number;
-  maxHP: number;
-  onSave: (current: number, max: number) => void;
+  temporaryHP: number;
+  maxHpBasic: number;
+  maxHpBonus: number;
+  defaultMaxHpBasic: number;
+  onSave: (current: number, temp: number, maxBasic?: number) => void;
 }
 
 export default function CombatHPModal({
   isOpen,
   onClose,
   currentHP,
-  maxHP,
+  temporaryHP,
+  maxHpBasic,
+  maxHpBonus,
+  defaultMaxHpBasic,
   onSave,
 }: CombatHPModalProps) {
   const [tempCurrent, setTempCurrent] = useState('');
-  const [tempMax, setTempMax] = useState('');
+  const [tempTemp, setTempTemp] = useState('');
+  const [tempBasic, setTempBasic] = useState('');
+
+  const effectiveMax = maxHpBasic + maxHpBonus;
 
   useEffect(() => {
     if (isOpen) {
       setTempCurrent('');
-      setTempMax('');
+      setTempTemp('');
+      setTempBasic('');
     }
   }, [isOpen]);
 
@@ -36,55 +47,90 @@ export default function CombatHPModal({
     if (tempCurrent.trim()) {
       const result = handleValueInput(tempCurrent, currentHP, {
         minValue: 0,
-        maxValue: maxHP,
+        maxValue: effectiveMax,
         allowZero: true,
       });
       finalCurrent = result.isValid ? result.numericValue : currentHP;
     }
-    let finalMax = maxHP;
-    if (tempMax.trim()) {
-      const result = handleValueInput(tempMax, maxHP, {
+    finalCurrent = Math.min(finalCurrent, effectiveMax);
+
+    let finalTemp = temporaryHP;
+    if (tempTemp.trim()) {
+      const result = handleValueInput(tempTemp, temporaryHP, {
+        minValue: 0,
+        allowZero: true,
+      });
+      finalTemp = result.isValid ? result.numericValue : temporaryHP;
+    }
+
+    let maxBasicOut: number | undefined;
+    if (tempBasic.trim()) {
+      const result = handleValueInput(tempBasic, maxHpBasic, {
         minValue: 1,
         allowZero: false,
       });
-      finalMax = result.isValid ? result.numericValue : maxHP;
+      if (result.isValid) maxBasicOut = result.numericValue;
     }
-    finalCurrent = Math.min(finalCurrent, finalMax);
-    onSave(finalCurrent, finalMax);
+
+    onSave(finalCurrent, finalTemp, maxBasicOut);
     onClose();
   };
 
+  const handleReset = () => {
+    setTempBasic(defaultMaxHpBasic.toString());
+    onSave(currentHP, temporaryHP, 0);
+  };
+
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="sm">
-      <div className={`${MODAL_CONTAINER_CLASS} relative`}>
-        <h2 className="text-xl font-bold mb-5">修改 HP</h2>
-        <div className="space-y-4">
+    <Modal isOpen={isOpen} onClose={onClose} title="修改 HP" size="sm">
+      <div className={MODAL_CONTAINER_CLASS}>
+        <div className="grid grid-cols-2 gap-3 mb-4">
           <div>
-            <span className="text-[16px] text-slate-500 font-black block mb-2 uppercase tracking-widest">當前HP</span>
+            <span className={`${MODAL_BODY_TEXT_CLASS} block mb-1.5 font-black uppercase tracking-wider text-slate-500`}>當前 HP</span>
             <ModalInput
               value={tempCurrent}
               onChange={setTempCurrent}
               placeholder={currentHP.toString()}
-              className="text-3xl font-mono text-center"
+              className="text-2xl font-mono text-center w-full"
               autoFocus
             />
           </div>
           <div>
-            <span className="text-[16px] text-slate-500 font-black block mb-2 uppercase tracking-widest">最大HP</span>
+            <span className={`${MODAL_BODY_TEXT_CLASS} block mb-1.5 font-black uppercase tracking-wider text-slate-500`}>暫時生命</span>
             <ModalInput
-              value={tempMax}
-              onChange={setTempMax}
-              placeholder={maxHP.toString()}
-              className="text-3xl font-mono text-center"
+              value={tempTemp}
+              onChange={setTempTemp}
+              placeholder={temporaryHP.toString()}
+              className="text-2xl font-mono text-center w-full"
             />
           </div>
         </div>
-        <div className="flex gap-2 mt-6">
+
+        <p className={`${MODAL_DESCRIPTION_CLASS} text-center mb-2`}>最大HP = 基礎值(平均) + 其他加值</p>
+        <div className="flex items-center gap-2 mb-2">
+          <span className={`${MODAL_BODY_TEXT_CLASS} shrink-0`}>基礎值</span>
+          <ModalInput
+            value={tempBasic}
+            onChange={setTempBasic}
+            placeholder={maxHpBasic.toString()}
+            className="text-2xl font-mono flex-1"
+          />
+        </div>
+        <div className={`${MODAL_BODY_TEXT_CLASS} space-y-0.5 mb-2`}>
+          <div>其他加值 {maxHpBonus >= 0 ? '+' : ''}{maxHpBonus}</div>
+          <div>總計 {effectiveMax}</div>
+        </div>
+
+        <div className="flex flex-wrap gap-2 mt-4">
+          <ModalButton variant="secondary" onClick={handleReset}>
+            重置
+          </ModalButton>
           <ModalButton
             variant="secondary"
             onClick={() => {
               setTempCurrent('');
-              setTempMax('');
+              setTempTemp('');
+              setTempBasic('');
               onClose();
             }}
           >
