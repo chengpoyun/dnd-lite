@@ -92,8 +92,11 @@ describe('NumberEditModal', () => {
         bonusValue={2}
       />
     );
-    const row = screen.getByText((_, el) => (el?.textContent?.trim() ?? '') === '最終總計：+12');
-    expect(row).toBeInTheDocument();
+    // 「最終總計」標籤存在，且同一區塊內包含 +12
+    const label = screen.getByText('最終總計');
+    expect(label).toBeInTheDocument();
+    const container = label.parentElement;
+    expect(container?.textContent).toContain('+12');
   });
 
   it('有傳 bonusSources 時畫面顯示來源列表', () => {

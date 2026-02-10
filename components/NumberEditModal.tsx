@@ -5,6 +5,7 @@
 import React from 'react';
 import { Modal, ModalButton, ModalInput } from './ui/Modal';
 import { handleValueInput } from '../utils/helpers';
+import { FinalTotalRow } from './ui/FinalTotalRow';
 import { MODAL_CONTAINER_CLASS, MODAL_BODY_TEXT_CLASS, MODAL_DESCRIPTION_CLASS, MODAL_BUTTON_CANCEL_CLASS, MODAL_BUTTON_RESET_CLASS } from '../styles/modalStyles';
 
 export interface BonusSource {
@@ -91,9 +92,7 @@ export default function NumberEditModal({
           </div>
         )}
         {(finalValue !== undefined || bonusValue !== undefined) && (
-          <div className={`${MODAL_BODY_TEXT_CLASS} mb-3`}>
-            最終總計：{displayTotal >= 0 ? '+' : ''}{displayTotal}
-          </div>
+          <FinalTotalRow label="最終總計" value={displayTotal} className="mb-3" />
         )}
         <div className="flex gap-2">
           <ModalButton variant="secondary" className={MODAL_BUTTON_RESET_CLASS} onClick={() => onChange(resetValue !== undefined ? String(resetValue) : placeholder)}>

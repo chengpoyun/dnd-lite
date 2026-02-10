@@ -1,4 +1,5 @@
 import React from 'react';
+import { FinalTotalRow } from './FinalTotalRow';
 
 interface BonusSource {
   label: string;
@@ -24,8 +25,6 @@ export const SkillBonusBreakdown: React.FC<SkillBonusBreakdownProps> = ({
   bonusSources,
   finalTotal,
 }) => {
-  const sign = finalTotal >= 0 ? '+' : '';
-
   return (
     <div className="mt-2 space-y-3">
       {/* 基礎值列 */}
@@ -63,13 +62,7 @@ export const SkillBonusBreakdown: React.FC<SkillBonusBreakdownProps> = ({
       )}
 
       {/* 最終總計 */}
-      <div className="text-base text-slate-300 flex items-center justify-between">
-        <span>最終總計</span>
-        <span className="text-2xl font-mono font-black text-amber-400">
-          {sign}
-          {finalTotal}
-        </span>
-      </div>
+      <FinalTotalRow label="最終總計" value={finalTotal} />
     </div>
   );
 };
