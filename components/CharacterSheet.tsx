@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { CharacterStats, CustomRecord } from '../types';
 import { getModifier, getProfBonus, evaluateValue, handleValueInput, handleDecimalInput, formatDecimal } from '../utils/helpers';
-import { getFinalAbilityModifier } from '../utils/characterAttributes';
+import { getFinalAbilityModifier, type AbilityKey } from '../utils/characterAttributes';
 import { STAT_LABELS, SKILLS_MAP, ABILITY_KEYS } from '../utils/characterConstants';
 import { getAvailableClasses, getClassHitDie, formatClassDisplay, calculateHitDiceTotals } from '../utils/classUtils';
 import { PageContainer, Card, Button, Title, Subtitle, Input, BackButton } from './ui';
 import { STYLES, combineStyles } from '../styles/common';
 import { SkillAdjustModal } from './SkillAdjustModal';
+import { AbilityEditModal } from './AbilityEditModal';
 
 interface CharacterSheetProps {
   stats: CharacterStats;
@@ -35,8 +36,9 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
   onSaveExtraData,
   onSaveAvatarUrl
 }) => {
-  const [activeModal, setActiveModal] = useState<'info' | 'multiclass' | 'abilities' | 'currency' | 'downtime' | 'renown' | 'exp' | 'skill_detail' | 'add_record' | 'edit_record' | null>(null);
+  const [activeModal, setActiveModal] = useState<'info' | 'multiclass' | 'currency' | 'downtime' | 'renown' | 'exp' | 'skill_detail' | 'ability_detail' | 'add_record' | 'edit_record' | null>(null);
   const [selectedSkill, setSelectedSkill] = useState<{ name: string; base: keyof CharacterStats['abilityScores'] } | null>(null);
+  const [activeAbilityKey, setActiveAbilityKey] = useState<AbilityKey | null>(null);
   const [selectedRecord, setSelectedRecord] = useState<CustomRecord | null>(null);
   
   const [editInfo, setEditInfo] = useState({ name: stats.name, class: stats.class, level: stats.level.toString() });
@@ -52,12 +54,6 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
   );
   const [newClassName, setNewClassName] = useState('');
   const [newClassLevel, setNewClassLevel] = useState('1');
-  const [editAbilities, setEditAbilities] = useState(
-    Object.fromEntries(Object.entries(stats.abilityScores).map(([k, v]) => [k, v.toString()]))
-  );
-  const [editAbilityBonuses, setEditAbilityBonuses] = useState<Record<string, string>>({});
-  const [editModifierBonuses, setEditModifierBonuses] = useState<Record<string, string>>({});
-  const [editSavingProfs, setEditSavingProfs] = useState<(keyof CharacterStats['abilityScores'])[]>([]);
   const [tempGPValue, setTempGPValue] = useState('');
   const [tempExpValue, setTempExpValue] = useState('');
   const [tempDowntimeValue, setTempDowntimeValue] = useState('');
@@ -115,22 +111,6 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
   const openInfoModal = () => {
     setEditInfo({ name: stats.name, class: stats.class, level: stats.level.toString() });
     setActiveModal('info');
-  };
-
-  const openAbilitiesModal = () => {
-    setEditAbilities(
-      Object.fromEntries(Object.entries(stats.abilityScores).map(([k, v]) => [k, v.toString()]))
-    );
-    // 初始化屬性加成（從 extraData 讀取或預設為 0）
-    setEditAbilityBonuses(
-      Object.fromEntries(ABILITY_KEYS.map(k => [k, (stats.extraData?.abilityBonuses?.[k] || 0).toString()]))
-    );
-    // 初始化調整值加成
-    setEditModifierBonuses(
-      Object.fromEntries(ABILITY_KEYS.map(k => [k, (stats.extraData?.modifierBonuses?.[k] || 0).toString()]))
-    );
-    setEditSavingProfs([...(stats.savingProficiencies || [])]);
-    setActiveModal('abilities');
   };
 
   const openCurrencyModal = () => {
@@ -602,98 +582,6 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
     }
   };
   
-  const saveAbilities = async () => { 
-    // 驗證所有能力值不為空
-    const abilities: any = {};
-    let hasInvalidValue = false;
-    
-    for (const key in editAbilities) {
-      const result = handleValueInput(editAbilities[key], undefined, {
-        minValue: -99,
-        maxValue: 99,
-        allowZero: true,
-        allowNegative: true
-      });
-      
-      if (!result.isValid) {
-        hasInvalidValue = true;
-        break;
-      }
-      abilities[key] = result.numericValue;
-    }
-    
-    if (hasInvalidValue) {
-      setActiveModal(null);
-      return;
-    }
-
-    // 處理加成數據
-    const abilityBonuses: Record<string, number> = {};
-    const modifierBonuses: Record<string, number> = {};
-    
-    for (const key of ABILITY_KEYS) {
-      const bonusResult = handleValueInput(editAbilityBonuses[key] || '0', undefined, { 
-        minValue: -99,
-        maxValue: 99,
-        allowZero: true, 
-        allowNegative: true 
-      });
-      const modBonusResult = handleValueInput(editModifierBonuses[key] || '0', undefined, { 
-        minValue: -99,
-        maxValue: 99,
-        allowZero: true, 
-        allowNegative: true 
-      });
-      
-      abilityBonuses[key] = bonusResult.isValid ? bonusResult.numericValue : 0;
-      modifierBonuses[key] = modBonusResult.isValid ? modBonusResult.numericValue : 0;
-    }
-
-    // 立即保存豁免熟練度到資料庫
-    if (onSaveSavingThrowProficiencies) {
-      const success = await onSaveSavingThrowProficiencies([...editSavingProfs])
-      if (success) {
-        console.log('✅ 豁免熟練度保存成功')
-      } else {
-        console.error('❌ 豁免熟練度保存失敗')
-      }
-    }
-
-    // 立即保存能力值到資料庫
-    if (onSaveAbilityScores) {
-      const success = await onSaveAbilityScores(abilities)
-      if (success) {
-        console.log('✅ 能力值保存成功')
-      } else {
-        console.error('❌ 能力值保存失敗')
-      }
-    }
-    
-    // 保存屬性額外調整值到 character_ability_scores（*_bonus / *_modifier_bonus）
-    if (onSaveAbilityBonuses) {
-      const success = await onSaveAbilityBonuses(abilityBonuses, modifierBonuses);
-      if (success) {
-        console.log('✅ 屬性加成保存成功');
-      } else {
-        console.error('❌ 屬性加成保存失敗');
-      }
-    }
-    
-    // 更新本地狀態
-    setStats(prev => ({ 
-      ...prev, 
-      abilityScores: abilities, 
-      savingProficiencies: [...editSavingProfs],
-      extraData: {
-        ...prev.extraData,
-        abilityBonuses,
-        modifierBonuses
-      }
-    })); 
-    setActiveModal(null); 
-  };
-  const toggleSavingProf = (key: keyof CharacterStats['abilityScores']) => { setEditSavingProfs(prev => prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]); };
-  
   const saveCurrency = async () => {
     // 驗證金幣不為空或無效
     if (isNaN(gpPreview) || gpPreview < 0) {
@@ -1013,7 +901,7 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
         </div>
       </div>
 
-      <div onClick={openAbilitiesModal} className="grid grid-cols-2 gap-1.5 cursor-pointer">
+      <div className="grid grid-cols-2 gap-1.5">
         {ABILITY_KEYS.map(key => {
           // 計算最終值：基礎值 + 屬性加成
           const baseScore = stats.abilityScores[key];
@@ -1027,7 +915,15 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
           const isSaveProf = (stats.savingProficiencies || []).includes(key);
           const saveBonus = isSaveProf ? mod + profBonus : mod;
           return (
-            <div key={key} className="bg-slate-800 p-2 rounded-lg border border-slate-700 flex items-center gap-2 active:bg-slate-700 shadow-sm transition-colors">
+            <button
+              key={key}
+              type="button"
+              onClick={() => {
+                setActiveAbilityKey(key);
+                setActiveModal('ability_detail');
+              }}
+              className="bg-slate-800 p-2 rounded-lg border border-slate-700 flex items-center gap-2 active:bg-slate-700 shadow-sm transition-colors w-full text-left"
+            >
               <div className="w-12 flex flex-col items-center justify-center border-r border-slate-700/50 pr-2 shrink-0">
                 <span className="text-base font-black text-slate-300 leading-tight text-center">{STAT_LABELS[key]}</span>
               </div>
@@ -1041,7 +937,7 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
                   <span className={`text-base font-bold ${isSaveProf ? 'text-amber-500' : 'text-slate-500'}`}>{saveBonus >= 0 ? '+' : ''}{saveBonus}</span>
                 </div>
               </div>
-            </div>
+            </button>
           );
         })}
       </div>
@@ -1221,88 +1117,106 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
         />
       )}
 
-      {activeModal === 'abilities' && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center px-6">
-          <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-sm" onClick={() => setActiveModal(null)} />
-          <div className="relative bg-slate-900 border border-slate-700 w-full max-w-sm rounded-2xl p-3 shadow-2xl animate-in fade-in zoom-in duration-150 overflow-y-auto max-h-[90vh]">
-            <h3 className="text-base font-fantasy text-amber-500 mb-4 border-b border-slate-800 pb-2">編輯屬性</h3>
-            <div className="grid grid-cols-2 gap-2">
-              {ABILITY_KEYS.map(key => {
-                // 基礎值
-                const baseResult = handleValueInput(editAbilities[key], undefined, { allowZero: true });
-                const baseValue = baseResult.isValid ? baseResult.numericValue : 0;
-                const baseMod = getModifier(baseValue);
-                
-                // 屬性加成
-                const bonusResult = handleValueInput(editAbilityBonuses[key] || '0', undefined, { allowZero: true, allowNegative: true });
-                const bonusValue = bonusResult.isValid ? bonusResult.numericValue : 0;
-                
-                // 調整值額外加成
-                const modBonusResult = handleValueInput(editModifierBonuses[key] || '0', undefined, { allowZero: true, allowNegative: true });
-                const modBonusValue = modBonusResult.isValid ? modBonusResult.numericValue : 0;
-                
-                // 總值 = 基礎值 + 屬性加成
-                const totalValue = baseValue + bonusValue;
-                // 最終調整值 = floor((總值-10)/2) + 調整值額外加成
-                const totalMod = getModifier(totalValue) + modBonusValue;
-                
-                const isProf = editSavingProfs.includes(key);
-                return (
-                  <div key={key} className="bg-slate-800/60 border border-slate-700 rounded-xl p-2.5 flex flex-col gap-1.5 shadow-inner">
-                    <div className="flex justify-between items-center">
-                      <span className="text-[14px] font-black text-slate-500 uppercase tracking-tighter">{STAT_LABELS[key as keyof typeof STAT_LABELS]}</span>
-                      <button onClick={() => toggleSavingProf(key)} className={`w-5 h-5 rounded-full border flex items-center justify-center transition-all ${isProf ? 'bg-amber-500 border-amber-400 text-slate-950' : 'bg-slate-900 border-slate-700 text-transparent'}`}><span className="text-[10px] font-black">✓</span></button>
-                    </div>
-                    
-                    {/* 基礎值和基礎調整值 */}
-                    <div className="flex items-center gap-1.5">
-                      <input 
-                        type="text" 
-                        value={editAbilities[key]} 
-                        onChange={(e) => setEditAbilities({ ...editAbilities, [key]: e.target.value })} 
-                        className="w-full bg-slate-700/50 border border-slate-600 rounded-lg py-0.5 text-white text-center font-mono text-lg outline-none" 
-                        placeholder="10"
-                      />
-                      <div className="flex flex-col items-center shrink-0 w-10">
-                        <span className="text-[11px] text-slate-600 font-bold uppercase leading-none mb-0.5">MOD</span>
-                        <span className="text-sm font-bold text-amber-500/80 leading-none">{baseMod >= 0 ? '+' : ''}{baseMod}</span>
-                      </div>
-                    </div>
-                    
-                    {/* 分隔線 */}
-                    <div className="text-[11px] text-slate-600 font-bold uppercase tracking-wider text-center border-t border-slate-700 pt-1">額外：</div>
-                    
-                    {/* 額外加成和額外調整值 */}
-                    <div className="flex items-center gap-1.5">
-                      <input 
-                        type="text" 
-                        value={editAbilityBonuses[key]} 
-                        onChange={(e) => setEditAbilityBonuses({ ...editAbilityBonuses, [key]: e.target.value })} 
-                        className="w-full bg-slate-700/50 border border-slate-600 rounded-lg py-0.5 text-white text-center font-mono text-lg outline-none" 
-                        placeholder="+0"
-                      />
-                      <div className="flex flex-col items-center shrink-0 w-10">
-                        <span className="text-[11px] text-slate-600 font-bold uppercase leading-none mb-0.5">MOD</span>
-                        <input 
-                          type="text" 
-                          value={editModifierBonuses[key]} 
-                          onChange={(e) => setEditModifierBonuses({ ...editModifierBonuses, [key]: e.target.value })} 
-                          className="w-full bg-slate-700/50 border border-slate-600 rounded-sm py-0.5 text-white text-center font-mono text-xs outline-none" 
-                          placeholder="+0"
-                        />
-                      </div>
-                    </div>
-                    
-                  </div>
-                );
-              })}
-            </div>
-            <div className="flex gap-2 pt-4">
-              <button onClick={() => setActiveModal(null)} className="flex-1 px-4 py-3 bg-slate-800 text-slate-400 rounded-xl font-bold">取消</button>
-              <button onClick={saveAbilities} className="flex-1 px-4 py-3 bg-amber-600 text-white rounded-xl font-bold">儲存</button>
-            </div>
-          </div>
-        </div>
+      {activeModal === 'ability_detail' && activeAbilityKey && (
+        <AbilityEditModal
+          isOpen
+          abilityKey={activeAbilityKey}
+          abilityLabel={STAT_LABELS[activeAbilityKey]}
+          scoreBasic={stats.abilityScores[activeAbilityKey]}
+          scoreBonusSources={
+            ((stats.extraData?.abilityBonuses as Record<string, number>)?.[
+              activeAbilityKey
+            ] ?? 0) !== 0
+              ? [
+                  {
+                    label: '能力值額外加值',
+                    value:
+                      (stats.extraData?.abilityBonuses as Record<string, number>)?.[
+                        activeAbilityKey
+                      ] ?? 0,
+                  },
+                ]
+              : []
+          }
+          modifierBonusSources={
+            ((stats.extraData?.modifierBonuses as Record<string, number>)?.[
+              activeAbilityKey
+            ] ?? 0) !== 0
+              ? [
+                  {
+                    label: '調整值額外加值',
+                    value:
+                      (stats.extraData?.modifierBonuses as Record<string, number>)?.[
+                        activeAbilityKey
+                      ] ?? 0,
+                  },
+                ]
+              : []
+          }
+          saveBonusSources={
+            (((stats as any).saveBonuses as Record<string, number>)?.[
+              activeAbilityKey
+            ] ?? 0) !== 0
+              ? [
+                  {
+                    label: '豁免額外加值',
+                    value:
+                      ((stats as any).saveBonuses as Record<string, number>)?.[
+                        activeAbilityKey
+                      ] ?? 0,
+                  },
+                ]
+              : []
+          }
+          isSaveProficient={
+            (stats.savingProficiencies || []).includes(activeAbilityKey)
+          }
+          level={stats.level ?? 1}
+          onClose={() => {
+            setActiveAbilityKey(null);
+            setActiveModal(null);
+          }}
+          onSave={async (nextScoreBasic, nextIsSaveProf) => {
+            const abilityKey = activeAbilityKey;
+            if (!abilityKey) return;
+
+            const nextAbilityScores: CharacterStats['abilityScores'] = {
+              ...stats.abilityScores,
+              [abilityKey]: nextScoreBasic,
+            };
+
+            const currentProfs = stats.savingProficiencies || [];
+            const nextSavingProfs = nextIsSaveProf
+              ? Array.from(new Set([...currentProfs, abilityKey]))
+              : currentProfs.filter((k) => k !== abilityKey);
+
+            // 儲存能力值
+            if (onSaveAbilityScores) {
+              const ok = await onSaveAbilityScores(nextAbilityScores);
+              if (!ok) {
+                console.error('❌ 能力值保存失敗');
+              }
+            }
+
+            // 儲存豁免熟練
+            if (onSaveSavingThrowProficiencies) {
+              const ok = await onSaveSavingThrowProficiencies(nextSavingProfs);
+              if (!ok) {
+                console.error('❌ 豁免熟練度保存失敗');
+              }
+            }
+
+            // 更新本地狀態
+            setStats((prev) => ({
+              ...prev,
+              abilityScores: nextAbilityScores,
+              savingProficiencies: nextSavingProfs,
+            }));
+
+            setActiveAbilityKey(null);
+            setActiveModal(null);
+          }}
+        />
       )}
 
       {activeModal === 'info' && (
