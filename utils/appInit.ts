@@ -181,6 +181,15 @@ export function buildCharacterStats(characterData: any, previousStats: Character
           modifierBonuses,
           attackHitAbility: ed?.attack_hit_ability ?? ed?.attackHitAbility ?? 'str',
           spellHitAbility: ed?.spell_hit_ability ?? ed?.spellHitAbility ?? 'int',
+          // 技能基礎值覆寫與其他加值，完整從 extra_data 還原（若沒有則給空物件）
+          skillBasicOverrides:
+            ed?.skillBasicOverrides && typeof ed.skillBasicOverrides === 'object'
+              ? (ed.skillBasicOverrides as Record<string, number>)
+              : {},
+          skillBonuses:
+            ed?.skillBonuses && typeof ed.skillBonuses === 'object'
+              ? (ed.skillBonuses as Record<string, number>)
+              : {},
         },
         attacks
       };

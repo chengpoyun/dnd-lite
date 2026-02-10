@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { CharacterStats, CustomRecord } from '../types';
 import { getModifier, getProfBonus, evaluateValue, handleValueInput, handleDecimalInput, formatDecimal } from '../utils/helpers';
+import { getFinalAbilityModifier } from '../utils/characterAttributes';
 import { STAT_LABELS, SKILLS_MAP, ABILITY_KEYS } from '../utils/characterConstants';
 import { getAvailableClasses, getClassHitDie, formatClassDisplay, calculateHitDiceTotals } from '../utils/classUtils';
 import { PageContainer, Card, Button, Title, Subtitle, Input, BackButton } from './ui';
 import { STYLES, combineStyles } from '../styles/common';
+import { SkillAdjustModal } from './SkillAdjustModal';
 
 interface CharacterSheetProps {
   stats: CharacterStats;
@@ -108,7 +110,6 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
       console.log('📝 更新後的技能熟練度:', newProfs)
       return { ...prev, proficiencies: newProfs };
     });
-    setActiveModal(null);
   };
 
   const openInfoModal = () => {
@@ -1053,13 +1054,31 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
         <div className="grid grid-cols-3 gap-1.5">
           {SKILLS_MAP.map((skill) => {
             const profLevel = stats.proficiencies[skill.name] || 0;
-            // 計算最終調整值：包含基礎值、屬性加成和調整值加成
-            const baseScore = stats.abilityScores[skill.base];
-            const abilityBonus = stats.extraData?.abilityBonuses?.[skill.base] || 0;
-            const finalScore = baseScore + abilityBonus;
-            const modifierBonus = stats.extraData?.modifierBonuses?.[skill.base] || 0;
-            const finalModifier = getModifier(finalScore) + modifierBonus;
-            const bonus = finalModifier + (profLevel * profBonus);
+
+            // 1. 計算能力調整值（已含能力加成與調整值加成）
+            const abilityMod = getFinalAbilityModifier(stats, skill.base);
+
+            // 2. 以當前熟練度計算 default basic
+            const level = stats.level ?? 1;
+            const profBonusForLevel = getProfBonus(level);
+            const defaultBasic = abilityMod + profLevel * profBonusForLevel;
+
+            // 3. 套用基礎值覆寫（若有）
+            const overrides =
+              (stats.extraData as any)?.skillBasicOverrides as
+                | Record<string, number>
+                | undefined;
+            const overrideBasic = overrides?.[skill.name];
+            const basic = typeof overrideBasic === 'number' ? overrideBasic : defaultBasic;
+
+            // 4. 其他加值來源
+            const miscBonus =
+              ((stats.extraData as any)?.skillBonuses as
+                | Record<string, number>
+                | undefined)?.[skill.name] ?? 0;
+
+            // 5. 最終顯示 = 基礎值 + 其他來源
+            const bonus = basic + miscBonus;
             return (
               <Button
                 key={skill.name}
@@ -1140,36 +1159,66 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
       </div>
 
       {activeModal === 'skill_detail' && selectedSkill && (
-        <div className="fixed inset-0 z-[120] flex items-center justify-center px-6">
-          <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-sm" onClick={() => setActiveModal(null)} />
-          <div className="relative bg-slate-900 border border-slate-700 w-full max-w-xs rounded-2xl p-3 shadow-2xl animate-in fade-in zoom-in duration-150">
-            <div className="text-center mb-6">
-              <h3 className="text-xl font-fantasy text-amber-500 mb-1">{selectedSkill.name}</h3>
-              <p className="text-[15px] text-slate-500 font-black uppercase tracking-widest">屬性：{STAT_LABELS[selectedSkill.base]}</p>
-            </div>
-            <div className="space-y-3">
-              <button 
-                onClick={() => setSkillProficiency(selectedSkill.name, 1)} 
-                className={`w-full py-4 rounded-xl font-black text-lg transition-all active:scale-95 border ${stats.proficiencies[selectedSkill.name] === 1 ? 'bg-amber-600 border-amber-400 text-white' : 'bg-slate-800 text-slate-400 border-slate-700'}`}
-              >
-                設為熟練 (x1)
-              </button>
-              <button 
-                onClick={() => setSkillProficiency(selectedSkill.name, 2)} 
-                className={`w-full py-4 rounded-xl font-black text-lg transition-all active:scale-95 border ${stats.proficiencies[selectedSkill.name] === 2 ? 'bg-amber-600 border-amber-400 text-white shadow-[0_0_10px_rgba(245,158,11,0.3)]' : 'bg-slate-800 text-slate-400 border-slate-700'}`}
-              >
-                設為專家 (x2)
-              </button>
-              <button 
-                onClick={() => setSkillProficiency(selectedSkill.name, 0)} 
-                className="w-full py-4 rounded-xl font-bold text-base bg-slate-900 text-slate-500 border border-slate-800 active:scale-95"
-              >
-                清除狀態
-              </button>
-              <button onClick={() => setActiveModal(null)} className="w-full py-2 text-slate-600 font-bold text-[14px] uppercase tracking-widest">取消</button>
-            </div>
-          </div>
-        </div>
+        <SkillAdjustModal
+          isOpen
+          skillName={selectedSkill.name}
+          abilityLabel={STAT_LABELS[selectedSkill.base]}
+          abilityModifier={getFinalAbilityModifier(stats, selectedSkill.base)}
+          characterLevel={stats.level ?? 1}
+          currentProfLevel={
+            ((stats.proficiencies as any)?.[selectedSkill.name] === 1 ||
+              (stats.proficiencies as any)?.[selectedSkill.name] === 2)
+              ? (stats.proficiencies as any)[selectedSkill.name]
+              : 0
+          }
+          overrideBasic={
+            ((stats.extraData as any)?.skillBasicOverrides as Record<string, number> | undefined)?.[
+              selectedSkill.name
+            ] ?? null
+          }
+          miscBonus={
+            ((stats.extraData as any)?.skillBonuses as Record<string, number> | undefined)?.[
+              selectedSkill.name
+            ] ?? 0
+          }
+          onClose={() => setActiveModal(null)}
+          onSave={async (nextProfLevel, nextOverrideBasic) => {
+            // 1. 更新熟練度（含遠端與本地）
+            await setSkillProficiency(selectedSkill.name, nextProfLevel);
+
+            // 2. 準備新的 skillBasicOverrides
+            const prevOverrides =
+              (stats.extraData as any)?.skillBasicOverrides ||
+              ({} as Record<string, number>);
+            const nextOverrides = { ...prevOverrides };
+            if (nextOverrideBasic === null) {
+              delete nextOverrides[selectedSkill.name];
+            } else {
+              nextOverrides[selectedSkill.name] = nextOverrideBasic;
+            }
+
+            const nextExtraData = {
+              ...stats.extraData,
+              skillBasicOverrides: nextOverrides,
+            };
+
+            // 3. 儲存到後端（若提供 callback）
+            if (onSaveExtraData) {
+              await onSaveExtraData(nextExtraData);
+            }
+
+            // 4. 立即更新本地狀態，讓技能列表顯示新數值
+            setStats((prev) => ({
+              ...prev,
+              extraData: {
+                ...prev.extraData,
+                skillBasicOverrides: nextOverrides,
+              },
+            }));
+
+            setActiveModal(null);
+          }}
+        />
       )}
 
       {activeModal === 'abilities' && (

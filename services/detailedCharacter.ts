@@ -708,6 +708,29 @@ export class DetailedCharacterService {
         spell_hit_ability: extraData?.spell_hit_ability ?? extraData?.spellHitAbility ?? (existingEd as any)?.spell_hit_ability ?? 'int',
       }
 
+      // 技能相關欄位（如未傳入則保留既有 JSON 值）
+      const existingSkillOverrides = (existingEd as any)?.skillBasicOverrides;
+      const mergedSkillOverrides =
+        extraData?.skillBasicOverrides && typeof extraData.skillBasicOverrides === 'object'
+          ? extraData.skillBasicOverrides
+          : existingSkillOverrides && typeof existingSkillOverrides === 'object'
+            ? existingSkillOverrides
+            : undefined;
+      if (mergedSkillOverrides) {
+        payload.skillBasicOverrides = mergedSkillOverrides;
+      }
+
+      const existingSkillBonuses = (existingEd as any)?.skillBonuses;
+      const mergedSkillBonuses =
+        extraData?.skillBonuses && typeof extraData.skillBonuses === 'object'
+          ? extraData.skillBonuses
+          : existingSkillBonuses && typeof existingSkillBonuses === 'object'
+            ? existingSkillBonuses
+            : undefined;
+      if (mergedSkillBonuses) {
+        payload.skillBonuses = mergedSkillBonuses;
+      }
+
       if (extraData?.classes && Array.isArray(extraData.classes)) payload.classes = extraData.classes
       else if (Array.isArray((existingEd as any)?.classes)) payload.classes = (existingEd as any).classes
 
