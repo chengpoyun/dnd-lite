@@ -34,9 +34,11 @@ const CATEGORIES: { label: string; value: ItemCategory | 'all' | 'magic' }[] = [
 
 interface ItemsPageProps {
   characterId: string;
+  /** 當角色物品異動後呼叫，以刷新角色數據（含加值列表） */
+  onCharacterDataChanged?: () => void;
 }
 
-export default function ItemsPage({ characterId }: ItemsPageProps) {
+export default function ItemsPage({ characterId, onCharacterDataChanged }: ItemsPageProps) {
   const { showSuccess, showError } = useToast();
 
   const [items, setItems] = useState<CharacterItem[]>([]);
@@ -100,6 +102,7 @@ export default function ItemsPage({ characterId }: ItemsPageProps) {
       showSuccess('已獲得物品');
       setIsLearnModalOpen(false);
       loadItems();
+      onCharacterDataChanged?.();
     } else {
       showError(result.error || '獲得物品失敗');
     }
@@ -112,6 +115,7 @@ export default function ItemsPage({ characterId }: ItemsPageProps) {
       showSuccess('已新增個人物品');
       setIsAddPersonalModalOpen(false);
       loadItems();
+      onCharacterDataChanged?.();
     } else {
       showError(result.error || '新增物品失敗');
     }
@@ -151,6 +155,7 @@ export default function ItemsPage({ characterId }: ItemsPageProps) {
       setIsEditModalOpen(false);
       setEditingItem(null);
       loadItems();
+      onCharacterDataChanged?.();
     } else {
       showError(result.error || '更新物品失敗');
     }
@@ -168,6 +173,7 @@ export default function ItemsPage({ characterId }: ItemsPageProps) {
       setIsDetailModalOpen(false);
       setSelectedItem(null);
       loadItems();
+      onCharacterDataChanged?.();
     } else {
       showError(result.error || '刪除物品失敗');
     }
@@ -278,12 +284,19 @@ export default function ItemsPage({ characterId }: ItemsPageProps) {
         }}
         onSubmit={uploadFromCharacterItem ? handleUploadToGlobal : handleCreateGlobalItem}
         mode={uploadFromCharacterItem ? 'upload' : 'create'}
-        uploadInitialData={uploadFromCharacterItem ? {
-          name: ItemService.getDisplayValues(uploadFromCharacterItem).displayName,
-          description: ItemService.getDisplayValues(uploadFromCharacterItem).displayDescription,
-          category: ItemService.getDisplayValues(uploadFromCharacterItem).displayCategory,
-          is_magic: ItemService.getDisplayValues(uploadFromCharacterItem).displayIsMagic,
-        } : undefined}
+        uploadInitialData={uploadFromCharacterItem ? (() => {
+          const display = ItemService.getDisplayValues(uploadFromCharacterItem);
+          const ci = uploadFromCharacterItem as { affects_stats?: boolean; stat_bonuses?: Record<string, unknown> };
+          return {
+            name: display.displayName,
+            name_en: uploadFromCharacterItem.item?.name_en ?? '',
+            description: display.displayDescription,
+            category: display.displayCategory,
+            is_magic: display.displayIsMagic,
+            affects_stats: ci.affects_stats ?? false,
+            stat_bonuses: ci.stat_bonuses ?? {},
+          };
+        })() : undefined}
       />
 
       <CharacterItemEditModal

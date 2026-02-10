@@ -60,6 +60,7 @@ const AuthenticatedApp: React.FC = () => {
     initError,
     setInitError,
     resetInitialization,
+    refetchCharacterStats,
   } = useAppInitialization({ user, authLoading })
 
   // 應用程式狀態
@@ -974,7 +975,7 @@ const AuthenticatedApp: React.FC = () => {
                 </div>
               </div>
             }>
-              <ItemsPage characterId={currentCharacter?.id || ''} />
+              <ItemsPage characterId={currentCharacter?.id || ''} onCharacterDataChanged={refetchCharacterStats} />
             </Suspense>
           )}
 
@@ -987,7 +988,7 @@ const AuthenticatedApp: React.FC = () => {
                 </div>
               </div>
             }>
-              <AbilitiesPage characterId={currentCharacter.id} />
+              <AbilitiesPage characterId={currentCharacter.id} onCharacterDataChanged={refetchCharacterStats} />
             </Suspense>
           )}
 

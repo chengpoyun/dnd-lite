@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Character } from '../lib/supabase';
 import type { CharacterStats } from '../types';
 import { AnonymousService } from '../services/anonymous';
@@ -247,6 +247,16 @@ export function useAppInitialization({ user, authLoading }: AppInitParams) {
     setIsLoading(true)
   }
 
+  const loadCharacterStatsRef = useRef<() => Promise<void>>(() => Promise.resolve())
+  loadCharacterStatsRef.current = loadCharacterStats
+
+  /** 清除目前角色的快取並重新載入角色數據（例如儲存能力/物品後可呼叫以更新加值列表） */
+  const refetchCharacterStats = useCallback(() => {
+    if (!currentCharacter) return
+    DetailedCharacterService.clearCharacterCache(currentCharacter.id)
+    void loadCharacterStatsRef.current()
+  }, [currentCharacter])
+
   return {
     appState,
     setAppState,
@@ -266,5 +276,6 @@ export function useAppInitialization({ user, authLoading }: AppInitParams) {
     initError,
     setInitError,
     resetInitialization,
+    refetchCharacterStats,
   }
 }

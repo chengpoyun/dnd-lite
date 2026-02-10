@@ -51,6 +51,19 @@ function getBonusValue(value: number | BasicBonusValue | undefined): number {
   return value.bonus ?? 0;
 }
 
+type AggregatedCombatStats = {
+  ac?: number; initiative?: number; speed?: number; maxHp?: number;
+  attackHit?: number; attackDamage?: number; spellHit?: number; spellDc?: number;
+};
+
+function getStatBonusSourcesCombatSum(
+  stats: CharacterStats,
+  key: keyof AggregatedCombatStats
+): number {
+  const sources = (stats.extraData?.statBonusSources as Array<{ combatStats?: Record<string, number> }>) ?? [];
+  return sources.reduce((sum, s) => sum + ((s.combatStats?.[key] as number) ?? 0), 0);
+}
+
 /**
  * 最大 HP 預設 basic（公式）：第 1 級＝初始職業生命骰最大值；第 2～總等級＝每級依該級所屬職業加該職業生命骰平均；+ 體質×總等級。
  * 等級取得順序＝stats.classes 陣列順序，classes[0] 為第 1～L₀ 級。
@@ -128,39 +141,53 @@ export function getFinalCombatStat(
 ): number {
   switch (key) {
     case 'ac':
-      return getBasicValue((stats as any).ac, 10) + getFinalAbilityModifier(stats, 'dex') + getBonusValue((stats as any).ac);
+      return getBasicValue((stats as any).ac, 10) + getFinalAbilityModifier(stats, 'dex') + getStatBonusSourcesCombatSum(stats, 'ac') + getBonusValue((stats as any).ac);
     case 'initiative':
-      return getBasicValue((stats as any).initiative, 0) + getFinalAbilityModifier(stats, 'dex') + getBonusValue((stats as any).initiative);
+      return getBasicValue((stats as any).initiative, 0) + getFinalAbilityModifier(stats, 'dex') + getStatBonusSourcesCombatSum(stats, 'initiative') + getBonusValue((stats as any).initiative);
     case 'speed':
-      return getBasicBonusFinal((stats as any).speed, 30);
+      return getBasicValue((stats as any).speed, 30) + getStatBonusSourcesCombatSum(stats, 'speed') + getBonusValue((stats as any).speed);
     case 'maxHp': {
       const maxHp = (stats as any).maxHp;
       const storedBasic = getBasicValue(maxHp, 0);
       const bonus = getBonusValue(maxHp);
-      if (maxHp !== undefined && storedBasic !== 0) return storedBasic + bonus;
-      return getDefaultMaxHpBasic(stats) + bonus;
+      const fromSources = getStatBonusSourcesCombatSum(stats, 'maxHp');
+      if (maxHp !== undefined && storedBasic !== 0) return storedBasic + fromSources + bonus;
+      return getDefaultMaxHpBasic(stats) + fromSources + bonus;
     }
     case 'attackHit': {
       const v = (stats as any).attackHit ?? (stats as any).weapon_attack_bonus;
       const abilityKey = (stats.extraData?.attackHitAbility ?? 'str') as 'str' | 'dex';
-      return getBasicValue(v, 0) + getFinalAbilityModifier(stats, abilityKey) + getProfBonus(stats.level ?? 1) + getBonusValue(v);
+      return getBasicValue(v, 0) + getFinalAbilityModifier(stats, abilityKey) + getProfBonus(stats.level ?? 1) + getStatBonusSourcesCombatSum(stats, 'attackHit') + getBonusValue(v);
     }
     case 'attackDamage': {
       const v = (stats as any).attackDamage ?? (stats as any).weapon_damage_bonus;
       const abilityKey = (stats.extraData?.attackHitAbility ?? 'str') as 'str' | 'dex';
-      return getBasicValue(v, 0) + getFinalAbilityModifier(stats, abilityKey) + getBonusValue(v);
+      return getBasicValue(v, 0) + getFinalAbilityModifier(stats, abilityKey) + getStatBonusSourcesCombatSum(stats, 'attackDamage') + getBonusValue(v);
     }
     case 'spellHit': {
       const v = (stats as any).spellHit ?? (stats as any).spell_attack_bonus;
       const abilityKey = (stats.extraData?.spellHitAbility ?? 'int') as 'int' | 'wis' | 'cha';
-      return getBasicValue(v, 0) + getFinalAbilityModifier(stats, abilityKey) + getProfBonus(stats.level ?? 1) + getBonusValue(v);
+      return getBasicValue(v, 0) + getFinalAbilityModifier(stats, abilityKey) + getProfBonus(stats.level ?? 1) + getStatBonusSourcesCombatSum(stats, 'spellHit') + getBonusValue(v);
     }
     case 'spellDc': {
       const v = (stats as any).spellDc ?? (stats as any).spell_save_dc;
       const abilityKey = (stats.extraData?.spellHitAbility ?? 'int') as 'int' | 'wis' | 'cha';
-      return getBasicValue(v, 8) + getFinalAbilityModifier(stats, abilityKey) + getProfBonus(stats.level ?? 1) + getBonusValue(v);
+      return getBasicValue(v, 8) + getFinalAbilityModifier(stats, abilityKey) + getProfBonus(stats.level ?? 1) + getStatBonusSourcesCombatSum(stats, 'spellDc') + getBonusValue(v);
     }
   }
+}
+
+/**
+ * 取得 6 屬性最終屬性值（基礎 + 能力／物品的屬性值加值）
+ */
+export function getFinalAbilityScore(
+  stats: CharacterStats,
+  key: AbilityKey
+): number {
+  const score = stats.abilityScores?.[key] ?? 10;
+  const abilityBonus =
+    (stats.extraData?.abilityBonuses as Record<string, number>)?.[key] ?? 0;
+  return score + abilityBonus;
 }
 
 /**
@@ -170,12 +197,9 @@ export function getFinalAbilityModifier(
   stats: CharacterStats,
   key: AbilityKey
 ): number {
-  const score = stats.abilityScores?.[key] ?? 10;
-  const abilityBonus =
-    (stats.extraData?.abilityBonuses as Record<string, number>)?.[key] ?? 0;
+  const finalScore = getFinalAbilityScore(stats, key);
   const modifierBonus =
     (stats.extraData?.modifierBonuses as Record<string, number>)?.[key] ?? 0;
-  const finalScore = score + abilityBonus;
   return getModifier(finalScore) + modifierBonus;
 }
 
@@ -190,9 +214,18 @@ export function getFinalSavingThrow(
   const profBonus = getProfBonus(stats.level ?? 1);
   const saveProfs = stats.savingProficiencies ?? [];
   const isProf = saveProfs.includes(abilityKey);
-  const miscBonus =
+  const miscBonusFromDb =
     ((stats as any).saveBonuses as Record<string, number>)?.[abilityKey] ?? 0;
-  return mod + (isProf ? profBonus : 0) + miscBonus;
+  // 來自能力／物品 stat_bonuses.savingThrows 的額外加值（透過 statBonusSources 匯總）
+  const fromSources =
+    (stats.extraData?.statBonusSources ?? []).reduce((sum, src: any) => {
+      const v =
+        (src.savingThrows as Record<string, number> | undefined)?.[
+          abilityKey
+        ] ?? 0;
+      return sum + (Number.isFinite(v) ? v : 0);
+    }, 0);
+  return mod + (isProf ? profBonus : 0) + miscBonusFromDb + fromSources;
 }
 
 /**

@@ -112,12 +112,21 @@ export default function CombatStatEditModal<T extends string = string>({
           <p className={`${MODAL_DESCRIPTION_CLASS} text-center mb-3`}>{description}</p>
         )}
         {bonusSources && bonusSources.length > 0 && (
-          <div className={`${MODAL_BODY_TEXT_CLASS} space-y-0.5 mb-2`}>
-            {bonusSources.map((s, i) => (
-              <div key={i}>
-                {s.label} {s.value >= 0 ? '+' : ''}{s.value}
-              </div>
-            ))}
+          <div className="mb-3">
+            <p className="text-xs text-slate-500 ml-1 mb-1">加值來源</p>
+            <div className="space-y-0.5">
+              {bonusSources.map((s, i) => (
+                <div
+                  key={i}
+                  className="flex items-center justify-between text-sm text-slate-300"
+                >
+                  <span className="truncate">{s.label}</span>
+                  <span className={s.value >= 0 ? 'text-emerald-400 font-mono' : 'text-rose-400 font-mono'}>
+                    {s.value >= 0 ? '+' : ''}{s.value}
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
         )}
         {(finalValue !== undefined || bonusValue !== undefined) && (

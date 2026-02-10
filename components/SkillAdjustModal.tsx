@@ -18,7 +18,9 @@ interface SkillAdjustModalProps {
   currentProfLevel: SkillProficiencyLevel;
   /** 資料中已儲存的基礎值覆寫；沒有則為 null */
   overrideBasic: number | null;
-  /** 其他加值總和（例如來自 extraData.skillBonuses） */
+  /** 其他加值來源列表（顯示能力／物品名稱與加值）；總和會與 miscBonus 一致，或 miscBonus 為其加總 */
+  skillBonusSources: { label: string; value: number }[];
+  /** 其他加值總和（來自 extraData.skillBonuses，用於最終總計） */
   miscBonus: number;
   onClose: () => void;
   onSave: (nextProfLevel: SkillProficiencyLevel, nextOverrideBasic: number | null) => void;
@@ -32,6 +34,7 @@ export const SkillAdjustModal: React.FC<SkillAdjustModalProps> = ({
   characterLevel,
   currentProfLevel,
   overrideBasic,
+  skillBonusSources,
   miscBonus,
   onClose,
   onSave,
@@ -57,13 +60,14 @@ export const SkillAdjustModal: React.FC<SkillAdjustModalProps> = ({
   const safeBasic = Number.isFinite(parsedBasic) ? parsedBasic : defaultBasicForLocalProf;
   const finalTotal = safeBasic + miscBonus;
 
+  const sumNamed = skillBonusSources.reduce((s, b) => s + b.value, 0);
   const bonusSources =
-    miscBonus !== 0
+    skillBonusSources.length > 0 || miscBonus !== 0
       ? [
-          {
-            label: '其他加值',
-            value: miscBonus,
-          },
+          ...skillBonusSources,
+          ...(miscBonus !== sumNamed && miscBonus - sumNamed !== 0
+            ? [{ label: '其他加值', value: miscBonus - sumNamed }]
+            : []),
         ]
       : [];
 

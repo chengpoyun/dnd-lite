@@ -28,6 +28,24 @@ export interface GlobalItem {
   description: string;
   category: ItemCategory;
   is_magic: boolean;
+  /** 是否影響角色數值 */
+  affects_stats?: boolean;
+  /** 此物品提供的數值加成定義（存入 global_items.stat_bonuses） */
+  stat_bonuses?: {
+    abilityModifiers?: Record<string, number>;
+    savingThrows?: Record<string, number>;
+    skills?: Record<string, number>;
+    combatStats?: {
+      ac?: number;
+      initiative?: number;
+      maxHp?: number;
+      speed?: number;
+      attackHit?: number;
+      attackDamage?: number;
+      spellHit?: number;
+      spellDc?: number;
+    };
+  };
   created_at: string;
   updated_at: string;
 }
@@ -46,6 +64,10 @@ export interface CharacterItem {
   name_override?: string | null;
   description_override?: string | null;
   category_override?: ItemCategory | null;
+  /** 覆寫：此角色版物品是否影響角色數值 */
+  affects_stats?: boolean;
+  /** 覆寫：此角色版物品的數值加成（存入 character_items.stat_bonuses） */
+  stat_bonuses?: GlobalItem['stat_bonuses'];
   
   created_at: string;
   updated_at: string;
@@ -68,6 +90,8 @@ export interface CreateGlobalItemData {
   description?: string;
   category: ItemCategory;
   is_magic: boolean;
+  affects_stats?: boolean;
+  stat_bonuses?: GlobalItem['stat_bonuses'];
 }
 
 // 上傳角色物品到全域物品庫時使用的資料（所有欄位必填）
@@ -77,6 +101,8 @@ export interface CreateGlobalItemDataForUpload {
   description: string;
   category: ItemCategory;
   is_magic: boolean;
+  affects_stats?: boolean;
+  stat_bonuses?: GlobalItem['stat_bonuses'];
 }
 
 export interface UpdateCharacterItemData {
@@ -86,6 +112,10 @@ export interface UpdateCharacterItemData {
   category_override?: ItemCategory | null;
   is_magic?: boolean;
   is_magic_override?: boolean | null;
+  /** 覆寫：此角色版物品是否影響角色數值 */
+  affects_stats?: boolean;
+  /** 覆寫：此角色版物品的數值加成（與 StatBonusEditorValue 結構一致） */
+  stat_bonuses?: any;
 }
 
 /** 新增個人物品（直接寫入 character_items，不經 global_items） */
@@ -202,26 +232,45 @@ export async function uploadCharacterItemToGlobal(
     let targetGlobalItemId: string | null = null;
 
     if (existing && !findError) {
-      // 已有同名（不分大小寫）的 global_item
+      // 已有同名（不分大小寫）的 global_item：更新該 global_item 的 affects_stats / stat_bonuses（及基本欄位）
       targetGlobalItemId = existing.id;
+      const updatePayload: Record<string, unknown> = {
+        name,
+        description,
+        category,
+        is_magic: data.is_magic,
+      };
+      if (data.affects_stats !== undefined) updatePayload.affects_stats = data.affects_stats;
+      if (data.stat_bonuses !== undefined) updatePayload.stat_bonuses = data.stat_bonuses;
+      const { error: updateGlobalError } = await supabase
+        .from('global_items')
+        .update(updatePayload)
+        .eq('id', targetGlobalItemId);
+      if (updateGlobalError) {
+        console.error('❌ 更新全域物品欄位失敗:', updateGlobalError);
+        return { success: false, error: updateGlobalError.message };
+      }
     } else {
-      // 若錯誤碼不是「查無資料」，則視為真正錯誤
-      const findStatus = (findError as { status?: number }).status;
+      // 若錯誤碼不是「查無資料」，則視為真正錯誤（findError 可能為 null 表示查詢成功但無結果）
+      const findStatus = findError ? (findError as { status?: number }).status : undefined;
       if (findError && findError.code !== 'PGRST116' && findStatus !== 406) {
         console.error('❌ 查詢全域物品失敗:', findError);
         return { success: false, error: '查詢全域物品失敗' };
       }
 
-      // 2. 不存在時，建立新的 global_item
+      // 2. 不存在時，建立新的 global_item（含 affects_stats / stat_bonuses）
+      const insertPayload: Record<string, unknown> = {
+        name,
+        name_en,
+        description,
+        category,
+        is_magic: data.is_magic,
+      };
+      if (data.affects_stats !== undefined) insertPayload.affects_stats = data.affects_stats;
+      if (data.stat_bonuses !== undefined) insertPayload.stat_bonuses = data.stat_bonuses;
       const { data: inserted, error: insertError } = await supabase
         .from('global_items')
-        .insert({
-          name,
-          name_en,
-          description,
-          category,
-          is_magic: data.is_magic,
-        })
+        .insert(insertPayload)
         .select()
         .single();
 

@@ -37,6 +37,8 @@ import { AddPersonalAbilityModal } from './AddPersonalAbilityModal';
 
 interface AbilitiesPageProps {
   characterId: string;
+  /** 當角色能力異動後呼叫，以刷新角色數據（含加值列表） */
+  onCharacterDataChanged?: () => void;
 }
 
 /** 單一能力卡的可排序包裝（僅左側把手可拖曳） */
@@ -86,7 +88,7 @@ function SortableAbilityCard({
   );
 }
 
-export default function AbilitiesPage({ characterId }: AbilitiesPageProps) {
+export default function AbilitiesPage({ characterId, onCharacterDataChanged }: AbilitiesPageProps) {
   const { showSuccess, showError } = useToast();
 
   const [characterAbilities, setCharacterAbilities] = useState<CharacterAbilityWithDetails[]>([]);
@@ -234,7 +236,9 @@ export default function AbilitiesPage({ characterId }: AbilitiesPageProps) {
           description: data.description,
           source: data.source,
           recovery_type: data.recovery_type,
-          max_uses: data.maxUses
+          max_uses: data.maxUses,
+          affects_stats: data.affects_stats,
+          stat_bonuses: data.stat_bonuses,
         },
         editingCharacterAbility.id
       );
@@ -243,6 +247,7 @@ export default function AbilitiesPage({ characterId }: AbilitiesPageProps) {
       setIsFormModalOpen(false);
       setEditingCharacterAbility(null);
       loadData();
+      onCharacterDataChanged?.();
     } catch (error) {
       console.error('更新特殊能力失敗:', error);
       showError('更新特殊能力失敗');
@@ -281,6 +286,7 @@ export default function AbilitiesPage({ characterId }: AbilitiesPageProps) {
       setIsDetailModalOpen(false);
       setSelectedCharacterAbility(null);
       loadData();
+      onCharacterDataChanged?.();
     } catch (error) {
       console.error('移除特殊能力失敗:', error);
       showError('移除特殊能力失敗');
@@ -324,6 +330,7 @@ export default function AbilitiesPage({ characterId }: AbilitiesPageProps) {
       await AbilityService.learnAbility(characterId, abilityId, maxUses);
       showSuccess('已學習此能力');
       loadData();
+      onCharacterDataChanged?.();
     } catch (error) {
       console.error('學習特殊能力失敗:', error);
       showError('學習特殊能力失敗');
@@ -441,12 +448,20 @@ export default function AbilitiesPage({ characterId }: AbilitiesPageProps) {
         mode={uploadFromCharacterAbility ? 'upload' : 'create'}
         uploadInitialData={uploadFromCharacterAbility ? (() => {
           const display = AbilityService.getDisplayValues(uploadFromCharacterAbility);
+          const ca = uploadFromCharacterAbility as { affects_stats?: boolean; stat_bonuses?: Record<string, unknown> };
+          const abilityRaw = (uploadFromCharacterAbility as { ability?: { affects_stats?: boolean; stat_bonuses?: Record<string, unknown> } }).ability;
+          const overrideBonuses = ca.stat_bonuses;
+          const hasOverrideStats =
+            (typeof ca.affects_stats === 'boolean' && ca.affects_stats) ||
+            (overrideBonuses && typeof overrideBonuses === 'object' && Object.keys(overrideBonuses).length > 0);
           return {
             name: display.name,
             name_en: display.name_en ?? '',
             description: display.description,
             source: display.source || '其他',
             recovery_type: display.recovery_type || '常駐',
+            affects_stats: hasOverrideStats ? (ca.affects_stats ?? false) : (abilityRaw?.affects_stats ?? false),
+            stat_bonuses: hasOverrideStats ? (overrideBonuses ?? {}) : (abilityRaw?.stat_bonuses ?? {}),
           };
         })() : undefined}
       />

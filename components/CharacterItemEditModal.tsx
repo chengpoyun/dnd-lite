@@ -7,6 +7,7 @@ import React, { useState, useEffect } from 'react';
 import { Modal } from './ui/Modal';
 import type { CharacterItem, ItemCategory, UpdateCharacterItemData } from '../services/itemService';
 import { MODAL_CONTAINER_CLASS } from '../styles/modalStyles';
+import { StatBonusEditor, type StatBonusEditorValue } from './StatBonusEditor';
 
 interface CharacterItemEditModalProps {
   isOpen: boolean;
@@ -23,31 +24,41 @@ export const CharacterItemEditModal: React.FC<CharacterItemEditModalProps> = ({
   characterItem,
   onSubmit
 }) => {
-  const [formData, setFormData] = useState<UpdateCharacterItemData>({
+  const [formData, setFormData] = useState<UpdateCharacterItemData & { stat_bonuses?: StatBonusEditorValue }>({
     quantity: 1,
     name_override: '',
     description_override: '',
     category_override: null,
-    is_magic: false
+    is_magic: false,
+    affects_stats: false,
+    stat_bonuses: {},
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (characterItem) {
-      const display = { 
+      const display = {
         name: characterItem.name_override ?? characterItem.item?.name ?? '',
         description: characterItem.description_override ?? characterItem.item?.description ?? '',
         category: characterItem.category_override ?? characterItem.item?.category ?? null,
         is_magic: characterItem.item_id
           ? (characterItem.is_magic_override ?? characterItem.item?.is_magic ?? false)
-          : characterItem.is_magic
+          : characterItem.is_magic,
       };
+      const ci = characterItem as any;
+      const itemRaw = characterItem.item;
+      const overrideBonuses = ci.stat_bonuses;
+      const hasOverrideStats =
+        (typeof ci.affects_stats === 'boolean' && ci.affects_stats) ||
+        (overrideBonuses && typeof overrideBonuses === 'object' && Object.keys(overrideBonuses).length > 0);
       setFormData({
         quantity: characterItem.quantity,
         name_override: display.name,
         description_override: display.description,
         category_override: display.category,
-        is_magic: display.is_magic
+        is_magic: display.is_magic,
+        affects_stats: hasOverrideStats ? (ci.affects_stats ?? false) : (itemRaw?.affects_stats ?? false),
+        stat_bonuses: hasOverrideStats ? (overrideBonuses ?? {}) : ((itemRaw?.stat_bonuses ?? {}) || {}),
       });
     }
   }, [characterItem, isOpen]);
@@ -77,6 +88,12 @@ export const CharacterItemEditModal: React.FC<CharacterItemEditModalProps> = ({
         updates.is_magic_override = !!formData.is_magic;
       } else {
         updates.is_magic = !!formData.is_magic;
+      }
+      if (formData.affects_stats !== undefined) {
+        updates.affects_stats = formData.affects_stats;
+      }
+      if (formData.stat_bonuses !== undefined) {
+        updates.stat_bonuses = formData.stat_bonuses;
       }
 
       await onSubmit(characterItem.id, updates);
@@ -189,6 +206,41 @@ export const CharacterItemEditModal: React.FC<CharacterItemEditModalProps> = ({
               placeholder={characterItem.item?.description || '輸入描述'}
               rows={6}
             />
+          </div>
+
+          {/* 影響角色數值設定 */}
+          <div className="border border-slate-800 rounded-lg p-3 bg-slate-900/60 space-y-2">
+            <label className="flex items-center gap-2 text-[14px] text-slate-200">
+              <input
+                type="checkbox"
+                checked={!!formData.affects_stats}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    affects_stats: e.target.checked,
+                    stat_bonuses: e.target.checked ? prev.stat_bonuses ?? {} : {},
+                  }))
+                }
+                className="h-4 w-4 rounded border-slate-600 bg-slate-800 text-amber-500 focus:ring-amber-500"
+              />
+              這個物品會影響角色數值（能力調整值、豁免、技能、戰鬥數值）
+            </label>
+            {formData.affects_stats && (
+              <div className="mt-2 space-y-2">
+                <p className="text-xs text-slate-500">
+                  設定後，角色持有此物品時，這些加值會自動套用並在角色卡與戰鬥頁的加值列表中顯示來源。
+                </p>
+                <StatBonusEditor
+                  value={(formData.stat_bonuses ?? {}) as StatBonusEditorValue}
+                  onChange={(next) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      stat_bonuses: next,
+                    }))
+                  }
+                />
+              </div>
+            )}
           </div>
 
           {/* 提交按鈕 */}

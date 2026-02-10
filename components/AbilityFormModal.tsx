@@ -3,6 +3,7 @@ import { Modal } from './ui/Modal';
 import { CreateAbilityData, CreateAbilityDataForUpload, getDisplayValues, ABILITY_SOURCE_ORDER } from '../services/abilityService';
 import type { CharacterAbilityWithDetails } from '../lib/supabase';
 import { MODAL_CONTAINER_CLASS } from '../styles/modalStyles';
+import { StatBonusEditor, type StatBonusEditorValue } from './StatBonusEditor';
 
 interface AbilityFormModalProps {
   isOpen: boolean;
@@ -16,6 +17,8 @@ interface AbilityFormModalProps {
     description: string;
     source: (typeof ABILITY_SOURCE_ORDER)[number];
     recovery_type: '常駐' | '短休' | '長休';
+    affects_stats?: boolean;
+    stat_bonuses?: Record<string, unknown>;
   } | null;
 }
 
@@ -36,7 +39,9 @@ export const AbilityFormModal: React.FC<AbilityFormModalProps> = ({
     name_en: '',
     description: '',
     source: '職業',
-    recovery_type: '長休'
+    recovery_type: '長休',
+    affects_stats: false,
+    stat_bonuses: {},
   });
   const [maxUses, setMaxUses] = useState<number>(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -45,12 +50,25 @@ export const AbilityFormModal: React.FC<AbilityFormModalProps> = ({
   useEffect(() => {
     if (editingAbility) {
       const display = getDisplayValues(editingAbility);
+      const ca: any = editingAbility as any;
+      const abilityRaw: any = (editingAbility as any).ability;
+      const overrideBonuses = ca.stat_bonuses;
+      const hasOverrideStats =
+        (typeof ca.affects_stats === 'boolean' && ca.affects_stats) ||
+        (overrideBonuses && typeof overrideBonuses === 'object' && Object.keys(overrideBonuses).length > 0);
       setFormData({
         name: display.name,
         name_en: display.name_en || '',
         description: display.description,
         source: display.source,
-        recovery_type: display.recovery_type
+        recovery_type: display.recovery_type,
+        // 有角色專屬覆寫時，優先使用 character_abilities 上的欄位；否則回退到 abilities 表
+        affects_stats: hasOverrideStats
+          ? (ca.affects_stats ?? false)
+          : (abilityRaw?.affects_stats ?? false),
+        stat_bonuses: hasOverrideStats
+          ? (overrideBonuses ?? {})
+          : ((abilityRaw?.stat_bonuses ?? {}) || {}),
       });
       setMaxUses(editingAbility.max_uses);
     } else if (isUpload && uploadInitialData) {
@@ -59,7 +77,9 @@ export const AbilityFormModal: React.FC<AbilityFormModalProps> = ({
         name_en: uploadInitialData.name_en ?? '',
         description: uploadInitialData.description,
         source: uploadInitialData.source,
-        recovery_type: uploadInitialData.recovery_type
+        recovery_type: uploadInitialData.recovery_type,
+        affects_stats: uploadInitialData.affects_stats ?? false,
+        stat_bonuses: (uploadInitialData.stat_bonuses ?? {}) as CreateAbilityData['stat_bonuses'],
       });
       setMaxUses(0);
     } else {
@@ -69,7 +89,9 @@ export const AbilityFormModal: React.FC<AbilityFormModalProps> = ({
         name_en: '',
         description: '',
         source: '職業',
-        recovery_type: '長休'
+        recovery_type: '長休',
+        affects_stats: false,
+        stat_bonuses: {},
       });
       setMaxUses(0);
     }
@@ -109,7 +131,9 @@ export const AbilityFormModal: React.FC<AbilityFormModalProps> = ({
           name_en: formData.name_en.trim(),
           description: formData.description.trim(),
           source: formData.source,
-          recovery_type: formData.recovery_type
+          recovery_type: formData.recovery_type,
+          affects_stats: formData.affects_stats,
+          stat_bonuses: formData.stat_bonuses,
         });
       } else if (editingAbility) {
         await onSubmit({ ...formData, maxUses });
@@ -249,6 +273,41 @@ export const AbilityFormModal: React.FC<AbilityFormModalProps> = ({
             placeholder="描述特殊能力的效果和使用方式..."
           />
         </div>
+        {/* 影響角色數值設定（置於效果說明下方） */}
+        <div className="border border-slate-800 rounded-lg p-3 bg-slate-900/60 space-y-2">
+          <label className="flex items-center gap-2 text-[14px] text-slate-200">
+            <input
+              type="checkbox"
+              checked={!!formData.affects_stats}
+              onChange={(e) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  affects_stats: e.target.checked,
+                  stat_bonuses: e.target.checked ? prev.stat_bonuses ?? {} : {},
+                }))
+              }
+              className="h-4 w-4 rounded border-slate-600 bg-slate-800 text-amber-500 focus:ring-amber-500"
+            />
+            這個能力會影響角色數值（能力調整值、豁免、技能、戰鬥數值）
+          </label>
+          {formData.affects_stats && (
+            <div className="mt-2 space-y-2">
+              <p className="text-xs text-slate-500">
+                設定後，角色擁有此能力時，這些加值會自動套用並在角色卡與戰鬥頁的加值列表中顯示來源。
+              </p>
+              <StatBonusEditor
+                value={(formData.stat_bonuses ?? {}) as StatBonusEditorValue}
+                onChange={(next) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    stat_bonuses: next,
+                  }))
+                }
+              />
+            </div>
+          )}
+        </div>
+
         {/* 最大使用次數（僅編輯模式顯示） */}
         {editingAbility && formData.recovery_type !== '常駐' && (
           <div>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { CharacterStats, CustomRecord } from '../types';
 import { getModifier, getProfBonus, evaluateValue, handleValueInput, handleDecimalInput, formatDecimal } from '../utils/helpers';
-import { getFinalAbilityModifier, type AbilityKey } from '../utils/characterAttributes';
+import { getFinalAbilityModifier, getFinalAbilityScore, getFinalSavingThrow, getFinalSkillBonus, getFinalCombatStat, type AbilityKey } from '../utils/characterAttributes';
 import { STAT_LABELS, SKILLS_MAP, ABILITY_KEYS } from '../utils/characterConstants';
 import { getAvailableClasses, getClassHitDie, formatClassDisplay, calculateHitDiceTotals } from '../utils/classUtils';
 import { PageContainer, Card, Button, Title, Subtitle, Input, BackButton } from './ui';
@@ -862,7 +862,8 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
     }
   };
 
-  const hpRatio = stats.hp.current / (stats.hp.max || 1);
+  const finalMaxHp = getFinalCombatStat(stats, 'maxHp');
+  const hpRatio = stats.hp.current / (finalMaxHp || 1);
   const hpColorClass = hpRatio <= 0.25 ? 'border-red-500 bg-red-950/40 text-red-400' : hpRatio <= 0.5 ? 'border-amber-500 bg-amber-950/40 text-amber-400' : 'border-emerald-500 bg-emerald-950/40 text-emerald-400';
 
   return (
@@ -895,7 +896,7 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
           <div className="flex items-center gap-2 shrink-0">
             <div className={`w-14 h-14 rounded-full border-2 flex flex-col items-center justify-center shadow-lg shrink-0 transition-colors ${hpColorClass}`}>
               <span className="text-xs opacity-60 font-black leading-none uppercase">HP</span>
-              <span className="text-lg font-black leading-none">{stats.hp.current}</span>
+              <span className="text-lg font-black leading-none">{stats.hp.current}/{finalMaxHp}</span>
             </div>
           </div>
         </div>
@@ -903,17 +904,10 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
 
       <div className="grid grid-cols-2 gap-1.5">
         {ABILITY_KEYS.map(key => {
-          // 計算最終值：基礎值 + 屬性加成
-          const baseScore = stats.abilityScores[key];
-          const abilityBonus = stats.extraData?.abilityBonuses?.[key] || 0;
-          const score = baseScore + abilityBonus;
-          
-          // 計算最終調整值：floor((總值-10)/2) + 調整值額外加成
-          const modifierBonus = stats.extraData?.modifierBonuses?.[key] || 0;
-          const mod = getModifier(score) + modifierBonus;
-          
+          const score = getFinalAbilityScore(stats, key);
+          const mod = getFinalAbilityModifier(stats, key);
+          const saveBonus = getFinalSavingThrow(stats, key);
           const isSaveProf = (stats.savingProficiencies || []).includes(key);
-          const saveBonus = isSaveProf ? mod + profBonus : mod;
           return (
             <button
               key={key}
@@ -950,31 +944,17 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
         <div className="grid grid-cols-3 gap-1.5">
           {SKILLS_MAP.map((skill) => {
             const profLevel = stats.proficiencies[skill.name] || 0;
-
-            // 1. 計算能力調整值（已含能力加成與調整值加成）
-            const abilityMod = getFinalAbilityModifier(stats, skill.base);
-
-            // 2. 以當前熟練度計算 default basic
-            const level = stats.level ?? 1;
-            const profBonusForLevel = getProfBonus(level);
-            const defaultBasic = abilityMod + profLevel * profBonusForLevel;
-
-            // 3. 套用基礎值覆寫（若有）
             const overrides =
               (stats.extraData as any)?.skillBasicOverrides as
                 | Record<string, number>
                 | undefined;
             const overrideBasic = overrides?.[skill.name];
-            const basic = typeof overrideBasic === 'number' ? overrideBasic : defaultBasic;
-
-            // 4. 其他加值來源
-            const miscBonus =
-              ((stats.extraData as any)?.skillBonuses as
-                | Record<string, number>
-                | undefined)?.[skill.name] ?? 0;
-
-            // 5. 最終顯示 = 基礎值 + 其他來源
-            const bonus = basic + miscBonus;
+            // 有手動覆寫時 = 覆寫值 + 其他加值；否則 = 最終技能加值（含能力調整、熟練、misc）
+            const bonus =
+              typeof overrideBasic === 'number'
+                ? overrideBasic +
+                  (((stats.extraData as any)?.skillBonuses as Record<string, number> | undefined)?.[skill.name] ?? 0)
+                : getFinalSkillBonus(stats, skill.name);
             return (
               <Button
                 key={skill.name}
@@ -1072,6 +1052,12 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
               selectedSkill.name
             ] ?? null
           }
+          skillBonusSources={(
+            stats.extraData?.statBonusSources ?? []
+          ).flatMap((src: any) => {
+            const v = (src.skills as Record<string, number> | undefined)?.[selectedSkill.name] ?? 0;
+            return v !== 0 ? [{ label: src.name, value: v }] : [];
+          })}
           miscBonus={
             ((stats.extraData as any)?.skillBonuses as Record<string, number> | undefined)?.[
               selectedSkill.name
@@ -1123,51 +1109,51 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
           abilityKey={activeAbilityKey}
           abilityLabel={STAT_LABELS[activeAbilityKey]}
           scoreBasic={stats.abilityScores[activeAbilityKey]}
-          scoreBonusSources={
-            ((stats.extraData?.abilityBonuses as Record<string, number>)?.[
-              activeAbilityKey
-            ] ?? 0) !== 0
-              ? [
-                  {
-                    label: '能力值額外加值',
-                    value:
-                      (stats.extraData?.abilityBonuses as Record<string, number>)?.[
-                        activeAbilityKey
-                      ] ?? 0,
-                  },
-                ]
-              : []
-          }
-          modifierBonusSources={
-            ((stats.extraData?.modifierBonuses as Record<string, number>)?.[
-              activeAbilityKey
-            ] ?? 0) !== 0
-              ? [
-                  {
-                    label: '調整值額外加值',
-                    value:
-                      (stats.extraData?.modifierBonuses as Record<string, number>)?.[
-                        activeAbilityKey
-                      ] ?? 0,
-                  },
-                ]
-              : []
-          }
-          saveBonusSources={
-            (((stats as any).saveBonuses as Record<string, number>)?.[
-              activeAbilityKey
-            ] ?? 0) !== 0
-              ? [
-                  {
-                    label: '豁免額外加值',
-                    value:
-                      ((stats as any).saveBonuses as Record<string, number>)?.[
-                        activeAbilityKey
-                      ] ?? 0,
-                  },
-                ]
-              : []
-          }
+          scoreBonusSources={(() => {
+            // 只顯示「來源明細」，不重複顯示總計（extraData.abilityBonuses 已是這些來源的加總）
+            const fromAbilities =
+              stats.extraData?.statBonusSources?.flatMap((src) => {
+                const v =
+                  src.abilityScores?.[activeAbilityKey] ??
+                  src.abilityModifiers?.[activeAbilityKey] ??
+                  0;
+                return v !== 0
+                  ? [{ label: src.name, value: v }]
+                  : [];
+              }) ?? [];
+            return fromAbilities;
+          })()}
+          modifierBonusSources={(() => {
+            const fromAbilities =
+              stats.extraData?.statBonusSources?.flatMap((src) => {
+                const v = src.abilityModifiers?.[activeAbilityKey] ?? 0;
+                return v !== 0
+                  ? [{ label: src.name, value: v }]
+                  : [];
+              }) ?? [];
+            return fromAbilities;
+          })()}
+          saveBonusSources={(() => {
+            const sources: { label: string; value: number }[] = [];
+            const baseBonus =
+              ((stats as any).saveBonuses as Record<string, number>)?.[
+                activeAbilityKey
+              ] ?? 0;
+            if (baseBonus !== 0) {
+              sources.push({
+                label: '豁免額外加值',
+                value: baseBonus,
+              });
+            }
+            const fromAbilities =
+              stats.extraData?.statBonusSources?.flatMap((src) => {
+                const v = src.savingThrows?.[activeAbilityKey] ?? 0;
+                return v !== 0
+                  ? [{ label: src.name, value: v }]
+                  : [];
+              }) ?? [];
+            return [...sources, ...fromAbilities];
+          })()}
           isSaveProficient={
             (stats.savingProficiencies || []).includes(activeAbilityKey)
           }

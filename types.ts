@@ -98,6 +98,42 @@ export interface CharacterStats {
     attackHitAbility?: 'str' | 'dex';
     /** 法術命中與法術DC共用：智力/感知/魅力，預設智力 */
     spellHitAbility?: 'int' | 'wis' | 'cha';
+    /**
+     * 技能基礎值覆寫（使用者手動 basic，依技能名稱索引）
+     */
+    skillBasicOverrides?: Record<string, number>;
+    /**
+     * 技能加成（各種來源加總後的 bonus，依技能名稱索引）
+     * - DB misc_bonus
+     * - 能力／物品 stat_bonuses.skills
+     * - 其他未來來源
+     */
+    skillBonuses?: Record<string, number>;
+    /**
+     * 由能力／物品 stat_bonuses 聚合而來的來源明細
+     * 供各種「bonus list」顯示用（例如：裝備 X 提供 敏捷調整值+1＆察覺+2）
+     */
+    statBonusSources?: {
+      id: string;
+      type: 'ability' | 'item';
+      name: string;
+      /** 來自能力／物品的「屬性值」加成（例如：力量值 +1） */
+      abilityScores?: Record<string, number>;
+      /** 來自能力／物品的「能力調整值」加成（例如：敏捷調整值 +1） */
+      abilityModifiers?: Record<string, number>;
+      savingThrows?: Record<string, number>;
+      skills?: Record<string, number>;
+      combatStats?: {
+        ac?: number;
+        initiative?: number;
+        maxHp?: number;
+        speed?: number;
+        attackHit?: number;
+        attackDamage?: number;
+        spellHit?: number;
+        spellDc?: number;
+      };
+    }[];
   };
 }
 

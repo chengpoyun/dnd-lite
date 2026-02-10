@@ -146,11 +146,9 @@ export function buildCharacterStats(characterData: any, previousStats: Character
       return INITIAL_STATS.savingProficiencies
     })(),
     // 載入額外資料（修整期、名聲、自定義冒險紀錄等）- 支援 extra_data / extraData
-    // 屬性額外調整值優先從 character_ability_scores 的 *_bonus / *_modifier_bonus 讀取
     ...(() => {
       const raw = characterData.currentStats;
       const ed = raw?.extra_data ?? raw?.extraData;
-      const as = characterData.abilityScores;
       const downtime = typeof ed?.downtime === 'number' ? ed.downtime : INITIAL_STATS.downtime;
       const renownObj = ed?.renown;
       const renown =
@@ -161,15 +159,15 @@ export function buildCharacterStats(characterData: any, previousStats: Character
       const customRecords = Array.isArray(ed?.customRecords) ? ed.customRecords : INITIAL_STATS.customRecords;
       const attacks = Array.isArray(ed?.attacks) ? ed.attacks : INITIAL_STATS.attacks;
       const abilityKeys = ['str', 'dex', 'con', 'int', 'wis', 'cha'] as const;
-      const dbAbilityMap = { str: 'strength', dex: 'dexterity', con: 'constitution', int: 'intelligence', wis: 'wisdom', cha: 'charisma' } as const;
+      // 屬性值／調整值加值一律來自 extra_data（由 getFullCharacter 聚合能力／物品 stat_bonuses 與既有 extra_data 寫入）
+      // 舊版 character_ability_scores.*_bonus / *_modifier_bonus 已淘汰不再讀取
       const abilityBonuses: Record<string, number> = {};
       const modifierBonuses: Record<string, number> = {};
       for (const k of abilityKeys) {
-        const col = dbAbilityMap[k];
-        const bonusCol = `${col}_bonus` as keyof typeof as;
-        const modCol = `${col}_modifier_bonus` as keyof typeof as;
-        abilityBonuses[k] = typeof (as as any)?.[bonusCol] === 'number' ? (as as any)[bonusCol] : (ed?.abilityBonuses && typeof ed.abilityBonuses === 'object' ? (ed.abilityBonuses as any)[k] ?? 0 : 0);
-        modifierBonuses[k] = typeof (as as any)?.[modCol] === 'number' ? (as as any)[modCol] : (ed?.modifierBonuses && typeof ed.modifierBonuses === 'object' ? (ed.modifierBonuses as any)[k] ?? 0 : 0);
+        abilityBonuses[k] =
+          (ed?.abilityBonuses && typeof ed.abilityBonuses === 'object' ? (ed.abilityBonuses as any)[k] ?? 0 : 0);
+        modifierBonuses[k] =
+          (ed?.modifierBonuses && typeof ed.modifierBonuses === 'object' ? (ed.modifierBonuses as any)[k] ?? 0 : 0);
       }
       return {
         downtime,
@@ -181,15 +179,20 @@ export function buildCharacterStats(characterData: any, previousStats: Character
           modifierBonuses,
           attackHitAbility: ed?.attack_hit_ability ?? ed?.attackHitAbility ?? 'str',
           spellHitAbility: ed?.spell_hit_ability ?? ed?.spellHitAbility ?? 'int',
-          // 技能基礎值覆寫與其他加值，完整從 extra_data 還原（若沒有則給空物件）
+          // 技能基礎值覆寫（手動 basic）
           skillBasicOverrides:
             ed?.skillBasicOverrides && typeof ed.skillBasicOverrides === 'object'
               ? (ed.skillBasicOverrides as Record<string, number>)
               : {},
+          // 其他技能加值：由後端整合後直接載入（DB misc_bonus + 能力／物品 stat_bonuses.skills 等）
           skillBonuses:
             ed?.skillBonuses && typeof ed.skillBonuses === 'object'
               ? (ed.skillBonuses as Record<string, number>)
               : {},
+          // 來源明細：由後端 DetailedCharacterService.collectSourceBonusesForCharacter 聚合寫入
+          statBonusSources: Array.isArray((ed as any)?.statBonusSources)
+            ? ((ed as any).statBonusSources as any[])
+            : [],
         },
         attacks
       };
@@ -222,6 +225,7 @@ export function buildCharacterStats(characterData: any, previousStats: Character
               }))
             : undefined);
     })(),
+    // 傳統技能／豁免 misc_bonus 仍保留，用於向後相容（實際顯示會在前端與 extraData.skillBonuses 一起考量）
     skillBonuses: (() => {
       const profs = characterData.skillProficiencies;
       if (!Array.isArray(profs)) return undefined;
@@ -229,6 +233,7 @@ export function buildCharacterStats(characterData: any, previousStats: Character
       profs.forEach((p: any) => {
         if (p?.skill_name != null && typeof p.misc_bonus === 'number') out[p.skill_name] = p.misc_bonus;
       });
+      // 這裡只回傳 DB 來源，實際顯示會在前端加上 extraData.skillBonuses
       return Object.keys(out).length > 0 ? out : undefined;
     })(),
     saveBonuses: (() => {

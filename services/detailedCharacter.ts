@@ -13,6 +13,35 @@ import type {
 } from '../lib/supabase'
 import type { CharacterStats } from '../types'
 
+/** 能力／物品 stat_bonuses 聚合結果（供 buildCharacterStats / 前端顯示用） */
+export interface AggregatedStatBonuses {
+  /** 來自能力／物品的「屬性值」加成（力量、敏捷等） */
+  abilityScores: Record<string, number>;
+  abilityModifiers: Record<string, number>;
+  savingThrows: Record<string, number>;
+  skills: Record<string, number>;
+  combatStats: {
+    ac?: number;
+    initiative?: number;
+    maxHp?: number;
+    speed?: number;
+    attackHit?: number;
+    attackDamage?: number;
+    spellHit?: number;
+    spellDc?: number;
+  };
+  bySource: {
+    id: string;
+    type: 'ability' | 'item';
+    name: string;
+    abilityScores?: Record<string, number>;
+    abilityModifiers?: Record<string, number>;
+    savingThrows?: Record<string, number>;
+    skills?: Record<string, number>;
+    combatStats?: AggregatedStatBonuses['combatStats'];
+  }[];
+}
+
 // 詳細角色資料服務
 export class DetailedCharacterService {
   // 添加角色資料緩存
@@ -288,6 +317,60 @@ export class DetailedCharacterService {
         character_hit_dice_pools,
         ...characterData 
       } = character
+
+      // 透過角色能力與物品聚合 stat_bonuses，並寫入 currentStats.extra_data 供前端使用
+      if (currentStats && character.id) {
+        try {
+          const aggregated = await this.collectSourceBonusesForCharacter(character.id);
+          const rawExtra = (currentStats as any).extra_data ?? (currentStats as any).extraData ?? {};
+          const existingSkillBonuses =
+            rawExtra && typeof rawExtra.skillBonuses === 'object'
+              ? (rawExtra.skillBonuses as Record<string, number>)
+              : {};
+          const existingAbilityBonuses =
+            rawExtra && typeof rawExtra.abilityBonuses === 'object'
+              ? (rawExtra.abilityBonuses as Record<string, number>)
+              : {};
+          const existingModifierBonuses =
+            rawExtra && typeof rawExtra.modifierBonuses === 'object'
+              ? (rawExtra.modifierBonuses as Record<string, number>)
+              : {};
+
+          const mergedSkillBonuses: Record<string, number> = { ...existingSkillBonuses };
+          const fromSources = aggregated.skills || {};
+          for (const [k, v] of Object.entries(fromSources)) {
+            const num = typeof v === 'number' && Number.isFinite(v) ? v : 0;
+            if (!num) continue;
+            mergedSkillBonuses[k] = (mergedSkillBonuses[k] ?? 0) + num;
+          }
+
+          const mergedAbilityBonuses: Record<string, number> = { ...existingAbilityBonuses };
+          const abilityFromSources = aggregated.abilityScores || {};
+          for (const [k, v] of Object.entries(abilityFromSources)) {
+            const num = typeof v === 'number' && Number.isFinite(v) ? v : 0;
+            if (!num) continue;
+            mergedAbilityBonuses[k] = (mergedAbilityBonuses[k] ?? 0) + num;
+          }
+
+          const mergedModifierBonuses: Record<string, number> = { ...existingModifierBonuses };
+          const modifierFromSources = aggregated.abilityModifiers || {};
+          for (const [k, v] of Object.entries(modifierFromSources)) {
+            const num = typeof v === 'number' && Number.isFinite(v) ? v : 0;
+            if (!num) continue;
+            mergedModifierBonuses[k] = (mergedModifierBonuses[k] ?? 0) + num;
+          }
+
+          (currentStats as any).extra_data = {
+            ...rawExtra,
+            abilityBonuses: mergedAbilityBonuses,
+            modifierBonuses: mergedModifierBonuses,
+            skillBonuses: mergedSkillBonuses,
+            statBonusSources: aggregated.bySource,
+          };
+        } catch (e) {
+          console.error('collectSourceBonusesForCharacter 失敗，略過加值聚合：', e);
+        }
+      }
 
       const result = {
         character: characterData,
@@ -1381,6 +1464,285 @@ export class DetailedCharacterService {
       .insert(inserts)
 
     if (error) throw error
+  }
+
+  // === 能力／物品數值加成統計（stat_bonuses 聚合） ===
+
+  /**
+   * 從角色擁有的能力與物品（global_items）上，聚合所有 stat_bonuses。
+   * - abilities.stat_bonuses：透過 character_abilities -> abilities 關聯取得
+   * - global_items.stat_bonuses：透過 character_items -> global_items 關聯取得
+   */
+  static async collectSourceBonusesForCharacter(characterId: string): Promise<AggregatedStatBonuses> {
+    const empty: AggregatedStatBonuses = {
+      abilityScores: {},
+      abilityModifiers: {},
+      savingThrows: {},
+      skills: {},
+      combatStats: {},
+      bySource: []
+    }
+
+    if (!characterId || characterId.trim() === '' || characterId.length < 32) {
+      console.error('collectSourceBonusesForCharacter: 無效的 characterId:', characterId)
+      return empty
+    }
+
+    // 小工具：將 stat_bonuses 物件安全地規範化後累加到 totals 與 perSource
+    const mergeNumberMap = (target: Record<string, number>, src: any) => {
+      if (!src || typeof src !== 'object') return
+      for (const [k, v] of Object.entries(src)) {
+        const num = typeof v === 'number' && Number.isFinite(v) ? v : 0
+        if (!num) continue
+        target[k] = (target[k] ?? 0) + num
+      }
+    }
+
+    const mergeCombatStats = (target: AggregatedStatBonuses['combatStats'], src: any) => {
+      if (!src || typeof src !== 'object') return
+      const keys: (keyof AggregatedStatBonuses['combatStats'])[] = [
+        'ac',
+        'initiative',
+        'maxHp',
+        'speed',
+        'attackHit',
+        'attackDamage',
+        'spellHit',
+        'spellDc'
+      ]
+      for (const key of keys) {
+        const v = (src as any)[key]
+        const num = typeof v === 'number' && Number.isFinite(v) ? v : 0
+        if (!num) continue
+        target[key] = (target[key] ?? 0) + num
+      }
+    }
+
+    const totals: AggregatedStatBonuses = {
+      abilityScores: {},
+      abilityModifiers: {},
+      savingThrows: {},
+      skills: {},
+      combatStats: {},
+      bySource: []
+    }
+
+    try {
+      // 1. 角色能力 -> abilities（優先使用 character_abilities 的 affects_stats / stat_bonuses 覆寫；個人能力 ability_id 為 null 時只用 row）
+      const { data: characterAbilities, error: caError } = await supabase
+        .from('character_abilities')
+        .select(`
+          id,
+          character_id,
+          ability_id,
+          name_override,
+          affects_stats,
+          stat_bonuses,
+          ability:abilities(
+            id,
+            name,
+            affects_stats,
+            stat_bonuses
+          )
+        `)
+        .eq('character_id', characterId)
+
+      if (caError) {
+        console.error('collectSourceBonusesForCharacter: 讀取角色能力失敗:', caError)
+      } else if (Array.isArray(characterAbilities)) {
+        for (const row of characterAbilities as any[]) {
+          const abilityRaw = Array.isArray(row.ability) ? row.ability[0] : row.ability
+          const hasOverride =
+            (typeof row.affects_stats === 'boolean' && row.affects_stats) ||
+            (row.stat_bonuses && typeof row.stat_bonuses === 'object' && Object.keys(row.stat_bonuses).length > 0)
+          const effectiveAffectsStats = hasOverride ? !!row.affects_stats : !!abilityRaw?.affects_stats
+          if (!effectiveAffectsStats) continue
+
+          const bonuses = (hasOverride ? row.stat_bonuses : abilityRaw?.stat_bonuses) as any
+          if (!bonuses || typeof bonuses !== 'object') continue
+
+          const abilityScores = bonuses.abilityScores
+          const abilityModifiers = bonuses.abilityModifiers
+          const savingThrows = bonuses.savingThrows
+          const skills = bonuses.skills
+          const combatStats = bonuses.combatStats
+
+          const perSource: {
+            id: string
+            type: 'ability'
+            name: string
+            abilityScores?: Record<string, number>
+            abilityModifiers?: Record<string, number>
+            savingThrows?: Record<string, number>
+            skills?: Record<string, number>
+            combatStats?: AggregatedStatBonuses['combatStats']
+          } = {
+            id: row.id,
+            type: 'ability',
+            name: (row.name_override || abilityRaw.name || '').toString()
+          }
+
+          if (abilityScores && typeof abilityScores === 'object') {
+            const map: Record<string, number> = {}
+            mergeNumberMap(map, abilityScores)
+            if (Object.keys(map).length) {
+              perSource.abilityScores = map
+              mergeNumberMap(totals.abilityScores, map)
+            }
+          }
+
+          if (abilityModifiers && typeof abilityModifiers === 'object') {
+            const map: Record<string, number> = {}
+            mergeNumberMap(map, abilityModifiers)
+            if (Object.keys(map).length) {
+              perSource.abilityModifiers = map
+              mergeNumberMap(totals.abilityModifiers, map)
+            }
+          }
+
+          if (savingThrows && typeof savingThrows === 'object') {
+            const map: Record<string, number> = {}
+            mergeNumberMap(map, savingThrows)
+            if (Object.keys(map).length) {
+              perSource.savingThrows = map
+              mergeNumberMap(totals.savingThrows, map)
+            }
+          }
+
+          if (skills && typeof skills === 'object') {
+            const map: Record<string, number> = {}
+            mergeNumberMap(map, skills)
+            if (Object.keys(map).length) {
+              perSource.skills = map
+              mergeNumberMap(totals.skills, map)
+            }
+          }
+
+          if (combatStats && typeof combatStats === 'object') {
+            const cs: AggregatedStatBonuses['combatStats'] = {}
+            mergeCombatStats(cs, combatStats)
+            if (Object.keys(cs).length) {
+              perSource.combatStats = cs
+              mergeCombatStats(totals.combatStats, cs)
+            }
+          }
+
+          if (perSource.abilityScores || perSource.abilityModifiers || perSource.savingThrows || perSource.skills || perSource.combatStats) {
+            totals.bySource.push(perSource)
+          }
+        }
+      }
+
+      // 2. 角色物品 -> global_items（優先使用 character_items 的 affects_stats / stat_bonuses 覆寫）
+      const { data: characterItems, error: ciError } = await supabase
+        .from('character_items')
+        .select(`
+          id,
+          character_id,
+          item_id,
+          name_override,
+          affects_stats,
+          stat_bonuses,
+          item:global_items(
+            id,
+            name,
+            affects_stats,
+            stat_bonuses
+          )
+        `)
+        .eq('character_id', characterId)
+
+      if (ciError) {
+        console.error('collectSourceBonusesForCharacter: 讀取角色物品失敗:', ciError)
+      } else if (Array.isArray(characterItems)) {
+        for (const row of characterItems as any[]) {
+          const itemRaw = Array.isArray(row.item) ? row.item[0] : row.item
+          const hasOverride =
+            (typeof row.affects_stats === 'boolean' && row.affects_stats) ||
+            (row.stat_bonuses && typeof row.stat_bonuses === 'object' && Object.keys(row.stat_bonuses).length > 0)
+          const effectiveAffectsStats = hasOverride ? !!row.affects_stats : !!itemRaw?.affects_stats
+          if (!effectiveAffectsStats) continue
+
+          const bonuses = (hasOverride ? row.stat_bonuses : itemRaw?.stat_bonuses) as any
+          if (!bonuses || typeof bonuses !== 'object') continue
+
+          const abilityScores = bonuses.abilityScores
+          const abilityModifiers = bonuses.abilityModifiers
+          const savingThrows = bonuses.savingThrows
+          const skills = bonuses.skills
+          const combatStats = bonuses.combatStats
+
+          const perSource: {
+            id: string
+            type: 'item'
+            name: string
+            abilityScores?: Record<string, number>
+            abilityModifiers?: Record<string, number>
+            savingThrows?: Record<string, number>
+            skills?: Record<string, number>
+            combatStats?: AggregatedStatBonuses['combatStats']
+          } = {
+            id: row.id,
+            type: 'item',
+            name: (row.name_override || itemRaw.name || '').toString()
+          }
+
+          if (abilityScores && typeof abilityScores === 'object') {
+            const map: Record<string, number> = {}
+            mergeNumberMap(map, abilityScores)
+            if (Object.keys(map).length) {
+              perSource.abilityScores = map
+              mergeNumberMap(totals.abilityScores, map)
+            }
+          }
+
+          if (abilityModifiers && typeof abilityModifiers === 'object') {
+            const map: Record<string, number> = {}
+            mergeNumberMap(map, abilityModifiers)
+            if (Object.keys(map).length) {
+              perSource.abilityModifiers = map
+              mergeNumberMap(totals.abilityModifiers, map)
+            }
+          }
+
+          if (savingThrows && typeof savingThrows === 'object') {
+            const map: Record<string, number> = {}
+            mergeNumberMap(map, savingThrows)
+            if (Object.keys(map).length) {
+              perSource.savingThrows = map
+              mergeNumberMap(totals.savingThrows, map)
+            }
+          }
+
+          if (skills && typeof skills === 'object') {
+            const map: Record<string, number> = {}
+            mergeNumberMap(map, skills)
+            if (Object.keys(map).length) {
+              perSource.skills = map
+              mergeNumberMap(totals.skills, map)
+            }
+          }
+
+          if (combatStats && typeof combatStats === 'object') {
+            const cs: AggregatedStatBonuses['combatStats'] = {}
+            mergeCombatStats(cs, combatStats)
+            if (Object.keys(cs).length) {
+              perSource.combatStats = cs
+              mergeCombatStats(totals.combatStats, cs)
+            }
+          }
+
+          if (perSource.abilityScores || perSource.abilityModifiers || perSource.savingThrows || perSource.skills || perSource.combatStats) {
+            totals.bySource.push(perSource)
+          }
+        }
+      }
+    } catch (error) {
+      console.error('collectSourceBonusesForCharacter: 聚合 stat_bonuses 時發生錯誤:', error)
+      // 發生錯誤時回傳目前已累計的數值（通常是全空），避免整體流程崩潰
+    }
+
+    return totals
   }
 
   // === 刪除角色 ===

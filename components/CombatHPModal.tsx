@@ -6,6 +6,12 @@ import React, { useState, useEffect } from 'react';
 import { Modal, ModalButton, ModalInput } from './ui/Modal';
 import { handleValueInput } from '../utils/helpers';
 import { MODAL_CONTAINER_CLASS, MODAL_BODY_TEXT_CLASS, MODAL_DESCRIPTION_CLASS, MODAL_BUTTON_CANCEL_CLASS, MODAL_BUTTON_RESET_CLASS } from '../styles/modalStyles';
+import { FinalTotalRow } from './ui/FinalTotalRow';
+
+export interface HpBonusSourceItem {
+  label: string;
+  value: number;
+}
 
 interface CombatHPModalProps {
   isOpen: boolean;
@@ -13,7 +19,10 @@ interface CombatHPModalProps {
   currentHP: number;
   temporaryHP: number;
   maxHpBasic: number;
+  /** 加值總和（能力/物品來源 + 其他）；用於計算 effectiveMax */
   maxHpBonus: number;
+  /** 加值來源明細（有則顯示「加值來源」列表，與 AC/攻擊命中一致） */
+  bonusSources?: HpBonusSourceItem[];
   defaultMaxHpBasic: number;
   onSave: (current: number, temp: number, maxBasic?: number) => void;
 }
@@ -25,6 +34,7 @@ export default function CombatHPModal({
   temporaryHP,
   maxHpBasic,
   maxHpBonus,
+  bonusSources,
   defaultMaxHpBasic,
   onSave,
 }: CombatHPModalProps) {
@@ -116,10 +126,30 @@ export default function CombatHPModal({
             className="text-2xl font-mono flex-1"
           />
         </div>
-        <div className={`${MODAL_BODY_TEXT_CLASS} space-y-0.5 mb-2`}>
-          <div>其他加值 {maxHpBonus >= 0 ? '+' : ''}{maxHpBonus}</div>
-          <div>總計 {effectiveMax}</div>
-        </div>
+        {bonusSources && bonusSources.length > 0 ? (
+          <div className="mb-3">
+            <p className="text-xs text-slate-500 ml-1 mb-1">加值來源</p>
+            <div className="space-y-0.5">
+              {bonusSources.map((s, i) => (
+                <div
+                  key={i}
+                  className="flex items-center justify-between text-sm text-slate-300"
+                >
+                  <span className="truncate">{s.label}</span>
+                  <span className={s.value >= 0 ? 'text-emerald-400 font-mono' : 'text-rose-400 font-mono'}>
+                    {s.value >= 0 ? '+' : ''}{s.value}
+                  </span>
+                </div>
+              ))}
+            </div>
+            <FinalTotalRow label="總計" value={effectiveMax} className="mt-1.5" />
+          </div>
+        ) : (
+          <div className={`${MODAL_BODY_TEXT_CLASS} space-y-0.5 mb-2`}>
+            <div>其他加值 {maxHpBonus >= 0 ? '+' : ''}{maxHpBonus}</div>
+            <FinalTotalRow label="總計" value={effectiveMax} />
+          </div>
+        )}
 
         <div className="flex flex-wrap gap-2 mt-4">
           <ModalButton

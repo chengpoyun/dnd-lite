@@ -7,8 +7,17 @@ import React, { useState, useEffect } from 'react';
 import { Modal } from './ui/Modal';
 import type { GlobalItem, ItemCategory, CreateGlobalItemData, CreateGlobalItemDataForUpload } from '../services/itemService';
 import { MODAL_CONTAINER_CLASS } from '../styles/modalStyles';
+import { StatBonusEditor, type StatBonusEditorValue } from './StatBonusEditor';
 
-type UploadInitialData = { name: string; description: string; category: ItemCategory; is_magic: boolean };
+type UploadInitialData = {
+  name: string;
+  name_en?: string;
+  description: string;
+  category: ItemCategory;
+  is_magic: boolean;
+  affects_stats?: boolean;
+  stat_bonuses?: Record<string, unknown>;
+};
 
 interface GlobalItemFormModalProps {
   isOpen: boolean;
@@ -38,6 +47,8 @@ export const GlobalItemFormModal: React.FC<GlobalItemFormModalProps> = ({
     description: '',
     category: '裝備',
     is_magic: false,
+    affects_stats: false,
+    stat_bonuses: {},
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -50,14 +61,18 @@ export const GlobalItemFormModal: React.FC<GlobalItemFormModalProps> = ({
         description: editItem.description,
         category: editItem.category,
         is_magic: editItem.is_magic,
+        affects_stats: editItem.affects_stats ?? false,
+        stat_bonuses: (editItem.stat_bonuses ?? {}) || {},
       });
     } else if (isUpload && uploadInitialData) {
       setFormData({
         name: uploadInitialData.name,
-        name_en: '',
+        name_en: uploadInitialData.name_en ?? '',
         description: uploadInitialData.description,
         category: uploadInitialData.category,
         is_magic: uploadInitialData.is_magic,
+        affects_stats: uploadInitialData.affects_stats ?? false,
+        stat_bonuses: (uploadInitialData.stat_bonuses ?? {}) as CreateGlobalItemData['stat_bonuses'],
       });
     } else {
       setFormData({
@@ -66,6 +81,8 @@ export const GlobalItemFormModal: React.FC<GlobalItemFormModalProps> = ({
         description: '',
         category: '裝備',
         is_magic: false,
+        affects_stats: false,
+        stat_bonuses: {},
       });
     }
     setShowConfirm(false);
@@ -93,6 +110,8 @@ export const GlobalItemFormModal: React.FC<GlobalItemFormModalProps> = ({
           description: formData.description.trim(),
           category: formData.category,
           is_magic: formData.is_magic,
+          affects_stats: formData.affects_stats,
+          stat_bonuses: formData.stat_bonuses,
         });
       } else {
         await onSubmit({
@@ -101,6 +120,8 @@ export const GlobalItemFormModal: React.FC<GlobalItemFormModalProps> = ({
           description: formData.description || undefined,
           category: formData.category,
           is_magic: formData.is_magic,
+          affects_stats: formData.affects_stats,
+          stat_bonuses: formData.stat_bonuses,
         });
       }
       onClose();
@@ -222,6 +243,40 @@ export const GlobalItemFormModal: React.FC<GlobalItemFormModalProps> = ({
               rows={6}
               required={isUpload}
             />
+          </div>
+          {/* 影響角色數值設定 */}
+          <div className="border border-slate-800 rounded-lg p-3 bg-slate-900/60 space-y-2">
+            <label className="flex items-center gap-2 text-[14px] text-slate-200">
+              <input
+                type="checkbox"
+                checked={!!formData.affects_stats}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    affects_stats: e.target.checked,
+                    stat_bonuses: e.target.checked ? prev.stat_bonuses ?? {} : {},
+                  }))
+                }
+                className="h-4 w-4 rounded border-slate-600 bg-slate-800 text-amber-500 focus:ring-amber-500"
+              />
+              這個物品會影響角色數值（能力調整值、豁免、技能、戰鬥數值）
+            </label>
+            {formData.affects_stats && (
+              <div className="mt-2 space-y-2">
+                <p className="text-xs text-slate-500">
+                  設定後，角色持有此物品時，這些加值會自動套用並在角色卡與戰鬥頁的加值列表中顯示來源。
+                </p>
+                <StatBonusEditor
+                  value={(formData.stat_bonuses ?? {}) as StatBonusEditorValue}
+                  onChange={(next) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      stat_bonuses: next,
+                    }))
+                  }
+                />
+              </div>
+            )}
           </div>
           <div className="flex gap-3">
             <button

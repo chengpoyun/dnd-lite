@@ -18,6 +18,24 @@ export interface CreateAbilityData {
   description: string;
   source: AbilitySource;
   recovery_type: '常駐' | '短休' | '長休';
+  /** 此能力是否影響角色數值（顯示 stat_bonuses 編輯器用） */
+  affects_stats?: boolean;
+  /** 此能力提供的數值加成定義（存入 abilities.stat_bonuses） */
+  stat_bonuses?: {
+    abilityModifiers?: Record<string, number>;
+    savingThrows?: Record<string, number>;
+    skills?: Record<string, number>;
+    combatStats?: {
+      ac?: number;
+      initiative?: number;
+      maxHp?: number;
+      speed?: number;
+      attackHit?: number;
+      attackDamage?: number;
+      spellHit?: number;
+      spellDc?: number;
+    };
+  };
 }
 
 // 上傳角色能力到全域能力庫時使用的資料（所有欄位必填）
@@ -27,6 +45,8 @@ export interface CreateAbilityDataForUpload {
   description: string;
   source: AbilitySource;
   recovery_type: '常駐' | '短休' | '長休';
+  affects_stats?: boolean;
+  stat_bonuses?: CreateAbilityData['stat_bonuses'];
 }
 
 /** 新增個人能力（直接寫入 character_abilities，不經 abilities） */
@@ -173,21 +193,43 @@ export async function uploadCharacterAbilityToGlobal(
 
     if (existing && !findError) {
       targetAbilityId = existing.id;
+      // 更新既有 ability 的 affects_stats / stat_bonuses（及基本欄位）
+      const updatePayload: Record<string, unknown> = {
+        name,
+        name_en,
+        description,
+        source,
+        recovery_type,
+      };
+      if (data.affects_stats !== undefined) updatePayload.affects_stats = data.affects_stats;
+      if (data.stat_bonuses !== undefined) updatePayload.stat_bonuses = data.stat_bonuses;
+      const { error: updateAbilityError } = await supabase
+        .from('abilities')
+        .update(updatePayload)
+        .eq('id', targetAbilityId);
+      if (updateAbilityError) {
+        console.error('更新全域能力欄位失敗:', updateAbilityError);
+        return { success: false, error: updateAbilityError.message };
+      }
     } else {
-      if (findError && findError.code !== 'PGRST116' && findError.status !== 406) {
+      const findStatus = findError ? (findError as { status?: number }).status : undefined;
+      if (findError && findError.code !== 'PGRST116' && findStatus !== 406) {
         console.error('查詢全域能力失敗:', findError);
         return { success: false, error: '查詢全域能力失敗' };
       }
 
+      const insertPayload: Record<string, unknown> = {
+        name,
+        name_en,
+        description,
+        source,
+        recovery_type,
+      };
+      if (data.affects_stats !== undefined) insertPayload.affects_stats = data.affects_stats;
+      if (data.stat_bonuses !== undefined) insertPayload.stat_bonuses = data.stat_bonuses;
       const { data: inserted, error: insertError } = await supabase
         .from('abilities')
-        .insert([{
-          name,
-          name_en,
-          description,
-          source,
-          recovery_type
-        }])
+        .insert([insertPayload])
         .select()
         .single();
 
@@ -519,6 +561,10 @@ export async function updateCharacterAbility(
     source?: AbilitySource;
     recovery_type?: '常駐' | '短休' | '長休';
     max_uses?: number;
+    /** 覆寫：此角色版能力是否影響角色數值 */
+    affects_stats?: boolean;
+    /** 覆寫：此角色版能力的數值加成定義（存入 character_abilities.stat_bonuses） */
+    stat_bonuses?: any;
   },
   characterAbilityId?: string
 ): Promise<CharacterAbility> {
@@ -535,6 +581,8 @@ export async function updateCharacterAbility(
   if (updates.source !== undefined) updateData.source_override = updates.source;
   if (updates.recovery_type !== undefined) updateData.recovery_type_override = updates.recovery_type;
   if (updates.max_uses !== undefined) updateData.max_uses = updates.max_uses;
+  if (updates.affects_stats !== undefined) updateData.affects_stats = updates.affects_stats;
+  if (updates.stat_bonuses !== undefined) updateData.stat_bonuses = updates.stat_bonuses;
 
   const updateQuery = supabase
     .from('character_abilities')
