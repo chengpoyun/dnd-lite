@@ -9,6 +9,33 @@ import { STYLES, combineStyles } from '../styles/common';
 import { SkillAdjustModal } from './SkillAdjustModal';
 import { AbilityEditModal } from './AbilityEditModal';
 
+/** D&D 5e 各等級所需累計經驗值（等級 1 = 0, 等級 2 = 300, ... 等級 20 = 355,000） */
+const EXP_FOR_LEVEL = [0, 300, 900, 2700, 6500, 14000, 23000, 34000, 48000, 64000, 85000, 100000, 120000, 140000, 165000, 195000, 225000, 265000, 305000, 355000];
+
+/** 依累計 EXP 回傳當前等級 (1–20) */
+function getLevelFromExp(xp: number): number {
+  const clamped = Math.max(0, Math.floor(xp));
+  let level = 1;
+  for (let i = 0; i < EXP_FOR_LEVEL.length; i++) {
+    if (EXP_FOR_LEVEL[i] <= clamped) level = i + 1;
+  }
+  return Math.min(level, 20);
+}
+
+/** 依累計 EXP 計算下一等級所需累計經驗；若已 20 級則回傳 355000 與 isMaxLevel */
+function getNextLevelExp(xp: number): { exp: number; isMaxLevel: boolean } {
+  const clamped = Math.max(0, Math.floor(xp));
+  let level = 0;
+  for (let i = 0; i < EXP_FOR_LEVEL.length; i++) {
+    if (EXP_FOR_LEVEL[i] <= clamped) level = i + 1;
+  }
+  const nextLevel = Math.min(level + 1, 20);
+  return {
+    exp: EXP_FOR_LEVEL[nextLevel - 1],
+    isMaxLevel: level >= 20,
+  };
+}
+
 interface CharacterSheetProps {
   stats: CharacterStats;
   setStats: React.Dispatch<React.SetStateAction<CharacterStats>>;
@@ -1385,11 +1412,18 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
                 <input type="text" value={tempExpValue} onChange={(e) => setTempExpValue(e.target.value)} className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-3xl font-mono text-center text-emerald-400 focus:outline-none" placeholder={stats.exp.toString()} />
                 <div className="text-center mt-2">
                   <span className="text-[14px] text-slate-500 uppercase font-black tracking-widest">計算結果</span>
-                  <div className="flex items-center justify-center gap-3 text-lg font-bold">
-                    <span className="text-slate-400 font-[14px]">{stats.exp}</span>
-                    <span className="text-slate-600">→</span>
-                    <span className="text-emerald-400 text-2xl">{expPreview}</span>
+                  <div className="flex items-center justify-center text-lg font-bold">
+                    <span className="text-emerald-400 text-2xl">{expPreview} (Lv {getLevelFromExp(expPreview)})</span>
                   </div>
+                  {(() => {
+                    const { exp: nextExp, isMaxLevel } = getNextLevelExp(expPreview);
+                    return (
+                      <p className="text-[13px] text-slate-400 mt-2">
+                        下一等級所需累計經驗: {nextExp.toLocaleString()}
+                        {isMaxLevel && ' （已滿級）'}
+                      </p>
+                    );
+                  })()}
                 </div>
               </div>
               <div className="flex gap-2 pt-2">
