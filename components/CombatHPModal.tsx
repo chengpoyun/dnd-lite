@@ -7,6 +7,7 @@ import { Modal, ModalButton, ModalInput } from './ui/Modal';
 import { handleValueInput } from '../utils/helpers';
 import { MODAL_CONTAINER_CLASS, MODAL_BODY_TEXT_CLASS, MODAL_DESCRIPTION_CLASS, MODAL_BUTTON_CANCEL_CLASS, MODAL_BUTTON_RESET_CLASS } from '../styles/modalStyles';
 import { FinalTotalRow } from './ui/FinalTotalRow';
+import { BonusSourcesList } from './ui/BonusSourcesList';
 
 export interface HpBonusSourceItem {
   label: string;
@@ -128,20 +129,7 @@ export default function CombatHPModal({
         </div>
         {bonusSources && bonusSources.length > 0 ? (
           <div className="mb-3">
-            <p className="text-xs text-slate-500 ml-1 mb-1">加值來源</p>
-            <div className="space-y-0.5">
-              {bonusSources.map((s, i) => (
-                <div
-                  key={i}
-                  className="flex items-center justify-between text-sm text-slate-300"
-                >
-                  <span className="truncate">{s.label}</span>
-                  <span className={s.value >= 0 ? 'text-emerald-400 font-mono' : 'text-rose-400 font-mono'}>
-                    {s.value >= 0 ? '+' : ''}{s.value}
-                  </span>
-                </div>
-              ))}
-            </div>
+            <BonusSourcesList title="加值來源" sources={bonusSources} />
             <FinalTotalRow label="總計" value={effectiveMax} className="mt-1.5" />
           </div>
         ) : (

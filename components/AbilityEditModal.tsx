@@ -8,6 +8,7 @@ import {
   MODAL_DESCRIPTION_CLASS,
   MODAL_BUTTON_CANCEL_CLASS,
   MODAL_BUTTON_RESET_CLASS,
+  MODAL_FOOTER_BUTTONS_CLASS,
 } from '../styles/modalStyles';
 import { getModifier, getProfBonus } from '../utils/helpers';
 import type { AbilityKey } from '../utils/characterAttributes';
@@ -270,7 +271,7 @@ export const AbilityEditModal: React.FC<AbilityEditModalProps> = ({
           <FinalTotalRow label="最終豁免" value={finalSave} />
         </section>
 
-        <div className="flex gap-2">
+        <div className={MODAL_FOOTER_BUTTONS_CLASS}>
           <ModalButton
             variant="secondary"
             className={MODAL_BUTTON_RESET_CLASS}

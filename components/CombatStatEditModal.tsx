@@ -7,7 +7,8 @@ import { Modal, ModalButton, ModalInput } from './ui/Modal';
 import { SegmentBar, type SegmentBarOption } from './ui/SegmentBar';
 import { handleValueInput } from '../utils/helpers';
 import { FinalTotalRow } from './ui/FinalTotalRow';
-import { MODAL_CONTAINER_CLASS, MODAL_BODY_TEXT_CLASS, MODAL_DESCRIPTION_CLASS, MODAL_BUTTON_CANCEL_CLASS, MODAL_BUTTON_RESET_CLASS } from '../styles/modalStyles';
+import { BonusSourcesList } from './ui/BonusSourcesList';
+import { MODAL_CONTAINER_CLASS, MODAL_BODY_TEXT_CLASS, MODAL_DESCRIPTION_CLASS, MODAL_BUTTON_CANCEL_CLASS, MODAL_BUTTON_RESET_CLASS, MODAL_FOOTER_BUTTONS_CLASS } from '../styles/modalStyles';
 
 export interface BonusSourceItem {
   label: string;
@@ -112,27 +113,12 @@ export default function CombatStatEditModal<T extends string = string>({
           <p className={`${MODAL_DESCRIPTION_CLASS} text-center mb-3`}>{description}</p>
         )}
         {bonusSources && bonusSources.length > 0 && (
-          <div className="mb-3">
-            <p className="text-xs text-slate-500 ml-1 mb-1">加值來源</p>
-            <div className="space-y-0.5">
-              {bonusSources.map((s, i) => (
-                <div
-                  key={i}
-                  className="flex items-center justify-between text-sm text-slate-300"
-                >
-                  <span className="truncate">{s.label}</span>
-                  <span className={s.value >= 0 ? 'text-emerald-400 font-mono' : 'text-rose-400 font-mono'}>
-                    {s.value >= 0 ? '+' : ''}{s.value}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
+          <BonusSourcesList title="加值來源" sources={bonusSources} className="mb-3" />
         )}
         {(finalValue !== undefined || bonusValue !== undefined) && (
           <FinalTotalRow label="最終總計" value={displayTotal} className="mb-3" />
         )}
-        <div className="flex gap-2">
+        <div className={MODAL_FOOTER_BUTTONS_CLASS}>
           <ModalButton variant="secondary" className={MODAL_BUTTON_RESET_CLASS} onClick={handleReset}>
             重置
           </ModalButton>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { CharacterStats, CustomRecord } from '../types';
-import { getModifier, getProfBonus, evaluateValue, handleValueInput, handleDecimalInput, formatDecimal } from '../utils/helpers';
+import { getProfBonus, formatDecimal } from '../utils/helpers';
 import { getFinalAbilityModifier, getFinalAbilityScore, getFinalSavingThrow, getFinalSkillBonus, getFinalCombatStat, type AbilityKey } from '../utils/characterAttributes';
 import { STAT_LABELS, SKILLS_MAP, ABILITY_KEYS } from '../utils/characterConstants';
 import { getAvailableClasses, getClassHitDie, formatClassDisplay, calculateHitDiceTotals } from '../utils/classUtils';
@@ -8,33 +8,13 @@ import { PageContainer, Card, Button, Title, Subtitle, Input, BackButton } from 
 import { STYLES, combineStyles } from '../styles/common';
 import { SkillAdjustModal } from './SkillAdjustModal';
 import { AbilityEditModal } from './AbilityEditModal';
-
-/** D&D 5e 各等級所需累計經驗值（等級 1 = 0, 等級 2 = 300, ... 等級 20 = 355,000） */
-const EXP_FOR_LEVEL = [0, 300, 900, 2700, 6500, 14000, 23000, 34000, 48000, 64000, 85000, 100000, 120000, 140000, 165000, 195000, 225000, 265000, 305000, 355000];
-
-/** 依累計 EXP 回傳當前等級 (1–20) */
-function getLevelFromExp(xp: number): number {
-  const clamped = Math.max(0, Math.floor(xp));
-  let level = 1;
-  for (let i = 0; i < EXP_FOR_LEVEL.length; i++) {
-    if (EXP_FOR_LEVEL[i] <= clamped) level = i + 1;
-  }
-  return Math.min(level, 20);
-}
-
-/** 依累計 EXP 計算下一等級所需累計經驗；若已 20 級則回傳 355000 與 isMaxLevel */
-function getNextLevelExp(xp: number): { exp: number; isMaxLevel: boolean } {
-  const clamped = Math.max(0, Math.floor(xp));
-  let level = 0;
-  for (let i = 0; i < EXP_FOR_LEVEL.length; i++) {
-    if (EXP_FOR_LEVEL[i] <= clamped) level = i + 1;
-  }
-  const nextLevel = Math.min(level + 1, 20);
-  return {
-    exp: EXP_FOR_LEVEL[nextLevel - 1],
-    isMaxLevel: level >= 20,
-  };
-}
+import ExpModal from './ExpModal';
+import CurrencyModal from './CurrencyModal';
+import DowntimeModal from './DowntimeModal';
+import RenownModal from './RenownModal';
+import CustomRecordModal from './CustomRecordModal';
+import CharacterInfoModal from './CharacterInfoModal';
+import MulticlassAddModal from './MulticlassAddModal';
 
 interface CharacterSheetProps {
   stats: CharacterStats;
@@ -44,7 +24,6 @@ interface CharacterSheetProps {
   onSaveSavingThrowProficiencies?: (proficiencies: string[]) => Promise<boolean>;
   onSaveCharacterBasicInfo?: (name: string, characterClass: string, level: number) => Promise<boolean>;
   onSaveAbilityScores?: (abilityScores: CharacterStats['abilityScores']) => Promise<boolean>;
-  onSaveAbilityBonuses?: (abilityBonuses: Record<string, number>, modifierBonuses: Record<string, number>) => Promise<boolean>;
   onSaveCurrencyAndExp?: (gp: number, exp: number) => Promise<boolean>;
   onSaveExtraData?: (extraData: any) => Promise<boolean>;
   onSaveAvatarUrl?: (avatarUrl: string) => Promise<boolean>;
@@ -58,7 +37,6 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
   onSaveSavingThrowProficiencies,
   onSaveCharacterBasicInfo,
   onSaveAbilityScores,
-  onSaveAbilityBonuses,
   onSaveCurrencyAndExp,
   onSaveExtraData,
   onSaveAvatarUrl
@@ -170,61 +148,6 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
     setSelectedRecord(record);
     setNewRecord({ name: record.name, value: record.value, note: record.note || '' });
     setActiveModal('edit_record');
-  };
-
-  // 預覽計算 - 使用統一的數值處理函數
-  const gpResult = handleDecimalInput(tempGPValue, stats.currency.gp, {
-    minValue: 0,
-    allowZero: true,
-    decimalPlaces: 2
-  });
-  const gpPreview = gpResult.isValid ? gpResult.numericValue : stats.currency.gp;
-  
-  const expResult = handleValueInput(tempExpValue, stats.exp, {
-    minValue: 0,
-    allowZero: true
-  });
-  const expPreview = expResult.isValid ? expResult.numericValue : stats.exp;
-  
-  const downtimeResult = handleValueInput(tempDowntimeValue, stats.downtime, {
-    minValue: 0,
-    allowZero: true
-  });
-  const downtimePreview = downtimeResult.isValid ? downtimeResult.numericValue : stats.downtime;
-  
-  const renownUsedResult = handleValueInput(tempRenownUsedValue, stats.renown.used, {
-    minValue: 0,
-    allowZero: true
-  });
-  const renownUsedPreview = renownUsedResult.isValid ? renownUsedResult.numericValue : stats.renown.used;
-  
-  const renownTotalResult = handleValueInput(tempRenownTotalValue, stats.renown.total, {
-    minValue: 0,
-    allowZero: true
-  });
-  const renownTotalPreview = renownTotalResult.isValid ? renownTotalResult.numericValue : stats.renown.total;
-
-  const saveInfo = async () => { 
-    // 驗證等級不為空
-    const level = parseInt(editInfo.level);
-    if (!level || level < 1) {
-      setActiveModal(null);
-      return;
-    }
-    
-    // 立即保存到資料庫
-    if (onSaveCharacterBasicInfo) {
-      const success = await onSaveCharacterBasicInfo(editInfo.name, editInfo.class, level)
-      if (success) {
-        console.log('✅ 角色基本信息保存成功')
-      } else {
-        console.error('❌ 角色基本信息保存失敗')
-      }
-    }
-    
-    // 更新本地狀態
-    setStats(prev => ({ ...prev, name: editInfo.name, class: editInfo.class, level })); 
-    setActiveModal(null); 
   };
 
   // 兼職管理函數
@@ -609,103 +532,6 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
     }
   };
   
-  const saveCurrency = async () => {
-    // 驗證金幣不為空或無效
-    if (isNaN(gpPreview) || gpPreview < 0) {
-      setActiveModal(null);
-      return;
-    }
-    
-    // 更新本地狀態
-    setStats(prev => ({ 
-      ...prev, 
-      currency: { ...prev.currency, gp: gpPreview }
-    })); 
-    setActiveModal(null); 
-    
-    // 立即保存到資料庫
-    if (onSaveCurrencyAndExp) {
-      const success = await onSaveCurrencyAndExp(gpPreview, stats.exp)
-      if (success) {
-        console.log('✅ 金幣保存成功')
-      } else {
-        console.error('❌ 金幣保存失敗')
-      }
-    }
-  };
-  
-  const saveExp = async () => {
-    // 驗證經驗值不為空或無效
-    if (isNaN(expPreview) || expPreview < 0) {
-      setActiveModal(null);
-      return;
-    }
-    
-    // 更新本地狀態
-    setStats(prev => ({ 
-      ...prev, 
-      exp: expPreview 
-    })); 
-    setActiveModal(null); 
-    
-    // 立即保存到資料庫
-    if (onSaveCurrencyAndExp) {
-      const success = await onSaveCurrencyAndExp(stats.currency.gp, expPreview)
-      if (success) {
-        console.log('✅ 經驗值保存成功')
-      } else {
-        console.error('❌ 經驗值保存失敗')
-      }
-    }
-  };
-
-  const saveDowntime = async () => { 
-    // 立即保存到資料庫
-    if (onSaveExtraData) {
-      // 保留現有的extra_data，只更新downtime
-      const extraData = {
-        downtime: downtimePreview,
-        renown: stats.renown || { used: 0, total: 0 },
-        prestige: stats.prestige || { org: '', level: 0, rankName: '' },
-        customRecords: stats.customRecords || [],
-        attacks: stats.attacks || []
-      }
-      
-      const success = await onSaveExtraData(extraData)
-      if (success) {
-        console.log('✅ Downtime保存成功')
-      } else {
-        console.error('❌ Downtime保存失敗')
-      }
-    }
-    
-    setStats(prev => ({ ...prev, downtime: downtimePreview })); 
-    setActiveModal(null); 
-  };
-  const saveRenown = async () => { 
-    // 立即保存到資料庫
-    if (onSaveExtraData) {
-      // 保留現有的extra_data，只更新renown
-      const extraData = {
-        downtime: stats.downtime || 0,
-        renown: { used: renownUsedPreview, total: renownTotalPreview },
-        prestige: stats.prestige || { org: '', level: 0, rankName: '' },
-        customRecords: stats.customRecords || [],
-        attacks: stats.attacks || []
-      }
-      
-      const success = await onSaveExtraData(extraData)
-      if (success) {
-        console.log('✅ Renown保存成功')
-      } else {
-        console.error('❌ Renown保存失敗')
-      }
-    }
-    
-    setStats(prev => ({ ...prev, renown: { used: renownUsedPreview, total: renownTotalPreview } })); 
-    setActiveModal(null); 
-  };
-
   const handleSaveNewRecord = async () => {
     if (!newRecord.name || !newRecord.value) return;
     const record: CustomRecord = {
@@ -1233,326 +1059,141 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
       )}
 
       {activeModal === 'info' && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center px-6">
-          <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-sm" onClick={() => setActiveModal(null)} />
-          <div className="relative bg-slate-900 border border-slate-700 w-full max-w-xs rounded-2xl p-3 shadow-2xl">
-            <h3 className="text-base font-fantasy text-amber-500 mb-4 border-b border-slate-800 pb-2">編輯角色資料</h3>
-            <div className="space-y-4">
-              <div className="space-y-1">
-                <label className="text-[14px] font-black text-slate-500 uppercase ml-1">名稱</label>
-                <input type="text" value={editInfo.name} onChange={(e) => setEditInfo({ ...editInfo, name: e.target.value })} className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white outline-none" />
-              </div>
-              
-              {/* 職業與等級編輯 */}
-              <div className="space-y-2">
-                <label className="text-[14px] font-black text-slate-500 uppercase ml-1">職業與等級</label>
-                <div className="space-y-2">
-                  {editClasses.map((classInfo, index) => (
-                    <div key={classInfo.id || index} className="flex items-center gap-2">
-                      <select 
-                        value={classInfo.name}
-                        onChange={(e) => updateEditClass(index, 'name', e.target.value)}
-                        className="flex-1 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm"
-                      >
-                        {getAvailableClasses()
-                          .filter(className => className === classInfo.name || !editClasses.some(c => c.name === className))
-                          .map(className => (
-                            <option key={className} value={className}>{className}</option>
-                          ))
-                        }
-                      </select>
-                      <input 
-                        type="number" 
-                        min="1" 
-                        max="20"
-                        value={classInfo.level} 
-                        onChange={(e) => updateEditClass(index, 'level', e.target.value)}
-                        className="w-16 bg-slate-800 border border-slate-700 rounded-lg px-2 py-2 text-center text-white text-sm"
-                      />
-                      {editClasses.length > 1 && (
-                        <button 
-                          onClick={() => removeEditClass(index)}
-                          className="w-8 h-8 bg-red-600/20 text-red-400 rounded-lg hover:bg-red-600/40 transition-colors flex items-center justify-center"
-                        >
-                          ×
-                        </button>
-                      )}
-                    </div>
-                  ))}
-                  
-                  {/* 新增按鈕 */}
-                  <button 
-                    onClick={addNewEditClass}
-                    className="w-full py-2 bg-slate-700/50 text-slate-400 rounded-lg border border-slate-600 hover:bg-slate-700 transition-colors flex items-center justify-center font-bold"
-                  >
-                    +
-                  </button>
-                  
-                  {/* 總等級顯示 */}
-                  <div className="text-center pt-2 border-t border-slate-700">
-                    <span className="text-xs text-slate-500">總等級: LV {editClasses.reduce((sum, c) => sum + (parseInt(String(c.level)) || 0), 0)}</span>
-                  </div>
-                </div>
-              </div>
-              <div className="flex gap-2 pt-4">
-                <button onClick={() => setActiveModal(null)} className="flex-1 px-4 py-3 bg-slate-800 text-slate-400 rounded-xl font-bold">取消</button>
-                <button onClick={saveInfoWithClasses} className="flex-1 px-4 py-3 bg-amber-600 text-white rounded-xl font-bold">儲存</button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <CharacterInfoModal
+          isOpen
+          onClose={() => setActiveModal(null)}
+          editInfo={editInfo}
+          setEditInfo={setEditInfo}
+          editClasses={editClasses}
+          availableClasses={getAvailableClasses()}
+          updateEditClass={updateEditClass}
+          removeEditClass={removeEditClass}
+          addNewEditClass={addNewEditClass}
+          totalLevel={editClasses.reduce((sum, c) => sum + (parseInt(String(c.level)) || 0), 0)}
+          onSave={saveInfoWithClasses}
+        />
       )}
 
-      {/* 兼職管理 Modal */}
       {activeModal === 'multiclass' && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center px-6">
-          <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-sm" onClick={() => setActiveModal(null)} />
-          <div className="relative bg-slate-900 border border-slate-700 w-full max-w-xs rounded-2xl p-4 shadow-2xl">
-            <h3 className="text-lg font-fantasy text-amber-500 mb-6 border-b border-slate-800 pb-2">🎆 新增兼職</h3>
-            
-            {/* 新增職業 */}
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-400 uppercase">選擇職業</label>
-                <select 
-                  value={newClassName}
-                  onChange={(e) => setNewClassName(e.target.value)}
-                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white text-base"
-                >
-                  <option value="">選擇職業...</option>
-                  {getAvailableClasses()
-                    .filter(className => !editClasses.some(c => c.name === className))
-                    .map(className => (
-                      <option key={className} value={className}>{className}</option>
-                    ))
-                  }
-                </select>
-              </div>
-              
-              <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-400 uppercase">等級</label>
-                <input 
-                  type="number" 
-                  min="1" 
-                  max="20"
-                  value={newClassLevel} 
-                  onChange={(e) => setNewClassLevel(e.target.value)}
-                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-center text-white text-base"
-                  placeholder="1"
-                />
-              </div>
-              
-              {/* 預覽 */}
-              {newClassName && (
-                <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-700">
-                  <div className="text-sm text-slate-400 mb-1">預覽:</div>
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-white">{newClassName}</span>
-                    <span className="text-slate-400 text-sm font-mono">LV {newClassLevel || 1}</span>
-                  </div>
-                </div>
-              )}
-            </div>
-            
-            {/* 按鈕 */}
-            <div className="flex gap-2 mt-6">
-              <button 
-                onClick={() => setActiveModal(null)} 
-                className="flex-1 px-4 py-3 bg-slate-800 text-slate-400 rounded-xl font-bold"
-              >
-                取消
-              </button>
-              <button 
-                onClick={() => { addNewClass(); }} 
-                disabled={!newClassName}
-                className="flex-1 px-4 py-3 bg-emerald-600 disabled:bg-slate-700 text-white disabled:text-slate-500 rounded-xl font-bold transition-colors"
-              >
-                新增兼職
-              </button>
-            </div>
-          </div>
-        </div>
+        <MulticlassAddModal
+          isOpen
+          onClose={() => setActiveModal(null)}
+          newClassName={newClassName}
+          newClassLevel={newClassLevel}
+          onNewClassNameChange={setNewClassName}
+          onNewClassLevelChange={setNewClassLevel}
+          availableClasses={getAvailableClasses()}
+          usedClassNames={editClasses.map((c) => c.name)}
+          onAdd={addNewClass}
+        />
       )}
 
       {activeModal === 'currency' && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center px-6">
-          <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-sm" onClick={() => setActiveModal(null)} />
-          <div className="relative bg-slate-900 border border-slate-700 w-full max-w-xs rounded-2xl p-3 shadow-2xl">
-            <h3 className="text-base font-fantasy text-amber-500 mb-6 border-b border-slate-800 pb-2">修改資金</h3>
-            <div className="space-y-6">
-              <div className="space-y-4">
-                <label className="text-[14px] font-black text-amber-500 uppercase ml-1">持有金幣 (GP)</label>
-                <input type="text" value={tempGPValue} onChange={(e) => setTempGPValue(e.target.value)} className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-3xl font-mono text-center text-amber-500 focus:outline-none" placeholder={formatDecimal(stats.currency.gp)} />
-                <div className="text-center mt-2">
-                  <span className="text-[14px] text-slate-500 uppercase font-black tracking-widest">計算結果</span>
-                  <div className="flex items-center justify-center gap-3 text-lg font-bold">
-                    <span className="text-slate-400 font-[14px]">{formatDecimal(stats.currency.gp)}</span>
-                    <span className="text-slate-600">→</span>
-                    <span className="text-amber-500 text-2xl">{formatDecimal(gpPreview)}</span>
-                  </div>
-                </div>
-              </div>
-              <div className="flex gap-2 pt-2">
-                <button onClick={() => setActiveModal(null)} className="flex-1 px-4 py-3 bg-slate-800 text-slate-400 rounded-xl font-bold">取消</button>
-                <button onClick={saveCurrency} className="flex-1 px-4 py-3 bg-amber-600 text-white rounded-xl font-bold">套用</button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <CurrencyModal
+          isOpen
+          onClose={() => setActiveModal(null)}
+          value={tempGPValue}
+          onChange={setTempGPValue}
+          currentGp={stats.currency.gp}
+          onApply={(gp) => {
+            setStats((prev) => ({ ...prev, currency: { ...prev.currency, gp } }));
+            setActiveModal(null);
+            onSaveCurrencyAndExp?.(gp, stats.exp);
+          }}
+        />
       )}
 
       {activeModal === 'exp' && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center px-6">
-          <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-sm" onClick={() => setActiveModal(null)} />
-          <div className="relative bg-slate-900 border border-slate-700 w-full max-w-xs rounded-2xl p-3 shadow-2xl">
-            <h3 className="text-base font-fantasy text-emerald-400 mb-6 border-b border-slate-800 pb-2">修改經驗值</h3>
-            <div className="space-y-6">
-              <div className="space-y-4">
-                <label className="text-[14px] font-black text-emerald-400 uppercase ml-1">經驗值 (EXP)</label>
-                <input type="text" value={tempExpValue} onChange={(e) => setTempExpValue(e.target.value)} className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-3xl font-mono text-center text-emerald-400 focus:outline-none" placeholder={stats.exp.toString()} />
-                <div className="text-center mt-2">
-                  <span className="text-[14px] text-slate-500 uppercase font-black tracking-widest">計算結果</span>
-                  <div className="flex items-center justify-center text-lg font-bold">
-                    <span className="text-emerald-400 text-2xl">{expPreview} (Lv {getLevelFromExp(expPreview)})</span>
-                  </div>
-                  {(() => {
-                    const { exp: nextExp, isMaxLevel } = getNextLevelExp(expPreview);
-                    return (
-                      <p className="text-[13px] text-slate-400 mt-2">
-                        下一等級所需累計經驗: {nextExp.toLocaleString()}
-                        {isMaxLevel && ' （已滿級）'}
-                      </p>
-                    );
-                  })()}
-                </div>
-              </div>
-              <div className="flex gap-2 pt-2">
-                <button onClick={() => setActiveModal(null)} className="flex-1 px-4 py-3 bg-slate-800 text-slate-400 rounded-xl font-bold">取消</button>
-                <button onClick={saveExp} className="flex-1 px-4 py-3 bg-emerald-600 text-white rounded-xl font-bold">套用</button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <ExpModal
+          isOpen
+          onClose={() => setActiveModal(null)}
+          value={tempExpValue}
+          onChange={setTempExpValue}
+          placeholder={stats.exp.toString()}
+          onApply={(exp) => {
+            setStats((prev) => ({ ...prev, exp }));
+            setActiveModal(null);
+            onSaveCurrencyAndExp?.(stats.currency.gp, exp);
+          }}
+        />
       )}
 
       {activeModal === 'downtime' && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center px-6">
-          <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-sm" onClick={() => setActiveModal(null)} />
-          <div className="relative bg-slate-900 border border-slate-700 w-full max-w-xs rounded-2xl p-3 shadow-2xl animate-in fade-in zoom-in duration-150">
-            <h3 className="text-base font-fantasy text-amber-500 mb-6 border-b border-slate-800 pb-2">修整期</h3>
-            <div className="space-y-6">
-              <div className="text-center">
-                <input type="text" value={tempDowntimeValue} onChange={(e) => setTempDowntimeValue(e.target.value)} className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-4 text-4xl font-mono text-center text-white focus:outline-none" placeholder={stats.downtime.toString()} />
-                <div className="text-center mt-3">
-                  <span className="text-[14px] text-slate-500 uppercase font-black tracking-widest">預覽結果</span>
-                  <div className="flex items-center justify-center gap-3 text-lg font-bold">
-                    <span className="text-slate-400 font-[14px]">{stats.downtime}</span>
-                    <span className="text-slate-600">→</span>
-                    <span className="text-white text-2xl">{downtimePreview} 天</span>
-                  </div>
-                </div>
-              </div>
-              <div className="flex gap-2 pt-2">
-                <button onClick={() => setActiveModal(null)} className="flex-1 px-4 py-3 bg-slate-800 text-slate-400 rounded-xl font-bold">取消</button>
-                <button onClick={saveDowntime} className="flex-1 px-4 py-3 bg-amber-600 text-white rounded-xl font-bold">套用</button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <DowntimeModal
+          isOpen
+          onClose={() => setActiveModal(null)}
+          value={tempDowntimeValue}
+          onChange={setTempDowntimeValue}
+          currentDowntime={stats.downtime}
+          onApply={(v) => {
+            setStats((prev) => ({ ...prev, downtime: v }));
+            setActiveModal(null);
+            onSaveExtraData?.({
+              ...stats.extraData,
+              downtime: v,
+              renown: stats.renown || { used: 0, total: 0 },
+              prestige: stats.prestige || { org: '', level: 0, rankName: '' },
+              customRecords: stats.customRecords || [],
+              attacks: stats.attacks || [],
+            });
+          }}
+        />
       )}
 
       {activeModal === 'renown' && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center px-6">
-          <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-sm" onClick={() => setActiveModal(null)} />
-          <div className="relative bg-slate-900 border border-slate-700 w-full max-w-xs rounded-2xl p-3 shadow-2xl animate-in fade-in zoom-in duration-150">
-            <h3 className="text-base font-fantasy text-amber-500 mb-6 border-b border-slate-800 pb-2">名聲</h3>
-            <div className="space-y-6">
-              <div className="space-y-4">
-                <div className="space-y-1">
-                  <label className="text-[14px] font-black text-slate-500 uppercase ml-1">名聲 (使用)</label>
-                  <input type="text" value={tempRenownUsedValue} onChange={(e) => setTempRenownUsedValue(e.target.value)} className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-2xl font-mono text-center text-white focus:outline-none" placeholder={stats.renown.used.toString()} />
-                  <div className="flex items-center justify-center gap-2 mt-1">
-                    <span className="text-[14px] text-slate-600 font-bold">{stats.renown.used}</span>
-                    <span className="text-[14px] text-slate-700">→</span>
-                    <span className={`text-[14px] font-black ${renownUsedPreview > renownTotalPreview ? 'text-rose-400' : 'text-emerald-400'}`}>
-                      {renownUsedPreview}
-                    </span>
-                  </div>
-                </div>
-                <div className="space-y-1">
-                  <label className="text-[14px] font-black text-slate-500 uppercase ml-1">名聲 (累計)</label>
-                  <input type="text" value={tempRenownTotalValue} onChange={(e) => setTempRenownTotalValue(e.target.value)} className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-2xl font-mono text-center text-amber-500 focus:outline-none" placeholder={stats.renown.total.toString()} />
-                  <div className="flex items-center justify-center gap-2 mt-1">
-                    <span className="text-[14px] text-slate-600 font-bold">{stats.renown.total}</span>
-                    <span className="text-[14px] text-slate-700">→</span>
-                    <span className="text-[14px] font-black text-amber-500">{renownTotalPreview}</span>
-                  </div>
-                </div>
-              </div>
-              <div className="flex gap-2 pt-2">
-                <button onClick={() => setActiveModal(null)} className="flex-1 px-4 py-3 bg-slate-800 text-slate-400 rounded-xl font-bold">取消</button>
-                <button onClick={saveRenown} className="flex-1 px-4 py-3 bg-amber-600 text-white rounded-xl font-bold">儲存</button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <RenownModal
+          isOpen
+          onClose={() => setActiveModal(null)}
+          usedValue={tempRenownUsedValue}
+          totalValue={tempRenownTotalValue}
+          onChangeUsed={setTempRenownUsedValue}
+          onChangeTotal={setTempRenownTotalValue}
+          currentUsed={stats.renown.used}
+          currentTotal={stats.renown.total}
+          onApply={(used, total) => {
+            setStats((prev) => ({ ...prev, renown: { used, total } }));
+            setActiveModal(null);
+            onSaveExtraData?.({
+              ...stats.extraData,
+              downtime: stats.downtime || 0,
+              renown: { used, total },
+              prestige: stats.prestige || { org: '', level: 0, rankName: '' },
+              customRecords: stats.customRecords || [],
+              attacks: stats.attacks || [],
+            });
+          }}
+        />
       )}
 
       {activeModal === 'add_record' && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center px-6">
-          <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-sm" onClick={() => setActiveModal(null)} />
-          <div className="relative bg-slate-900 border border-slate-700 w-full max-w-xs rounded-2xl p-3 shadow-2xl animate-in fade-in zoom-in duration-150">
-            <h3 className="text-base font-fantasy text-amber-500 mb-6 border-b border-slate-800 pb-2">新增紀錄</h3>
-            <div className="space-y-4">
-              <div className="space-y-1">
-                <label className="text-[14px] font-black text-slate-500 uppercase ml-1">名稱</label>
-                <input type="text" value={newRecord.name} onChange={(e) => setNewRecord({ ...newRecord, name: e.target.value })} className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white outline-none" placeholder="例如：皇家古生物學院" />
-              </div>
-              <div className="space-y-1">
-                <label className="text-[14px] font-black text-slate-500 uppercase ml-1">數值</label>
-                <input type="text" value={newRecord.value} onChange={(e) => setNewRecord({ ...newRecord, value: e.target.value })} className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white outline-none" placeholder="例如：1" />
-              </div>
-              <div className="space-y-1">
-                <label className="text-[14px] font-black text-slate-500 uppercase ml-1">備註 (非必填)</label>
-                <textarea value={newRecord.note} onChange={(e) => setNewRecord({ ...newRecord, note: e.target.value })} className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2 text-white outline-none resize-none h-20" placeholder="例如：階級一" />
-              </div>
-              <div className="flex gap-2 pt-2">
-                <button onClick={() => setActiveModal(null)} className="flex-1 px-4 py-3 bg-slate-800 text-slate-400 rounded-xl font-bold">取消</button>
-                <button onClick={handleSaveNewRecord} className="flex-1 px-4 py-3 bg-amber-600 text-white rounded-xl font-bold">新增</button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <CustomRecordModal
+          isOpen
+          onClose={() => setActiveModal(null)}
+          mode="add"
+          name={newRecord.name}
+          value={newRecord.value}
+          note={newRecord.note}
+          onChangeName={(v) => setNewRecord((r) => ({ ...r, name: v }))}
+          onChangeValue={(v) => setNewRecord((r) => ({ ...r, value: v }))}
+          onChangeNote={(v) => setNewRecord((r) => ({ ...r, note: v }))}
+          onSave={handleSaveNewRecord}
+        />
       )}
 
       {activeModal === 'edit_record' && selectedRecord && (
-        <div className="fixed inset-0 z-[120] flex items-center justify-center px-6">
-          <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-sm" onClick={() => setActiveModal(null)} />
-          <div className="relative bg-slate-900 border border-slate-700 w-full max-w-xs rounded-2xl p-3 shadow-2xl animate-in fade-in zoom-in duration-150">
-            <h3 className="text-base font-fantasy text-amber-500 mb-6 border-b border-slate-800 pb-2">編輯紀錄</h3>
-            <div className="space-y-4">
-              <div className="space-y-1">
-                <label className="text-[14px] font-black text-slate-500 uppercase ml-1">名稱</label>
-                <input type="text" value={newRecord.name} onChange={(e) => setNewRecord({ ...newRecord, name: e.target.value })} className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white outline-none" />
-              </div>
-              <div className="space-y-1">
-                <label className="text-[14px] font-black text-slate-500 uppercase ml-1">數值</label>
-                <input type="text" value={newRecord.value} onChange={(e) => setNewRecord({ ...newRecord, value: e.target.value })} className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white outline-none" />
-              </div>
-              <div className="space-y-1">
-                <label className="text-[14px] font-black text-slate-500 uppercase ml-1">備註</label>
-                <textarea value={newRecord.note} onChange={(e) => setNewRecord({ ...newRecord, note: e.target.value })} className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2 text-white outline-none resize-none h-20" />
-              </div>
-              <div className="flex flex-col gap-2 pt-2">
-                <div className="flex gap-2">
-                  <button onClick={() => setActiveModal(null)} className="flex-1 px-4 py-3 bg-slate-800 text-slate-400 rounded-xl font-bold">取消</button>
-                  <button onClick={handleUpdateRecord} className="flex-1 px-4 py-3 bg-amber-600 text-white rounded-xl font-bold">更新</button>
-                </div>
-                <button onClick={handleDeleteRecord} className="w-full px-4 py-2 bg-red-950/40 text-red-400 border border-red-900/30 rounded-xl font-bold text-xs mt-2">刪除此紀錄</button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <CustomRecordModal
+          isOpen
+          onClose={() => setActiveModal(null)}
+          mode="edit"
+          name={newRecord.name}
+          value={newRecord.value}
+          note={newRecord.note}
+          onChangeName={(v) => setNewRecord((r) => ({ ...r, name: v }))}
+          onChangeValue={(v) => setNewRecord((r) => ({ ...r, value: v }))}
+          onChangeNote={(v) => setNewRecord((r) => ({ ...r, note: v }))}
+          onSave={handleUpdateRecord}
+          onDelete={handleDeleteRecord}
+        />
       )}
     </div>
   );

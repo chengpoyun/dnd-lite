@@ -109,8 +109,11 @@ describe('NumberEditModal', () => {
         ]}
       />
     );
-    expect(screen.getByText(/盾牌 \+2/)).toBeInTheDocument();
-    expect(screen.getByText(/法術 \+1/)).toBeInTheDocument();
+    expect(screen.getByText('加值來源')).toBeInTheDocument();
+    expect(screen.getByText('盾牌')).toBeInTheDocument();
+    expect(screen.getByText('+2')).toBeInTheDocument();
+    expect(screen.getByText('法術')).toBeInTheDocument();
+    expect(screen.getByText('+1')).toBeInTheDocument();
   });
 
   it('allowZero 時 0 為有效輸入', () => {

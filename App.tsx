@@ -918,7 +918,6 @@ const AuthenticatedApp: React.FC = () => {
                   onSaveSavingThrowProficiencies={saveSavingThrowProficiencies}
                   onSaveCharacterBasicInfo={saveCharacterBasicInfo}
                   onSaveAbilityScores={saveAbilityScores}
-                  onSaveAbilityBonuses={saveAbilityBonuses}
                   onSaveCurrencyAndExp={saveCurrencyAndExp}
                   onSaveExtraData={saveExtraData}
                   onSaveAvatarUrl={saveAvatarUrl}
