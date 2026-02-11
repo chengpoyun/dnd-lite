@@ -784,8 +784,19 @@ export const CombatView: React.FC<CombatViewProps> = ({
             valueClass: `${valueBase} ${hpColors.text}`,
             label: "HP",
             value: (stats.hp.temp ?? 0) !== 0
-              ? <>{stats.hp.current}<span className="text-purple-400"> +{stats.hp.temp}</span></>
-              : stats.hp.current,
+              ? (
+                <>
+                  {stats.hp.current}
+                  <span className="text-purple-400"> +{stats.hp.temp}</span>
+                  <span className="text-slate-400 text-[18px]"> / {effectiveMaxHp}</span>
+                </>
+              )
+              : (
+                <>
+                  {stats.hp.current}
+                  <span className="text-slate-400 text-[18px]"> / {effectiveMaxHp}</span>
+                </>
+              ),
             style: { paddingBottom: '3px' },
           },
           {
