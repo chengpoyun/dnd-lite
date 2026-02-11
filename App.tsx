@@ -15,6 +15,7 @@ const MonstersPage = lazy(() => import('./components/MonstersPage'));
 const ItemsPage = lazy(() => import('./components/ItemsPage'));
 const EquipmentPage = lazy(() => import('./components/EquipmentPage').then(m => ({ default: m.default })));
 const AbilitiesPage = lazy(() => import('./components/AbilitiesPage'));
+const NotesPage = lazy(() => import('./components/NotesPage').then(m => ({ default: m.default })));
 const AboutPage = lazy(() => import('./components/AboutPage'));
 
 import { CharacterStats } from './types';
@@ -35,6 +36,7 @@ enum Tab {
   ITEMS = 'items',
   EQUIPMENT = 'equipment',
   DICE = 'dice',
+  NOTES = 'notes',
   ABOUT = 'about'
 }
 
@@ -796,6 +798,7 @@ const AuthenticatedApp: React.FC = () => {
       Tab.ITEMS,
       Tab.EQUIPMENT,
       Tab.DICE,
+      Tab.NOTES,
       Tab.ABOUT
     ]
 
@@ -876,6 +879,7 @@ const AuthenticatedApp: React.FC = () => {
               { id: Tab.ITEMS, label: '道具', icon: '📦' },
               { id: Tab.EQUIPMENT, label: '裝備', icon: '🛡️' },
               { id: Tab.DICE, label: '骰子', icon: '🎲' },
+              { id: Tab.NOTES, label: '筆記', icon: '📝' },
               { id: Tab.ABOUT, label: '關於', icon: 'ℹ️' }
             ].map((tab) => (
               <button
@@ -1043,6 +1047,19 @@ const AuthenticatedApp: React.FC = () => {
               </div>
             }>
               <DiceRoller />
+            </Suspense>
+          )}
+
+          {activeTab === Tab.NOTES && currentCharacter?.id && (
+            <Suspense fallback={
+              <div className="flex items-center justify-center h-64">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-500 mx-auto mb-4"></div>
+                  <p className="text-slate-400">載入筆記頁面...</p>
+                </div>
+              </div>
+            }>
+              <NotesPage characterId={currentCharacter.id} />
             </Suspense>
           )}
 
