@@ -1,138 +1,132 @@
-# D&D Lite - 開發者指南 📋
+# D&D Lite 開發者指南
 
-> 專為 D&D 5e 設計的現代角色管理應用程式開發文檔
+> 本文件適合**需要在本專案中開發、維護或擴充功能**的工程師。目標是讓你在短時間內掌握目錄結構、主要模組職責、開發流程與常用指令，並知道該去哪裡查更細的技術細節。
 
-## 🏗️ 架構設計
+若你只想跑起來或了解功能與技術棧，請先看 [README.md](README.md)。
 
-### 核心原則
-- **雲端優先** - 完全使用 Supabase PostgreSQL，零 localStorage 依賴
-- **類型安全** - 全面的 TypeScript 類型定義
-- **測試驅動** - 124個單元測試確保程式碼品質
-- **響應式設計** - 手機優先的 UI/UX 設計
+---
 
-### 技術架構
+## 文件導覽
+
+| 你想做的事 | 建議閱讀 |
+|------------|----------|
+| 把專案跑起來、設定 Supabase、跑測試 | [README.md](README.md) 的「快速開始」與「常用指令」 |
+| 了解目錄、服務、DB 表與開發流程 | 本文件（README-project.md） |
+| 深入 UI 分層、資料流、Modal 慣例、basic/bonus 計算 | [docs/code-architecture.md](docs/code-architecture.md) |
+| 新增或執行資料庫遷移 | [docs/database-migration.md](docs/database-migration.md) |
+| 用 AI 協作開發（先寫測試再實作） | [docs/ai-workflow.md](docs/ai-workflow.md) |
+| 寫或跑測試 | [TEST-README.md](TEST-README.md) |
+| 法術/物品描述的 Markdown、HTML | [docs/MARKDOWN-SUPPORT.md](docs/MARKDOWN-SUPPORT.md) |
+
+---
+
+## 專案架構概覽
+
+### 技術架構（高層）
+
 ```
-├── 前端層 (React 19 + TypeScript)
-│   ├── 組件系統 (components/)
-│   ├── 業務邏輯 (services/)
-│   └── 工具函數 (utils/)
-├── 狀態管理 (React Context + useState)
-├── 樣式系統 (Tailwind CSS + 自定義 CSS)
-└── 後端服務 (Supabase)
-    ├── 資料庫 (PostgreSQL)
-    ├── 認證系統 (Auth)
-    └── 即時同步 (Realtime)
-```
+前端（React 19 + TypeScript + Vite）
+├── 頁面與 Modal（components/）
+├── 狀態與 Context（App.tsx 的 stats/setStats、contexts/）
+├── 服務層（services/）：Supabase 與領域邏輯
+└── 工具與常數（utils/、styles/、lib/）
 
-## 🔧 關鍵服務
-
-### 資料管理層
-- **`HybridDataManager`** - 統一資料存取介面
-- **`DetailedCharacterService`** - 角色完整資料 CRUD
-- **`UserSettingsService`** - 使用者偏好設定
-- **`AnonymousService`** - 匿名用戶支援
-- **`AuthService`** - 認證與授權
-
-### 業務邏輯層
-- **`characterItems`** - 戰鬥物品與動作管理
-- **`databaseInit`** - 資料庫初始化邏輯
-- **`classUtils`** - 職業系統與兼職支援
-- **`migrationHelpers`** - 資料遷移輔助
-
-## 🗄️ 資料庫設計
-
-### 主要表格
-```sql
-characters                    -- 角色主表
-├── character_ability_scores  -- 能力值
-├── character_current_stats   -- 當前狀態 (HP, AC, 先攻)
-├── character_currency        -- 貨幣系統
-├── character_combat_actions  -- 戰鬥動作
-└── character_skill_proficiencies -- 技能熟練度
-
-user_settings                 -- 使用者設定
+後端（Supabase）
+├── PostgreSQL（角色、能力、戰鬥、法術、物品等表）
+├── Auth（登入／匿名）
+└── Realtime（可選，即時同步）
 ```
 
-### RLS 安全策略
-- 所有表格啟用 Row Level Security
-- 使用者只能存取自己的資料
-- 匿名使用者支援 `anonymous_id` 機制
+- **單一資料來源**：畫面上的角色資料以 `stats`（`CharacterStats`）為主，由 `App.tsx` 透過 `setStats` 更新。
+- **儲存流程**：各頁面透過 `onSaveXxx` 回調呼叫服務層（如 `DetailedCharacterService`、`HybridDataManager`），寫入 Supabase 後再以 `buildCharacterStats` 組裝並呼叫 `setStats` 更新本地狀態。
+- **離線／雲端**：匿名與登入皆使用 Supabase；無單機離線持久化，僅記憶體狀態。
 
-## 🧪 測試策略
+### 目錄結構與職責
 
-### 測試覆蓋範圍
-- **單元測試** - 所有核心函數 100% 覆蓋
-- **整合測試** - 元件與服務整合
-- **端到端測試** - 關鍵使用者流程
+| 路徑 | 職責 |
+|------|------|
+| `App.tsx` | 中央狀態（`stats` / `setStats`）、Tab 路由、`onSaveXxx` 等回調 |
+| `components/` | 各分頁與彈窗（Modal）；`components/ui/` 為共用 UI（Modal、FilterBar、FinalTotalRow 等） |
+| `contexts/` | `AuthContext`：登入狀態與使用者識別 |
+| `services/` | 資料存取與領域邏輯：`hybridDataManager`、`detailedCharacter`、`itemService`、`spellService`、`abilityService`、`combatService` 等 |
+| `utils/` | 角色常數（`characterConstants`）、組裝 `CharacterStats`（`appInit`）、屬性與戰鬥數值計算（`characterAttributes`）、職業與兼職（`classUtils`） |
+| `styles/` | 共用樣式：`modalStyles.ts`、`common.ts`（STYLES、combatStyles、combineStyles） |
+| `hooks/` | `useAppInitialization`、`useToast` |
+| `lib/` | Supabase 客戶端（`lib/supabase.ts`）與型別 |
+| `data/` | 靜態 JSON/CSV（物品、法術等基礎資料） |
+| `scripts/` | 匯入／遷移腳本（法術、物品、DB 更新等） |
+| `supabase/migrations/` | 資料庫遷移（SQL） |
+| `src/test/` | Vitest 單元／元件測試 |
+| `types.ts` | 前端用型別（`CharacterStats`、`CustomRecord`、`ClassInfo` 等） |
 
-### 測試檔案結構
-```
-src/test/
-├── avatar-save.test.ts          -- 頭像儲存
-├── character-data-services.test.ts -- 角色資料服務
-├── CharacterSheet.test.tsx      -- 角色表組件
-├── classUtils.test.ts           -- 職業工具函數
-├── CombatView.*.test.tsx        -- 戰鬥介面
-├── DeleteFunction.*.test.tsx    -- 刪除功能
-├── save-logic.test.ts           -- 儲存邏輯
-└── updateExtraData.test.ts      -- 額外資料更新
-```
+### 關鍵服務與模組
 
-## 🚀 開發工作流程
+- **HybridDataManager**（`services/hybridDataManager.ts`）：統一角色資料存取介面，依登入／匿名選擇後端。
+- **DetailedCharacterService**（`services/detailedCharacter.ts`）：角色 CRUD、`updateCurrentStats`、`updateExtraData`；`getFullCharacter` 會聚合能力/物品的 `affects_stats`、`stat_bonuses` 並寫入 `extra_data`，供 `buildCharacterStats` 組裝。
+- **UserSettingsService** / **AnonymousService** / **Auth**：使用者設定、匿名 ID、登入狀態。
+- **characterItems / combatService / spellService / itemService / abilityService**：戰鬥動作、法術、物品、能力的讀寫與業務規則。
+- **databaseInit / migrationHelpers**：DB 初始化與遷移輔助。
+
+資料庫主要表格（角色相關）：`characters`、`character_ability_scores`、`character_current_stats`、`character_currency`、`character_combat_actions`、`character_skill_proficiencies`、`user_settings` 等；詳見 [docs/code-architecture.md](docs/code-architecture.md) 的 DB 對應與 RLS 說明。
+
+---
+
+## 開發流程
 
 ### 本地開發
+
 ```bash
-npm run dev     # 啟動開發伺服器 (localhost:5173)
-npm test        # 運行所有測試
-npm run build   # 建置生產版本
+npm install
+npm run dev    # 開發伺服器 http://localhost:3000
 ```
 
-### 資料庫管理
-```bash
-npm run db:status   # 檢查遷移狀態
-npm run db:migrate  # 執行資料庫遷移
-npm run db:create "description"  # 創建新遷移
-```
+請在專案根目錄設定 `.env`（`VITE_SUPABASE_URL`、`VITE_SUPABASE_ANON_KEY`），否則僅能使用匿名模式且需後端已部署 schema。
 
-## 📐 AI 助理工作規範
+### 執行腳本（匯入／更新資料）
 
-### 文檔層級
-1. **專案層級** - 編輯 `.assistant-guidelines.md`
-2. **對話層級** - 直接在對話中提出要求
-3. **程式碼層級** - 在註釋中添加具體指導
+- 腳本多位於 `scripts/`，多數為 Node 腳本（`.js`/`.cjs`），用於將 `data/` 或外部資料匯入 DB 或更新結構。
+- 執行前請確認 Supabase 專案與 migrations 已就緒；具體指令見各腳本註解或專案內說明。
 
-### 程式碼品質要求
-- 保持 TypeScript 嚴格模式
-- 所有新功能必須有對應測試
-- 遵循現有的命名規範
-- UI 組件須支援響應式設計
+### 資料庫遷移
 
-## 📁 專案結構
-```
-dnd-lite/
-├── components/          -- React 組件
-├── contexts/           -- React Context
-├── lib/               -- 第三方函式庫配置
-├── services/          -- 業務邏輯服務
-├── src/               -- 測試檔案
-├── styles/            -- 共用樣式
-├── utils/             -- 工具函數
-├── supabase/          -- 資料庫遷移
-└── scripts/           -- 建置腳本
+- **新增遷移**：`npm run db:create "描述"`，會在 `supabase/migrations/` 產生新 SQL 檔。
+- **執行遷移**：`npm run db:migrate`（會推送到遠端 Supabase）。
+- **查看狀態**：`npm run db:status`。
 
-1. **編輯專案指南**：
-   ```bash
-   code .assistant-guidelines.md
-   ```
+詳見 [docs/database-migration.md](docs/database-migration.md)。**重要**：新增 migration 後應盡快推送到遠端 DB，避免本機與遠端 schema 不一致。
 
-2. **在對話中指定**：
-   ```
-   請在這個專案中遵循以下規則：
-   - [具體要求]
-   ```
+### 新增功能或欄位的建議步驟
 
-3. **代碼註釋指導**：
-   ```typescript
-   // AI: 這個函數需要保持向後相容性
-   function legacyFunction() { ... }
-   ```
+1. **需求與驗收**：先與需求方（或 AI 工作流）確認目標、輸入輸出與邊界條件（見 [docs/ai-workflow.md](docs/ai-workflow.md)）。
+2. **測試先行**：為新行為撰寫或擴充測試（`src/test/`），再實作功能。
+3. **實作**：依 [docs/code-architecture.md](docs/code-architecture.md) 的元件與服務慣例實作；若需新 DB 欄位，用 `db:create` 建立遷移並 `db:migrate`。
+4. **跑完整測試**：`npm test`，必要時 `npm run test:watch` 除錯。
+5. **更新文件**：若會影響使用方式、環境變數或架構，更新 README 或對應 docs（見本文件末尾「文件維護建議」）。
+
+---
+
+## 測試與品質
+
+- **執行測試**：`npm test` 或 `npm run test:watch`、`npm run test:ui`。
+- **覆蓋範圍**：專案以 Vitest 為主，測試集中在 `src/test/`；新功能建議一併補上單元或元件測試。
+- 撰寫方式與命名慣例見 [TEST-README.md](TEST-README.md)。
+
+---
+
+## AI 協作工作流摘要
+
+- 先**確認需求**（目標、輸入輸出、邊界、影響範圍）。
+- **先設計驗收與測試**，再**先寫測試**，最後才實作功能。
+- 實作完成後執行本次測試與**完整單元測試**，再回報結果與影響範圍。
+
+完整守則與適用範圍見 [docs/ai-workflow.md](docs/ai-workflow.md)。
+
+---
+
+## 文件維護建議
+
+- **新功能或行為變更**：若影響「如何跑起來」或「常用指令」，請更新 [README.md](README.md)。
+- **架構或目錄、服務職責、DB 對應**：更新 [docs/code-architecture.md](docs/code-architecture.md)。
+- **遷移流程或 Supabase 設定**：更新 [docs/database-migration.md](docs/database-migration.md)。
+- **測試方式或慣例**：更新 [TEST-README.md](TEST-README.md)。
+- 在 PR 或 Issue 中可提醒：是否需同步更新上述文件。

@@ -1,76 +1,73 @@
-# 自動資料庫遷移系統
+# 資料庫遷移（Database Migration）
 
-## 🚀 使用方式
+> 本文件說明如何在本專案中**建立、執行與檢視** Supabase 資料庫遷移。適合需要修改 schema（新增表、欄位、索引、RLS 政策）的開發者。架構與服務層說明見 [code-architecture.md](code-architecture.md)，開發流程總覽見 [README-project.md](../README-project.md)。
 
-### 1. 創建新的資料庫遷移
+---
+
+## 使用方式
+
+### 1. 建立新的遷移檔
+
 ```bash
 npm run db:create "add_new_feature"
 ```
 
-### 2. 執行資料庫遷移（自動推送到 Supabase）
+- 會在 `supabase/migrations/` 下建立一個新的 SQL 檔，檔名格式為 `YYYYMMDDHHMMSS_add_new_feature.sql`。
+- 請編輯該檔案，填入 SQL（建表、ALTER、索引、RLS 等）。
+- 建議使用 `IF NOT EXISTS`、`ADD COLUMN IF NOT EXISTS` 等避免重複執行衝突。
+
+### 2. 執行遷移（推送到 Supabase）
+
 ```bash
 npm run db:migrate
 ```
 
+- 會檢查未套用的遷移並推送到遠端 Supabase 專案。
+- 依專案設定會透過 `scripts/migrate-wrapper.sh` 呼叫實際遷移腳本（如 `auto-migrate.sh`）。
+- **重要**：只要有新增 migration，應立即執行 `db:migrate` 推送到遠端，避免本機與遠端 schema 不一致。
+
 ### 3. 查看遷移狀態
+
 ```bash
 npm run db:status
 ```
 
-## 📝 詳細說明
+- 用於確認哪些遷移已套用、哪些尚未執行。
 
-### 創建新遷移
-- 運行 `npm run db:create "遷移描述"`
-- 會在 `supabase/migrations/` 目錄下創建新的 SQL 文件
-- 編輯該文件，添加你的 SQL 指令
-- 記得添加 `IF NOT EXISTS` 來避免衝突
+---
 
-### 自動遷移
-- 運行 `npm run db:migrate`
-- 自動檢查並推送所有未應用的遷移
-- 包含錯誤檢查和狀態確認
-  - CLI 來源優先順序：
-    - 專案根目錄的 `./supabase-cli`
-    - 若無，使用 PATH 中的 `supabase`
-  - **重要**：只要有新增 migration，必須立即推送到遠端 DB
+## 環境設定
 
-### 遷移文件命名
-- 格式：`YYYYMMDDHHMMSS_description.sql`
-- 例如：`20260126123456_add_user_preferences.sql`
+- **Supabase 專案**：需先在 [Supabase](https://supabase.com) 建立專案。
+- **環境變數**：若遷移腳本需連線，請在專案根目錄設定 `.env`，例如：
+  - `SUPABASE_ACCESS_TOKEN`（若腳本使用 Supabase CLI 推送）
+- **Supabase CLI**：腳本可能依賴本機安裝的 `supabase`（PATH），或專案根目錄的 `./supabase-cli`；請依腳本與 CI 需求安裝。
 
-## ⚠️ 注意事項
+前端連線 Supabase 使用的為 `VITE_SUPABASE_URL` 與 `VITE_SUPABASE_ANON_KEY`，見 [README.md](../README.md) 的「Supabase 設定」。
 
-1. **備份重要**：每次遷移前建議先備份重要資料
-2. **測試先行**：在開發環境先測試遷移
-3. **RLS 政策**：記得為新表格添加適當的安全政策
-4. **索引優化**：為經常查詢的欄位添加索引
+---
 
-## 🔧 環境設定
+## 遷移檔命名與結構
 
-確保 `.env` 文件包含：
-```bash
-SUPABASE_ACCESS_TOKEN=your_token_here
-```
+- **命名**：`YYYYMMDDHHMMSS_簡短描述.sql`（例如 `20260126123456_add_user_preferences.sql`）。
+- **內容**：建議包含註解（遷移目的、日期），並依序撰寫：
+  - 結構變更（CREATE / ALTER）
+  - 索引（CREATE INDEX IF NOT EXISTS）
+  - RLS：`ALTER TABLE ... ENABLE ROW LEVEL SECURITY` 與 `CREATE POLICY ...`
 
-並確保本機已安裝 Supabase CLI（PATH 可找到 `supabase`），或將 `supabase-cli` 放在專案根目錄。
+---
 
-## 📂 文件結構
+## 注意事項
 
-```
-supabase/
-├── migrations/
-│   ├── 20260126000001_detailed_character_schema.sql
-│   └── [新的遷移文件...]
-└── config.toml
+1. **備份**：對重要資料表做結構或資料變更前，建議先在 Supabase 後台或透過工具備份。
+2. **先在開發環境測試**：在開發用 Supabase 專案先跑過遷移，確認無誤再套用到生產。
+3. **RLS**：新表或新欄位若涉及使用者資料，請為該表啟用 RLS 並建立適當的 policy（例如 `auth.uid() = user_id`）。
+4. **向下相容**：盡量以 `ALTER TABLE` 新增欄位而非直接 DROP 表，以減少中斷。
 
-scripts/
-├── auto-migrate.sh     # 自動遷移腳本
-└── create-migration.sh # 創建遷移腳本
-```
+---
 
-## 🎯 最佳實踐
+## 相關檔案
 
-1. **命名清晰**：使用描述性的遷移名稱
-2. **原子操作**：每個遷移專注於單一變更
-3. **向下相容**：使用 `ALTER TABLE` 而非 `DROP TABLE`
-4. **測試完整**：確保遷移在不同數據狀態下都能正常運行
+- 遷移檔目錄：`supabase/migrations/`
+- 腳本：`scripts/create-migration.sh`、`scripts/migrate-wrapper.sh`、`scripts/status-wrapper.sh` 等（實際名稱以專案為準）
+- 設定：`supabase/config.toml`
