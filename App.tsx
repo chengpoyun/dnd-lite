@@ -13,6 +13,7 @@ const ConversionPage = lazy(() => import('./components/ConversionPage').then(m =
 const SpellsPage = lazy(() => import('./components/SpellsPage').then(m => ({ default: m.SpellsPage })));
 const MonstersPage = lazy(() => import('./components/MonstersPage'));
 const ItemsPage = lazy(() => import('./components/ItemsPage'));
+const EquipmentPage = lazy(() => import('./components/EquipmentPage').then(m => ({ default: m.default })));
 const AbilitiesPage = lazy(() => import('./components/AbilitiesPage'));
 const AboutPage = lazy(() => import('./components/AboutPage'));
 
@@ -32,6 +33,7 @@ enum Tab {
   SPELLS = 'spells',
   MONSTERS = 'monsters',
   ITEMS = 'items',
+  EQUIPMENT = 'equipment',
   DICE = 'dice',
   ABOUT = 'about'
 }
@@ -792,6 +794,7 @@ const AuthenticatedApp: React.FC = () => {
       Tab.COMBAT,
       Tab.MONSTERS,
       Tab.ITEMS,
+      Tab.EQUIPMENT,
       Tab.DICE,
       Tab.ABOUT
     ]
@@ -871,6 +874,7 @@ const AuthenticatedApp: React.FC = () => {
               { id: Tab.COMBAT, label: '戰鬥', icon: '⚔️' },
               { id: Tab.MONSTERS, label: '怪物', icon: '👹' },
               { id: Tab.ITEMS, label: '道具', icon: '📦' },
+              { id: Tab.EQUIPMENT, label: '裝備', icon: '🛡️' },
               { id: Tab.DICE, label: '骰子', icon: '🎲' },
               { id: Tab.ABOUT, label: '關於', icon: 'ℹ️' }
             ].map((tab) => (
@@ -976,6 +980,19 @@ const AuthenticatedApp: React.FC = () => {
               </div>
             }>
               <ItemsPage characterId={currentCharacter?.id || ''} onCharacterDataChanged={refetchCharacterStats} />
+            </Suspense>
+          )}
+
+          {activeTab === Tab.EQUIPMENT && currentCharacter && (
+            <Suspense fallback={
+              <div className="flex items-center justify-center h-64">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-500 mx-auto mb-4"></div>
+                  <p className="text-slate-400">載入裝備頁面...</p>
+                </div>
+              </div>
+            }>
+              <EquipmentPage characterId={currentCharacter.id} onCharacterDataChanged={refetchCharacterStats} />
             </Suspense>
           )}
 

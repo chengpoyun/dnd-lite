@@ -6,7 +6,9 @@
 import React, { useState, useEffect } from 'react';
 import { Modal } from './ui/Modal';
 import type { CharacterItem, ItemCategory, UpdateCharacterItemData } from '../services/itemService';
-import { MODAL_CONTAINER_CLASS } from '../styles/modalStyles';
+import { getDisplayEquipmentKind } from '../services/itemService';
+import { EQUIPMENT_KINDS, EQUIPMENT_KIND_LABELS } from '../utils/equipmentConstants';
+import { MODAL_CONTAINER_CLASS, SELECT_CLASS } from '../styles/modalStyles';
 import { StatBonusEditor, type StatBonusEditorValue } from './StatBonusEditor';
 
 interface CharacterItemEditModalProps {
@@ -32,6 +34,8 @@ export const CharacterItemEditModal: React.FC<CharacterItemEditModalProps> = ({
     is_magic: false,
     affects_stats: false,
     stat_bonuses: {},
+    equipment_slot: null,
+    is_equipped: false,
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -59,21 +63,29 @@ export const CharacterItemEditModal: React.FC<CharacterItemEditModalProps> = ({
         is_magic: display.is_magic,
         affects_stats: hasOverrideStats ? (ci.affects_stats ?? false) : (itemRaw?.affects_stats ?? false),
         stat_bonuses: hasOverrideStats ? (overrideBonuses ?? {}) : ((itemRaw?.stat_bonuses ?? {}) || {}),
+        equipment_kind_override: characterItem.equipment_kind_override ?? characterItem.item?.equipment_kind ?? null,
+        equipment_slot: characterItem.equipment_slot ?? null,
+        is_equipped: characterItem.is_equipped ?? false,
       });
     }
   }, [characterItem, isOpen]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!characterItem) return;
+    const effectiveCategory = formData.category_override ?? characterItem.item?.category;
+    if (effectiveCategory === '裝備') {
+      const effectiveKind = formData.equipment_kind_override ?? getDisplayEquipmentKind(characterItem);
+      if (!effectiveKind?.trim()) {
+        return;
+      }
+    }
 
     setIsSubmitting(true);
     try {
-      // 只傳送有值的 override 欄位
-      const updates: UpdateCharacterItemData = {
-        quantity: formData.quantity
-      };
+      // 只傳送有值的 override 欄位（數量改由詳情 modal 調整，此處不再更新）
+      const updates: UpdateCharacterItemData = {};
 
       if (formData.name_override?.trim()) {
         updates.name_override = formData.name_override;
@@ -95,6 +107,10 @@ export const CharacterItemEditModal: React.FC<CharacterItemEditModalProps> = ({
       if (formData.stat_bonuses !== undefined) {
         updates.stat_bonuses = formData.stat_bonuses;
       }
+      if (formData.equipment_kind_override !== undefined) {
+        updates.equipment_kind_override = formData.equipment_kind_override;
+      }
+      // 裝備槽位與穿戴中僅在裝備頁管理，此處不更新
 
       await onSubmit(characterItem.id, updates);
       onClose();
@@ -117,44 +133,6 @@ export const CharacterItemEditModal: React.FC<CharacterItemEditModalProps> = ({
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-3">
-          {/* 數量（最常用，放最上面） */}
-          <div>
-            <label className="block text-[14px] text-slate-400 mb-2">數量</label>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => setFormData({ ...formData, quantity: Math.max(0, formData.quantity - 1) })}
-                className="w-12 py-2 bg-slate-700 text-white rounded-lg font-bold active:bg-slate-600 flex-shrink-0"
-              >
-                -1
-              </button>
-              <input
-                type="text"
-                value={formData.quantity}
-                onChange={(e) => {
-                  const val = e.target.value;
-                  if (val === '') {
-                    setFormData({ ...formData, quantity: 0 });
-                  } else {
-                    const num = parseInt(val);
-                    if (!isNaN(num) && num >= 0) {
-                      setFormData({ ...formData, quantity: num });
-                    }
-                  }
-                }}
-                className="flex-1 min-w-0 bg-slate-800 rounded-lg border border-slate-700 p-3 text-slate-200 text-center focus:outline-none focus:border-amber-500"
-                placeholder="0"
-              />
-              <button
-                type="button"
-                onClick={() => setFormData({ ...formData, quantity: formData.quantity + 1 })}
-                className="w-12 py-2 bg-slate-700 text-white rounded-lg font-bold active:bg-slate-600 flex-shrink-0"
-              >
-                +1
-              </button>
-            </div>
-          </div>
-
           {/* 名稱 */}
           <div>
             <label className="block text-[14px] text-slate-400 mb-2">名稱</label>
@@ -186,6 +164,25 @@ export const CharacterItemEditModal: React.FC<CharacterItemEditModalProps> = ({
               ))}
             </select>
           </div>
+
+          {/* 裝備類：僅顯示裝備類型（槽位與穿戴中在裝備頁管理，此處不顯示、不更新） */}
+          {(formData.category_override ?? characterItem.item?.category) === '裝備' && (
+            <div>
+              <label className="block text-[14px] text-slate-400 mb-2">裝備類型 *</label>
+              <select
+                value={formData.equipment_kind_override ?? getDisplayEquipmentKind(characterItem) ?? ''}
+                onChange={(e) => setFormData({ ...formData, equipment_kind_override: e.target.value || null })}
+                className={`${SELECT_CLASS} w-full`}
+                required
+              >
+                <option value="">請選擇類型</option>
+                {EQUIPMENT_KINDS.map((k) => (
+                  <option key={k} value={k}>{EQUIPMENT_KIND_LABELS[k]}</option>
+                ))}
+              </select>
+            </div>
+          )}
+
           <label className="flex items-center gap-2 text-[14px] text-slate-300">
             <input
               type="checkbox"

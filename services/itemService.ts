@@ -46,6 +46,8 @@ export interface GlobalItem {
       spellDc?: number;
     };
   };
+  /** 裝備類型（僅裝備類有值）：face, head, neck, shoulders, body, torso, arms, hands, waist, feet, ring, melee_weapon, ranged_weapon, shield */
+  equipment_kind?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -68,10 +70,14 @@ export interface CharacterItem {
   affects_stats?: boolean;
   /** 覆寫：此角色版物品的數值加成（存入 character_items.stat_bonuses） */
   stat_bonuses?: GlobalItem['stat_bonuses'];
-  
+  /** 裝備類型覆寫（優先於 global_items.equipment_kind） */
+  equipment_kind_override?: string | null;
+  /** 穿戴的具體槽位，裝備類必填 */
+  equipment_slot?: string | null;
+  /** 是否穿戴中，僅 true 時計入角色數值 */
+  is_equipped?: boolean;
   created_at: string;
   updated_at: string;
-  
   // JOIN 的物品資料
   item?: GlobalItem;
 }
@@ -92,6 +98,7 @@ export interface CreateGlobalItemData {
   is_magic: boolean;
   affects_stats?: boolean;
   stat_bonuses?: GlobalItem['stat_bonuses'];
+  equipment_kind?: string | null;
 }
 
 // 上傳角色物品到全域物品庫時使用的資料（所有欄位必填）
@@ -103,6 +110,7 @@ export interface CreateGlobalItemDataForUpload {
   is_magic: boolean;
   affects_stats?: boolean;
   stat_bonuses?: GlobalItem['stat_bonuses'];
+  equipment_kind?: string | null;
 }
 
 export interface UpdateCharacterItemData {
@@ -116,6 +124,9 @@ export interface UpdateCharacterItemData {
   affects_stats?: boolean;
   /** 覆寫：此角色版物品的數值加成（與 StatBonusEditorValue 結構一致） */
   stat_bonuses?: any;
+  equipment_kind_override?: string | null;
+  equipment_slot?: string | null;
+  is_equipped?: boolean;
 }
 
 /** 新增個人物品（直接寫入 character_items，不經 global_items） */
@@ -125,6 +136,12 @@ export interface CreateCharacterItemData {
   description?: string;
   quantity?: number;
   is_magic: boolean;
+  /** 是否影響角色數值（個人物品直接帶入 character_items） */
+  affects_stats?: boolean;
+  /** 此個人物品的數值加成（與 StatBonusEditorValue 結構一致） */
+  stat_bonuses?: any;
+  /** 裝備類可選：裝備類型（由裝備頁決定實際槽位與穿戴狀態） */
+  equipment_kind_override?: string | null;
 }
 
 /**
@@ -242,6 +259,7 @@ export async function uploadCharacterItemToGlobal(
       };
       if (data.affects_stats !== undefined) updatePayload.affects_stats = data.affects_stats;
       if (data.stat_bonuses !== undefined) updatePayload.stat_bonuses = data.stat_bonuses;
+      if (data.equipment_kind !== undefined) updatePayload.equipment_kind = data.equipment_kind;
       const { error: updateGlobalError } = await supabase
         .from('global_items')
         .update(updatePayload)
@@ -268,6 +286,7 @@ export async function uploadCharacterItemToGlobal(
       };
       if (data.affects_stats !== undefined) insertPayload.affects_stats = data.affects_stats;
       if (data.stat_bonuses !== undefined) insertPayload.stat_bonuses = data.stat_bonuses;
+      if (data.equipment_kind !== undefined) insertPayload.equipment_kind = data.equipment_kind;
       const { data: inserted, error: insertError } = await supabase
         .from('global_items')
         .insert(insertPayload)
@@ -346,10 +365,21 @@ export async function getCharacterItems(characterId: string): Promise<{
   }
 }
 
+/** 獲得物品時可一併設定的裝備欄位（裝備類時由呼叫端傳入） */
+export interface LearnItemEquipmentOptions {
+  equipment_slot?: string | null;
+  is_equipped?: boolean;
+}
+
 /**
  * 獲得物品（從全域庫添加到角色）
+ * 若為裝備類，可傳入 equipmentOptions 設定槽位與是否穿戴
  */
-export async function learnItem(characterId: string, itemId: string): Promise<{
+export async function learnItem(
+  characterId: string,
+  itemId: string,
+  equipmentOptions?: LearnItemEquipmentOptions
+): Promise<{
   success: boolean;
   error?: string;
 }> {
@@ -358,13 +388,19 @@ export async function learnItem(characterId: string, itemId: string): Promise<{
       return { success: false, error: '角色 ID 或物品 ID 無效' };
     }
 
+    const payload: Record<string, unknown> = {
+      character_id: characterId,
+      item_id: itemId,
+      quantity: 1,
+    };
+    if (equipmentOptions) {
+      if (equipmentOptions.equipment_slot !== undefined) payload.equipment_slot = equipmentOptions.equipment_slot;
+      if (equipmentOptions.is_equipped !== undefined) payload.is_equipped = equipmentOptions.is_equipped;
+    }
+
     const { error } = await supabase
       .from('character_items')
-      .insert({
-        character_id: characterId,
-        item_id: itemId,
-        quantity: 1
-      });
+      .insert(payload);
 
     if (error) {
       // 檢查是否是重複獲得
@@ -402,17 +438,22 @@ export async function createCharacterItem(
       return { success: false, error: '名稱和類別為必填' };
     }
 
+    const payload: Record<string, unknown> = {
+      character_id: characterId,
+      item_id: null,
+      quantity: data.quantity ?? 1,
+      is_magic: data.is_magic ?? false,
+      name_override: data.name.trim(),
+      description_override: data.description?.trim() ?? '',
+      category_override: data.category,
+    };
+    if (data.affects_stats !== undefined) payload.affects_stats = data.affects_stats;
+    if (data.stat_bonuses !== undefined) payload.stat_bonuses = data.stat_bonuses;
+    if (data.equipment_kind_override !== undefined) payload.equipment_kind_override = data.equipment_kind_override;
+
     const { data: row, error } = await supabase
       .from('character_items')
-      .insert({
-        character_id: characterId,
-        item_id: null,
-        quantity: data.quantity ?? 1,
-        is_magic: data.is_magic ?? false,
-        name_override: data.name.trim(),
-        description_override: data.description?.trim() ?? '',
-        category_override: data.category,
-      })
+      .insert(payload)
       .select()
       .single();
 
@@ -440,15 +481,18 @@ export async function createGlobalItem(data: CreateGlobalItemData): Promise<{
       return { success: false, error: '名稱和類別為必填欄位' };
     }
 
+    const insertPayload: Record<string, unknown> = {
+      name: data.name,
+      name_en: data.name_en,
+      description: data.description || '',
+      category: data.category,
+      is_magic: data.is_magic ?? false,
+    };
+    if (data.equipment_kind !== undefined) insertPayload.equipment_kind = data.equipment_kind;
+
     const { data: item, error } = await supabase
       .from('global_items')
-      .insert({
-        name: data.name,
-        name_en: data.name_en,
-        description: data.description || '',
-        category: data.category,
-        is_magic: data.is_magic ?? false,
-      })
+      .insert(insertPayload)
       .select()
       .single();
 
@@ -540,4 +584,12 @@ export function getDisplayValues(characterItem: CharacterItem): CharacterItemWit
     displayCategory: (characterItem.category_override ?? characterItem.item?.category ?? '雜項') as ItemCategory,
     displayIsMagic
   };
+}
+
+/** 取得角色物品的顯示用裝備類型（override 優先於 global_items.equipment_kind） */
+export function getDisplayEquipmentKind(characterItem: CharacterItem): string | null {
+  if (characterItem.equipment_kind_override != null && characterItem.equipment_kind_override !== '') {
+    return characterItem.equipment_kind_override;
+  }
+  return characterItem.item?.equipment_kind ?? null;
 }

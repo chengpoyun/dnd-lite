@@ -1,8 +1,9 @@
 /**
  * ItemDetailModal - 道具詳細資訊彈窗
+ * 第一列：名稱 + tags；第二列：數量調整 [-1] n [+1]；第三列：詳細訊息
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Modal } from './ui/Modal';
 import { CharacterItem, getDisplayValues } from '../services/itemService';
@@ -14,6 +15,8 @@ interface ItemDetailModalProps {
   characterItem: CharacterItem | null;
   onEdit: (characterItem: CharacterItem) => void;
   onDelete: () => void;
+  /** 數量變更時呼叫（會寫入 DB，呼叫端需負責 refetch 並更新 characterItem） */
+  onQuantityChange?: (characterItemId: string, quantity: number) => Promise<void>;
   /** 僅個人物品（未關聯 global_items）時顯示「上傳到資料庫」並呼叫此 callback */
   onUploadToDb?: () => void;
 }
@@ -24,12 +27,28 @@ export default function ItemDetailModal({
   characterItem,
   onEdit,
   onDelete,
+  onQuantityChange,
   onUploadToDb,
 }: ItemDetailModalProps) {
+  const [quantityUpdating, setQuantityUpdating] = useState(false);
+
   if (!characterItem) return null;
 
   const display = getDisplayValues(characterItem);
   const isPersonalOnly = !characterItem.item_id || !characterItem.item;
+  const qty = characterItem.quantity;
+
+  const handleQuantityDelta = async (delta: number) => {
+    if (!onQuantityChange) return;
+    const next = Math.max(0, qty + delta);
+    if (next === qty) return;
+    setQuantityUpdating(true);
+    try {
+      await onQuantityChange(characterItem.id, next);
+    } finally {
+      setQuantityUpdating(false);
+    }
+  };
 
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
@@ -37,12 +56,9 @@ export default function ItemDetailModal({
         <h2 className="text-xl font-bold mb-5">道具詳情</h2>
         
         <div className="space-y-3">
-          {/* 名稱 類別 數量 */}
-          <div className="flex items-center justify-between gap-3 py-2">
-            <div className="flex items-center gap-2">
-              <span className="text-lg font-bold text-white">{display.displayName}</span>
-              <span className="text-amber-400 font-bold">×{characterItem.quantity}</span>
-            </div>
+          {/* 第一列：僅名稱與 tags */}
+          <div className="flex items-center justify-between gap-3 py-2 flex-wrap">
+            <span className="text-lg font-bold text-white">{display.displayName}</span>
             <div className="flex items-center gap-2">
               <div className="px-3 py-1.5 bg-amber-900/30 border border-amber-700 text-amber-400 rounded-lg font-medium">
                 {display.displayCategory}
@@ -55,7 +71,30 @@ export default function ItemDetailModal({
             </div>
           </div>
 
-          {/* 詳細訊息 */}
+          {/* 第二列：數量調整 [-1] n [+1] */}
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => handleQuantityDelta(-1)}
+              disabled={quantityUpdating || qty <= 0}
+              className="w-12 py-2 bg-slate-700 text-white rounded-lg font-bold active:bg-slate-600 flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              -1
+            </button>
+            <span className="flex-1 min-w-0 bg-slate-800 border border-slate-700 py-2 px-3 rounded-lg text-slate-200 text-center font-medium">
+              {qty}
+            </span>
+            <button
+              type="button"
+              onClick={() => handleQuantityDelta(1)}
+              disabled={quantityUpdating}
+              className="w-12 py-2 bg-slate-700 text-white rounded-lg font-bold active:bg-slate-600 flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              +1
+            </button>
+          </div>
+
+          {/* 第三列：詳細訊息 */}
           {display.displayDescription && (
             <div className="mb-4">
               <label className="block text-sm font-medium text-slate-300 mb-2">詳細訊息</label>

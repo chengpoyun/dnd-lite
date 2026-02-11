@@ -1633,7 +1633,7 @@ export class DetailedCharacterService {
         }
       }
 
-      // 2. 角色物品 -> global_items（優先使用 character_items 的 affects_stats / stat_bonuses 覆寫）
+      // 2. 角色物品 -> global_items（僅「穿戴中」is_equipped 的裝備計入數值；優先使用 character_items 的 affects_stats / stat_bonuses 覆寫）
       const { data: characterItems, error: ciError } = await supabase
         .from('character_items')
         .select(`
@@ -1643,6 +1643,7 @@ export class DetailedCharacterService {
           name_override,
           affects_stats,
           stat_bonuses,
+          is_equipped,
           item:global_items(
             id,
             name,
@@ -1656,6 +1657,7 @@ export class DetailedCharacterService {
         console.error('collectSourceBonusesForCharacter: 讀取角色物品失敗:', ciError)
       } else if (Array.isArray(characterItems)) {
         for (const row of characterItems as any[]) {
+          if (row.is_equipped !== true) continue
           const itemRaw = Array.isArray(row.item) ? row.item[0] : row.item
           const hasOverride =
             (typeof row.affects_stats === 'boolean' && row.affects_stats) ||

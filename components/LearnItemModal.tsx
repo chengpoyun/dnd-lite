@@ -68,7 +68,6 @@ export const LearnItemModal: React.FC<LearnItemModalProps> = ({
   const handleLearnItem = async (itemId: string) => {
     try {
       await onLearnItem(itemId);
-      // 從列表中移除已獲得的物品
       setItems(prev => prev.filter(i => i.id !== itemId));
     } catch (error) {
       console.error('獲得物品失敗:', error);

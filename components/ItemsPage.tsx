@@ -94,10 +94,10 @@ export default function ItemsPage({ characterId, onCharacterDataChanged }: Items
     }
   }, [items, selectedCategory]);
 
-  // 獲得物品（從全域庫）
+  // 獲得物品（從全域庫）：直接獲得，不在此指定槽位或穿戴狀態
   const handleLearnItem = async (itemId: string) => {
     const result = await ItemService.learnItem(characterId, itemId);
-    
+
     if (result.success) {
       showSuccess('已獲得物品');
       setIsLearnModalOpen(false);
@@ -176,6 +176,21 @@ export default function ItemsPage({ characterId, onCharacterDataChanged }: Items
       onCharacterDataChanged?.();
     } else {
       showError(result.error || '刪除物品失敗');
+    }
+  };
+
+  // 道具詳情內數量調整
+  const handleQuantityChange = async (characterItemId: string, quantity: number) => {
+    const result = await ItemService.updateCharacterItem(characterItemId, { quantity });
+    if (!result.success) {
+      showError(result.error || '更新數量失敗');
+      return;
+    }
+    const list = await ItemService.getCharacterItems(characterId);
+    if (list.success && list.items) {
+      setItems(list.items);
+      const updated = list.items.find((i) => i.id === characterItemId);
+      if (updated) setSelectedItem(updated);
     }
   };
 
@@ -295,6 +310,7 @@ export default function ItemsPage({ characterId, onCharacterDataChanged }: Items
             is_magic: display.displayIsMagic,
             affects_stats: ci.affects_stats ?? false,
             stat_bonuses: ci.stat_bonuses ?? {},
+            equipment_kind: ItemService.getDisplayEquipmentKind(uploadFromCharacterItem),
           };
         })() : undefined}
       />
@@ -318,6 +334,7 @@ export default function ItemsPage({ characterId, onCharacterDataChanged }: Items
         characterItem={selectedItem}
         onEdit={handleEditClick}
         onDelete={handleDeleteClick}
+        onQuantityChange={handleQuantityChange}
         onUploadToDb={selectedItem && (!selectedItem.item_id || !selectedItem.item) ? () => {
           setUploadFromCharacterItem(selectedItem);
           setIsDetailModalOpen(false);

@@ -6,7 +6,8 @@
 import React, { useState, useEffect } from 'react';
 import { Modal } from './ui/Modal';
 import type { GlobalItem, ItemCategory, CreateGlobalItemData, CreateGlobalItemDataForUpload } from '../services/itemService';
-import { MODAL_CONTAINER_CLASS } from '../styles/modalStyles';
+import { EQUIPMENT_KINDS, EQUIPMENT_KIND_LABELS } from '../utils/equipmentConstants';
+import { MODAL_CONTAINER_CLASS, SELECT_CLASS } from '../styles/modalStyles';
 import { StatBonusEditor, type StatBonusEditorValue } from './StatBonusEditor';
 
 type UploadInitialData = {
@@ -17,6 +18,7 @@ type UploadInitialData = {
   is_magic: boolean;
   affects_stats?: boolean;
   stat_bonuses?: Record<string, unknown>;
+  equipment_kind?: string | null;
 };
 
 interface GlobalItemFormModalProps {
@@ -49,6 +51,7 @@ export const GlobalItemFormModal: React.FC<GlobalItemFormModalProps> = ({
     is_magic: false,
     affects_stats: false,
     stat_bonuses: {},
+    equipment_kind: null,
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -63,6 +66,7 @@ export const GlobalItemFormModal: React.FC<GlobalItemFormModalProps> = ({
         is_magic: editItem.is_magic,
         affects_stats: editItem.affects_stats ?? false,
         stat_bonuses: (editItem.stat_bonuses ?? {}) || {},
+        equipment_kind: editItem.equipment_kind ?? null,
       });
     } else if (isUpload && uploadInitialData) {
       setFormData({
@@ -73,6 +77,7 @@ export const GlobalItemFormModal: React.FC<GlobalItemFormModalProps> = ({
         is_magic: uploadInitialData.is_magic,
         affects_stats: uploadInitialData.affects_stats ?? false,
         stat_bonuses: (uploadInitialData.stat_bonuses ?? {}) as CreateGlobalItemData['stat_bonuses'],
+        equipment_kind: uploadInitialData.equipment_kind ?? null,
       });
     } else {
       setFormData({
@@ -83,6 +88,7 @@ export const GlobalItemFormModal: React.FC<GlobalItemFormModalProps> = ({
         is_magic: false,
         affects_stats: false,
         stat_bonuses: {},
+        equipment_kind: null,
       });
     }
     setShowConfirm(false);
@@ -112,6 +118,7 @@ export const GlobalItemFormModal: React.FC<GlobalItemFormModalProps> = ({
           is_magic: formData.is_magic,
           affects_stats: formData.affects_stats,
           stat_bonuses: formData.stat_bonuses,
+          equipment_kind: formData.equipment_kind ?? undefined,
         });
       } else {
         await onSubmit({
@@ -122,6 +129,7 @@ export const GlobalItemFormModal: React.FC<GlobalItemFormModalProps> = ({
           is_magic: formData.is_magic,
           affects_stats: formData.affects_stats,
           stat_bonuses: formData.stat_bonuses,
+          equipment_kind: formData.equipment_kind ?? undefined,
         });
       }
       onClose();
@@ -222,6 +230,21 @@ export const GlobalItemFormModal: React.FC<GlobalItemFormModalProps> = ({
               ))}
             </select>
           </div>
+          {formData.category === '裝備' && (
+            <div>
+              <label className="block text-[14px] text-slate-400 mb-2">裝備類型</label>
+              <select
+                value={formData.equipment_kind ?? ''}
+                onChange={(e) => setFormData({ ...formData, equipment_kind: e.target.value || null })}
+                className={`${SELECT_CLASS} w-full`}
+              >
+                <option value="">不指定</option>
+                {EQUIPMENT_KINDS.map((k) => (
+                  <option key={k} value={k}>{EQUIPMENT_KIND_LABELS[k]}</option>
+                ))}
+              </select>
+            </div>
+          )}
           <label className="flex items-center gap-2 text-[14px] text-slate-300">
             <input
               type="checkbox"
