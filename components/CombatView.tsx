@@ -22,6 +22,8 @@ import CombatHPModal from './CombatHPModal';
 import CombatItemEditModal from './CombatItemEditModal';
 import type { ItemEditValues } from './CombatItemEditModal';
 import CombatStatEditModal from './CombatStatEditModal';
+import { Modal, ModalButton } from './ui/Modal';
+import { MODAL_CONTAINER_CLASS, MODAL_BUTTON_CANCEL_CLASS } from '../styles/modalStyles';
 
 interface CombatItem {
   id: string;
@@ -163,6 +165,8 @@ export const CombatView: React.FC<CombatViewProps> = ({
 
   const [activeCategory, setActiveCategory] = useState<ItemCategory>('action');
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
+  /** 有 description 的項目點擊時先顯示說明，確認後才執行消耗 */
+  const [descriptionConfirmPending, setDescriptionConfirmPending] = useState<{ category: ItemCategory; id: string; name: string; description: string } | null>(null);
 
   // 攻擊命中 modal 開啟時，同步目前選擇的屬性以正確顯示加值
   useEffect(() => {
@@ -307,6 +311,30 @@ export const CombatView: React.FC<CombatViewProps> = ({
     localStorage.setItem(STORAGE_KEYS.COMBAT_STATE, JSON.stringify({ combatSeconds }));
   }, [combatSeconds]);
 
+  /** 實際執行消耗（減少次數並同步 DB），不含編輯模式與說明確認判斷 */
+  const doConsumeItem = async (category: ItemCategory, id: string) => {
+    const list = category === 'action' ? actions : category === 'bonus' ? bonusActions : category === 'reaction' ? reactions : resources;
+    const item = list.find(i => i.id === id);
+    if (!item) return;
+
+    if (category === 'action' || category === 'bonus' || category === 'reaction') {
+      if (categoryUsages[category].current <= 0 || item.current <= 0) return;
+      setCategoryUsages(prev => ({
+        ...prev,
+        [category]: { ...prev[category], current: prev[category].current - 1 }
+      }));
+      const newCurrent = item.current - 1;
+      const setter = category === 'action' ? setActions : category === 'bonus' ? setBonusActions : setReactions;
+      setter(prev => prev.map(i => i.id === id ? { ...i, current: newCurrent } : i));
+      await updateItemInDatabase(id, category, newCurrent);
+    } else {
+      if (item.current <= 0) return;
+      const newCurrent = item.current - 1;
+      setResources(prev => prev.map(i => i.id === id ? { ...i, current: newCurrent } : i));
+      await updateItemInDatabase(id, category, newCurrent);
+    }
+  };
+
   const useItem = async (category: ItemCategory, id: string) => {
     const list = category === 'action' ? actions : category === 'bonus' ? bonusActions : category === 'reaction' ? reactions : resources;
     const item = list.find(i => i.id === id);
@@ -319,36 +347,21 @@ export const CombatView: React.FC<CombatViewProps> = ({
       return;
     }
 
-    // 對於動作、附贈動作、反應，檢查分類使用次數和物品使用次數
-    if (category === 'action' || category === 'bonus' || category === 'reaction') {
-      if (categoryUsages[category].current <= 0 || item.current <= 0) return;
-      
-      // 減少分類使用次數
-      setCategoryUsages(prev => ({
-        ...prev,
-        [category]: { ...prev[category], current: prev[category].current - 1 }
-      }));
-      
-      // 減少物品使用次數並同步到資料庫
-      const newCurrent = item.current - 1;
-      const setter = category === 'action' ? setActions : category === 'bonus' ? setBonusActions : setReactions;
-      setter(prev => prev.map(i => i.id === id ? { ...i, current: newCurrent } : i));
-      
-      // 更新資料庫
-      await updateItemInDatabase(id, category, newCurrent);
-    } else {
-      // 職業資源仍使用個別項目的使用次數
-      if (item.current <= 0) return;
-      const newCurrent = item.current - 1;
-      setResources(prev => prev.map(i => i.id === id ? { ...i, current: newCurrent } : i));
-      
-      // 更新資料庫
-      await updateItemInDatabase(id, category, newCurrent);
+    if (item.description?.trim()) {
+      setDescriptionConfirmPending({ category, id, name: item.name, description: item.description.trim() });
+      return;
     }
+
+    await doConsumeItem(category, id);
   };
 
   // 更新資料庫中的項目使用次數
-  const updateItemInDatabase = async (itemId: string, category: string, newCurrent: number, additionalFields?: { name?: string, icon?: string, max_uses?: number, recovery?: 'round' | 'short' | 'long' }) => {
+  const updateItemInDatabase = async (
+    itemId: string,
+    category: string,
+    newCurrent: number,
+    additionalFields?: { name?: string; icon?: string; max_uses?: number; recovery?: 'round' | 'short' | 'long'; description?: string | null }
+  ) => {
     try {
       const combatItems = await HybridDataManager.getCombatItems(characterId);
       const dbItem = combatItems.find(item => item.id === itemId);
@@ -364,6 +377,7 @@ export const CombatView: React.FC<CombatViewProps> = ({
           if (additionalFields.icon) updateData.icon = additionalFields.icon;
           if (additionalFields.max_uses !== undefined) updateData.max_uses = additionalFields.max_uses;
           if (additionalFields.recovery) updateData.recovery_type = mapRecoveryToDb(additionalFields.recovery);
+          if (additionalFields.description !== undefined) updateData.description = additionalFields.description ?? '';
         }
         
         await HybridDataManager.updateCombatItem(dbItem.id, updateData);
@@ -398,11 +412,12 @@ export const CombatView: React.FC<CombatViewProps> = ({
       console.error('❌ 無法保存項目：沒有角色ID');
       return;
     }
-    const { name: formName, icon: formIcon, current: currentValue, max: maxValue, recovery: formRecovery } = values;
+    const { name: formName, icon: formIcon, current: currentValue, max: maxValue, recovery: formRecovery, description: formDescription } = values;
     const setter = activeCategory === 'action' ? setActions : activeCategory === 'bonus' ? setBonusActions : activeCategory === 'reaction' ? setReactions : setResources;
+    const descriptionToSave = (formDescription ?? '').trim();
 
     if (editingItemId) {
-      const updatedItem = { name: formName, icon: formIcon, current: currentValue, max: maxValue, recovery: formRecovery };
+      const updatedItem = { name: formName, icon: formIcon, current: currentValue, max: maxValue, recovery: formRecovery, description: descriptionToSave || undefined };
       setter(prev => prev.map(item =>
         item.id === editingItemId ? { ...item, ...updatedItem } : item
       ));
@@ -411,7 +426,8 @@ export const CombatView: React.FC<CombatViewProps> = ({
           name: formName,
           icon: formIcon,
           max_uses: maxValue,
-          recovery: formRecovery
+          recovery: formRecovery,
+          description: descriptionToSave || null
         });
         console.log('✅ 項目更新成功');
       } catch (error) {
@@ -425,7 +441,8 @@ export const CombatView: React.FC<CombatViewProps> = ({
         icon: formIcon,
         current: maxValue,
         max: maxValue,
-        recovery: formRecovery
+        recovery: formRecovery,
+        ...(descriptionToSave ? { description: descriptionToSave } : {})
       };
       setter(prev => [...prev, newItem]);
       try {
@@ -438,7 +455,8 @@ export const CombatView: React.FC<CombatViewProps> = ({
           max_uses: maxValue,
           recovery_type: mapRecoveryToDb(formRecovery),
           is_default: false,
-          is_custom: true
+          is_custom: true,
+          ...(descriptionToSave ? { description: descriptionToSave } : {})
         });
         console.log('✅ 新項目創建成功:', formName);
       } catch (error) {
@@ -988,29 +1006,6 @@ export const CombatView: React.FC<CombatViewProps> = ({
                   })}
                 </div>
               </div>
-              {/* 來自能力／物品的加值來源一覽 */}
-              {statSources.length > 0 && (
-                <div className="pt-1 border-t border-slate-800 mt-1">
-                  <span className="text-xs font-black text-slate-500 uppercase tracking-wider block mb-1.5">
-                    來自能力／物品的加值來源
-                  </span>
-                  <div className="flex flex-col gap-1.5 max-h-36 overflow-y-auto pr-1">
-                    {statSources.map((src) => (
-                      <div
-                        key={`${src.type}-${src.id}`}
-                        className="flex items-center justify-between px-2 py-1 rounded-lg bg-slate-800/60 border border-slate-700 text-xs"
-                      >
-                        <span className="font-bold text-slate-200 truncate mr-1">
-                          {src.name}
-                        </span>
-                        <span className="text-[10px] text-slate-400 shrink-0">
-                          {src.type === 'ability' ? '能力' : '物品'}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
           );
         })()}
@@ -1086,12 +1081,13 @@ export const CombatView: React.FC<CombatViewProps> = ({
       {/* 統一的新增/編輯項目彈窗 */}
       {(() => {
         const itemEditList = activeCategory === 'action' ? actions : activeCategory === 'bonus' ? bonusActions : activeCategory === 'reaction' ? reactions : resources;
+        const editingItem = editingItemId ? itemEditList.find(i => i.id === editingItemId) : null;
         const itemEditInitialValues: ItemEditValues = editingItemId
-          ? (() => {
-              const item = itemEditList.find(i => i.id === editingItemId);
-              return item ? { name: item.name, icon: item.icon, current: item.current, max: item.max, recovery: item.recovery } : { name: '', icon: '✨', current: 1, max: 1, recovery: 'round' };
-            })()
-          : { name: '', icon: '✨', current: 1, max: 1, recovery: activeCategory === 'resource' ? 'long' : 'round' };
+          ? (editingItem
+              ? { name: editingItem.name, icon: editingItem.icon, current: editingItem.current, max: editingItem.max, recovery: editingItem.recovery, description: editingItem.description ?? '' }
+              : { name: '', icon: '✨', current: 1, max: 1, recovery: 'round', description: '' })
+          : { name: '', icon: '✨', current: 1, max: 1, recovery: activeCategory === 'resource' ? 'long' : 'round', description: '' };
+        const showDescriptionForEdit = !!editingItem && !editingItem.is_default;
         return (
           <CombatItemEditModal
             isOpen={isItemEditModalOpen}
@@ -1100,9 +1096,36 @@ export const CombatView: React.FC<CombatViewProps> = ({
             category={activeCategory}
             initialValues={itemEditInitialValues}
             onSave={handleSaveItemValues}
+            showDescription={editingItemId ? showDescriptionForEdit : true}
           />
         );
       })()}
+
+      {/* 有 description 的項目點擊後先顯示說明，確認才執行消耗 */}
+      {descriptionConfirmPending && (
+        <Modal isOpen={!!descriptionConfirmPending} onClose={() => setDescriptionConfirmPending(null)} size="xs">
+          <div className={MODAL_CONTAINER_CLASS}>
+            <h2 className="text-xl font-bold mb-3">{descriptionConfirmPending.name}</h2>
+            <p className="text-slate-300 whitespace-pre-wrap mb-4">{descriptionConfirmPending.description}</p>
+            <div className="flex gap-2">
+              <ModalButton variant="secondary" className={MODAL_BUTTON_CANCEL_CLASS} onClick={() => setDescriptionConfirmPending(null)}>
+                取消
+              </ModalButton>
+              <ModalButton
+                variant="primary"
+                className="bg-indigo-600 hover:bg-indigo-500"
+                onClick={async () => {
+                  const { category, id } = descriptionConfirmPending;
+                  setDescriptionConfirmPending(null);
+                  await doConsumeItem(category, id);
+                }}
+              >
+                確認
+              </ModalButton>
+            </div>
+          </div>
+        </Modal>
+      )}
 
       {/* 分類使用次數編輯彈窗 */}
       <CategoryUsageModal

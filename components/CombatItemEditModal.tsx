@@ -17,6 +17,7 @@ export interface ItemEditValues {
   current: number;
   max: number;
   recovery: ItemEditRecovery;
+  description?: string;
 }
 
 interface CombatItemEditModalProps {
@@ -26,6 +27,8 @@ interface CombatItemEditModalProps {
   category: ItemEditCategory;
   initialValues: ItemEditValues;
   onSave: (values: ItemEditValues) => void;
+  /** 是否顯示描述欄位（自定義項目新增時為 true，編輯自定義項目時為 true） */
+  showDescription?: boolean;
 }
 
 const CATEGORY_LABELS: Record<ItemEditCategory, string> = {
@@ -42,12 +45,14 @@ export default function CombatItemEditModal({
   category,
   initialValues,
   onSave,
+  showDescription = false,
 }: CombatItemEditModalProps) {
   const [name, setName] = useState('');
   const [icon, setIcon] = useState('✨');
   const [current, setCurrent] = useState('1');
   const [max, setMax] = useState('1');
   const [recovery, setRecovery] = useState<ItemEditRecovery>('round');
+  const [description, setDescription] = useState('');
 
   useEffect(() => {
     if (isOpen) {
@@ -56,6 +61,7 @@ export default function CombatItemEditModal({
       setCurrent(initialValues.current.toString());
       setMax(initialValues.max.toString());
       setRecovery(initialValues.recovery);
+      setDescription(initialValues.description ?? '');
     }
   }, [isOpen, initialValues]);
 
@@ -73,6 +79,7 @@ export default function CombatItemEditModal({
       current: currentResult.numericValue,
       max: maxResult.numericValue,
       recovery,
+      description: showDescription ? description.trim() : (initialValues.description ?? ''),
     });
     onClose();
   };
@@ -127,6 +134,20 @@ export default function CombatItemEditModal({
               ]}
             />
           </div>
+          {showDescription && (
+            <div>
+              <label className="text-[16px] text-slate-500 font-black block uppercase ml-1 tracking-widest mb-1">
+                描述
+              </label>
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="選填"
+                className="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-white outline-none min-h-[80px] resize-y"
+                aria-label="描述"
+              />
+            </div>
+          )}
           <div className="flex gap-2 pt-2">
             <ModalButton variant="secondary" className={MODAL_BUTTON_CANCEL_CLASS} onClick={onClose}>
               取消
