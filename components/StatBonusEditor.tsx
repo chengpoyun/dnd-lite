@@ -39,7 +39,7 @@ interface StatBonusEditorProps {
 }
 
 const numberInputClass =
-  'w-16 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-right text-sm text-amber-300 font-mono focus:outline-none focus:ring-1 focus:ring-amber-500';
+  'w-16 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-center text-sm text-amber-300 font-mono focus:outline-none focus:ring-1 focus:ring-amber-500';
 
 export const StatBonusEditor: React.FC<StatBonusEditorProps> = ({ value, onChange }) => {
   const handleNumberChange = (
@@ -97,25 +97,18 @@ export const StatBonusEditor: React.FC<StatBonusEditorProps> = ({ value, onChang
     rowKey?: string,
   ) => {
     const v = current ?? 0;
-    const sign = v >= 0 ? '+' : '';
     return (
       <div
         key={rowKey ?? `${path}-${key}`}
         className="flex items-center justify-between gap-2 py-1"
       >
         <span className="text-sm text-slate-300">{label}</span>
-        <div className="flex items-center gap-2">
-          <input
-            className={numberInputClass}
-            defaultValue={v === 0 ? '' : String(v)}
-            onBlur={(e) => handleNumberChange(path, key, e.target.value)}
-            inputMode="numeric"
-          />
-          <span className="text-sm font-mono text-amber-400">
-            {sign}
-            {v}
-          </span>
-        </div>
+        <input
+          className={numberInputClass}
+          defaultValue={v === 0 ? '' : String(v)}
+          onBlur={(e) => handleNumberChange(path, key, e.target.value)}
+          inputMode="numeric"
+        />
       </div>
     );
   };
