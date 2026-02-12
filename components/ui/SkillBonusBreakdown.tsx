@@ -28,7 +28,7 @@ export const SkillBonusBreakdown: React.FC<SkillBonusBreakdownProps> = ({
   finalTotal,
 }) => {
   return (
-    <div className="mt-2 space-y-3">
+    <div className="mt-2 space-y-3 min-w-0">
       {/* 基礎值列 */}
       <LabelInputRow
         label="基礎值"

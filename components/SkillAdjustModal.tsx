@@ -1,9 +1,15 @@
 import React, { useMemo, useState } from 'react';
-import { Button } from './ui';
+import { Modal, ModalButton } from './ui/Modal';
 import { SkillProficiencySegmentBar, type SkillProficiencyLevel } from './ui/SkillProficiencySegmentBar';
 import { SkillBonusBreakdown } from './ui/SkillBonusBreakdown';
 import { getProfBonus } from '../utils/helpers';
-import { MODAL_BUTTON_RESET_CLASS } from '../styles/modalStyles';
+import {
+  MODAL_BUTTON_RESET_CLASS,
+  MODAL_BUTTON_CANCEL_CLASS,
+  MODAL_BUTTON_APPLY_AMBER_CLASS,
+  MODAL_FOOTER_BUTTONS_CLASS,
+  MODAL_SUBTITLE_CLASS,
+} from '../styles/modalStyles';
 
 interface SkillAdjustModalProps {
   isOpen: boolean;
@@ -90,60 +96,45 @@ export const SkillAdjustModal: React.FC<SkillAdjustModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-[120] flex items-center justify-center px-6">
-      <div
-        className="absolute inset-0 bg-slate-950/90 backdrop-blur-sm"
-        onClick={onClose}
+    <Modal isOpen={isOpen} onClose={onClose} title={skillName} size="xs">
+      <p className={`${MODAL_SUBTITLE_CLASS} mb-5`}>屬性：{abilityLabel}</p>
+
+      <SkillProficiencySegmentBar
+        value={localProfLevel}
+        onChange={(level) => {
+          setLocalProfLevel(level);
+
+          if (!basicManuallyEdited) {
+            const nextDefault = computeDefaultBasic(level);
+            setBasicInput(nextDefault.toString());
+          }
+        }}
+        className="mb-4"
       />
-      <div className="relative bg-slate-900 border border-slate-700 w-full max-w-xs rounded-2xl p-3 shadow-2xl animate-in fade-in zoom-in duration-150">
-        <div className="text-center mb-5">
-          <h3 className="text-xl font-fantasy text-amber-500 mb-1">{skillName}</h3>
-          <p className="text-[15px] text-slate-500 font-black uppercase tracking-widest">
-            屬性：{abilityLabel}
-          </p>
-        </div>
 
-        <SkillProficiencySegmentBar
-          value={localProfLevel}
-          onChange={(level) => {
-            setLocalProfLevel(level);
+      <SkillBonusBreakdown
+        basicInput={basicInput}
+        onBasicChange={(value) => {
+          setBasicInput(value);
+          setBasicManuallyEdited(true);
+        }}
+        description={description}
+        bonusSources={bonusSources}
+        finalTotal={finalTotal}
+      />
 
-            if (!basicManuallyEdited) {
-              const nextDefault = computeDefaultBasic(level);
-              setBasicInput(nextDefault.toString());
-            }
-          }}
-          className="mb-4"
-        />
-
-        <SkillBonusBreakdown
-          basicInput={basicInput}
-          onBasicChange={(value) => {
-            setBasicInput(value);
-            setBasicManuallyEdited(true);
-          }}
-          description={description}
-          bonusSources={bonusSources}
-          finalTotal={finalTotal}
-        />
-
-        <div className="flex gap-2 pt-4">
-          <Button
-            variant="secondary"
-            className={`flex-1 ${MODAL_BUTTON_RESET_CLASS}`}
-            onClick={handleReset}
-          >
-            重置
-          </Button>
-          <Button variant="secondary" className="flex-1" onClick={onClose}>
-            取消
-          </Button>
-          <Button variant="primary" className="flex-1" onClick={handleSave}>
-            儲存
-          </Button>
-        </div>
+      <div className={`${MODAL_FOOTER_BUTTONS_CLASS} pt-4`}>
+        <ModalButton variant="secondary" className={MODAL_BUTTON_RESET_CLASS} onClick={handleReset}>
+          重置
+        </ModalButton>
+        <ModalButton variant="secondary" className={MODAL_BUTTON_CANCEL_CLASS} onClick={onClose}>
+          取消
+        </ModalButton>
+        <ModalButton variant="primary" onClick={handleSave} className={MODAL_BUTTON_APPLY_AMBER_CLASS}>
+          儲存
+        </ModalButton>
       </div>
-    </div>
+    </Modal>
   );
 };
 

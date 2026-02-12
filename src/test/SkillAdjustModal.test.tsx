@@ -17,6 +17,7 @@ describe('SkillAdjustModal', () => {
         characterLevel={5}
         currentProfLevel={1}
         overrideBasic={null}
+        skillBonusSources={[]}
         miscBonus={2}
         onClose={onClose}
         onSave={onSave}
@@ -40,13 +41,10 @@ describe('SkillAdjustModal', () => {
 
   it('切換熟練度時，在尚未手動編輯基礎值時應自動更新基礎值', () => {
     renderModal();
-
-    const basicInput = screen.getByDisplayValue('7'); // abilityModifier 3 + profBonus(5)=3*1 => 6? Wait; but we'll just assert change, not exact.
-
+    // abilityModifier 3 + profLevel 1 * getProfBonus(5)=3 => 6；切到專精 => 3 + 2*3 = 9
+    expect(screen.getByDisplayValue('6')).toBeInTheDocument();
     fireEvent.click(screen.getByText('專精'));
-
-    const updatedInput = screen.getByDisplayValue((value: string) => value !== basicInput.getAttribute('value')!);
-    expect(updatedInput).toBeTruthy();
+    expect(screen.getByDisplayValue('9')).toBeInTheDocument();
   });
 
   it('點擊重置會恢復為當前熟練度計算的基礎值並且之後切換會繼續跟著變動', () => {

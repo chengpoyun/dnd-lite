@@ -7,6 +7,9 @@
 // ===== Modal 容器樣式 =====
 export const MODAL_CONTAINER_CLASS = "bg-slate-800 rounded-xl px-3 py-3 w-full relative";
 
+/** Modal 標題下方副標（如「屬性：敏捷」） */
+export const MODAL_SUBTITLE_CLASS = "text-[15px] text-slate-500 font-black uppercase tracking-widest text-center block";
+
 // ===== Modal 內文文字（深色背景用，確保可讀性）=====
 /** 標籤、加值列表、總加值等一般內文 */
 export const MODAL_BODY_TEXT_CLASS = "text-base text-slate-300";
@@ -77,7 +80,7 @@ export const INPUT_LABEL_CLASS = "text-sm font-medium text-slate-300 w-20 shrink
 export const INPUT_CLASS = "w-[calc(100%-5.5rem)] px-3 py-2.5 bg-slate-700/50 border border-slate-600 rounded-lg text-white placeholder:text-slate-500 focus:outline-none focus:border-amber-500 focus:bg-slate-700";
 
 /** 橫列中「填滿剩餘寬度」的 input（須與 flex 容器 + shrink-0 標籤搭配，避免右緣對不齊）*/
-export const MODAL_LABEL_INPUT_ROW_CLASS = "flex items-center gap-2";
+export const MODAL_LABEL_INPUT_ROW_CLASS = "flex items-center gap-2 min-w-0";
 export const MODAL_LABEL_INPUT_ROW_INPUT_CLASS = "min-w-0 flex-1 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-amber-500";
 
 // ===== 全寬輸入框樣式 =====
