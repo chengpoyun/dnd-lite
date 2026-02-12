@@ -3,7 +3,7 @@
  */
 import React from 'react';
 import { Modal, ModalButton } from './ui/Modal';
-import { MODAL_BUTTON_CANCEL_CLASS } from '../styles/modalStyles';
+import { MODAL_CONTAINER_CLASS, MODAL_BUTTON_CANCEL_CLASS } from '../styles/modalStyles';
 
 interface RestOptionsModalProps {
   isOpen: boolean;
@@ -20,7 +20,7 @@ export default function RestOptionsModal({
 }: RestOptionsModalProps) {
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="選擇休息方式" size="sm">
-      <div className="space-y-4">
+      <div className={`${MODAL_CONTAINER_CLASS} space-y-4`}>
         <button
           type="button"
           onClick={onChooseShortRest}

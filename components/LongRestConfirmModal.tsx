@@ -3,7 +3,7 @@
  */
 import React from 'react';
 import { Modal, ModalButton } from './ui/Modal';
-import { MODAL_BUTTON_CANCEL_CLASS } from '../styles/modalStyles';
+import { MODAL_CONTAINER_CLASS, MODAL_BUTTON_CANCEL_CLASS, MODAL_FOOTER_BUTTONS_CLASS, MODAL_BUTTON_APPLY_INDIGO_CLASS, MODAL_DESCRIPTION_CLASS } from '../styles/modalStyles';
 
 interface LongRestConfirmModalProps {
   isOpen: boolean;
@@ -18,16 +18,18 @@ export default function LongRestConfirmModal({
 }: LongRestConfirmModalProps) {
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="確定要長休？" size="xs">
-      <p className="text-slate-500 text-[16px] text-center mb-6">
-        這將完全恢復 HP、重置所有法術位與職業資源。
-      </p>
-      <div className="flex gap-3">
-        <ModalButton variant="secondary" className={MODAL_BUTTON_CANCEL_CLASS} onClick={onClose}>
-          返回
-        </ModalButton>
-        <ModalButton variant="primary" onClick={onConfirm} className="bg-indigo-600 hover:bg-indigo-500">
-          確認長休
-        </ModalButton>
+      <div className={MODAL_CONTAINER_CLASS}>
+        <p className={`${MODAL_DESCRIPTION_CLASS} text-center mb-6`}>
+          這將完全恢復 HP、重置所有法術位與職業資源。
+        </p>
+        <div className={MODAL_FOOTER_BUTTONS_CLASS}>
+          <ModalButton variant="secondary" className={MODAL_BUTTON_CANCEL_CLASS} onClick={onClose}>
+            返回
+          </ModalButton>
+          <ModalButton variant="primary" onClick={onConfirm} className={MODAL_BUTTON_APPLY_INDIGO_CLASS}>
+            確認長休
+          </ModalButton>
+        </div>
       </div>
     </Modal>
   );

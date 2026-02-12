@@ -61,6 +61,8 @@ export const MODAL_FIELD_CLASS = "space-y-1";
 // ===== 主動作按鈕（套用／儲存，與 variant="primary" 並用）=====
 export const MODAL_BUTTON_APPLY_AMBER_CLASS = "!bg-amber-600 hover:!bg-amber-500";
 export const MODAL_BUTTON_APPLY_EMERALD_CLASS = "!bg-emerald-600 hover:!bg-emerald-500";
+/** 戰鬥／休息確認等主動作（靛藍） */
+export const MODAL_BUTTON_APPLY_INDIGO_CLASS = "!bg-indigo-600 hover:!bg-indigo-500";
 
 // ===== 其他共用 =====
 /** 數字輸入框（小型、置中，如等級） */

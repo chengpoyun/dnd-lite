@@ -4,7 +4,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Modal, ModalButton } from './ui/Modal';
-import { MODAL_CONTAINER_CLASS, INPUT_FULL_WIDTH_CLASS, MODAL_BUTTON_CANCEL_CLASS } from '../styles/modalStyles';
+import { MODAL_CONTAINER_CLASS, INPUT_FULL_WIDTH_CLASS, MODAL_BUTTON_CANCEL_CLASS, MODAL_SECTION_CLASS, MODAL_FOOTER_BUTTONS_CLASS } from '../styles/modalStyles';
 
 interface CombatNoteModalProps {
   isOpen: boolean;
@@ -52,7 +52,7 @@ export default function CombatNoteModal({
   return (
     <Modal isOpen={isOpen} onClose={handleCancel} title="戰鬥筆記" size="md">
       <div className={MODAL_CONTAINER_CLASS}>
-        <div className="space-y-4">
+        <div className={MODAL_SECTION_CLASS}>
           <textarea
             value={value}
             onChange={(e) => setValue(e.target.value)}
@@ -60,7 +60,7 @@ export default function CombatNoteModal({
             rows={6}
             className={`${INPUT_FULL_WIDTH_CLASS} resize-none min-h-[120px] rounded-xl`}
           />
-          <div className={`grid gap-2 pt-2 ${hasContent ? 'grid-cols-3' : 'grid-cols-2'}`}>
+          <div className={`${MODAL_FOOTER_BUTTONS_CLASS} pt-2`}>
             <ModalButton variant="primary" onClick={handleSave} className="min-w-0 truncate">
               儲存
             </ModalButton>

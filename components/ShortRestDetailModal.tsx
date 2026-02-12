@@ -3,6 +3,7 @@
  */
 import React from 'react';
 import { Modal, ModalButton } from './ui/Modal';
+import { MODAL_BUTTON_APPLY_EMERALD_CLASS } from '../styles/modalStyles';
 import type { HitDicePools } from '../types';
 
 export interface ShortRestStats {
@@ -105,7 +106,7 @@ export default function ShortRestDetailModal({
         <ModalButton
           variant="primary"
           onClick={onCompleteShortRest}
-          className="w-full py-4 bg-emerald-600 hover:bg-emerald-500 text-lg"
+          className={`w-full py-4 text-lg ${MODAL_BUTTON_APPLY_EMERALD_CLASS}`}
         >
           完成短休
         </ModalButton>

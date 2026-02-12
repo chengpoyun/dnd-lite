@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { CharacterStats } from '../types';
-import { evaluateValue, getModifier, getProfBonus, handleValueInput } from '../utils/helpers';
+import { evaluateValue, getProfBonus, handleValueInput } from '../utils/helpers';
 import { STAT_LABELS, SKILLS_MAP, ABILITY_KEYS } from '../utils/characterConstants';
 import { getFinalCombatStat, getBasicCombatStat, getFinalAbilityModifier, getFinalSavingThrow, getFinalSkillBonus, getDefaultMaxHpBasic, type CombatStatKey } from '../utils/characterAttributes';
 import { formatHitDicePools, getTotalCurrentHitDice, useHitDie, recoverHitDiceOnLongRest } from '../utils/classUtils';
@@ -23,7 +23,7 @@ import CombatItemEditModal from './CombatItemEditModal';
 import type { ItemEditValues } from './CombatItemEditModal';
 import CombatStatEditModal from './CombatStatEditModal';
 import { Modal, ModalButton } from './ui/Modal';
-import { MODAL_CONTAINER_CLASS, MODAL_BUTTON_CANCEL_CLASS } from '../styles/modalStyles';
+import { MODAL_CONTAINER_CLASS, MODAL_BUTTON_CANCEL_CLASS, MODAL_FOOTER_BUTTONS_CLASS, MODAL_BUTTON_APPLY_INDIGO_CLASS } from '../styles/modalStyles';
 
 interface CombatItem {
   id: string;
@@ -587,7 +587,7 @@ export const CombatView: React.FC<CombatViewProps> = ({
     if (stats.hitDice.current <= 0) return;
     const sides = parseInt(stats.hitDice.die.replace('d', '')) || 10;
     const roll = Math.floor(Math.random() * sides) + 1;
-    const conMod = getModifier(stats.abilityScores.con);
+    const conMod = getFinalAbilityModifier(stats, 'con');
     const total = Math.max(0, roll + conMod);
     setLastRestRoll({ die: roll, mod: conMod, total });
     
@@ -613,7 +613,7 @@ export const CombatView: React.FC<CombatViewProps> = ({
     
     const sides = parseInt(dieType.replace('d', ''));
     const roll = Math.floor(Math.random() * sides) + 1;
-    const conMod = getModifier(stats.abilityScores.con);
+    const conMod = getFinalAbilityModifier(stats, 'con');
     const total = Math.max(0, roll + conMod);
     
     setLastRestRoll({ die: roll, mod: conMod, total });
@@ -1107,13 +1107,13 @@ export const CombatView: React.FC<CombatViewProps> = ({
           <div className={MODAL_CONTAINER_CLASS}>
             <h2 className="text-xl font-bold mb-3">{descriptionConfirmPending.name}</h2>
             <p className="text-slate-300 whitespace-pre-wrap mb-4">{descriptionConfirmPending.description}</p>
-            <div className="flex gap-2">
+            <div className={MODAL_FOOTER_BUTTONS_CLASS}>
               <ModalButton variant="secondary" className={MODAL_BUTTON_CANCEL_CLASS} onClick={() => setDescriptionConfirmPending(null)}>
                 取消
               </ModalButton>
               <ModalButton
                 variant="primary"
-                className="bg-indigo-600 hover:bg-indigo-500"
+                className={MODAL_BUTTON_APPLY_INDIGO_CLASS}
                 onClick={async () => {
                   const { category, id } = descriptionConfirmPending;
                   setDescriptionConfirmPending(null);

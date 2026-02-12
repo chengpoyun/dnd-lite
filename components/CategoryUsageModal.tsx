@@ -4,7 +4,7 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, ModalButton, ModalInput } from './ui/Modal';
 import { handleValueInput } from '../utils/helpers';
-import { MODAL_CONTAINER_CLASS, MODAL_BUTTON_CANCEL_CLASS } from '../styles/modalStyles';
+import { MODAL_CONTAINER_CLASS, MODAL_BUTTON_CANCEL_CLASS, MODAL_FOOTER_BUTTONS_CLASS, MODAL_SECTION_CLASS, MODAL_PREVIEW_LABEL_CLASS, MODAL_BUTTON_APPLY_AMBER_CLASS } from '../styles/modalStyles';
 
 export type CategoryUsageCategory = 'action' | 'bonus' | 'reaction';
 
@@ -59,18 +59,18 @@ export default function CategoryUsageModal({
     <Modal isOpen={isOpen} onClose={onClose} size="xs">
       <div className={`${MODAL_CONTAINER_CLASS} relative`}>
         <h2 className="text-xl font-bold mb-5">{CATEGORY_LABELS[category]}</h2>
-        <div className="space-y-4">
+        <div className={MODAL_SECTION_CLASS}>
           <div className="grid grid-cols-2 gap-3">
-            <div>
-              <span className="text-[16px] text-slate-500 font-black block mb-1 uppercase tracking-widest text-center">剩餘次數</span>
+            <div className="space-y-1">
+              <span className={`${MODAL_PREVIEW_LABEL_CLASS} block mb-1 text-center`}>剩餘次數</span>
               <ModalInput
                 value={tempCurrent}
                 onChange={setTempCurrent}
                 className="text-xl font-mono text-center"
               />
             </div>
-            <div>
-              <span className="text-[16px] text-slate-500 font-black block mb-1 uppercase tracking-widest text-center">每回合最大</span>
+            <div className="space-y-1">
+              <span className={`${MODAL_PREVIEW_LABEL_CLASS} block mb-1 text-center`}>每回合最大</span>
               <ModalInput
                 value={tempMax}
                 onChange={setTempMax}
@@ -78,11 +78,11 @@ export default function CategoryUsageModal({
               />
             </div>
           </div>
-          <div className="flex gap-2 pt-2">
+          <div className={MODAL_FOOTER_BUTTONS_CLASS}>
             <ModalButton variant="secondary" className={MODAL_BUTTON_CANCEL_CLASS} onClick={onClose}>
               取消
             </ModalButton>
-            <ModalButton variant="primary" onClick={handleSave}>
+            <ModalButton variant="primary" onClick={handleSave} className={MODAL_BUTTON_APPLY_AMBER_CLASS}>
               儲存
             </ModalButton>
           </div>
