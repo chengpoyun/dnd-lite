@@ -107,8 +107,7 @@ export default function AbilitiesPage({ characterId, onCharacterDataChanged }: A
   const [selectedCharacterAbility, setSelectedCharacterAbility] = useState<CharacterAbilityWithDetails | null>(null);
   const [editingCharacterAbility, setEditingCharacterAbility] = useState<CharacterAbilityWithDetails | null>(null);
 
-  // 載入資料
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     setIsLoading(true);
     try {
       const charAbilities = await AbilityService.getCharacterAbilities(characterId);
@@ -119,13 +118,11 @@ export default function AbilitiesPage({ characterId, onCharacterDataChanged }: A
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [characterId, showError]);
 
   useEffect(() => {
-    if (characterId) {
-      loadData();
-    }
-  }, [characterId]);
+    if (characterId) loadData();
+  }, [characterId, loadData]);
 
   // 依來源篩選：全部或單一來源
   const filteredAbilities = React.useMemo(() => {
@@ -142,6 +139,25 @@ export default function AbilitiesPage({ characterId, onCharacterDataChanged }: A
     ],
     []
   );
+
+  const closeFormModal = useCallback(() => {
+    setIsFormModalOpen(false);
+    setUploadFromCharacterAbility(null);
+    setEditingCharacterAbility(null);
+  }, []);
+
+  const closeAddPersonalModal = useCallback(() => {
+    setIsAddPersonalModalOpen(false);
+    setAddPersonalInitialName('');
+  }, []);
+
+  const closeDetailModal = useCallback(() => {
+    setIsDetailModalOpen(false);
+    setSelectedCharacterAbility(null);
+  }, []);
+
+  const closeDeleteModal = useCallback(() => setIsDeleteModalOpen(false), []);
+  const closeLearnModal = useCallback(() => setIsLearnModalOpen(false), []);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -438,11 +454,7 @@ export default function AbilitiesPage({ characterId, onCharacterDataChanged }: A
       {/* Modals */}
       <AbilityFormModal
         isOpen={isFormModalOpen}
-        onClose={() => {
-          setIsFormModalOpen(false);
-          setUploadFromCharacterAbility(null);
-          setEditingCharacterAbility(null);
-        }}
+        onClose={closeFormModal}
         onSubmit={uploadFromCharacterAbility ? handleUploadToGlobal : editingCharacterAbility ? handleUpdate : handleCreate}
         editingAbility={editingCharacterAbility}
         mode={uploadFromCharacterAbility ? 'upload' : 'create'}
@@ -468,20 +480,14 @@ export default function AbilitiesPage({ characterId, onCharacterDataChanged }: A
 
       <AddPersonalAbilityModal
         isOpen={isAddPersonalModalOpen}
-        onClose={() => {
-          setIsAddPersonalModalOpen(false);
-          setAddPersonalInitialName('');
-        }}
+        onClose={closeAddPersonalModal}
         onSubmit={handleAddPersonalAbility}
         initialName={addPersonalInitialName}
       />
 
       <AbilityDetailModal
         isOpen={isDetailModalOpen}
-        onClose={() => {
-          setIsDetailModalOpen(false);
-          setSelectedCharacterAbility(null);
-        }}
+        onClose={closeDetailModal}
         characterAbility={selectedCharacterAbility}
         onEdit={handleEditClick}
         onDelete={handleDeleteClick}
@@ -496,7 +502,7 @@ export default function AbilitiesPage({ characterId, onCharacterDataChanged }: A
 
       <ConfirmDeleteModal
         isOpen={isDeleteModalOpen}
-        onClose={() => setIsDeleteModalOpen(false)}
+        onClose={closeDeleteModal}
         onConfirm={handleUnlearn}
         itemName={selectedCharacterAbility ? AbilityService.getDisplayValues(selectedCharacterAbility).name : ''}
         itemType="特殊能力"
@@ -504,7 +510,7 @@ export default function AbilitiesPage({ characterId, onCharacterDataChanged }: A
 
       <LearnAbilityModal
         isOpen={isLearnModalOpen}
-        onClose={() => setIsLearnModalOpen(false)}
+        onClose={closeLearnModal}
         onLearnAbility={handleLearn}
         onCreateNew={handleOpenCreateModal}
         learnedAbilityIds={characterAbilities.map(ca => ca.ability_id).filter((id): id is string => id != null)}
