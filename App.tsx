@@ -20,6 +20,7 @@ const AboutPage = lazy(() => import('./components/AboutPage'));
 
 import { CharacterStats } from './types';
 import { formatClassDisplay, getPrimaryClass, getTotalLevel, getClassHitDie } from './utils/classUtils';
+import { getFinalAbilityModifier } from './utils/characterAttributes';
 import { isSpellcaster } from './utils/spellUtils';
 import { HybridDataManager } from './services/hybridDataManager';
 import { DetailedCharacterService } from './services/detailedCharacter';
@@ -1031,7 +1032,7 @@ const AuthenticatedApp: React.FC = () => {
                     isPrimary: true 
                   }
                 ]}
-                intelligence={stats.abilityScores.int}
+                intelligenceModifier={getFinalAbilityModifier(stats, 'int')}
               />
             </Suspense>
           )}

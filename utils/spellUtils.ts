@@ -103,15 +103,14 @@ export function isSpellcaster(classNames: string[]): boolean {
 /**
  * 計算角色可準備的法術數量
  * D&D 5E 規則：施法能力調整值 + 施法職業等級
- * 簡化版本：使用智力調整值 + 最高施法職業等級
- * 
- * @param intelligence 智力屬性值
+ * 使用「最終」智力調整值（含能力加值、裝備等）與施法職業等級計算。
+ *
+ * @param intelligenceModifier 智力調整值（應使用 getFinalAbilityModifier(stats, 'int')）
  * @param spellcasterLevel 施法職業的等級
  * @returns 可準備法術數量（最少為 1）
  */
-export function calculateMaxPrepared(intelligence: number, spellcasterLevel: number): number {
-  const modifier = Math.floor((intelligence - 10) / 2);
-  return Math.max(1, modifier + spellcasterLevel);
+export function calculateMaxPrepared(intelligenceModifier: number, spellcasterLevel: number): number {
+  return Math.max(1, intelligenceModifier + spellcasterLevel);
 }
 
 /**

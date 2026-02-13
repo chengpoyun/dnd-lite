@@ -35,13 +35,14 @@ import { ClassInfo } from '../types';
 interface SpellsPageProps {
   characterId: string;
   characterClasses: ClassInfo[];
-  intelligence: number;
+  /** 智力調整值（應為 final，含能力加值、裝備等） */
+  intelligenceModifier: number;
 }
 
 export const SpellsPage: React.FC<SpellsPageProps> = ({
   characterId,
   characterClasses,
-  intelligence
+  intelligenceModifier
 }) => {
   const [characterSpells, setCharacterSpells] = useState<CharacterSpell[]>([]);
   const [isLearnModalOpen, setIsLearnModalOpen] = useState(false);
@@ -66,8 +67,8 @@ export const SpellsPage: React.FC<SpellsPageProps> = ({
   );
 
   const maxPrepared = useMemo(() => 
-    calculateMaxPrepared(intelligence, spellcasterLevel),
-    [intelligence, spellcasterLevel]
+    calculateMaxPrepared(intelligenceModifier, spellcasterLevel),
+    [intelligenceModifier, spellcasterLevel]
   );
 
   const maxCantrips = useMemo(() => 
