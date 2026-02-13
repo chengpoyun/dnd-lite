@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { SpellCard } from './SpellCard';
 import { SpellDetailModal } from './SpellDetailModal';
 import { LearnSpellModal } from './LearnSpellModal';
@@ -6,6 +6,7 @@ import { SpellFormModal } from './SpellFormModal';
 import { CharacterSpellEditModal } from './CharacterSpellEditModal';
 import { AddPersonalSpellModal } from './AddPersonalSpellModal';
 import { Modal, ModalButton } from './ui/Modal';
+import { MODAL_CONTAINER_CLASS, MODAL_FOOTER_BUTTONS_CLASS, MODAL_BUTTON_CANCEL_CLASS, MODAL_BUTTON_APPLY_INDIGO_CLASS, MODAL_DESCRIPTION_CLASS } from '../styles/modalStyles';
 import { 
   CharacterSpell, 
   Spell,
@@ -76,15 +77,7 @@ export const SpellsPage: React.FC<SpellsPageProps> = ({
     [spellcasterLevel]
   );
 
-  useEffect(() => {
-    loadCharacterSpells();
-  }, [characterId]);
-
-  useEffect(() => {
-    updatePreparedCount();
-  }, [characterSpells]);
-
-  const loadCharacterSpells = async () => {
+  const loadCharacterSpells = useCallback(async () => {
     setIsLoading(true);
     try {
       const spells = await getCharacterSpells(characterId);
@@ -94,25 +87,31 @@ export const SpellsPage: React.FC<SpellsPageProps> = ({
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [characterId]);
 
-  const updatePreparedCount = async () => {
+  const updatePreparedCount = useCallback(async () => {
     try {
       const [count, cantripsCount] = await Promise.all([
         getPreparedSpellsCount(characterId),
         getPreparedCantripsCount(characterId)
       ]);
-
       const personalPrepared = characterSpells.filter(cs => !cs.spell_id && cs.is_prepared);
       const personalCantrips = personalPrepared.filter(cs => getDisplayValues(cs).displayLevel === 0);
       const personalSpells = personalPrepared.filter(cs => getDisplayValues(cs).displayLevel > 0);
-
       setPreparedCount(count + personalSpells.length);
       setPreparedCantripsCount(cantripsCount + personalCantrips.length);
     } catch (error) {
       console.error('更新已準備法術數量失敗:', error);
     }
-  };
+  }, [characterId, characterSpells]);
+
+  useEffect(() => {
+    loadCharacterSpells();
+  }, [loadCharacterSpells]);
+
+  useEffect(() => {
+    updatePreparedCount();
+  }, [characterSpells, updatePreparedCount]);
 
   const handleLearnSpell = async (spellId: string) => {
     try {
@@ -163,6 +162,11 @@ export const SpellsPage: React.FC<SpellsPageProps> = ({
       handleTogglePrepared(characterSpellId, spellId, isPrepared);
     }
   };
+
+  const closeOverLimitWarning = useCallback(() => {
+    setIsOverLimitWarningOpen(false);
+    setPendingPrepareSpell(null);
+  }, []);
 
   const handleConfirmOverLimit = () => {
     if (pendingPrepareSpell) {
@@ -430,32 +434,22 @@ export const SpellsPage: React.FC<SpellsPageProps> = ({
       {/* 超出準備數量警告 Modal */}
       <Modal
         isOpen={isOverLimitWarningOpen}
-        onClose={() => {
-          setIsOverLimitWarningOpen(false);
-          setPendingPrepareSpell(null);
-        }}
+        onClose={closeOverLimitWarning}
         title="準備法術數量超過上限"
         size="xs"
       >
-        <p className="text-slate-400 text-[16px] text-center mb-6">
-          已達到可準備法術數量上限，確定要準備此法術嗎？
-        </p>
-        <div className="flex gap-3">
-          <ModalButton 
-            variant="secondary" 
-            onClick={() => {
-              setIsOverLimitWarningOpen(false);
-              setPendingPrepareSpell(null);
-            }}
-          >
-            取消
-          </ModalButton>
-          <ModalButton 
-            variant="primary" 
-            onClick={handleConfirmOverLimit}
-          >
-            確定
-          </ModalButton>
+        <div className={MODAL_CONTAINER_CLASS}>
+          <p className={`${MODAL_DESCRIPTION_CLASS} text-center mb-6`}>
+            已達到可準備法術數量上限，確定要準備此法術嗎？
+          </p>
+          <div className={MODAL_FOOTER_BUTTONS_CLASS}>
+            <ModalButton variant="secondary" className={MODAL_BUTTON_CANCEL_CLASS} onClick={closeOverLimitWarning}>
+              取消
+            </ModalButton>
+            <ModalButton variant="primary" className={MODAL_BUTTON_APPLY_INDIGO_CLASS} onClick={handleConfirmOverLimit}>
+              確定
+            </ModalButton>
+          </div>
         </div>
       </Modal>
     </div>
