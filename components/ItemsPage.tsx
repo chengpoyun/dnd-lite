@@ -10,7 +10,7 @@
  * - 新增到全域物品庫
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useToast } from '../hooks/useToast';
 import * as ItemService from '../services/itemService';
 import type { CharacterItem, ItemCategory, CreateGlobalItemData, CreateGlobalItemDataForUpload, CreateCharacterItemData, UpdateCharacterItemData } from '../services/itemService';
@@ -58,27 +58,21 @@ export default function ItemsPage({ characterId, onCharacterDataChanged }: Items
   const [selectedItem, setSelectedItem] = useState<CharacterItem | null>(null);
   const [editingItem, setEditingItem] = useState<CharacterItem | null>(null);
 
-  // 載入道具
-  const loadItems = async () => {
+  const loadItems = useCallback(async () => {
     setIsLoading(true);
     const result = await ItemService.getCharacterItems(characterId);
-    
     if (result.success && result.items) {
       setItems(result.items);
     } else {
       showError(result.error || '載入道具失敗');
       setItems([]);
     }
-    
     setIsLoading(false);
-  };
+  }, [characterId, showError]);
 
-  // 初始載入
   useEffect(() => {
-    if (characterId) {
-      loadItems();
-    }
-  }, [characterId]);
+    if (characterId) loadItems();
+  }, [characterId, loadItems]);
 
   // 類別篩選（使用 display values）
   useEffect(() => {
@@ -93,6 +87,25 @@ export default function ItemsPage({ characterId, onCharacterDataChanged }: Items
       }));
     }
   }, [items, selectedCategory]);
+
+  const closeLearnModal = useCallback(() => setIsLearnModalOpen(false), []);
+  const closeAddPersonalModal = useCallback(() => {
+    setIsAddPersonalModalOpen(false);
+    setAddPersonalInitialName('');
+  }, []);
+  const closeFormModal = useCallback(() => {
+    setIsFormModalOpen(false);
+    setUploadFromCharacterItem(null);
+  }, []);
+  const closeEditModal = useCallback(() => {
+    setIsEditModalOpen(false);
+    setEditingItem(null);
+  }, []);
+  const closeDetailModal = useCallback(() => {
+    setIsDetailModalOpen(false);
+    setSelectedItem(null);
+  }, []);
+  const closeDeleteModal = useCallback(() => setIsDeleteModalOpen(false), []);
 
   // 獲得物品（從全域庫）：直接獲得，不在此指定槽位或穿戴狀態
   const handleLearnItem = async (itemId: string) => {
@@ -271,7 +284,7 @@ export default function ItemsPage({ characterId, onCharacterDataChanged }: Items
       {/* Modal 們 */}
       <LearnItemModal
         isOpen={isLearnModalOpen}
-        onClose={() => setIsLearnModalOpen(false)}
+        onClose={closeLearnModal}
         onLearnItem={handleLearnItem}
         onCreateNew={(initialName) => {
           setIsLearnModalOpen(false);
@@ -283,20 +296,14 @@ export default function ItemsPage({ characterId, onCharacterDataChanged }: Items
 
       <AddPersonalItemModal
         isOpen={isAddPersonalModalOpen}
-        onClose={() => {
-          setIsAddPersonalModalOpen(false);
-          setAddPersonalInitialName('');
-        }}
+        onClose={closeAddPersonalModal}
         onSubmit={handleAddPersonalItem}
         initialName={addPersonalInitialName}
       />
 
       <GlobalItemFormModal
         isOpen={isFormModalOpen}
-        onClose={() => {
-          setIsFormModalOpen(false);
-          setUploadFromCharacterItem(null);
-        }}
+        onClose={closeFormModal}
         onSubmit={uploadFromCharacterItem ? handleUploadToGlobal : handleCreateGlobalItem}
         mode={uploadFromCharacterItem ? 'upload' : 'create'}
         uploadInitialData={uploadFromCharacterItem ? (() => {
@@ -317,20 +324,14 @@ export default function ItemsPage({ characterId, onCharacterDataChanged }: Items
 
       <CharacterItemEditModal
         isOpen={isEditModalOpen}
-        onClose={() => {
-          setIsEditModalOpen(false);
-          setEditingItem(null);
-        }}
+        onClose={closeEditModal}
         characterItem={editingItem}
         onSubmit={handleUpdateItem}
       />
 
       <ItemDetailModal
         isOpen={isDetailModalOpen}
-        onClose={() => {
-          setIsDetailModalOpen(false);
-          setSelectedItem(null);
-        }}
+        onClose={closeDetailModal}
         characterItem={selectedItem}
         onEdit={handleEditClick}
         onDelete={handleDeleteClick}
@@ -345,7 +346,7 @@ export default function ItemsPage({ characterId, onCharacterDataChanged }: Items
 
       <ConfirmDeleteModal
         isOpen={isDeleteModalOpen}
-        onClose={() => setIsDeleteModalOpen(false)}
+        onClose={closeDeleteModal}
         onConfirm={handleDelete}
         title="刪除道具"
         message={`確定要刪除「${selectedItem ? ItemService.getDisplayValues(selectedItem).displayName : ''}」嗎？此操作無法復原。`}
