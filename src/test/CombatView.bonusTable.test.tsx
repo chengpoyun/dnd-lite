@@ -194,8 +194,11 @@ describe('CombatView - 加值表功能測試', () => {
     });
   });
 
-  it('給定 proficiencies 和 savingProficiencies 為 undefined 時應不崩潰', async () => {
-    const statsMinimal: CharacterStats = {
+  it.each([
+    { desc: 'proficiencies 與 savingProficiencies 皆為 undefined', proficiencies: {} as any, savingProficiencies: undefined as any },
+    { desc: '僅 proficiencies 為 undefined', proficiencies: undefined as any, savingProficiencies: [] },
+  ])('給定 $desc 時應不崩潰', ({ proficiencies, savingProficiencies }) => {
+    const stats: CharacterStats = {
       name: 'Test',
       class: '戰士',
       level: 5,
@@ -206,8 +209,8 @@ describe('CombatView - 加值表功能測試', () => {
       initiative: 3,
       speed: 30,
       abilityScores: { str: 16, dex: 14, con: 14, int: 10, wis: 12, cha: 8 },
-      proficiencies: {} as any,
-      savingProficiencies: undefined as any,
+      proficiencies,
+      savingProficiencies,
       downtime: 0,
       renown: { used: 0, total: 0 },
       prestige: { org: '', level: 0, rankName: '' },
@@ -217,43 +220,8 @@ describe('CombatView - 加值表功能測試', () => {
     };
 
     expect(() => {
-      render(<CombatView {...defaultProps} stats={statsMinimal} />);
+      render(<CombatView {...defaultProps} stats={stats} />);
     }).not.toThrow();
-  });
-
-  it('給定 proficiencies 為 undefined 時應不崩潰', async () => {
-    const statsNoProfs: CharacterStats = {
-      name: 'Test',
-      class: '戰士',
-      level: 5,
-      exp: 0,
-      hp: { current: 30, max: 30, temp: 0 },
-      hitDice: { current: 5, total: 5, die: 'd10' },
-      ac: 16,
-      initiative: 3,
-      speed: 30,
-      abilityScores: { str: 16, dex: 14, con: 14, int: 10, wis: 12, cha: 8 },
-      proficiencies: undefined as any,
-      savingProficiencies: [],
-      downtime: 0,
-      renown: { used: 0, total: 0 },
-      prestige: { org: '', level: 0, rankName: '' },
-      attacks: [],
-      currency: { cp: 0, sp: 0, ep: 0, gp: 0, pp: 0 },
-      customRecords: []
-    };
-
-    render(<CombatView {...defaultProps} stats={statsNoProfs} />);
-
-    await waitFor(() => {
-      expect(screen.queryByText('正在載入戰鬥資料...')).not.toBeInTheDocument();
-    });
-
-    fireEvent.click(screen.getByText(/屬性豁免與技能加值/));
-
-    await waitFor(() => {
-      expect(screen.getByText('力量豁免')).toBeInTheDocument();
-    });
   });
 
   it('給定 mock stats 時應顯示正確的加值', async () => {

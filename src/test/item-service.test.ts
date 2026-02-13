@@ -45,6 +45,9 @@ describe('ItemService - 個人物品與上傳邏輯', () => {
           }),
         }),
       }),
+      update: vi.fn().mockReturnValue({
+        eq: vi.fn().mockResolvedValue({ error: null }),
+      }),
     };
 
     const updateBuilder: SupabaseBuilder = {

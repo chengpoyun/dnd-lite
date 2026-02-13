@@ -13,6 +13,7 @@ vi.mock('../../services/spellService', async (importOriginal) => {
     getCharacterSpells: vi.fn(),
     getPreparedSpellsCount: vi.fn(),
     getPreparedCantripsCount: vi.fn(),
+    getAllSpells: vi.fn(),
     learnSpell: vi.fn(),
     togglePrepared: vi.fn(),
   };
@@ -21,6 +22,7 @@ vi.mock('../../services/spellService', async (importOriginal) => {
 const mockGetCharacterSpells = vi.mocked(spellService.getCharacterSpells);
 const mockGetPreparedSpellsCount = vi.mocked(spellService.getPreparedSpellsCount);
 const mockGetPreparedCantripsCount = vi.mocked(spellService.getPreparedCantripsCount);
+const mockGetAllSpells = vi.mocked(spellService.getAllSpells);
 const mockLearnSpell = vi.mocked(spellService.learnSpell);
 const mockTogglePrepared = vi.mocked(spellService.togglePrepared);
 
@@ -67,6 +69,7 @@ describe('SpellsPage', () => {
     mockGetCharacterSpells.mockResolvedValue([]);
     mockGetPreparedSpellsCount.mockResolvedValue(0);
     mockGetPreparedCantripsCount.mockResolvedValue(0);
+    mockGetAllSpells.mockResolvedValue([]);
   });
 
   it('載入後顯示「我的法術書」與可準備數量（依智力調整值與施法等級）', async () => {

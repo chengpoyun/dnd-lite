@@ -28,7 +28,7 @@ describe('能力／物品加值顯示整合', () => {
       length: 0,
     } as any);
   });
-  it('AbilityEditModal 應顯示來自 statBonusSources 的能力／豁免來源', () => {
+  it('AbilityEditModal 傳入 scoreBonusSources 時能正常渲染（含能力標籤）', () => {
     render(
       <AbilityEditModal
         isOpen
@@ -47,7 +47,6 @@ describe('能力／物品加值顯示整合', () => {
       />,
     );
 
-    // 測試僅確保組件可以正常渲染（實際 statBonusSources 整合在 CharacterSheet 中）
     expect(screen.getByText(/敏捷/)).toBeInTheDocument();
   });
 

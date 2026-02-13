@@ -64,25 +64,6 @@ describe('CharacterSheet - 保存功能測試', () => {
     )
   }
 
-  it('應該正確渲染角色基本信息', () => {
-    const { container } = renderCharacterSheet()
-    
-    // 驗證組件是否成功渲染
-    expect(container).toBeInTheDocument()
-  })
-
-  it('應該正確傳遞保存函數作為 props', () => {
-    renderCharacterSheet()
-
-    // 驗證保存函數都被正確傳遞
-    expect(mockOnSaveSkillProficiency).toBeDefined()
-    expect(mockOnSaveSavingThrowProficiencies).toBeDefined()
-    expect(mockOnSaveCharacterBasicInfo).toBeDefined()
-    expect(mockOnSaveAbilityScores).toBeDefined()
-    expect(mockOnSaveCurrencyAndExp).toBeDefined()
-    expect(mockOnSaveExtraData).toBeDefined()
-  })
-
   it('應該正確顯示角色名稱', () => {
     const { getByText } = renderCharacterSheet()
     
@@ -103,15 +84,26 @@ describe('CharacterSheet - 保存功能測試', () => {
     expect(getByText('收集物品')).toBeInTheDocument()
   })
 
-  it('當沒有保存函數時應該正常運作', () => {
-    const { container } = render(
-      <CharacterSheet
-        stats={mockStats}
-        setStats={mockSetStats}
-      />
-    )
+  it('當部分或全部保存函數未傳入時應正常渲染不崩潰', () => {
+    expect(() => {
+      render(
+        <CharacterSheet
+          stats={mockStats}
+          setStats={mockSetStats}
+        />
+      )
+    }).not.toThrow()
 
-    expect(container).toBeInTheDocument()
+    expect(() => {
+      render(
+        <CharacterSheet
+          stats={mockStats}
+          setStats={mockSetStats}
+          onSaveSkillProficiency={undefined}
+          onSaveExtraData={undefined}
+        />
+      )
+    }).not.toThrow()
   })
 
   it('應該正確處理空的冒險紀錄', () => {
@@ -121,19 +113,6 @@ describe('CharacterSheet - 保存功能測試', () => {
     }
 
     const { container } = renderCharacterSheet(statsWithoutRecords)
-    expect(container).toBeInTheDocument()
-  })
-
-  it('應該正確處理 undefined 的保存函數', () => {
-    const { container } = render(
-      <CharacterSheet
-        stats={mockStats}
-        setStats={mockSetStats}
-        onSaveSkillProficiency={undefined}
-        onSaveExtraData={undefined}
-      />
-    )
-
     expect(container).toBeInTheDocument()
   })
 })

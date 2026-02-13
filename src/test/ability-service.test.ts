@@ -41,6 +41,9 @@ describe('AbilityService - 個人能力與上傳邏輯', () => {
             error: null
           })
         })
+      }),
+      update: vi.fn().mockReturnValue({
+        eq: vi.fn().mockResolvedValue({ error: null })
       })
     };
 
