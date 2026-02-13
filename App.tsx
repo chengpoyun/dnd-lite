@@ -191,7 +191,7 @@ const AuthenticatedApp: React.FC = () => {
       const success = await HybridDataManager.updateCharacter(currentCharacter.id, characterUpdate)
       if (success) {
         console.log('✅ 角色基本信息保存成功')
-        // 立即更新本地狀態，讓戰鬥頁最大 HP 等依等級/職業的公式即時更新
+        // 立即更新本地狀態，讓戰鬥檢視（CombatView）最大 HP 等依等級/職業的公式即時更新
         setStats(prev => ({ ...prev, name, class: characterClass, level }))
       }
       return success
@@ -938,7 +938,7 @@ const AuthenticatedApp: React.FC = () => {
               <div className="flex items-center justify-center h-64">
                 <div className="text-center">
                   <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-500 mx-auto mb-4"></div>
-                  <p className="text-slate-400">載入戰鬥頁面...</p>
+                  <p className="text-slate-400">載入戰鬥檢視...</p>
                 </div>
               </div>
             }>
@@ -966,7 +966,7 @@ const AuthenticatedApp: React.FC = () => {
               <div className="flex items-center justify-center h-64">
                 <div className="text-center">
                   <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-500 mx-auto mb-4"></div>
-                  <p className="text-slate-400">載入怪物頁面...</p>
+                  <p className="text-slate-400">載入怪物頁...</p>
                 </div>
               </div>
             }>

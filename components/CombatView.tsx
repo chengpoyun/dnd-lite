@@ -109,7 +109,7 @@ export const CombatView: React.FC<CombatViewProps> = ({
     return (
       <div className="p-6 text-center">
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-          <h3 className="text-lg font-medium text-yellow-800 mb-2">無法載入戰鬥頁面</h3>
+          <h3 className="text-lg font-medium text-yellow-800 mb-2">無法載入戰鬥檢視</h3>
           <p className="text-yellow-700">請先選擇或創建角色才能使用戰鬥功能。</p>
         </div>
       </div>

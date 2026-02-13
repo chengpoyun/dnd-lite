@@ -268,8 +268,6 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
     const totalLevel = editClasses.reduce((sum, c) => sum + c.level, 0);
     const primaryClass = editClasses.find(c => c.isPrimary) || editClasses[0];
     
-    // TODO: 這裡需要實現保存兼職資料的逻輯
-    // 暫時保存為傳統格式
     if (onSaveCharacterBasicInfo) {
       const success = await onSaveCharacterBasicInfo(
         editInfo.name, 

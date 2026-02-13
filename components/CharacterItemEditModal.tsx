@@ -225,7 +225,7 @@ export const CharacterItemEditModal: React.FC<CharacterItemEditModalProps> = ({
             {formData.affects_stats && (
               <div className="mt-2 space-y-2">
                 <p className="text-xs text-slate-500">
-                  設定後，角色持有此物品時，這些加值會自動套用並在角色卡與戰鬥頁的加值列表中顯示來源。
+                  設定後，角色持有此物品時，這些加值會自動套用並在角色卡與戰鬥檢視的加值列表中顯示來源。
                 </p>
                 <StatBonusEditor
                   value={(formData.stat_bonuses ?? {}) as StatBonusEditorValue}
