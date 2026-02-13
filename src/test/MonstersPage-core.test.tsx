@@ -523,3 +523,53 @@ describe('MonstersPage - localStorage 持久化', () => {
     });
   });
 });
+
+describe('MonstersPage - 載入與 modal 入口', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    localStorage.clear();
+    setupMockAuth();
+  });
+
+  it('未開始戰鬥時點「加入戰鬥」會打開加入戰鬥 modal', async () => {
+    render(<MonstersPage />);
+
+    const joinButton = screen.getByRole('button', { name: /加入戰鬥/ });
+    fireEvent.click(joinButton);
+
+    await waitFor(() => {
+      expect(screen.getByText(/輸入隊友分享/)).toBeInTheDocument();
+    });
+  });
+
+  it('有 session 無怪物時顯示暫無怪物與提示', async () => {
+    vi.mocked(CombatService.createSession).mockResolvedValue({
+      success: true,
+      sessionCode: 'ABC123'
+    });
+    vi.mocked(CombatService.getCombatData).mockResolvedValue({
+      success: true,
+      session: {
+        id: '1',
+        session_code: 'ABC123',
+        is_active: true,
+        last_updated: '2026-02-01T10:00:00Z',
+        created_at: '2026-02-01T10:00:00Z',
+        ended_at: null
+      },
+      monsters: []
+    });
+
+    render(<MonstersPage />);
+
+    const startButton = screen.getByRole('button', { name: /開始新戰鬥/ });
+    fireEvent.click(startButton);
+
+    await waitFor(() => {
+      expect(screen.getByText('ABC123')).toBeInTheDocument();
+    });
+
+    expect(screen.getByText(/暫無怪物/)).toBeInTheDocument();
+    expect(screen.getByText(/點擊「➕ 怪物」/)).toBeInTheDocument();
+  });
+});

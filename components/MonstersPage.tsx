@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../hooks/useToast';
 import CombatService from '../services/combatService';
@@ -79,10 +79,7 @@ const MonstersPage: React.FC = () => {
     setIsLoading(false);
   };
 
-  /**
-   * 刷新戰鬥數據
-   */
-  const refreshCombatData = async (code?: string) => {
+  const refreshCombatData = useCallback(async (code?: string) => {
     const targetCode = code || sessionCode;
     if (!targetCode) return;
 
@@ -90,19 +87,16 @@ const MonstersPage: React.FC = () => {
     const result = await CombatService.getCombatData(targetCode);
 
     if (result.success && result.session && result.monsters) {
-      // 檢查戰鬥是否已結束
       if (!result.session.is_active) {
         setIsLoading(false);
         setCombatEndedModalOpen(true);
         return;
       }
-      
       setLocalLastUpdated(result.session.last_updated);
       setMonsters(result.monsters);
       showSuccess('戰鬥數據已更新');
     } else {
       setIsLoading(false);
-      // 如果查詢失敗且錯誤是「戰鬥會話不存在」，可能是戰鬥已結束被 RLS 過濾
       if (result.error === '戰鬥會話不存在') {
         setCombatEndedModalOpen(true);
         return;
@@ -111,7 +105,7 @@ const MonstersPage: React.FC = () => {
       return;
     }
     setIsLoading(false);
-  };
+  }, [sessionCode, showSuccess, showError]);
 
   /**
    * 檢查版本衝突
@@ -208,10 +202,22 @@ const MonstersPage: React.FC = () => {
     setDeleteMonsterModalOpen(true);
   };
 
-  const closeDeleteMonsterModal = () => {
+  const closeDeleteMonsterModal = useCallback(() => {
     setDeleteMonsterModalOpen(false);
     setPendingDeleteMonsterId(null);
-  };
+  }, []);
+
+  const closeJoinModal = useCallback(() => setJoinModalOpen(false), []);
+  const closeAddMonsterModal = useCallback(() => setAddMonsterModalOpen(false), []);
+  const closeDamageModal = useCallback(() => {
+    setEditingDamageLogs(null);
+    setDamageModalOpen(false);
+  }, []);
+  const closeACModal = useCallback(() => setAcModalOpen(false), []);
+  const closeSettingsModal = useCallback(() => setSettingsModalOpen(false), []);
+  const closeCombatEndedModal = useCallback(() => setCombatEndedModalOpen(false), []);
+  const closeErrorModal = useCallback(() => setErrorModalOpen(false), []);
+  const closeEndCombatModal = useCallback(() => setEndCombatModalOpen(false), []);
 
   const confirmDeleteMonster = async () => {
     if (!pendingDeleteMonsterId) return;
@@ -414,19 +420,19 @@ const MonstersPage: React.FC = () => {
       {/* Modals */}
       <JoinCombatModal
         isOpen={joinModalOpen}
-        onClose={() => setJoinModalOpen(false)}
+        onClose={closeJoinModal}
         onJoin={handleJoinCombat}
       />
 
       <AddMonsterModal
         isOpen={addMonsterModalOpen}
-        onClose={() => setAddMonsterModalOpen(false)}
+        onClose={closeAddMonsterModal}
         onConfirm={handleAddMonsters}
       />
 
       <AddDamageModal
         isOpen={damageModalOpen}
-        onClose={() => { setEditingDamageLogs(null); setDamageModalOpen(false); }}
+        onClose={closeDamageModal}
         monsterId={selectedMonsterId}
         monsterNumber={monsters.find(m => m.id === selectedMonsterId)?.monster_number || 0}
         monsterResistances={monsters.find(m => m.id === selectedMonsterId)?.resistances || {}}
@@ -437,7 +443,7 @@ const MonstersPage: React.FC = () => {
 
       <AdjustACModal
         isOpen={acModalOpen}
-        onClose={() => setAcModalOpen(false)}
+        onClose={closeACModal}
         monsterId={selectedMonsterId}
         monsterNumber={monsters.find(m => m.id === selectedMonsterId)?.monster_number || 0}
         currentACRange={
@@ -454,7 +460,7 @@ const MonstersPage: React.FC = () => {
 
       <MonsterSettingsModal
         isOpen={settingsModalOpen}
-        onClose={() => setSettingsModalOpen(false)}
+        onClose={closeSettingsModal}
         monsterId={selectedMonsterId}
         monsterNumber={monsters.find(m => m.id === selectedMonsterId)?.monster_number || 0}
         monsterName={monsters.find(m => m.id === selectedMonsterId)?.name || '怪物'}
@@ -475,7 +481,7 @@ const MonstersPage: React.FC = () => {
 
       <CombatEndedModal
         isOpen={combatEndedModalOpen}
-        onClose={() => setCombatEndedModalOpen(false)}
+        onClose={closeCombatEndedModal}
         onConfirm={handleEndCombat}
       />
 
@@ -490,7 +496,7 @@ const MonstersPage: React.FC = () => {
 
       <ConfirmDeleteModal
         isOpen={endCombatModalOpen}
-        onClose={() => setEndCombatModalOpen(false)}
+        onClose={closeEndCombatModal}
         onConfirm={handleEndCombat}
         title="結束戰鬥"
         message="確定要結束當前戰鬥嗎？這將刪除所有怪物和傷害記錄，此操作無法復原。"
@@ -500,8 +506,8 @@ const MonstersPage: React.FC = () => {
       {/* 錯誤提示 Modal */}
       <CombatEndedModal
         isOpen={errorModalOpen}
-        onClose={() => setErrorModalOpen(false)}
-        onConfirm={() => setErrorModalOpen(false)}
+        onClose={closeErrorModal}
+        onConfirm={closeErrorModal}
         title="❌ 加入失敗"
         message={errorMessage}
       />
