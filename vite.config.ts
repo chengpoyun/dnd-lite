@@ -6,6 +6,10 @@ export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, '.', '');
     return {
       base: '/dnd-lite/',
+      build: {
+        // 明確支援 Safari 14+，避免產出過新語法導致 Safari 無法開啟
+        target: ['es2020', 'safari14'],
+      },
       server: {
         port: 3000,
         host: '0.0.0.0',

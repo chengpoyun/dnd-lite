@@ -83,6 +83,11 @@ VITE_SUPABASE_ANON_KEY=your-anon-key-here
 
 未設定上述變數時，應用仍可啟動，但僅能使用匿名模式（資料存於 Supabase 時需後端已部署對應 schema）。
 
+### 瀏覽器支援與 Safari
+
+- **建議**：Chrome / Firefox / Edge / Safari **14+**（含 iOS 14+ 的 Safari）。建置已設定 `target: es2020, safari14` 以相容 Safari。
+- **若 Safari 無法開啟**：請確認 (1) 使用 **HTTPS 或 localhost** 開啟（勿用 `file://`）；(2) 更新至最新版 Safari / iOS；(3) 關閉「防止跨網站追蹤」或改用無痕再試一次（僅作除錯用）。
+
 ### 常用指令
 
 | 指令 | 說明 |
