@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { CharacterStats, CustomRecord } from '../types';
 import { getProfBonus, formatDecimal } from '../utils/helpers';
-import { getFinalAbilityModifier, getFinalAbilityScore, getFinalSavingThrow, getFinalSkillBonus, getFinalCombatStat, type AbilityKey } from '../utils/characterAttributes';
+import { getFinalAbilityModifier, getFinalAbilityScore, getFinalSavingThrow, getFinalSkillBonus, getFinalCombatStat, getDefaultMaxHpBasic, type AbilityKey } from '../utils/characterAttributes';
 import { STAT_LABELS, SKILLS_MAP, ABILITY_KEYS } from '../utils/characterConstants';
 import { getAvailableClasses, getClassHitDie, formatClassDisplay, calculateHitDiceTotals } from '../utils/classUtils';
 import { PageContainer, Card, Button, Title, Subtitle, Input, BackButton } from './ui';
@@ -23,6 +23,10 @@ interface CharacterSheetProps {
   onSaveSkillProficiency?: (skillName: string, level: number) => Promise<boolean>;
   onSaveSavingThrowProficiencies?: (proficiencies: string[]) => Promise<boolean>;
   onSaveCharacterBasicInfo?: (name: string, characterClass: string, level: number) => Promise<boolean>;
+  /** 等級或職業存檔完成後呼叫，用來重新載入角色數據（更新 extra_data／statBonusSources 等）；載入期間會以 loading 阻擋操作 */
+  onLevelOrClassesSaved?: () => Promise<void>;
+  /** 將最大 HP 基礎值同步為公式值並寫入 DB（等級/職業變更後呼叫，使 refetch 後顯示正確） */
+  onSyncMaxHpBasicFromFormula?: (maxHpBasic: number) => Promise<boolean>;
   onSaveAbilityScores?: (abilityScores: CharacterStats['abilityScores']) => Promise<boolean>;
   onSaveCurrencyAndExp?: (gp: number, exp: number) => Promise<boolean>;
   onSaveExtraData?: (extraData: any) => Promise<boolean>;
@@ -36,6 +40,8 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
   onSaveSkillProficiency, 
   onSaveSavingThrowProficiencies,
   onSaveCharacterBasicInfo,
+  onLevelOrClassesSaved,
+  onSyncMaxHpBasicFromFormula,
   onSaveAbilityScores,
   onSaveCurrencyAndExp,
   onSaveExtraData,
@@ -518,15 +524,16 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
         classes: newClasses,
         hitDicePools: newHitDicePools
       }));
+
+      // 4b. 依新等級/職業重算最大 HP 基礎值並寫入 DB，refetch 後才會顯示正確（含新職業生命骰平均）
+      const newStatsForHp = { ...stats, level: totalLevel, classes: newClasses };
+      const newMaxHpBasic = getDefaultMaxHpBasic(newStatsForHp);
+      await onSyncMaxHpBasicFromFormula?.(newMaxHpBasic);
       
       setActiveModal(null);
-      
-      // 5. 重新載入角色數據以獲取最新的 hitDicePools
-      if (onSaveExtraData) {
-        // 觸發一次額外數據保存以刷新狀態
-        await onSaveExtraData({ ...stats.extraData });
-      }
-      
+
+      // 5. 重新載入角色數據（更新 extra_data.statBonusSources、max HP 公式等依等級／職業的數值）；載入期間會顯示 loading 阻擋操作
+      await onLevelOrClassesSaved?.();
     } catch (error) {
       console.error('❌ 角色資料保存錯誤:', error);
     } finally {

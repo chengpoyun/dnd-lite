@@ -61,6 +61,7 @@ const AuthenticatedApp: React.FC = () => {
     stats,
     setStats,
     isLoading,
+    isLoadingCharacter,
     isCharacterDataReady,
     initError,
     setInitError,
@@ -310,6 +311,17 @@ const AuthenticatedApp: React.FC = () => {
       return false
     } finally {
       setIsSaving(false)
+    }
+  }
+
+  // 僅將最大 HP 基礎值寫入 DB（等級/職業變更後同步公式值，供 refetch 使用）
+  const syncMaxHpBasicFromFormula = async (maxHpBasic: number): Promise<boolean> => {
+    if (!currentCharacter) return false
+    try {
+      return await DetailedCharacterService.updateCurrentStats(currentCharacter.id, { max_hp_basic: maxHpBasic })
+    } catch (e) {
+      console.error('syncMaxHpBasicFromFormula failed:', e)
+      return false
     }
   }
 
@@ -910,7 +922,7 @@ const AuthenticatedApp: React.FC = () => {
         >
           {activeTab === Tab.CHARACTER && (
             <>
-              {isCharacterDataReady ? (
+              {isCharacterDataReady && !isLoadingCharacter ? (
                 <CharacterSheet
                   stats={stats}
                   setStats={setStats}
@@ -918,6 +930,8 @@ const AuthenticatedApp: React.FC = () => {
                   onSaveSkillProficiency={saveSkillProficiency}
                   onSaveSavingThrowProficiencies={saveSavingThrowProficiencies}
                   onSaveCharacterBasicInfo={saveCharacterBasicInfo}
+                  onLevelOrClassesSaved={refetchCharacterStats}
+                  onSyncMaxHpBasicFromFormula={syncMaxHpBasicFromFormula}
                   onSaveAbilityScores={saveAbilityScores}
                   onSaveCurrencyAndExp={saveCurrencyAndExp}
                   onSaveExtraData={saveExtraData}
