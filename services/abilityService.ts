@@ -634,7 +634,7 @@ export function getDisplayValues(charAbility: CharacterAbilityWithDetails) {
     name_en: charAbility.name_en_override !== undefined
       ? charAbility.name_en_override
       : (charAbility.ability?.name_en ?? null),
-    description: charAbility.description_override || charAbility.ability?.description || '',
+    description: (charAbility.description_override != null ? charAbility.description_override : charAbility.ability?.description) ?? '',
     source: charAbility.source_override || charAbility.ability?.source || '其他',
     recovery_type: charAbility.recovery_type_override || charAbility.ability?.recovery_type || '常駐'
   };

@@ -84,7 +84,8 @@ export const CharacterSpellEditModal: React.FC<CharacterSpellEditModalProps> = (
       if (formData.verbal_override !== false) updates.verbal_override = formData.verbal_override;
       if (formData.somatic_override !== false) updates.somatic_override = formData.somatic_override;
       if (formData.material_override) updates.material_override = formData.material_override;
-      if (formData.description_override) updates.description_override = formData.description_override;
+      // 一律傳送 description_override（含清空），否則使用者刪除內容後儲存不會更新
+      updates.description_override = formData.description_override?.trim() ?? null;
 
       const result = await updateCharacterSpell(characterSpell.id, updates);
       

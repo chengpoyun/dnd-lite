@@ -229,5 +229,74 @@ describe('AbilityService - 個人能力與上傳邏輯', () => {
       ).rejects.toThrow();
     });
   });
+
+  describe('getDisplayValues', () => {
+    it('當 description_override 為空字串時，顯示值應為空字串而非能力原始描述', () => {
+      const charAbility = {
+        id: 'ca-1',
+        character_id: 'c1',
+        ability_id: 'a1',
+        name_override: null,
+        name_en_override: null,
+        description_override: '',
+        source_override: null,
+        recovery_type_override: null,
+        ability: {
+          id: 'a1',
+          name: '偷襲',
+          name_en: 'Sneak Attack',
+          description: '造成額外傷害',
+          source: '職業',
+          recovery_type: '常駐',
+        },
+      } as any;
+      const display = AbilityService.getDisplayValues(charAbility);
+      expect(display.description).toBe('');
+    });
+
+    it('當 description_override 為 null 時，顯示能力原始描述', () => {
+      const charAbility = {
+        id: 'ca-1',
+        character_id: 'c1',
+        ability_id: 'a1',
+        description_override: null,
+        ability: { id: 'a1', name: '偷襲', description: '造成額外傷害', source: '職業', recovery_type: '常駐' },
+      } as any;
+      const display = AbilityService.getDisplayValues(charAbility);
+      expect(display.description).toBe('造成額外傷害');
+    });
+  });
+
+  describe('updateCharacterAbility', () => {
+    it('當 updates.description 為空字串時，應寫入 description_override: ""', async () => {
+      const updateBuilder: SupabaseBuilder = {
+        update: vi.fn().mockReturnValue({
+          eq: vi.fn().mockReturnValue({
+            select: vi.fn().mockReturnValue({
+              single: vi.fn().mockResolvedValue({
+                data: { id: 'ca-1', description_override: '' },
+                error: null,
+              }),
+            }),
+          }),
+        }),
+      };
+      mockedSupabase.from.mockImplementation((table: string) => {
+        if (table === 'character_abilities') return updateBuilder as any;
+        throw new Error(`Unexpected table: ${table}`);
+      });
+
+      await AbilityService.updateCharacterAbility(
+        'char-1',
+        'ability-1',
+        { description: '' },
+        'ca-1'
+      );
+
+      expect((updateBuilder.update as Mock)).toHaveBeenCalledWith(
+        expect.objectContaining({ description_override: '' })
+      );
+    });
+  });
 });
 

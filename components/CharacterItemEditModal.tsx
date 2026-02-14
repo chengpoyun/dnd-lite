@@ -90,9 +90,8 @@ export const CharacterItemEditModal: React.FC<CharacterItemEditModalProps> = ({
       if (formData.name_override?.trim()) {
         updates.name_override = formData.name_override;
       }
-      if (formData.description_override?.trim()) {
-        updates.description_override = formData.description_override;
-      }
+      // 一律傳送 description_override（含清空），否則使用者刪除內容後儲存不會更新
+      updates.description_override = formData.description_override?.trim() ?? null;
       if (formData.category_override) {
         updates.category_override = formData.category_override;
       }

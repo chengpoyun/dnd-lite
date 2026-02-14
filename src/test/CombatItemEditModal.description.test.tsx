@@ -88,4 +88,25 @@ describe('CombatItemEditModal - description', () => {
     const descriptionField = screen.getByLabelText(/描述/);
     expect(descriptionField).toHaveValue('既有描述');
   });
+
+  it('編輯時清空描述並儲存，onSave 收到 description 為空字串', () => {
+    const onSave = vi.fn();
+    render(
+      <CombatItemEditModal
+        {...defaultProps}
+        mode="edit"
+        showDescription
+        initialValues={{ ...defaultInitialValues, description: '既有描述' }}
+        onSave={onSave}
+      />
+    );
+    const descriptionField = screen.getByLabelText(/描述/);
+    fireEvent.change(descriptionField, { target: { value: '' } });
+    fireEvent.click(screen.getByText('儲存'));
+    expect(onSave).toHaveBeenCalledWith(
+      expect.objectContaining({
+        description: '',
+      })
+    );
+  });
 });
