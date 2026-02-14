@@ -287,3 +287,4 @@ export const BackButton: React.FC<BackButtonProps> = ({ onClick, className = '' 
 export { Modal, ModalButton, ModalInput } from './Modal';
 export { ModalSaveButton } from './ModalSaveButton';
 export { LoadingOverlay } from './LoadingOverlay';
+export { InfoModal } from './InfoModal';

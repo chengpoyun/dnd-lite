@@ -20,6 +20,8 @@ interface AddPersonalItemModalProps {
   onSubmit: (data: CreateCharacterItemData) => Promise<void>;
   /** 預填名稱（例如從獲得物品搜尋欄帶入） */
   initialName?: string;
+  /** 預填類別（例如從物品頁面當前篩選帶入） */
+  initialCategory?: ItemCategory;
 }
 
 export const AddPersonalItemModal: React.FC<AddPersonalItemModalProps> = ({
@@ -27,6 +29,7 @@ export const AddPersonalItemModal: React.FC<AddPersonalItemModalProps> = ({
   onClose,
   onSubmit,
   initialName,
+  initialCategory,
 }) => {
   const [name, setName] = useState('');
   const [category, setCategory] = useState<ItemCategory>('裝備');
@@ -40,13 +43,16 @@ export const AddPersonalItemModal: React.FC<AddPersonalItemModalProps> = ({
   useEffect(() => {
     if (isOpen) {
       setName(initialName ?? '');
-      if (category === '裝備' && !equipmentKind) {
+      if (initialCategory) {
+        setCategory(initialCategory);
+        setEquipmentKind(initialCategory === '裝備' ? EQUIPMENT_KINDS[0] : '');
+      } else if (category === '裝備' && !equipmentKind) {
         setEquipmentKind(EQUIPMENT_KINDS[0]);
       }
       setAffectsStats(false);
       setStatBonuses({});
     }
-  }, [isOpen, initialName]);
+  }, [isOpen, initialName, initialCategory]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

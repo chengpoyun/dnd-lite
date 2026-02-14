@@ -22,6 +22,7 @@ import { GlobalItemFormModal } from './GlobalItemFormModal';
 import { CharacterItemEditModal } from './CharacterItemEditModal';
 import ItemDetailModal from './ItemDetailModal';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
+import { InfoModal } from './ui/InfoModal';
 
 const CATEGORIES: { label: string; value: ItemCategory | 'all' | 'magic' }[] = [
   { label: '全部', value: 'all' },
@@ -55,6 +56,7 @@ export default function ItemsPage({ characterId, onCharacterDataChanged }: Items
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [infoMessage, setInfoMessage] = useState<string | null>(null);
   const [selectedItem, setSelectedItem] = useState<CharacterItem | null>(null);
   const [editingItem, setEditingItem] = useState<CharacterItem | null>(null);
 
@@ -121,8 +123,26 @@ export default function ItemsPage({ characterId, onCharacterDataChanged }: Items
     }
   };
 
-  // 新增個人物品（不寫入 global_items）
+  // 新增個人物品（不寫入 global_items）；若已有同名稱物品則改為數量+1
   const handleAddPersonalItem = async (data: CreateCharacterItemData) => {
+    const name = data.name.trim();
+    const existing = items.find(
+      (ci) => ItemService.getDisplayValues(ci).displayName === name
+    );
+    if (existing) {
+      const result = await ItemService.updateCharacterItem(existing.id, {
+        quantity: existing.quantity + 1,
+      });
+      if (result.success) {
+        setIsAddPersonalModalOpen(false);
+        loadItems();
+        onCharacterDataChanged?.();
+        setInfoMessage('物品欄已有該物品，數量+1。');
+      } else {
+        showError(result.error || '更新數量失敗');
+      }
+      return;
+    }
     const result = await ItemService.createCharacterItem(characterId, data);
     if (result.success) {
       showSuccess('已新增個人物品');
@@ -299,6 +319,7 @@ export default function ItemsPage({ characterId, onCharacterDataChanged }: Items
         onClose={closeAddPersonalModal}
         onSubmit={handleAddPersonalItem}
         initialName={addPersonalInitialName}
+        initialCategory={selectedCategory !== 'all' && selectedCategory !== 'magic' ? selectedCategory : undefined}
       />
 
       <GlobalItemFormModal
@@ -350,6 +371,12 @@ export default function ItemsPage({ characterId, onCharacterDataChanged }: Items
         onConfirm={handleDelete}
         title="刪除道具"
         message={`確定要刪除「${selectedItem ? ItemService.getDisplayValues(selectedItem).displayName : ''}」嗎？此操作無法復原。`}
+      />
+
+      <InfoModal
+        isOpen={!!infoMessage}
+        message={infoMessage ?? ''}
+        onClose={() => setInfoMessage(null)}
       />
     </div>
   );
