@@ -9,6 +9,7 @@ import * as NoteService from '../services/noteService';
 import type { CharacterNote } from '../services/noteService';
 import { debounce } from '../utils/common';
 import { PageContainer, Title, Card, ListCard, BackButton, Button, Loading } from './ui';
+import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 import { STYLES, combineStyles } from '../styles/common';
 
 interface NotesPageProps {
@@ -30,6 +31,7 @@ export default function NotesPage({ characterId }: NotesPageProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const localContent = useRef('');
   const localTitle = useRef('');
 
@@ -114,9 +116,14 @@ export default function NotesPage({ characterId }: NotesPageProps) {
     debouncedSave(selectedNoteId, value, localContent.current);
   };
 
-  const handleDelete = async () => {
+  const handleDeleteClick = () => {
     if (!selectedNoteId) return;
-    if (!window.confirm('確定要刪除這篇筆記？')) return;
+    setIsDeleteConfirmOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!selectedNoteId) return;
+    setIsDeleteConfirmOpen(false);
     setIsDeleting(true);
     const result = await NoteService.deleteNote(selectedNoteId);
     setIsDeleting(false);
@@ -185,11 +192,19 @@ export default function NotesPage({ characterId }: NotesPageProps) {
             />
           </label>
           <div className="flex justify-end">
-            <Button variant="danger" onClick={handleDelete} disabled={isDeleting}>
+            <Button variant="danger" onClick={handleDeleteClick} disabled={isDeleting}>
               {isDeleting ? '刪除中…' : '刪除筆記'}
             </Button>
           </div>
         </div>
+        <ConfirmDeleteModal
+          isOpen={isDeleteConfirmOpen}
+          onClose={() => setIsDeleteConfirmOpen(false)}
+          title="確認刪除筆記"
+          message="確定要刪除這篇筆記？"
+          confirmText="確認刪除"
+          onConfirm={handleDeleteConfirm}
+        />
       </PageContainer>
     );
   }
