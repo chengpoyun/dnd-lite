@@ -7,7 +7,8 @@ import ReactMarkdown from 'react-markdown';
 import { Modal } from './ui/Modal';
 import type { CharacterAbilityWithDetails } from '../lib/supabase';
 import { getDisplayValues } from '../services/abilityService';
-import { MODAL_CONTAINER_CLASS } from '../styles/modalStyles';
+import { getSpecialEffectId } from '../utils/specialEffects';
+import { MODAL_CONTAINER_CLASS, MODAL_DESCRIPTION_CLASS } from '../styles/modalStyles';
 
 interface AbilityDetailModalProps {
   isOpen: boolean;
@@ -38,6 +39,19 @@ export default function AbilityDetailModal({
   const isPassive = recoveryType === '常駐';
   const canUse = !isPassive && current_uses > 0;
   const isPersonalOnly = !characterAbility.ability_id || !characterAbility.ability;
+  // 取得關聯的 ability（Supabase 有時回傳 ability 或 abilities，且可能為陣列）
+  const abilityRef = characterAbility.ability ?? (characterAbility as { abilities?: unknown }).abilities;
+  const abilityObj = Array.isArray(abilityRef) ? abilityRef[0] : abilityRef;
+  const raw = abilityObj as { stat_bonuses?: unknown; statBonuses?: unknown } | null | undefined;
+  const fromAbility = raw?.stat_bonuses ?? raw?.statBonuses;
+  const fromCharacter = (characterAbility as { stat_bonuses?: unknown }).stat_bonuses;
+  // character_abilities.stat_bonuses 預設為 {}，若為空則應採用全域 abilities.stat_bonuses
+  const hasCharacterOverride =
+    fromCharacter != null &&
+    typeof fromCharacter === 'object' &&
+    Object.keys(fromCharacter as object).length > 0;
+  const effectiveStatBonuses = hasCharacterOverride ? fromCharacter : fromAbility;
+  const isSpecial = !!getSpecialEffectId(effectiveStatBonuses);
 
   const sourceColors: Record<string, string> = {
     '種族': 'bg-green-900/30 border-green-700 text-green-400',
@@ -105,7 +119,7 @@ export default function AbilityDetailModal({
             <div className="mb-4">
               <label className="block text-sm font-medium text-slate-300 mb-2">效果</label>
               <div className="bg-slate-700/50 border border-slate-600 p-3 rounded-lg text-slate-300">
-                <ReactMarkdown 
+                <ReactMarkdown
                   components={{
                     p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
                     strong: ({ children }) => <strong className="font-bold text-slate-50">{children}</strong>,
@@ -118,7 +132,17 @@ export default function AbilityDetailModal({
                   {display.description}
                 </ReactMarkdown>
               </div>
+              {isSpecial && (
+                <p className={`mt-2 ${MODAL_DESCRIPTION_CLASS}`}>
+                  此能力為特殊計算方式，不支援手動修改。
+                </p>
+              )}
             </div>
+          )}
+          {isSpecial && !display.description && (
+            <p className={`mb-4 ${MODAL_DESCRIPTION_CLASS}`}>
+              此能力為特殊計算方式，不支援手動修改。
+            </p>
           )}
 
           {/* 操作按鈕 */}
@@ -126,7 +150,8 @@ export default function AbilityDetailModal({
             <div className="flex gap-3">
               <button
                 onClick={onEdit}
-                className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                disabled={isSpecial}
+                className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-blue-600"
               >
                 編輯
               </button>

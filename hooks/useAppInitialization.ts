@@ -250,11 +250,11 @@ export function useAppInitialization({ user, authLoading }: AppInitParams) {
   const loadCharacterStatsRef = useRef<() => Promise<void>>(() => Promise.resolve())
   loadCharacterStatsRef.current = loadCharacterStats
 
-  /** 清除目前角色的快取並重新載入角色數據（例如儲存能力/物品後可呼叫以更新加值列表） */
-  const refetchCharacterStats = useCallback(() => {
+  /** 清除目前角色的快取並重新載入角色數據（例如儲存能力/物品、或等級／職業變更後可呼叫以更新加值與 extra_data）。回傳 Promise 供呼叫端 await，載入期間會設 isLoadingCharacter 以阻擋操作。 */
+  const refetchCharacterStats = useCallback(async (): Promise<void> => {
     if (!currentCharacter) return
     DetailedCharacterService.clearCharacterCache(currentCharacter.id)
-    void loadCharacterStatsRef.current()
+    await loadCharacterStatsRef.current()
   }, [currentCharacter])
 
   return {

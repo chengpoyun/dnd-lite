@@ -304,7 +304,7 @@ export async function getCharacterAbilities(characterId: string): Promise<Charac
     .from('character_abilities')
     .select(`
       *,
-      ability:abilities(*)
+      ability:abilities(id, name, name_en, description, source, recovery_type, affects_stats, stat_bonuses, created_at, updated_at)
     `)
     .eq('character_id', characterId)
     .order('sort_order', { ascending: true, nullsFirst: false })
@@ -328,21 +328,41 @@ export async function getCharacterAbilities(characterId: string): Promise<Charac
 }
 
 /**
- * 角色學習特殊能力
+ * 角色學習特殊能力：先從 abilities 取得全域資料，再寫入 character_abilities（含覆寫欄位初始值）
  */
 export async function learnAbility(
   characterId: string,
   abilityId: string,
   maxUses: number = 0
 ): Promise<CharacterAbility> {
+  const { data: ability, error: fetchError } = await supabase
+    .from('abilities')
+    .select('id, name, name_en, description, source, recovery_type, affects_stats, stat_bonuses')
+    .eq('id', abilityId)
+    .single();
+
+  if (fetchError || !ability) {
+    console.error('學習特殊能力：取得能力資料失敗', fetchError);
+    throw fetchError ?? new Error('找不到該能力');
+  }
+
+  const row: Record<string, unknown> = {
+    character_id: characterId,
+    ability_id: abilityId,
+    current_uses: maxUses,
+    max_uses: maxUses,
+    name_override: ability.name ?? null,
+    name_en_override: ability.name_en ?? null,
+    description_override: ability.description ?? null,
+    source_override: ability.source ?? null,
+    recovery_type_override: ability.recovery_type ?? null,
+    affects_stats: ability.affects_stats ?? false,
+    stat_bonuses: ability.stat_bonuses ?? {},
+  };
+
   const { data, error } = await supabase
     .from('character_abilities')
-    .insert([{
-      character_id: characterId,
-      ability_id: abilityId,
-      current_uses: maxUses,
-      max_uses: maxUses
-    }])
+    .insert([row])
     .select()
     .single();
 

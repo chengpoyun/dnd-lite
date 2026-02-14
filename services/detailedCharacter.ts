@@ -12,6 +12,11 @@ import type {
   FullCharacterData 
 } from '../lib/supabase'
 import type { CharacterStats } from '../types'
+import {
+  getSpecialEffectId,
+  getSpecialEffectCombatBonus,
+  type SpecialEffectContext,
+} from '../utils/specialEffects'
 
 /** 能力／物品 stat_bonuses 聚合結果（供 buildCharacterStats / 前端顯示用） */
 export interface AggregatedStatBonuses {
@@ -321,7 +326,15 @@ export class DetailedCharacterService {
       // 透過角色能力與物品聚合 stat_bonuses，並寫入 currentStats.extra_data 供前端使用
       if (currentStats && character.id) {
         try {
-          const aggregated = await this.collectSourceBonusesForCharacter(character.id);
+          const specialEffectContext: SpecialEffectContext = {
+            level: characterData.level ?? (character as any).level ?? 1,
+            classes: (classes || []).map((c: any) => ({
+              name: c.class_name ?? c.name ?? '',
+              level: c.class_level ?? c.level ?? 1,
+              hitDie: c.hit_die ?? c.hitDie,
+            })),
+          };
+          const aggregated = await this.collectSourceBonusesForCharacter(character.id, specialEffectContext);
           const rawExtra = (currentStats as any).extra_data ?? (currentStats as any).extraData ?? {};
           const existingSkillBonuses =
             rawExtra && typeof rawExtra.skillBonuses === 'object'
@@ -1472,8 +1485,12 @@ export class DetailedCharacterService {
    * 從角色擁有的能力與物品（global_items）上，聚合所有 stat_bonuses。
    * - abilities.stat_bonuses：透過 character_abilities -> abilities 關聯取得
    * - global_items.stat_bonuses：透過 character_items -> global_items 關聯取得
+   * - 特殊能力（依 name_en 對應）：需傳入 context（level、classes），計算後併入 bySource 與 totals
    */
-  static async collectSourceBonusesForCharacter(characterId: string): Promise<AggregatedStatBonuses> {
+  static async collectSourceBonusesForCharacter(
+    characterId: string,
+    context?: SpecialEffectContext
+  ): Promise<AggregatedStatBonuses> {
     const empty: AggregatedStatBonuses = {
       abilityScores: {},
       abilityModifiers: {},
@@ -1541,6 +1558,7 @@ export class DetailedCharacterService {
           ability:abilities(
             id,
             name,
+            name_en,
             affects_stats,
             stat_bonuses
           )
@@ -1555,17 +1573,20 @@ export class DetailedCharacterService {
           const hasOverride =
             (typeof row.affects_stats === 'boolean' && row.affects_stats) ||
             (row.stat_bonuses && typeof row.stat_bonuses === 'object' && Object.keys(row.stat_bonuses).length > 0)
-          const effectiveAffectsStats = hasOverride ? !!row.affects_stats : !!abilityRaw?.affects_stats
-          if (!effectiveAffectsStats) continue
-
           const bonuses = (hasOverride ? row.stat_bonuses : abilityRaw?.stat_bonuses) as any
-          if (!bonuses || typeof bonuses !== 'object') continue
+          const effectId = getSpecialEffectId(bonuses)
+          const isSpecial = !!(effectId && context)
+          const effectiveAffectsStats = hasOverride ? !!row.affects_stats : !!abilityRaw?.affects_stats
+          if (!effectiveAffectsStats && !isSpecial) continue
 
-          const abilityScores = bonuses.abilityScores
-          const abilityModifiers = bonuses.abilityModifiers
-          const savingThrows = bonuses.savingThrows
-          const skills = bonuses.skills
-          const combatStats = bonuses.combatStats
+          const hasBonuses = bonuses && typeof bonuses === 'object'
+          if (!hasBonuses && !isSpecial) continue
+
+          const abilityScores = hasBonuses ? bonuses.abilityScores : undefined
+          const abilityModifiers = hasBonuses ? bonuses.abilityModifiers : undefined
+          const savingThrows = hasBonuses ? bonuses.savingThrows : undefined
+          const skills = hasBonuses ? bonuses.skills : undefined
+          const combatStats = hasBonuses ? bonuses.combatStats : undefined
 
           const perSource: {
             id: string
@@ -1624,6 +1645,15 @@ export class DetailedCharacterService {
             if (Object.keys(cs).length) {
               perSource.combatStats = cs
               mergeCombatStats(totals.combatStats, cs)
+            }
+          }
+
+          if (isSpecial && context && effectId) {
+            const specialBonus = getSpecialEffectCombatBonus(effectId, context)
+            if (specialBonus && typeof specialBonus === 'object' && Object.keys(specialBonus).length > 0) {
+              if (!perSource.combatStats) perSource.combatStats = {}
+              mergeCombatStats(perSource.combatStats, specialBonus)
+              mergeCombatStats(totals.combatStats, specialBonus)
             }
           }
 

@@ -41,6 +41,14 @@
 - **儲存**：各頁面收到 `onSaveXxx`，呼叫 Service 寫入 Supabase，成功後再以 `buildCharacterStats`（`utils/appInit.ts`）組裝並呼叫 `setStats` 更新本地。
 - **載入**：`buildCharacterStats` 從 DB（經 `getFullCharacter` 等）組裝出 `CharacterStats`。
 
+### 2.1 等級／職業變更後的資料更新
+
+**依等級或職業計算的數值**（例如 max HP 公式、健壯等特殊能力的加值）來自 `extra_data.statBonusSources`，由 `getFullCharacter` 內部的 `collectSourceBonusesForCharacter(characterId, context)` 依當時的 `level`、`classes` 計算。因此：
+
+- **等級或職業一有變更並寫入 DB 後，必須重新載入角色數據**（呼叫 `refetchCharacterStats`），否則 `statBonusSources` 與相關顯示（max HP、加值列表等）會沿用舊等級。
+- 實作上：角色表單儲存等級／職業後，在 `CharacterSheet` 的存檔流程結束時呼叫 `onLevelOrClassesSaved`（即 `refetchCharacterStats`）；refetch 期間會設 `isLoadingCharacter`，App 會顯示載入中並阻擋其他操作。
+- **新增依等級／職業計算的能力時**：只要加值仍經由 `collectSourceBonusesForCharacter` 寫入 `extra_data`，並維持「等級／職業存檔後呼叫 refetch」的流程，即可自動反映，無需再改其他邏輯。
+
 ```mermaid
 flowchart TD
   App[App.tsx]
