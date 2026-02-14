@@ -5,6 +5,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { Modal } from './ui/Modal';
+import { ModalSaveButton } from './ui/ModalSaveButton';
+import { LoadingOverlay } from './ui/LoadingOverlay';
 import type { GlobalItem, ItemCategory, CreateGlobalItemData, CreateGlobalItemDataForUpload } from '../services/itemService';
 import { EQUIPMENT_KINDS, EQUIPMENT_KIND_LABELS } from '../utils/equipmentConstants';
 import { MODAL_CONTAINER_CLASS, SELECT_CLASS } from '../styles/modalStyles';
@@ -143,8 +145,9 @@ export const GlobalItemFormModal: React.FC<GlobalItemFormModalProps> = ({
 
   if (showConfirm) {
     return (
-      <Modal isOpen={isOpen} onClose={onClose} size="md">
-        <div className={MODAL_CONTAINER_CLASS}>
+      <Modal isOpen={isOpen} onClose={onClose} size="md" disableBackdropClose={isSubmitting}>
+        <div className={`${MODAL_CONTAINER_CLASS} relative`}>
+          <LoadingOverlay visible={isSubmitting} />
           <h2 className="text-xl font-bold mb-5">
             {isUpload ? '確認上傳物品' : '確認新增物品'}
           </h2>
@@ -157,18 +160,19 @@ export const GlobalItemFormModal: React.FC<GlobalItemFormModalProps> = ({
             <button
               type="button"
               onClick={() => setShowConfirm(false)}
-              className="flex-1 px-6 py-3 rounded-lg bg-slate-700 text-slate-300 font-bold active:bg-slate-600"
+              disabled={isSubmitting}
+              className="flex-1 px-6 py-3 rounded-lg bg-slate-700 text-slate-300 font-bold active:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               返回編輯
             </button>
-            <button
+            <ModalSaveButton
               type="button"
               onClick={performSubmit}
-              disabled={isSubmitting}
-              className="flex-1 px-6 py-3 rounded-lg bg-red-600 text-white font-bold active:bg-red-700 disabled:opacity-50"
+              loading={isSubmitting}
+              className="flex-1 px-6 py-3 rounded-lg bg-red-600 hover:bg-red-700 text-white font-bold active:bg-red-700"
             >
-              {isSubmitting ? '處理中...' : isUpload ? '確認上傳' : '確認新增'}
-            </button>
+              {isUpload ? '確認上傳' : '確認新增'}
+            </ModalSaveButton>
           </div>
         </div>
       </Modal>
@@ -176,8 +180,9 @@ export const GlobalItemFormModal: React.FC<GlobalItemFormModalProps> = ({
   }
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="2xl">
-      <div className={MODAL_CONTAINER_CLASS}>
+    <Modal isOpen={isOpen} onClose={onClose} size="2xl" disableBackdropClose={isSubmitting}>
+      <div className={`${MODAL_CONTAINER_CLASS} relative`}>
+        <LoadingOverlay visible={isSubmitting} />
         <h2 className="text-xl font-bold mb-5">
           {isUpload ? '上傳到資料庫' : editItem ? '編輯全域物品' : '新增物品到資料庫'}
         </h2>
@@ -305,19 +310,20 @@ export const GlobalItemFormModal: React.FC<GlobalItemFormModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-6 py-3 rounded-lg bg-slate-700 text-slate-300 font-bold active:bg-slate-600"
+              disabled={isSubmitting}
+              className="flex-1 px-6 py-3 rounded-lg bg-slate-700 text-slate-300 font-bold active:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               取消
             </button>
-            <button
+            <ModalSaveButton
               type="submit"
-              disabled={isSubmitting}
+              loading={isSubmitting}
               className={`flex-1 px-6 py-3 rounded-lg font-bold ${
-                editItem ? 'bg-blue-600 text-white active:bg-blue-700' : 'bg-red-600 text-white active:bg-red-700'
-              } disabled:opacity-50`}
+                editItem ? 'bg-blue-600 hover:bg-blue-500 text-white active:bg-blue-700' : 'bg-red-600 hover:bg-red-700 text-white active:bg-red-700'
+              }`}
             >
-              {isSubmitting ? '處理中...' : isUpload ? '上傳' : editItem ? '儲存修改' : '新增物品'}
-            </button>
+              {isUpload ? '上傳' : editItem ? '儲存修改' : '新增物品'}
+            </ModalSaveButton>
           </div>
         </form>
       </div>

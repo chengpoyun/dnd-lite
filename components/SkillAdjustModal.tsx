@@ -1,5 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { Modal, ModalButton } from './ui/Modal';
+import { ModalSaveButton } from './ui/ModalSaveButton';
+import { LoadingOverlay } from './ui/LoadingOverlay';
 import { SkillProficiencySegmentBar, type SkillProficiencyLevel } from './ui/SkillProficiencySegmentBar';
 import { SkillBonusBreakdown } from './ui/SkillBonusBreakdown';
 import { getProfBonus } from '../utils/helpers';
@@ -29,7 +31,7 @@ interface SkillAdjustModalProps {
   /** 其他加值總和（來自 extraData.skillBonuses，用於最終總計） */
   miscBonus: number;
   onClose: () => void;
-  onSave: (nextProfLevel: SkillProficiencyLevel, nextOverrideBasic: number | null) => void;
+  onSave: (nextProfLevel: SkillProficiencyLevel, nextOverrideBasic: number | null) => void | Promise<void>;
 }
 
 export const SkillAdjustModal: React.FC<SkillAdjustModalProps> = ({
@@ -45,6 +47,7 @@ export const SkillAdjustModal: React.FC<SkillAdjustModalProps> = ({
   onClose,
   onSave,
 }) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const profBonusForLevel = useMemo(() => getProfBonus(characterLevel), [characterLevel]);
 
   const computeDefaultBasic = (profLevel: SkillProficiencyLevel) =>
@@ -85,19 +88,26 @@ export const SkillAdjustModal: React.FC<SkillAdjustModalProps> = ({
     setBasicManuallyEdited(false);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const nextParsed = parseInt(basicInput, 10);
     const hasValidOverride = Number.isFinite(nextParsed);
     const defaultForProf = computeDefaultBasic(localProfLevel);
     const nextOverride =
       hasValidOverride && nextParsed !== defaultForProf ? (nextParsed as number) : null;
 
-    onSave(localProfLevel, nextOverride);
+    setIsSubmitting(true);
+    try {
+      await Promise.resolve(onSave(localProfLevel, nextOverride));
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={skillName} size="xs">
-      <p className={`${MODAL_SUBTITLE_CLASS} mb-5`}>屬性：{abilityLabel}</p>
+    <Modal isOpen={isOpen} onClose={onClose} title={skillName} size="xs" disableBackdropClose={isSubmitting}>
+      <div className="relative">
+        <LoadingOverlay visible={isSubmitting} />
+        <p className={`${MODAL_SUBTITLE_CLASS} mb-5`}>屬性：{abilityLabel}</p>
 
       <SkillProficiencySegmentBar
         value={localProfLevel}
@@ -124,15 +134,16 @@ export const SkillAdjustModal: React.FC<SkillAdjustModalProps> = ({
       />
 
       <div className={`${MODAL_FOOTER_BUTTONS_CLASS} pt-4`}>
-        <ModalButton variant="secondary" className={MODAL_BUTTON_RESET_CLASS} onClick={handleReset}>
+        <ModalButton variant="secondary" className={MODAL_BUTTON_RESET_CLASS} onClick={handleReset} disabled={isSubmitting}>
           重置
         </ModalButton>
-        <ModalButton variant="secondary" className={MODAL_BUTTON_CANCEL_CLASS} onClick={onClose}>
+        <ModalButton variant="secondary" className={MODAL_BUTTON_CANCEL_CLASS} onClick={onClose} disabled={isSubmitting}>
           取消
         </ModalButton>
-        <ModalButton variant="primary" onClick={handleSave} className={MODAL_BUTTON_APPLY_AMBER_CLASS}>
+        <ModalSaveButton type="button" onClick={handleSave} loading={isSubmitting} className={MODAL_BUTTON_APPLY_AMBER_CLASS}>
           儲存
-        </ModalButton>
+        </ModalSaveButton>
+      </div>
       </div>
     </Modal>
   );

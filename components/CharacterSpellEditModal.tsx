@@ -5,6 +5,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { Modal } from './ui/Modal';
+import { ModalSaveButton } from './ui/ModalSaveButton';
+import { LoadingOverlay } from './ui/LoadingOverlay';
 import { CharacterSpell, updateCharacterSpell, getDisplayValues } from '../services/spellService';
 import { SPELL_SCHOOLS } from '../utils/spellUtils';
 import { MODAL_CONTAINER_CLASS } from '../styles/modalStyles';
@@ -108,8 +110,9 @@ export const CharacterSpellEditModal: React.FC<CharacterSpellEditModalProps> = (
   const display = getDisplayValues(characterSpell);
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="2xl">
-      <div className={MODAL_CONTAINER_CLASS}>
+    <Modal isOpen={isOpen} onClose={onClose} size="2xl" disableBackdropClose={isSubmitting}>
+      <div className={`${MODAL_CONTAINER_CLASS} relative`}>
+        <LoadingOverlay visible={isSubmitting} />
         <h2 className="text-xl font-bold mb-5">編輯法術</h2>
         <p className="text-sm text-slate-400 mb-4">
           💡 修改欄位將只影響您的角色，不會影響其他玩家。
@@ -287,13 +290,13 @@ export const CharacterSpellEditModal: React.FC<CharacterSpellEditModalProps> = (
             >
               取消
             </button>
-            <button
+            <ModalSaveButton
               type="submit"
-              disabled={isSubmitting}
-              className="flex-1 px-6 py-3 rounded-lg bg-blue-600 text-white font-bold active:bg-blue-700 disabled:opacity-50"
+              loading={isSubmitting}
+              className="flex-1 px-6 py-3 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-bold active:bg-blue-700"
             >
-              {isSubmitting ? '儲存中...' : '儲存變更'}
-            </button>
+              儲存變更
+            </ModalSaveButton>
           </div>
         </form>
       </div>

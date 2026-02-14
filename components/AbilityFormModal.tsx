@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Modal } from './ui/Modal';
+import { ModalSaveButton } from './ui/ModalSaveButton';
+import { LoadingOverlay } from './ui/LoadingOverlay';
 import { CreateAbilityData, CreateAbilityDataForUpload, getDisplayValues, ABILITY_SOURCE_ORDER } from '../services/abilityService';
 import type { CharacterAbilityWithDetails } from '../lib/supabase';
 import { MODAL_CONTAINER_CLASS } from '../styles/modalStyles';
@@ -153,8 +155,10 @@ export const AbilityFormModal: React.FC<AbilityFormModalProps> = ({
       isOpen={isOpen} 
       onClose={onClose}
       size="2xl"
+      disableBackdropClose={isSubmitting}
     >
-      <div className={MODAL_CONTAINER_CLASS}>
+      <div className={`${MODAL_CONTAINER_CLASS} relative`}>
+        <LoadingOverlay visible={isSubmitting} />
         {showConfirm ? (
           // 確認画面
           <>
@@ -178,14 +182,15 @@ export const AbilityFormModal: React.FC<AbilityFormModalProps> = ({
                 >
                   取消
                 </button>
-                <button
+                <ModalSaveButton
                   type="button"
                   onClick={performSubmit}
-                  className="flex-1 px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-                  disabled={isSubmitting}
+                  loading={isSubmitting}
+                  variant="primary"
+                  className="flex-1 px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors font-medium"
                 >
-                  {isSubmitting ? '處理中...' : isUpload ? '確定上傳' : '確定新增'}
-                </button>
+                  {isUpload ? '確定上傳' : '確定新增'}
+                </ModalSaveButton>
               </div>
             </div>
           </>
@@ -334,19 +339,19 @@ export const AbilityFormModal: React.FC<AbilityFormModalProps> = ({
           >
             取消
           </button>
-          <button
+          <ModalSaveButton
             type="submit"
-            className={`flex-1 px-6 py-3 text-white rounded-lg transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed ${
+            loading={isSubmitting}
+            className={`flex-1 px-6 py-3 text-white rounded-lg transition-colors font-medium ${
               isUpload
                 ? 'bg-amber-600 hover:bg-amber-700'
                 : editingAbility
                   ? 'bg-blue-600 hover:bg-blue-700'
                   : 'bg-red-600 hover:bg-red-700'
             }`}
-            disabled={isSubmitting}
           >
-            {isSubmitting ? '處理中...' : isUpload ? '上傳' : (editingAbility ? '更新' : '新增')}
-          </button>
+            {isUpload ? '上傳' : (editingAbility ? '更新' : '新增')}
+          </ModalSaveButton>
         </div>
       </form>
           </>

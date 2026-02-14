@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { Modal } from './ui/Modal';
+import { ModalSaveButton } from './ui/ModalSaveButton';
+import { LoadingOverlay } from './ui/LoadingOverlay';
 import CombatService from '../services/combatService';
 import { useToast } from '../hooks/useToast';
 import {
@@ -7,8 +9,6 @@ import {
   INPUT_CLASS,
   BUTTON_PRIMARY_CLASS,
   BUTTON_SECONDARY_CLASS,
-  LOADING_OVERLAY_CLASS,
-  LOADING_BOX_CLASS,
   INFO_BOX_CLASS
 } from '../styles/modalStyles';
 
@@ -87,19 +87,9 @@ const AdjustACModal: React.FC<AdjustACModalProps> = ({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose}>
-      <div className={MODAL_CONTAINER_CLASS}>
-        {/* Loading 蓋版 */}
-        {isSubmitting && (
-          <div className={LOADING_OVERLAY_CLASS}>
-            <div className={LOADING_BOX_CLASS}>
-              <div className="flex items-center gap-3">
-                <div className="animate-spin rounded-full h-5 w-5 border-2 border-amber-500 border-t-transparent"></div>
-                <span className="font-medium">更新中...</span>
-              </div>
-            </div>
-          </div>
-        )}
+    <Modal isOpen={isOpen} onClose={handleClose} disableBackdropClose={isSubmitting}>
+      <div className={`${MODAL_CONTAINER_CLASS} relative`}>
+        <LoadingOverlay visible={isSubmitting} text="更新中…" />
 
         <h2 className="text-xl font-bold mb-4">🎯 怪物 #{monsterNumber} - 調整 AC </h2>
 
@@ -112,6 +102,17 @@ const AdjustACModal: React.FC<AdjustACModalProps> = ({
         <div className="mt-4 mb-3">
           <label className="block text-sm text-slate-400 mb-2">攻擊骰結果（含加值）</label>
           <div className="flex items-center gap-2">
+            <button
+              onClick={() => setIsHit(false)}
+              className={`w-12 h-12 rounded-lg text-2xl transition-colors shrink-0 ${
+                isHit === false
+                  ? 'bg-red-600 text-white'
+                  : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+              }`}
+              title="未命中"
+            >
+              ❌
+            </button>
             <input
               type="number"
               value={attackRoll}
@@ -121,30 +122,17 @@ const AdjustACModal: React.FC<AdjustACModalProps> = ({
               min="1"
               max="99"
             />
-            <div className="flex gap-2 shrink-0">
-              <button
-                onClick={() => setIsHit(true)}
-                className={`w-12 h-12 rounded-lg text-2xl transition-colors ${
-                  isHit === true
-                    ? 'bg-green-600 text-white'
-                    : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
-                }`}
-                title="命中"
-              >
-                ✅
-              </button>
-              <button
-                onClick={() => setIsHit(false)}
-                className={`w-12 h-12 rounded-lg text-2xl transition-colors ${
-                  isHit === false
-                    ? 'bg-red-600 text-white'
-                    : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
-                }`}
-                title="未命中"
-              >
-                ❌
-              </button>
-            </div>
+            <button
+              onClick={() => setIsHit(true)}
+              className={`w-12 h-12 rounded-lg text-2xl transition-colors shrink-0 ${
+                isHit === true
+                  ? 'bg-green-600 text-white'
+                  : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+              }`}
+              title="命中"
+            >
+              ✅
+            </button>
           </div>
         </div>
 
@@ -172,13 +160,15 @@ const AdjustACModal: React.FC<AdjustACModalProps> = ({
           >
             取消
           </button>
-          <button
+          <ModalSaveButton
+            type="button"
             onClick={handleSubmit}
+            loading={isSubmitting}
+            disabled={!attackRoll || isHit === null}
             className={BUTTON_PRIMARY_CLASS}
-            disabled={isSubmitting || !attackRoll || isHit === null}
           >
             更新範圍
-          </button>
+          </ModalSaveButton>
         </div>
       </div>
     </Modal>

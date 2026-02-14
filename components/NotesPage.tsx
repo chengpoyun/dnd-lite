@@ -149,8 +149,13 @@ export default function NotesPage({ characterId }: NotesPageProps) {
       <PageContainer>
         <div className="flex items-center justify-between gap-3 mb-4">
           <BackButton onClick={handleBack} />
-          <span className={STYLES.text.bodySmall}>
-            {isSaving ? '儲存中…' : ''}
+          <span className={STYLES.text.bodySmall + ' flex items-center gap-2'}>
+            {isSaving && (
+              <>
+                <span className="animate-spin rounded-full h-4 w-4 border-2 border-amber-500 border-t-transparent flex-shrink-0" aria-hidden />
+                <span>儲存中…</span>
+              </>
+            )}
           </span>
         </div>
         <div className={STYLES.layout.grid}>

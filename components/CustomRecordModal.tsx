@@ -1,8 +1,10 @@
 /**
  * CustomRecordModal - 新增或編輯冒險紀錄（CustomRecord）
  */
-import React from 'react';
+import React, { useState } from 'react';
 import { Modal, ModalButton } from './ui/Modal';
+import { ModalSaveButton } from './ui/ModalSaveButton';
+import { LoadingOverlay } from './ui/LoadingOverlay';
 import { MODAL_CONTAINER_CLASS, MODAL_BUTTON_CANCEL_CLASS, MODAL_FOOTER_BUTTONS_CLASS, INPUT_FULL_WIDTH_CLASS, MODAL_LABEL_CLASS, MODAL_SECTION_CLASS, MODAL_FIELD_CLASS, MODAL_BUTTON_APPLY_AMBER_CLASS } from '../styles/modalStyles';
 
 interface CustomRecordModalProps {
@@ -15,8 +17,8 @@ interface CustomRecordModalProps {
   onChangeName: (v: string) => void;
   onChangeValue: (v: string) => void;
   onChangeNote: (v: string) => void;
-  onSave: () => void;
-  onDelete?: () => void;
+  onSave: () => void | Promise<void>;
+  onDelete?: () => void | Promise<void>;
 }
 
 export default function CustomRecordModal({
@@ -32,12 +34,33 @@ export default function CustomRecordModal({
   onSave,
   onDelete,
 }: CustomRecordModalProps) {
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const title = mode === 'add' ? '新增紀錄' : '編輯紀錄';
   const saveLabel = mode === 'add' ? '新增' : '更新';
 
+  const handleSave = async () => {
+    setIsSubmitting(true);
+    try {
+      await Promise.resolve(onSave());
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!onDelete) return;
+    setIsSubmitting(true);
+    try {
+      await Promise.resolve(onDelete());
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={title} size="xs">
-      <div className={MODAL_CONTAINER_CLASS}>
+    <Modal isOpen={isOpen} onClose={onClose} title={title} size="xs" disableBackdropClose={isSubmitting}>
+      <div className={`${MODAL_CONTAINER_CLASS} relative`}>
+        <LoadingOverlay visible={isSubmitting} />
         <div className={MODAL_SECTION_CLASS}>
           <div className={MODAL_FIELD_CLASS}>
             <label className={MODAL_LABEL_CLASS}>名稱</label>
@@ -70,19 +93,20 @@ export default function CustomRecordModal({
           </div>
         </div>
         <div className={MODAL_FOOTER_BUTTONS_CLASS}>
-          <ModalButton variant="secondary" className={MODAL_BUTTON_CANCEL_CLASS} onClick={onClose}>
+          <ModalButton variant="secondary" className={MODAL_BUTTON_CANCEL_CLASS} onClick={onClose} disabled={isSubmitting}>
             取消
           </ModalButton>
-          <ModalButton
-            variant="primary"
-            onClick={onSave}
+          <ModalSaveButton
+            type="button"
+            onClick={handleSave}
+            loading={isSubmitting}
             disabled={!name || !value}
             className={MODAL_BUTTON_APPLY_AMBER_CLASS}
           >
             {saveLabel}
-          </ModalButton>
+          </ModalSaveButton>
           {mode === 'edit' && onDelete && (
-            <ModalButton variant="danger" onClick={onDelete}>
+            <ModalButton variant="danger" onClick={handleDelete} disabled={isSubmitting}>
               刪除
             </ModalButton>
           )}

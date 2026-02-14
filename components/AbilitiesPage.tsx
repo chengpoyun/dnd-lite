@@ -419,9 +419,15 @@ export default function AbilitiesPage({ characterId, onCharacterDataChanged }: A
             </button>
           </div>
         ) : selectedSource === 'all' ? (
-          <div className="space-y-3">
+          <div className="space-y-3 relative">
             {isSavingOrder && (
-              <div className="text-sm text-slate-400 mb-1">正在儲存順序…</div>
+              <>
+                <div className="flex items-center gap-2 text-sm text-slate-400 mb-1">
+                  <span className="animate-spin rounded-full h-4 w-4 border-2 border-amber-500 border-t-transparent flex-shrink-0" aria-hidden />
+                  <span>正在儲存順序…</span>
+                </div>
+                <div className="absolute inset-0 bg-slate-950/40 z-10 rounded-lg" aria-hidden />
+              </>
             )}
             <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
               <SortableContext

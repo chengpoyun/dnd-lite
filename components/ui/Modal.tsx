@@ -7,6 +7,8 @@ interface ModalProps {
   children: React.ReactNode;
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl';
   className?: string;
+  /** 為 true 時（例如儲存中）點擊 backdrop 不關閉，避免誤關 */
+  disableBackdropClose?: boolean;
 }
 
 const sizeClasses = {
@@ -25,13 +27,18 @@ export const Modal: React.FC<ModalProps> = ({
   title, 
   children, 
   size = 'md',
-  className = '' 
+  className = '',
+  disableBackdropClose = false,
 }) => {
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-[120] flex items-center justify-center px-6">
-      <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-sm" onClick={onClose} />
+      <div
+        className="absolute inset-0 bg-slate-950/90 backdrop-blur-sm"
+        onClick={disableBackdropClose ? undefined : onClose}
+        data-testid="modal-backdrop"
+      />
       <div className={`relative bg-slate-900 border border-slate-700 rounded-2xl w-full ${sizeClasses[size]} max-h-[90vh] overflow-y-auto shadow-2xl animate-in fade-in zoom-in duration-150 ${className}`}>
         {title && (
           <h2 className="text-2xl font-bold text-amber-500 p-3">

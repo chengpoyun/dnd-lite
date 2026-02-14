@@ -45,6 +45,7 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
   const [selectedSkill, setSelectedSkill] = useState<{ name: string; base: keyof CharacterStats['abilityScores'] } | null>(null);
   const [activeAbilityKey, setActiveAbilityKey] = useState<AbilityKey | null>(null);
   const [selectedRecord, setSelectedRecord] = useState<CustomRecord | null>(null);
+  const [isSavingInfo, setIsSavingInfo] = useState(false);
   
   const [editInfo, setEditInfo] = useState({ name: stats.name, class: stats.class, level: stats.level.toString() });
   
@@ -448,6 +449,7 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
       return;
     }
     
+    setIsSavingInfo(true);
     // 驗證所有等級為有效數字
     const validClasses = editClasses.map(c => ({
       ...c,
@@ -527,6 +529,8 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
       
     } catch (error) {
       console.error('❌ 角色資料保存錯誤:', error);
+    } finally {
+      setIsSavingInfo(false);
     }
   };
   
@@ -1069,6 +1073,7 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
           addNewEditClass={addNewEditClass}
           totalLevel={editClasses.reduce((sum, c) => sum + (parseInt(String(c.level)) || 0), 0)}
           onSave={saveInfoWithClasses}
+          isSaving={isSavingInfo}
         />
       )}
 

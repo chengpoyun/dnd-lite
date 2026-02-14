@@ -1,5 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Modal } from './ui/Modal';
+import { ModalSaveButton } from './ui/ModalSaveButton';
+import { LoadingOverlay } from './ui/LoadingOverlay';
 import CombatService from '../services/combatService';
 import type { ResistanceType, CombatDamageLog } from '../lib/supabase';
 import { DAMAGE_TYPES, calculateActualDamage } from '../utils/damageTypes';
@@ -302,19 +304,9 @@ const AddDamageModal: React.FC<AddDamageModalProps> = ({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose}>
+    <Modal isOpen={isOpen} onClose={handleClose} disableBackdropClose={isSubmitting}>
       <div className={`${MODAL_CONTAINER_CLASS} relative`}>
-        {/* Loading 蓋版 */}
-        {isSubmitting && (
-          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm z-[130] rounded-xl flex items-center justify-center">
-            <div className="bg-slate-800 px-6 py-4 rounded-lg shadow-2xl border border-slate-700">
-              <div className="flex items-center gap-3">
-                <div className="animate-spin rounded-full h-5 w-5 border-2 border-amber-500 border-t-transparent"></div>
-                <span className="font-medium">更新中...</span>
-              </div>
-            </div>
-          </div>
-        )}
+        <LoadingOverlay visible={isSubmitting} text="更新中…" />
 
         <h2 className="text-xl font-bold mb-4">
           {isEditMode ? `👹 怪物 #${monsterNumber} - 編輯傷害` : `👹 怪物 #${monsterNumber} - 新增傷害`}
@@ -460,13 +452,15 @@ const AddDamageModal: React.FC<AddDamageModalProps> = ({
             >
               取消
             </button>
-            <button
+            <ModalSaveButton
+              type="button"
               onClick={handleSubmit}
-              className="flex-1 px-6 py-3 bg-orange-600 hover:bg-orange-700 rounded-lg font-medium transition-colors disabled:opacity-50"
-              disabled={isSubmitting || validEntries.length === 0}
+              loading={isSubmitting}
+              disabled={validEntries.length === 0}
+              className="flex-1 px-6 py-3 bg-orange-600 hover:bg-orange-700 rounded-lg font-medium transition-colors text-white"
             >
               {isEditMode ? '確認更新' : '確認新增'}
-            </button>
+            </ModalSaveButton>
           </div>
           {isEditMode && (
             <button

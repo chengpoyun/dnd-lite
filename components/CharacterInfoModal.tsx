@@ -3,6 +3,8 @@
  */
 import React from 'react';
 import { Modal, ModalButton } from './ui/Modal';
+import { ModalSaveButton } from './ui/ModalSaveButton';
+import { LoadingOverlay } from './ui/LoadingOverlay';
 import { MODAL_CONTAINER_CLASS, MODAL_BUTTON_CANCEL_CLASS, MODAL_FOOTER_BUTTONS_CLASS, INPUT_FULL_WIDTH_CLASS, SELECT_CLASS, MODAL_LABEL_CLASS, MODAL_SECTION_CLASS, MODAL_FIELD_CLASS, MODAL_INPUT_NUMBER_SM_CLASS, MODAL_BUTTON_REMOVE_ICON_CLASS, MODAL_BUTTON_ADD_ROW_CLASS, MODAL_BUTTON_APPLY_AMBER_CLASS } from '../styles/modalStyles';
 
 export type EditClassRow = { id: string; name: string; level: number; isPrimary: boolean };
@@ -19,6 +21,8 @@ interface CharacterInfoModalProps {
   addNewEditClass: () => void;
   totalLevel: number;
   onSave: () => void;
+  /** 由父層在儲存中時設為 true */
+  isSaving?: boolean;
 }
 
 export default function CharacterInfoModal({
@@ -33,10 +37,12 @@ export default function CharacterInfoModal({
   addNewEditClass,
   totalLevel,
   onSave,
+  isSaving = false,
 }: CharacterInfoModalProps) {
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="編輯角色資料" size="xs">
-      <div className={MODAL_CONTAINER_CLASS}>
+    <Modal isOpen={isOpen} onClose={onClose} title="編輯角色資料" size="xs" disableBackdropClose={isSaving}>
+      <div className={`${MODAL_CONTAINER_CLASS} relative`}>
+        <LoadingOverlay visible={isSaving} />
         <div className={MODAL_SECTION_CLASS}>
           <div className={MODAL_FIELD_CLASS}>
             <label className={MODAL_LABEL_CLASS}>名稱</label>
@@ -95,12 +101,17 @@ export default function CharacterInfoModal({
             </div>
           </div>
           <div className={`${MODAL_FOOTER_BUTTONS_CLASS} pt-4`}>
-            <ModalButton variant="secondary" className={MODAL_BUTTON_CANCEL_CLASS} onClick={onClose}>
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={isSaving}
+              className={`${MODAL_BUTTON_CANCEL_CLASS} px-4 py-2 rounded-xl font-bold disabled:opacity-50 disabled:cursor-not-allowed bg-slate-800 hover:bg-slate-700 text-slate-400`}
+            >
               取消
-            </ModalButton>
-            <ModalButton variant="primary" onClick={onSave} className={MODAL_BUTTON_APPLY_AMBER_CLASS}>
+            </button>
+            <ModalSaveButton type="button" onClick={onSave} loading={isSaving} className={MODAL_BUTTON_APPLY_AMBER_CLASS}>
               儲存
-            </ModalButton>
+            </ModalSaveButton>
           </div>
         </div>
       </div>

@@ -1,5 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Modal, ModalButton, ModalInput } from './ui/Modal';
+import { ModalSaveButton } from './ui/ModalSaveButton';
+import { LoadingOverlay } from './ui/LoadingOverlay';
 import { FinalTotalRow } from './ui/FinalTotalRow';
 import { SegmentBar, type SegmentBarOption } from './ui/SegmentBar';
 import {
@@ -35,8 +37,8 @@ interface AbilityEditModalProps {
   isSaveProficient: boolean;
   /** 角色等級（計算熟練加值用） */
   level: number;
-  /** 只回傳使用者可編輯的基礎值與熟練狀態 */
-  onSave: (nextScoreBasic: number, nextIsSaveProficient: boolean) => void;
+  /** 只回傳使用者可編輯的基礎值與熟練狀態，可回傳 Promise */
+  onSave: (nextScoreBasic: number, nextIsSaveProficient: boolean) => void | Promise<void>;
 }
 
 export const AbilityEditModal: React.FC<AbilityEditModalProps> = ({
@@ -124,13 +126,19 @@ export const AbilityEditModal: React.FC<AbilityEditModalProps> = ({
     setLocalSaveProf(false);
   };
 
-  const handleSave = () => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSave = async () => {
     const parsed = parseInt(localScore, 10);
     if (!Number.isFinite(parsed)) {
-      // 無效輸入時不儲存
       return;
     }
-    onSave(parsed, localSaveProf);
+    setIsSubmitting(true);
+    try {
+      await Promise.resolve(onSave(parsed, localSaveProf));
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (!isOpen) return null;
@@ -141,8 +149,10 @@ export const AbilityEditModal: React.FC<AbilityEditModalProps> = ({
       onClose={onClose}
       title={`${abilityLabel} ${abilityKey.toUpperCase()}`}
       size="sm"
+      disableBackdropClose={isSubmitting}
     >
-      <div className={MODAL_CONTAINER_CLASS}>
+      <div className={`${MODAL_CONTAINER_CLASS} relative`}>
+        <LoadingOverlay visible={isSubmitting} />
         {/* 能力值區塊 */}
         <section className="mb-4 space-y-2">
           <h3 className={`${MODAL_BODY_TEXT_CLASS} font-bold text-slate-200`}>
@@ -276,6 +286,7 @@ export const AbilityEditModal: React.FC<AbilityEditModalProps> = ({
             variant="secondary"
             className={MODAL_BUTTON_RESET_CLASS}
             onClick={handleReset}
+            disabled={isSubmitting}
           >
             重置
           </ModalButton>
@@ -283,12 +294,13 @@ export const AbilityEditModal: React.FC<AbilityEditModalProps> = ({
             variant="secondary"
             className={MODAL_BUTTON_CANCEL_CLASS}
             onClick={onClose}
+            disabled={isSubmitting}
           >
             取消
           </ModalButton>
-          <ModalButton variant="primary" onClick={handleSave}>
+          <ModalSaveButton type="button" onClick={handleSave} loading={isSubmitting}>
             儲存
-          </ModalButton>
+          </ModalSaveButton>
         </div>
       </div>
     </Modal>

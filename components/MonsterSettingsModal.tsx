@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Modal } from './ui/Modal';
+import { ModalSaveButton } from './ui/ModalSaveButton';
+import { LoadingOverlay } from './ui/LoadingOverlay';
 import CombatService from '../services/combatService';
 import type { ResistanceType } from '../lib/supabase';
 import { DAMAGE_TYPES } from '../utils/damageTypes';
@@ -11,11 +13,9 @@ import {
   INPUT_CLASS,
   SELECT_CLASS,
   BUTTON_SECONDARY_CLASS,
-  BUTTON_DANGER_CLASS,
+  MODAL_BUTTON_APPLY_AMBER_CLASS,
   COLLAPSIBLE_BUTTON_CLASS,
   COLLAPSIBLE_CONTENT_CLASS,
-  LOADING_OVERLAY_CLASS,
-  LOADING_BOX_CLASS,
 } from '../styles/modalStyles';
 
 interface MonsterSettingsModalProps {
@@ -185,19 +185,9 @@ const MonsterSettingsModal: React.FC<MonsterSettingsModalProps> = ({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose}>
-      <div className={MODAL_CONTAINER_CLASS}>
-        {/* Loading 蓋版 */}
-        {isSubmitting && (
-          <div className={LOADING_OVERLAY_CLASS}>
-            <div className={LOADING_BOX_CLASS}>
-              <div className="flex items-center gap-3">
-                <div className="animate-spin rounded-full h-5 w-5 border-2 border-amber-500 border-t-transparent"></div>
-                <span className="font-medium">更新中...</span>
-              </div>
-            </div>
-          </div>
-        )}
+    <Modal isOpen={isOpen} onClose={handleClose} disableBackdropClose={isSubmitting}>
+      <div className={`${MODAL_CONTAINER_CLASS} relative`}>
+        <LoadingOverlay visible={isSubmitting} text="更新中…" />
 
         <h2 className="text-xl font-bold mb-4">⚙️ #{monsterNumber} - 設定</h2>
 
@@ -308,13 +298,14 @@ const MonsterSettingsModal: React.FC<MonsterSettingsModalProps> = ({
           >
             取消
           </button>
-          <button
+          <ModalSaveButton
+            type="button"
             onClick={handleSubmit}
-            className={BUTTON_DANGER_CLASS}
-            disabled={isSubmitting}
+            loading={isSubmitting}
+            className={MODAL_BUTTON_APPLY_AMBER_CLASS}
           >
             確認更新
-          </button>
+          </ModalSaveButton>
         </div>
       </div>
     </Modal>

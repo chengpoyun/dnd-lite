@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { Modal } from './ui/Modal';
+import { ModalSaveButton } from './ui/ModalSaveButton';
+import { LoadingOverlay } from './ui/LoadingOverlay';
 import type { ResistanceType } from '../lib/supabase';
 import { DAMAGE_TYPES } from '../utils/damageTypes';
 import { useToast } from '../hooks/useToast';
@@ -13,8 +15,6 @@ import {
   BUTTON_SECONDARY_CLASS,
   COLLAPSIBLE_BUTTON_CLASS,
   COLLAPSIBLE_CONTENT_CLASS,
-  LOADING_OVERLAY_CLASS,
-  LOADING_BOX_CLASS,
 } from '../styles/modalStyles';
 
 interface AddMonsterModalProps {
@@ -111,19 +111,9 @@ const AddMonsterModal: React.FC<AddMonsterModalProps> = ({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose}>
-      <div className={MODAL_CONTAINER_CLASS}>
-        {/* Loading 蓋版 */}
-        {isSubmitting && (
-          <div className={LOADING_OVERLAY_CLASS}>
-            <div className={LOADING_BOX_CLASS}>
-              <div className="flex items-center gap-3">
-                <div className="animate-spin rounded-full h-5 w-5 border-2 border-amber-500 border-t-transparent"></div>
-                <span className="font-medium">建立中...</span>
-              </div>
-            </div>
-          </div>
-        )}
+    <Modal isOpen={isOpen} onClose={handleClose} disableBackdropClose={isSubmitting}>
+      <div className={`${MODAL_CONTAINER_CLASS} relative`}>
+        <LoadingOverlay visible={isSubmitting} text="建立中…" />
 
         <h2 className="text-xl font-bold mb-5">👹 新增怪物</h2>
 
@@ -221,13 +211,14 @@ const AddMonsterModal: React.FC<AddMonsterModalProps> = ({
           >
             取消
           </button>
-          <button
+          <ModalSaveButton
+            type="button"
             onClick={handleSubmit}
+            loading={isSubmitting}
             className={BUTTON_PRIMARY_CLASS}
-            disabled={isSubmitting}
           >
             確認新增
-          </button>
+          </ModalSaveButton>
         </div>
       </div>
     </Modal>

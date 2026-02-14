@@ -3,6 +3,8 @@
  */
 import React, { useState, useEffect } from 'react';
 import { Modal, ModalButton, ModalInput } from './ui/Modal';
+import { ModalSaveButton } from './ui/ModalSaveButton';
+import { LoadingOverlay } from './ui/LoadingOverlay';
 import { SegmentBar } from './ui/SegmentBar';
 import { setNormalValue } from '../utils/helpers';
 import { MODAL_CONTAINER_CLASS, MODAL_BUTTON_CANCEL_CLASS, MODAL_FOOTER_BUTTONS_CLASS, MODAL_BUTTON_APPLY_INDIGO_CLASS } from '../styles/modalStyles';
@@ -26,7 +28,7 @@ interface CombatItemEditModalProps {
   mode: 'add' | 'edit';
   category: ItemEditCategory;
   initialValues: ItemEditValues;
-  onSave: (values: ItemEditValues) => void;
+  onSave: (values: ItemEditValues) => void | Promise<void>;
   /** 是否顯示描述欄位（自定義項目新增時為 true，編輯自定義項目時為 true） */
   showDescription?: boolean;
 }
@@ -53,6 +55,7 @@ export default function CombatItemEditModal({
   const [max, setMax] = useState('1');
   const [recovery, setRecovery] = useState<ItemEditRecovery>('round');
   const [description, setDescription] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -65,7 +68,7 @@ export default function CombatItemEditModal({
     }
   }, [isOpen, initialValues]);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!name.trim()) return;
     const currentResult = setNormalValue(current, 0, true);
     const maxResult = setNormalValue(max, 1, false);
@@ -73,20 +76,27 @@ export default function CombatItemEditModal({
       onClose();
       return;
     }
-    onSave({
-      name: name.trim(),
-      icon,
-      current: currentResult.numericValue,
-      max: maxResult.numericValue,
-      recovery,
-      description: showDescription ? description.trim() : (initialValues.description ?? ''),
-    });
-    onClose();
+    setIsSubmitting(true);
+    try {
+      const values: ItemEditValues = {
+        name: name.trim(),
+        icon,
+        current: currentResult.numericValue,
+        max: maxResult.numericValue,
+        recovery,
+        description: showDescription ? description.trim() : (initialValues.description ?? ''),
+      };
+      await Promise.resolve(onSave(values));
+      onClose();
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="xs">
+    <Modal isOpen={isOpen} onClose={onClose} size="xs" disableBackdropClose={isSubmitting}>
       <div className={`${MODAL_CONTAINER_CLASS} relative`}>
+        <LoadingOverlay visible={isSubmitting} />
         <h2 className="text-xl font-bold mb-5">{mode === 'edit' ? '編輯項目' : '新增項目'}</h2>
         <div className="space-y-4">
           <div className="grid grid-cols-[64px_1fr_1fr] gap-3">
@@ -149,12 +159,22 @@ export default function CombatItemEditModal({
             </div>
           )}
           <div className={`${MODAL_FOOTER_BUTTONS_CLASS} pt-2`}>
-            <ModalButton variant="secondary" className={MODAL_BUTTON_CANCEL_CLASS} onClick={onClose}>
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={isSubmitting}
+              className={`${MODAL_BUTTON_CANCEL_CLASS} px-4 py-2 rounded-xl font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-slate-800 hover:bg-slate-700 text-slate-400`}
+            >
               取消
-            </ModalButton>
-            <ModalButton variant="primary" onClick={handleSave} className={MODAL_BUTTON_APPLY_INDIGO_CLASS}>
+            </button>
+            <ModalSaveButton
+              type="button"
+              onClick={handleSave}
+              loading={isSubmitting}
+              className={MODAL_BUTTON_APPLY_INDIGO_CLASS}
+            >
               儲存
-            </ModalButton>
+            </ModalSaveButton>
           </div>
         </div>
       </div>

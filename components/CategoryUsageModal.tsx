@@ -3,6 +3,8 @@
  */
 import React, { useState, useEffect } from 'react';
 import { Modal, ModalButton, ModalInput } from './ui/Modal';
+import { ModalSaveButton } from './ui/ModalSaveButton';
+import { LoadingOverlay } from './ui/LoadingOverlay';
 import { handleValueInput } from '../utils/helpers';
 import { MODAL_CONTAINER_CLASS, MODAL_BUTTON_CANCEL_CLASS, MODAL_FOOTER_BUTTONS_CLASS, MODAL_SECTION_CLASS, MODAL_PREVIEW_LABEL_CLASS, MODAL_BUTTON_APPLY_AMBER_CLASS } from '../styles/modalStyles';
 
@@ -33,6 +35,7 @@ export default function CategoryUsageModal({
 }: CategoryUsageModalProps) {
   const [tempCurrent, setTempCurrent] = useState('');
   const [tempMax, setTempMax] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -48,16 +51,19 @@ export default function CategoryUsageModal({
       onClose();
       return;
     }
+    setIsSubmitting(true);
     const finalCurrent = Math.min(currentResult.numericValue, maxResult.numericValue);
     onSave(finalCurrent, maxResult.numericValue);
     onClose();
+    setIsSubmitting(false);
   };
 
   if (!category) return null;
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="xs">
+    <Modal isOpen={isOpen} onClose={onClose} size="xs" disableBackdropClose={isSubmitting}>
       <div className={`${MODAL_CONTAINER_CLASS} relative`}>
+        <LoadingOverlay visible={isSubmitting} />
         <h2 className="text-xl font-bold mb-5">{CATEGORY_LABELS[category]}</h2>
         <div className={MODAL_SECTION_CLASS}>
           <div className="grid grid-cols-2 gap-3">
@@ -79,12 +85,17 @@ export default function CategoryUsageModal({
             </div>
           </div>
           <div className={MODAL_FOOTER_BUTTONS_CLASS}>
-            <ModalButton variant="secondary" className={MODAL_BUTTON_CANCEL_CLASS} onClick={onClose}>
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={isSubmitting}
+              className={`${MODAL_BUTTON_CANCEL_CLASS} px-4 py-2 rounded-xl font-bold bg-slate-800 hover:bg-slate-700 text-slate-400 disabled:opacity-50 disabled:cursor-not-allowed`}
+            >
               取消
-            </ModalButton>
-            <ModalButton variant="primary" onClick={handleSave} className={MODAL_BUTTON_APPLY_AMBER_CLASS}>
+            </button>
+            <ModalSaveButton type="button" onClick={handleSave} loading={isSubmitting} className={MODAL_BUTTON_APPLY_AMBER_CLASS}>
               儲存
-            </ModalButton>
+            </ModalSaveButton>
           </div>
         </div>
       </div>

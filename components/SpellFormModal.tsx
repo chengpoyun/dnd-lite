@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Modal } from './ui/Modal';
+import { ModalSaveButton } from './ui/ModalSaveButton';
+import { LoadingOverlay } from './ui/LoadingOverlay';
 import { CreateSpellData, CreateSpellDataForUpload, Spell } from '../services/spellService';
 import { SPELL_SCHOOLS } from '../utils/spellUtils';
 import { MODAL_CONTAINER_CLASS } from '../styles/modalStyles';
@@ -128,8 +130,9 @@ export const SpellFormModal: React.FC<SpellFormModalProps> = ({
   // 確認畫面
   if (showConfirm) {
     return (
-      <Modal isOpen={isOpen} onClose={onClose} size="md">
-        <div className={MODAL_CONTAINER_CLASS}>
+      <Modal isOpen={isOpen} onClose={onClose} size="md" disableBackdropClose={isSubmitting}>
+        <div className={`${MODAL_CONTAINER_CLASS} relative`}>
+          <LoadingOverlay visible={isSubmitting} />
           <h2 className="text-xl font-bold mb-5">
             {isUpload ? '確認上傳法術' : '確認新增法術'}
           </h2>
@@ -142,18 +145,19 @@ export const SpellFormModal: React.FC<SpellFormModalProps> = ({
             <button
               type="button"
               onClick={() => setShowConfirm(false)}
-              className="flex-1 px-6 py-3 rounded-lg bg-slate-700 text-slate-300 font-bold active:bg-slate-600"
+              disabled={isSubmitting}
+              className="flex-1 px-6 py-3 rounded-lg bg-slate-700 text-slate-300 font-bold active:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               返回編輯
             </button>
-            <button
+            <ModalSaveButton
               type="button"
               onClick={performSubmit}
-              disabled={isSubmitting}
-              className="flex-1 px-6 py-3 rounded-lg bg-red-600 text-white font-bold active:bg-red-700 disabled:opacity-50"
+              loading={isSubmitting}
+              className="flex-1 px-6 py-3 rounded-lg bg-red-600 hover:bg-red-700 text-white font-bold active:bg-red-700"
             >
-              {isSubmitting ? '處理中...' : isUpload ? '確認上傳' : '確認新增'}
-            </button>
+              {isUpload ? '確認上傳' : '確認新增'}
+            </ModalSaveButton>
           </div>
         </div>
       </Modal>
@@ -161,8 +165,9 @@ export const SpellFormModal: React.FC<SpellFormModalProps> = ({
   }
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="2xl">
-      <div className={MODAL_CONTAINER_CLASS}>
+    <Modal isOpen={isOpen} onClose={onClose} size="2xl" disableBackdropClose={isSubmitting}>
+      <div className={`${MODAL_CONTAINER_CLASS} relative`}>
+        <LoadingOverlay visible={isSubmitting} />
         <h2 className="text-xl font-bold mb-5">
           {isUpload ? '上傳到資料庫' : editingSpell ? '編輯法術' : '新增法術到資料庫'}
         </h2>
@@ -416,19 +421,19 @@ export const SpellFormModal: React.FC<SpellFormModalProps> = ({
             >
               取消
             </button>
-            <button
+            <ModalSaveButton
               type="submit"
-              disabled={isSubmitting}
+              loading={isSubmitting}
               className={`flex-1 px-6 py-3 rounded-lg font-bold ${
                 isUpload
-                  ? 'bg-amber-600 text-white active:bg-amber-700'
+                  ? 'bg-amber-600 hover:bg-amber-700 text-white active:bg-amber-700'
                   : editingSpell 
-                    ? 'bg-blue-600 text-white active:bg-blue-700' 
-                    : 'bg-red-600 text-white active:bg-red-700'
-              } disabled:opacity-50`}
+                    ? 'bg-blue-600 hover:bg-blue-700 text-white active:bg-blue-700' 
+                    : 'bg-red-600 hover:bg-red-700 text-white active:bg-red-700'
+              }`}
             >
-            {isSubmitting ? '處理中...' : isUpload ? '上傳' : (editingSpell ? '儲存變更' : '新增法術')}
-            </button>
+            {isUpload ? '上傳' : (editingSpell ? '儲存變更' : '新增法術')}
+            </ModalSaveButton>
           </div>
         </form>
       </div>

@@ -5,6 +5,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { Modal } from './ui/Modal';
+import { ModalSaveButton } from './ui/ModalSaveButton';
+import { LoadingOverlay } from './ui/LoadingOverlay';
 import type { CharacterItem, ItemCategory, UpdateCharacterItemData } from '../services/itemService';
 import { getDisplayEquipmentKind } from '../services/itemService';
 import { EQUIPMENT_KINDS, EQUIPMENT_KIND_LABELS } from '../utils/equipmentConstants';
@@ -123,8 +125,9 @@ export const CharacterItemEditModal: React.FC<CharacterItemEditModalProps> = ({
   if (!characterItem) return null;
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="2xl">
-      <div className={MODAL_CONTAINER_CLASS}>
+    <Modal isOpen={isOpen} onClose={onClose} size="2xl" disableBackdropClose={isSubmitting}>
+      <div className={`${MODAL_CONTAINER_CLASS} relative`}>
+        <LoadingOverlay visible={isSubmitting} />
         <h2 className="text-xl font-bold mb-5">編輯物品</h2>
         
         <p className="text-slate-400 text-sm mb-4">
@@ -244,17 +247,18 @@ export const CharacterItemEditModal: React.FC<CharacterItemEditModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-6 py-3 rounded-lg bg-slate-700 text-slate-300 font-bold active:bg-slate-600"
+              disabled={isSubmitting}
+              className="flex-1 px-6 py-3 rounded-lg bg-slate-700 text-slate-300 font-bold active:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               取消
             </button>
-            <button
+            <ModalSaveButton
               type="submit"
-              disabled={isSubmitting}
-              className="flex-1 px-6 py-3 rounded-lg bg-blue-600 text-white font-bold active:bg-blue-700 disabled:opacity-50"
+              loading={isSubmitting}
+              className="flex-1 px-6 py-3 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-bold active:bg-blue-700"
             >
-              {isSubmitting ? '儲存中...' : '儲存修改'}
-            </button>
+              儲存修改
+            </ModalSaveButton>
           </div>
         </form>
       </div>
