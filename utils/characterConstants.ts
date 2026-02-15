@@ -23,7 +23,7 @@ export const SKILLS_MAP: { name: string; base: keyof CharacterStats['abilityScor
   { name: '觀察', base: 'wis' },
   { name: '醫術', base: 'wis' },
   { name: '察覺', base: 'wis' },
-  { name: '生存', base: 'wis' },
+  { name: '求生', base: 'wis' },
   { name: '欺瞞', base: 'cha' },
   { name: '威嚇', base: 'cha' },
   { name: '表演', base: 'cha' },
