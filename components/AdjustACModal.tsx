@@ -117,7 +117,6 @@ const AdjustACModal: React.FC<AdjustACModalProps> = ({
               type="number"
               value={attackRoll}
               onChange={(e) => setAttackRoll(e.target.value)}
-              placeholder="18"
               className={`flex-1 ${INPUT_CLASS} text-center text-2xl font-mono`}
               min="1"
               max="99"
