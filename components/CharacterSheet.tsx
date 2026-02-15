@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { CharacterStats, CustomRecord } from '../types';
 import { getProfBonus, formatDecimal } from '../utils/helpers';
-import { getFinalAbilityModifier, getFinalAbilityScore, getFinalSavingThrow, getFinalSkillBonus, getFinalCombatStat, getDefaultMaxHpBasic, type AbilityKey } from '../utils/characterAttributes';
+import { getFinalAbilityModifier, getFinalAbilityScore, getFinalSavingThrow, getFinalSkillBonus, getFinalCombatStat, getBasicCombatStat, getDefaultMaxHpBasic, type AbilityKey } from '../utils/characterAttributes';
 import { STAT_LABELS, SKILLS_MAP, ABILITY_KEYS } from '../utils/characterConstants';
 import { getAvailableClasses, getClassHitDie, formatClassDisplay, calculateHitDiceTotals } from '../utils/classUtils';
 import { PageContainer, Card, Button, Title, Subtitle, Input, BackButton } from './ui';
@@ -16,6 +16,7 @@ import RenownModal from './RenownModal';
 import CustomRecordModal from './CustomRecordModal';
 import CharacterInfoModal from './CharacterInfoModal';
 import MulticlassAddModal from './MulticlassAddModal';
+import CombatHPModal from './CombatHPModal';
 
 interface CharacterSheetProps {
   stats: CharacterStats;
@@ -28,6 +29,8 @@ interface CharacterSheetProps {
   onLevelOrClassesSaved?: () => Promise<void>;
   /** 將最大 HP 基礎值同步為公式值並寫入 DB（等級/職業變更後呼叫，使 refetch 後顯示正確） */
   onSyncMaxHpBasicFromFormula?: (maxHpBasic: number) => Promise<boolean>;
+  /** 儲存 HP 變更到後端（可選，與 CombatView 共用同一 saveHP 時會寫入 DB） */
+  onSaveHP?: (currentHP: number, temporaryHP?: number, maxHpBasic?: number) => Promise<boolean>;
   onSaveAbilityScores?: (abilityScores: CharacterStats['abilityScores']) => Promise<boolean>;
   onSaveCurrencyAndExp?: (gp: number, exp: number) => Promise<boolean>;
   onSaveExtraData?: (extraData: any) => Promise<boolean>;
@@ -43,6 +46,7 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
   onSaveCharacterBasicInfo,
   onLevelOrClassesSaved,
   onSyncMaxHpBasicFromFormula,
+  onSaveHP,
   onSaveAbilityScores,
   onSaveCurrencyAndExp,
   onSaveExtraData,
@@ -74,6 +78,7 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
   const [tempRenownTotalValue, setTempRenownTotalValue] = useState('');
 
   const [newRecord, setNewRecord] = useState({ name: '', value: '', note: '' });
+  const [isHPModalOpen, setIsHPModalOpen] = useState(false);
 
   const profBonus = getProfBonus(stats.level);
 
@@ -757,13 +762,61 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
             </button>
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            <div className={`w-14 h-14 rounded-full border-2 flex flex-col items-center justify-center shadow-lg shrink-0 transition-colors ${hpColorClass}`}>
+            <button
+              type="button"
+              onClick={() => setIsHPModalOpen(true)}
+              className={`w-14 h-14 rounded-full border-2 flex flex-col items-center justify-center shadow-lg shrink-0 transition-colors active:opacity-80 ${hpColorClass}`}
+            >
               <span className="text-xs opacity-60 font-black leading-none uppercase">HP</span>
               <span className="text-lg font-black leading-none">{stats.hp.current}/{finalMaxHp}</span>
-            </div>
+            </button>
           </div>
         </div>
       </div>
+
+      <CombatHPModal
+        isOpen={isHPModalOpen}
+        onClose={() => setIsHPModalOpen(false)}
+        currentHP={stats.hp.current}
+        temporaryHP={stats.hp.temp ?? 0}
+        maxHpBasic={getBasicCombatStat(stats, 'maxHp')}
+        maxHpBonus={(() => {
+          const storedBonus = typeof (stats as any).maxHp === 'object' && (stats as any).maxHp ? ((stats as any).maxHp.bonus ?? 0) : 0;
+          const fromSources = (stats.extraData?.statBonusSources ?? []).flatMap((src: any) => {
+            const v = (src.combatStats as any)?.maxHp ?? 0;
+            return v !== 0 ? [{ label: src.name, value: v }] : [];
+          });
+          const sumFromSources = fromSources.reduce((s: number, b: { value: number }) => s + b.value, 0);
+          return sumFromSources + storedBonus;
+        })()}
+        bonusSources={(() => {
+          const storedBonus = typeof (stats as any).maxHp === 'object' && (stats as any).maxHp ? ((stats as any).maxHp.bonus ?? 0) : 0;
+          const fromSources = (stats.extraData?.statBonusSources ?? []).flatMap((src: any) => {
+            const v = (src.combatStats as any)?.maxHp ?? 0;
+            return v !== 0 ? [{ label: src.name, value: v }] : [];
+          });
+          return [
+            ...fromSources,
+            ...(storedBonus !== 0 ? [{ label: '其他加值', value: storedBonus }] : []),
+          ];
+        })()}
+        defaultMaxHpBasic={getDefaultMaxHpBasic(stats)}
+        onSave={(current, temp, maxBasic) => {
+          setStats(prev => {
+            const bonus = typeof (prev as any).maxHp === 'object' && (prev as any).maxHp ? ((prev as any).maxHp.bonus ?? 0) : 0;
+            const newMax =
+              maxBasic !== undefined
+                ? (maxBasic === 0 ? getDefaultMaxHpBasic(prev) + bonus : maxBasic + bonus)
+                : prev.hp.max;
+            return {
+              ...prev,
+              hp: { ...prev.hp, current, temp, max: newMax },
+              ...(maxBasic !== undefined ? { maxHp: { basic: maxBasic, bonus } } : {}),
+            };
+          });
+          onSaveHP?.(current, temp, maxBasic)?.catch(e => console.error('❌ HP保存錯誤:', e));
+        }}
+      />
 
       <div className="grid grid-cols-2 gap-1.5">
         {ABILITY_KEYS.map(key => {

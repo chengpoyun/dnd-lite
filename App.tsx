@@ -932,6 +932,7 @@ const AuthenticatedApp: React.FC = () => {
                   onSaveCharacterBasicInfo={saveCharacterBasicInfo}
                   onLevelOrClassesSaved={refetchCharacterStats}
                   onSyncMaxHpBasicFromFormula={syncMaxHpBasicFromFormula}
+                  onSaveHP={saveHP}
                   onSaveAbilityScores={saveAbilityScores}
                   onSaveCurrencyAndExp={saveCurrencyAndExp}
                   onSaveExtraData={saveExtraData}
