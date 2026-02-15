@@ -47,11 +47,11 @@ export default function CombatHPModal({
 
   useEffect(() => {
     if (isOpen) {
-      setTempCurrent('');
-      setTempTemp('');
-      setTempBasic('');
+      setTempCurrent(currentHP.toString());
+      setTempTemp(temporaryHP.toString());
+      setTempBasic(maxHpBasic.toString());
     }
-  }, [isOpen]);
+  }, [isOpen, currentHP, temporaryHP, maxHpBasic]);
 
   const handleApply = () => {
     let finalCurrent = currentHP;
@@ -101,7 +101,6 @@ export default function CombatHPModal({
             <ModalInput
               value={tempCurrent}
               onChange={setTempCurrent}
-              placeholder={currentHP.toString()}
               className="text-2xl font-mono text-center w-full"
               autoFocus
             />
@@ -111,7 +110,6 @@ export default function CombatHPModal({
             <ModalInput
               value={tempTemp}
               onChange={setTempTemp}
-              placeholder={temporaryHP.toString()}
               className="text-2xl font-mono text-center w-full"
             />
           </div>
@@ -123,7 +121,6 @@ export default function CombatHPModal({
           <ModalInput
             value={tempBasic}
             onChange={setTempBasic}
-            placeholder={maxHpBasic.toString()}
             className="text-2xl font-mono flex-1"
           />
         </div>
