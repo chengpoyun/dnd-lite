@@ -25,6 +25,10 @@ export interface CreateAbilityData {
     abilityModifiers?: Record<string, number>;
     savingThrows?: Record<string, number>;
     skills?: Record<string, number>;
+    savingThrowAdvantage?: string[];
+    savingThrowDisadvantage?: string[];
+    skillAdvantage?: string[];
+    skillDisadvantage?: string[];
     combatStats?: {
       ac?: number;
       initiative?: number;

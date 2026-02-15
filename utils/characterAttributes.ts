@@ -230,6 +230,7 @@ export function getFinalSavingThrow(
 
 /**
  * 取得 18 技能加值 final = ability_mod + profLevel * profBonus + misc_bonus
+ * misc_bonus 來自 extraData.skillBonuses（後端聚合能力／物品 + DB misc）
  */
 export function getFinalSkillBonus(
   stats: CharacterStats,
@@ -241,6 +242,8 @@ export function getFinalSkillBonus(
   const profBonus = getProfBonus(stats.level ?? 1);
   const profLevel = (stats.proficiencies ?? {})[skillName] ?? 0;
   const miscBonus =
-    ((stats as any).skillBonuses as Record<string, number>)?.[skillName] ?? 0;
+    (stats.extraData?.skillBonuses as Record<string, number>)?.[skillName] ??
+    ((stats as any).skillBonuses as Record<string, number>)?.[skillName] ??
+    0;
   return mod + profLevel * profBonus + miscBonus;
 }

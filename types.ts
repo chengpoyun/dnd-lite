@@ -123,6 +123,14 @@ export interface CharacterStats {
       abilityModifiers?: Record<string, number>;
       savingThrows?: Record<string, number>;
       skills?: Record<string, number>;
+      /** 此來源給予優勢的豁免（能力 key：str/dex/...） */
+      savingThrowAdvantage?: string[];
+      /** 此來源給予劣勢的豁免 */
+      savingThrowDisadvantage?: string[];
+      /** 此來源給予優勢的技能（技能名稱） */
+      skillAdvantage?: string[];
+      /** 此來源給予劣勢的技能 */
+      skillDisadvantage?: string[];
       combatStats?: {
         ac?: number;
         initiative?: number;
@@ -134,6 +142,10 @@ export interface CharacterStats {
         spellDc?: number;
       };
     }[];
+    /** 依能力／物品聚合結算後的豁免優劣勢（reload 後由後端寫入） */
+    saveAdvantageDisadvantage?: Record<string, 'advantage' | 'normal' | 'disadvantage'>;
+    /** 依能力／物品聚合結算後的技能優劣勢 */
+    skillAdvantageDisadvantage?: Record<string, 'advantage' | 'normal' | 'disadvantage'>;
   };
 }
 

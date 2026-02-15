@@ -1,12 +1,7 @@
 import React from 'react';
 import { FinalTotalRow } from './FinalTotalRow';
 import { LabelInputRow } from './LabelInputRow';
-import { BonusSourcesList } from './BonusSourcesList';
-
-interface BonusSource {
-  label: string;
-  value: number;
-}
+import { BonusSourcesList, type BonusSourceItem } from './BonusSourcesList';
 
 interface SkillBonusBreakdownProps {
   /** 顯示在基礎值 input 的值（字串，父層負責 state） */
@@ -14,8 +9,8 @@ interface SkillBonusBreakdownProps {
   onBasicChange: (value: string) => void;
   /** 基礎值說明文字，例如「基礎值為力量調整值 + 熟練/專精加值 + 調整值加成」 */
   description: string;
-  /** 額外加值來源列表（可多行） */
-  bonusSources: BonusSource[];
+  /** 額外加值來源列表（可多行；hideValue 時僅顯示 label） */
+  bonusSources: BonusSourceItem[];
   /** 最終總計（父層計算 basic + 所有 bonus） */
   finalTotal: number;
 }

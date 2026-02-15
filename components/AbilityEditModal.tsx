@@ -18,6 +18,8 @@ import type { AbilityKey } from '../utils/characterAttributes';
 interface BonusSource {
   label: string;
   value: number;
+  /** 為 true 時僅顯示 label，數值欄顯示 —（優劣勢來源） */
+  hideValue?: boolean;
 }
 
 interface AbilityEditModalProps {
@@ -263,16 +265,20 @@ export const AbilityEditModal: React.FC<AbilityEditModalProps> = ({
                   className="flex items-center justify-between"
                 >
                   <span className="truncate">{b.label}</span>
-                  <span
-                    className={
-                      b.value >= 0
-                        ? 'text-emerald-400 font-mono'
-                        : 'text-rose-400 font-mono'
-                    }
-                  >
-                    {b.value >= 0 ? '+' : ''}
-                    {b.value}
-                  </span>
+                  {b.hideValue ? (
+                    <span className="text-slate-500">—</span>
+                  ) : (
+                    <span
+                      className={
+                        b.value >= 0
+                          ? 'text-emerald-400 font-mono'
+                          : 'text-rose-400 font-mono'
+                      }
+                    >
+                      {b.value >= 0 ? '+' : ''}
+                      {b.value}
+                    </span>
+                  )}
                 </div>
               ))}
             </div>

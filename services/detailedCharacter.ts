@@ -17,6 +17,7 @@ import {
   getSpecialEffectCombatBonus,
   type SpecialEffectContext,
 } from '../utils/specialEffects'
+import { computeSaveAndSkillAdvantageDisadvantage } from '../utils/advantageDisadvantage'
 
 /** 能力／物品 stat_bonuses 聚合結果（供 buildCharacterStats / 前端顯示用） */
 export interface AggregatedStatBonuses {
@@ -43,8 +44,16 @@ export interface AggregatedStatBonuses {
     abilityModifiers?: Record<string, number>;
     savingThrows?: Record<string, number>;
     skills?: Record<string, number>;
+    savingThrowAdvantage?: string[];
+    savingThrowDisadvantage?: string[];
+    skillAdvantage?: string[];
+    skillDisadvantage?: string[];
     combatStats?: AggregatedStatBonuses['combatStats'];
   }[];
+  /** 依 bySource 結算後的豁免優劣勢 */
+  saveAdvantageDisadvantage?: Record<string, 'advantage' | 'normal' | 'disadvantage'>;
+  /** 依 bySource 結算後的技能優劣勢 */
+  skillAdvantageDisadvantage?: Record<string, 'advantage' | 'normal' | 'disadvantage'>;
 }
 
 // 詳細角色資料服務
@@ -336,41 +345,21 @@ export class DetailedCharacterService {
           };
           const aggregated = await this.collectSourceBonusesForCharacter(character.id, specialEffectContext);
           const rawExtra = (currentStats as any).extra_data ?? (currentStats as any).extraData ?? {};
-          const existingSkillBonuses =
-            rawExtra && typeof rawExtra.skillBonuses === 'object'
-              ? (rawExtra.skillBonuses as Record<string, number>)
-              : {};
-          const existingAbilityBonuses =
-            rawExtra && typeof rawExtra.abilityBonuses === 'object'
-              ? (rawExtra.abilityBonuses as Record<string, number>)
-              : {};
-          const existingModifierBonuses =
-            rawExtra && typeof rawExtra.modifierBonuses === 'object'
-              ? (rawExtra.modifierBonuses as Record<string, number>)
-              : {};
-
-          const mergedSkillBonuses: Record<string, number> = { ...existingSkillBonuses };
-          const fromSources = aggregated.skills || {};
-          for (const [k, v] of Object.entries(fromSources)) {
+          // 僅使用本次彙總結果，不疊加 DB 既有值，避免重複計算與「其他加值」差額
+          const mergedSkillBonuses: Record<string, number> = {};
+          for (const [k, v] of Object.entries(aggregated.skills || {})) {
             const num = typeof v === 'number' && Number.isFinite(v) ? v : 0;
-            if (!num) continue;
-            mergedSkillBonuses[k] = (mergedSkillBonuses[k] ?? 0) + num;
+            if (num !== 0) mergedSkillBonuses[k] = num;
           }
-
-          const mergedAbilityBonuses: Record<string, number> = { ...existingAbilityBonuses };
-          const abilityFromSources = aggregated.abilityScores || {};
-          for (const [k, v] of Object.entries(abilityFromSources)) {
+          const mergedAbilityBonuses: Record<string, number> = {};
+          for (const [k, v] of Object.entries(aggregated.abilityScores || {})) {
             const num = typeof v === 'number' && Number.isFinite(v) ? v : 0;
-            if (!num) continue;
-            mergedAbilityBonuses[k] = (mergedAbilityBonuses[k] ?? 0) + num;
+            if (num !== 0) mergedAbilityBonuses[k] = num;
           }
-
-          const mergedModifierBonuses: Record<string, number> = { ...existingModifierBonuses };
-          const modifierFromSources = aggregated.abilityModifiers || {};
-          for (const [k, v] of Object.entries(modifierFromSources)) {
+          const mergedModifierBonuses: Record<string, number> = {};
+          for (const [k, v] of Object.entries(aggregated.abilityModifiers || {})) {
             const num = typeof v === 'number' && Number.isFinite(v) ? v : 0;
-            if (!num) continue;
-            mergedModifierBonuses[k] = (mergedModifierBonuses[k] ?? 0) + num;
+            if (num !== 0) mergedModifierBonuses[k] = num;
           }
 
           (currentStats as any).extra_data = {
@@ -379,6 +368,8 @@ export class DetailedCharacterService {
             modifierBonuses: mergedModifierBonuses,
             skillBonuses: mergedSkillBonuses,
             statBonusSources: aggregated.bySource,
+            saveAdvantageDisadvantage: aggregated.saveAdvantageDisadvantage ?? {},
+            skillAdvantageDisadvantage: aggregated.skillAdvantageDisadvantage ?? {},
           };
         } catch (e) {
           console.error('collectSourceBonusesForCharacter 失敗，略過加值聚合：', e);
@@ -1587,6 +1578,10 @@ export class DetailedCharacterService {
           const savingThrows = hasBonuses ? bonuses.savingThrows : undefined
           const skills = hasBonuses ? bonuses.skills : undefined
           const combatStats = hasBonuses ? bonuses.combatStats : undefined
+          const savingThrowAdvantage = hasBonuses && Array.isArray(bonuses.savingThrowAdvantage) ? bonuses.savingThrowAdvantage : undefined
+          const savingThrowDisadvantage = hasBonuses && Array.isArray(bonuses.savingThrowDisadvantage) ? bonuses.savingThrowDisadvantage : undefined
+          const skillAdvantage = hasBonuses && Array.isArray(bonuses.skillAdvantage) ? bonuses.skillAdvantage : undefined
+          const skillDisadvantage = hasBonuses && Array.isArray(bonuses.skillDisadvantage) ? bonuses.skillDisadvantage : undefined
 
           const perSource: {
             id: string
@@ -1596,6 +1591,10 @@ export class DetailedCharacterService {
             abilityModifiers?: Record<string, number>
             savingThrows?: Record<string, number>
             skills?: Record<string, number>
+            savingThrowAdvantage?: string[]
+            savingThrowDisadvantage?: string[]
+            skillAdvantage?: string[]
+            skillDisadvantage?: string[]
             combatStats?: AggregatedStatBonuses['combatStats']
           } = {
             id: row.id,
@@ -1657,7 +1656,13 @@ export class DetailedCharacterService {
             }
           }
 
-          if (perSource.abilityScores || perSource.abilityModifiers || perSource.savingThrows || perSource.skills || perSource.combatStats) {
+          if (savingThrowAdvantage?.length) perSource.savingThrowAdvantage = savingThrowAdvantage
+          if (savingThrowDisadvantage?.length) perSource.savingThrowDisadvantage = savingThrowDisadvantage
+          if (skillAdvantage?.length) perSource.skillAdvantage = skillAdvantage
+          if (skillDisadvantage?.length) perSource.skillDisadvantage = skillDisadvantage
+
+          if (perSource.abilityScores || perSource.abilityModifiers || perSource.savingThrows || perSource.skills || perSource.combatStats ||
+              perSource.savingThrowAdvantage || perSource.savingThrowDisadvantage || perSource.skillAdvantage || perSource.skillDisadvantage) {
             totals.bySource.push(perSource)
           }
         }
@@ -1703,6 +1708,10 @@ export class DetailedCharacterService {
           const savingThrows = bonuses.savingThrows
           const skills = bonuses.skills
           const combatStats = bonuses.combatStats
+          const savingThrowAdvantage = Array.isArray(bonuses.savingThrowAdvantage) ? bonuses.savingThrowAdvantage : undefined
+          const savingThrowDisadvantage = Array.isArray(bonuses.savingThrowDisadvantage) ? bonuses.savingThrowDisadvantage : undefined
+          const skillAdvantage = Array.isArray(bonuses.skillAdvantage) ? bonuses.skillAdvantage : undefined
+          const skillDisadvantage = Array.isArray(bonuses.skillDisadvantage) ? bonuses.skillDisadvantage : undefined
 
           const perSource: {
             id: string
@@ -1712,6 +1721,10 @@ export class DetailedCharacterService {
             abilityModifiers?: Record<string, number>
             savingThrows?: Record<string, number>
             skills?: Record<string, number>
+            savingThrowAdvantage?: string[]
+            savingThrowDisadvantage?: string[]
+            skillAdvantage?: string[]
+            skillDisadvantage?: string[]
             combatStats?: AggregatedStatBonuses['combatStats']
           } = {
             id: row.id,
@@ -1764,11 +1777,21 @@ export class DetailedCharacterService {
             }
           }
 
-          if (perSource.abilityScores || perSource.abilityModifiers || perSource.savingThrows || perSource.skills || perSource.combatStats) {
+          if (savingThrowAdvantage?.length) perSource.savingThrowAdvantage = savingThrowAdvantage
+          if (savingThrowDisadvantage?.length) perSource.savingThrowDisadvantage = savingThrowDisadvantage
+          if (skillAdvantage?.length) perSource.skillAdvantage = skillAdvantage
+          if (skillDisadvantage?.length) perSource.skillDisadvantage = skillDisadvantage
+
+          if (perSource.abilityScores || perSource.abilityModifiers || perSource.savingThrows || perSource.skills || perSource.combatStats ||
+              perSource.savingThrowAdvantage || perSource.savingThrowDisadvantage || perSource.skillAdvantage || perSource.skillDisadvantage) {
             totals.bySource.push(perSource)
           }
         }
       }
+
+      const resolved = computeSaveAndSkillAdvantageDisadvantage(totals.bySource)
+      totals.saveAdvantageDisadvantage = resolved.saveAdvantageDisadvantage
+      totals.skillAdvantageDisadvantage = resolved.skillAdvantageDisadvantage
     } catch (error) {
       console.error('collectSourceBonusesForCharacter: 聚合 stat_bonuses 時發生錯誤:', error)
       // 發生錯誤時回傳目前已累計的數值（通常是全空），避免整體流程崩潰

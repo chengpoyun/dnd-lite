@@ -193,6 +193,12 @@ export function buildCharacterStats(characterData: any, previousStats: Character
           statBonusSources: Array.isArray((ed as any)?.statBonusSources)
             ? ((ed as any).statBonusSources as any[])
             : [],
+          saveAdvantageDisadvantage: (ed as any)?.saveAdvantageDisadvantage && typeof (ed as any).saveAdvantageDisadvantage === 'object'
+            ? (ed as any).saveAdvantageDisadvantage
+            : undefined,
+          skillAdvantageDisadvantage: (ed as any)?.skillAdvantageDisadvantage && typeof (ed as any).skillAdvantageDisadvantage === 'object'
+            ? (ed as any).skillAdvantageDisadvantage
+            : undefined,
         },
         attacks
       };

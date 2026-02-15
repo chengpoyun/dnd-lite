@@ -8,6 +8,7 @@ import { HybridDataManager } from '../services/hybridDataManager';
 import { MulticlassService } from '../services/multiclassService';
 import { resetAbilityUses } from '../services/abilityService';
 import { PageContainer, Card, Button, Title, Subtitle, Input } from './ui';
+import { AdvantageDisadvantageBorder } from './ui/AdvantageDisadvantageBorder';
 import { STYLES } from '../styles/common';
 import type { CharacterCombatAction as DatabaseCombatItem } from '../lib/supabase';
 import { isSpellcaster } from '../utils/spellUtils';
@@ -971,16 +972,18 @@ export const CombatView: React.FC<CombatViewProps> = ({
                   {ABILITY_KEYS.map(key => {
                     const saveBonus = getFinalSavingThrow(stats, key);
                     const isSaveProf = saveProfs.includes(key);
+                    const saveVariant = (stats.extraData?.saveAdvantageDisadvantage?.[key] as 'advantage' | 'normal' | 'disadvantage') ?? 'normal';
                     return (
-                      <div
-                        key={key}
-                        className={`flex items-center justify-between px-2 py-1.5 rounded-lg border text-sm ${isSaveProf ? 'bg-amber-500/10 border-amber-500/30' : 'bg-slate-800/50 border-slate-700/50'}`}
-                      >
-                        <span className="font-bold text-slate-300">{STAT_LABELS[key]}豁免</span>
-                        <span className={`font-mono font-black ${saveBonus >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
-                          {saveBonus >= 0 ? '+' : ''}{saveBonus}
-                        </span>
-                      </div>
+                      <AdvantageDisadvantageBorder key={key} variant={saveVariant}>
+                        <div
+                          className={`flex items-center justify-between px-2 py-1.5 rounded-lg border text-sm ${isSaveProf ? 'bg-amber-500/10 border-amber-500/30' : 'bg-slate-800/50 border-slate-700/50'}`}
+                        >
+                          <span className="font-bold text-slate-300">{STAT_LABELS[key]}豁免</span>
+                          <span className={`font-mono font-black ${saveBonus >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                            {saveBonus >= 0 ? '+' : ''}{saveBonus}
+                          </span>
+                        </div>
+                      </AdvantageDisadvantageBorder>
                     );
                   })}
                 </div>
@@ -992,16 +995,18 @@ export const CombatView: React.FC<CombatViewProps> = ({
                   {SKILLS_MAP.map(skill => {
                     const bonus = getFinalSkillBonus(stats, skill.name);
                     const profLevel = profs[skill.name] || 0;
+                    const skillVariant = (stats.extraData?.skillAdvantageDisadvantage?.[skill.name] as 'advantage' | 'normal' | 'disadvantage') ?? 'normal';
                     return (
-                      <div
-                        key={skill.name}
-                        className={`flex items-center justify-between px-2 py-1.5 rounded-lg border text-sm ${profLevel > 0 ? 'bg-amber-500/10 border-amber-500/30' : 'bg-slate-800/50 border-slate-700/50'}`}
-                      >
-                        <span className="font-bold text-slate-300 truncate">{skill.name}</span>
-                        <span className={`font-mono font-black shrink-0 ml-1 ${bonus >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
-                          {bonus >= 0 ? '+' : ''}{bonus}
-                        </span>
-                      </div>
+                      <AdvantageDisadvantageBorder key={skill.name} variant={skillVariant}>
+                        <div
+                          className={`flex items-center justify-between px-2 py-1.5 rounded-lg border text-sm ${profLevel > 0 ? 'bg-amber-500/10 border-amber-500/30' : 'bg-slate-800/50 border-slate-700/50'}`}
+                        >
+                          <span className="font-bold text-slate-300 truncate">{skill.name}</span>
+                          <span className={`font-mono font-black shrink-0 ml-1 ${bonus >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                            {bonus >= 0 ? '+' : ''}{bonus}
+                          </span>
+                        </div>
+                      </AdvantageDisadvantageBorder>
                     );
                   })}
                 </div>

@@ -14,6 +14,8 @@ import {
 export interface BonusSourceItem {
   label: string;
   value: number;
+  /** 為 true 時僅顯示 label，數值欄顯示 —（用於優劣勢來源列） */
+  hideValue?: boolean;
 }
 
 interface BonusSourcesListProps {
@@ -38,16 +40,20 @@ export const BonusSourcesList: React.FC<BonusSourcesListProps> = ({
         {sources.map((s, i) => (
           <div key={i} className={BONUS_SOURCES_ROW_CLASS}>
             <span className={BONUS_SOURCES_LABEL_CLASS}>{s.label}</span>
-            <span
-              className={
-                s.value >= 0
-                  ? BONUS_SOURCES_VALUE_POSITIVE_CLASS
-                  : BONUS_SOURCES_VALUE_NEGATIVE_CLASS
-              }
-            >
-              {s.value >= 0 ? '+' : ''}
-              {s.value}
-            </span>
+            {s.hideValue ? (
+              <span className={BONUS_SOURCES_LABEL_CLASS}>—</span>
+            ) : (
+              <span
+                className={
+                  s.value >= 0
+                    ? BONUS_SOURCES_VALUE_POSITIVE_CLASS
+                    : BONUS_SOURCES_VALUE_NEGATIVE_CLASS
+                }
+              >
+                {s.value >= 0 ? '+' : ''}
+                {s.value}
+              </span>
+            )}
           </div>
         ))}
       </div>

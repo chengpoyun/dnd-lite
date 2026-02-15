@@ -5,6 +5,7 @@ import { getFinalAbilityModifier, getFinalAbilityScore, getFinalSavingThrow, get
 import { STAT_LABELS, SKILLS_MAP, ABILITY_KEYS } from '../utils/characterConstants';
 import { getAvailableClasses, getClassHitDie, formatClassDisplay, calculateHitDiceTotals } from '../utils/classUtils';
 import { PageContainer, Card, Button, Title, Subtitle, Input, BackButton } from './ui';
+import { AdvantageDisadvantageBorder } from './ui/AdvantageDisadvantageBorder';
 import { STYLES, combineStyles } from '../styles/common';
 import { SkillAdjustModal } from './SkillAdjustModal';
 import { AbilityEditModal } from './AbilityEditModal';
@@ -770,30 +771,32 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
           const mod = getFinalAbilityModifier(stats, key);
           const saveBonus = getFinalSavingThrow(stats, key);
           const isSaveProf = (stats.savingProficiencies || []).includes(key);
+          const saveVariant = (stats.extraData?.saveAdvantageDisadvantage?.[key] as 'advantage' | 'normal' | 'disadvantage') ?? 'normal';
           return (
-            <button
-              key={key}
-              type="button"
-              onClick={() => {
-                setActiveAbilityKey(key);
-                setActiveModal('ability_detail');
-              }}
-              className="bg-slate-800 p-2 rounded-lg border border-slate-700 flex items-center gap-2 active:bg-slate-700 shadow-sm transition-colors w-full text-left"
-            >
-              <div className="w-12 flex flex-col items-center justify-center border-r border-slate-700/50 pr-2 shrink-0">
-                <span className="text-base font-black text-slate-300 leading-tight text-center">{STAT_LABELS[key]}</span>
-              </div>
-              <div className="flex-1 flex flex-col justify-center">
-                <div className="flex items-center gap-1.5 leading-none mb-0.5">
-                  <span className="text-lg font-fantasy text-amber-400 font-bold">{score}</span>
-                  <span className="text-base font-bold text-slate-400">({mod >= 0 ? '+' : ''}{mod})</span>
+            <AdvantageDisadvantageBorder key={key} variant={saveVariant}>
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveAbilityKey(key);
+                  setActiveModal('ability_detail');
+                }}
+                className="bg-slate-800 p-2 rounded-lg border border-slate-700 flex items-center gap-2 active:bg-slate-700 shadow-sm transition-colors w-full text-left"
+              >
+                <div className="w-12 flex flex-col items-center justify-center border-r border-slate-700/50 pr-2 shrink-0">
+                  <span className="text-base font-black text-slate-300 leading-tight text-center">{STAT_LABELS[key]}</span>
                 </div>
-                <div className={`flex items-center gap-1.5 rounded px-1 -ml-1 ${isSaveProf ? 'bg-amber-500/10' : ''}`}>
-                  <span className="text-xs text-slate-500 uppercase font-black tracking-tighter">豁免</span>
-                  <span className={`text-base font-bold ${isSaveProf ? 'text-amber-500' : 'text-slate-500'}`}>{saveBonus >= 0 ? '+' : ''}{saveBonus}</span>
+                <div className="flex-1 flex flex-col justify-center">
+                  <div className="flex items-center gap-1.5 leading-none mb-0.5">
+                    <span className="text-lg font-fantasy text-amber-400 font-bold">{score}</span>
+                    <span className="text-base font-bold text-slate-400">({mod >= 0 ? '+' : ''}{mod})</span>
+                  </div>
+                  <div className={`flex items-center gap-1.5 rounded px-1 -ml-1 ${isSaveProf ? 'bg-amber-500/10' : ''}`}>
+                    <span className="text-xs text-slate-500 uppercase font-black tracking-tighter">豁免</span>
+                    <span className={`text-base font-bold ${isSaveProf ? 'text-amber-500' : 'text-slate-500'}`}>{saveBonus >= 0 ? '+' : ''}{saveBonus}</span>
+                  </div>
                 </div>
-              </div>
-            </button>
+              </button>
+            </AdvantageDisadvantageBorder>
           );
         })}
       </div>
@@ -817,19 +820,21 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
                 ? overrideBasic +
                   (((stats.extraData as any)?.skillBonuses as Record<string, number> | undefined)?.[skill.name] ?? 0)
                 : getFinalSkillBonus(stats, skill.name);
+            const skillVariant = (stats.extraData?.skillAdvantageDisadvantage?.[skill.name] as 'advantage' | 'normal' | 'disadvantage') ?? 'normal';
             return (
-              <Button
-                key={skill.name}
-                variant="ghost"
-                onClick={() => handleSkillClick(skill)}
-                className={`!px-2 !py-0 flex items-center justify-between transition-all h-9 ${profLevel > 0 ? 'bg-amber-500/10 border-amber-500/40 shadow-sm' : 'bg-slate-800/30 border-slate-800'}`}
-              >
-                <div className="flex items-center gap-1 min-w-0 flex-1">
-                   <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${profLevel === 1 ? 'bg-amber-500' : profLevel === 2 ? 'bg-amber-500 shadow-[0_0_5px_rgba(245,158,11,1)] ring-1 ring-amber-300' : 'bg-slate-700 opacity-30'}`} />
-                   <span className={`text-base font-bold leading-none truncate tracking-tighter ${profLevel > 0 ? 'text-amber-400' : 'text-slate-500'}`}>{skill.name}</span>
-                </div>
-                <span className={`text-2xl font-mono font-black leading-none shrink-0 pl-1 ${profLevel > 0 ? 'text-white' : 'text-slate-600'}`}>{bonus >= 0 ? '+' : ''}{bonus}</span>
-              </Button>
+              <AdvantageDisadvantageBorder key={skill.name} variant={skillVariant}>
+                <Button
+                  variant="ghost"
+                  onClick={() => handleSkillClick(skill)}
+                  className={`!px-2 !py-0 flex items-center justify-between transition-all h-9 ${profLevel > 0 ? 'bg-amber-500/10 border-amber-500/40 shadow-sm' : 'bg-slate-800/30 border-slate-800'}`}
+                >
+                  <div className="flex items-center gap-1 min-w-0 flex-1">
+                     <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${profLevel === 1 ? 'bg-amber-500' : profLevel === 2 ? 'bg-amber-500 shadow-[0_0_5px_rgba(245,158,11,1)] ring-1 ring-amber-300' : 'bg-slate-700 opacity-30'}`} />
+                     <span className={`text-base font-bold leading-none truncate tracking-tighter ${profLevel > 0 ? 'text-amber-400' : 'text-slate-500'}`}>{skill.name}</span>
+                  </div>
+                  <span className={`text-2xl font-mono font-black leading-none shrink-0 pl-1 ${profLevel > 0 ? 'text-white' : 'text-slate-600'}`}>{bonus >= 0 ? '+' : ''}{bonus}</span>
+                </Button>
+              </AdvantageDisadvantageBorder>
             );
           })}
         </div>
@@ -914,12 +919,22 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
               selectedSkill.name
             ] ?? null
           }
-          skillBonusSources={(
-            stats.extraData?.statBonusSources ?? []
-          ).flatMap((src: any) => {
-            const v = (src.skills as Record<string, number> | undefined)?.[selectedSkill.name] ?? 0;
-            return v !== 0 ? [{ label: src.name, value: v }] : [];
-          })}
+          skillBonusSources={(() => {
+            const fromSources = (stats.extraData?.statBonusSources ?? []).flatMap((src: any) => {
+              const v = (src.skills as Record<string, number> | undefined)?.[selectedSkill.name] ?? 0;
+              return v !== 0 ? [{ label: src.name, value: v }] : [];
+            });
+            const advNames = (stats.extraData?.statBonusSources ?? [])
+              .filter((src: any) => src.skillAdvantage?.includes(selectedSkill.name))
+              .map((src: any) => src.name);
+            const disNames = (stats.extraData?.statBonusSources ?? [])
+              .filter((src: any) => src.skillDisadvantage?.includes(selectedSkill.name))
+              .map((src: any) => src.name);
+            const extra: { label: string; value: number; hideValue?: boolean }[] = [];
+            if (advNames.length) extra.push({ label: `優勢：${advNames.join('、')}`, value: 0, hideValue: true });
+            if (disNames.length) extra.push({ label: `劣勢：${disNames.join('、')}`, value: 0, hideValue: true });
+            return [...fromSources, ...extra];
+          })()}
           miscBonus={
             ((stats.extraData as any)?.skillBonuses as Record<string, number> | undefined)?.[
               selectedSkill.name
@@ -996,7 +1011,7 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
             return fromAbilities;
           })()}
           saveBonusSources={(() => {
-            const sources: { label: string; value: number }[] = [];
+            const sources: { label: string; value: number; hideValue?: boolean }[] = [];
             const baseBonus =
               ((stats as any).saveBonuses as Record<string, number>)?.[
                 activeAbilityKey
@@ -1014,6 +1029,14 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
                   ? [{ label: src.name, value: v }]
                   : [];
               }) ?? [];
+            const advNames = stats.extraData?.statBonusSources
+              ?.filter((src) => (src as any).savingThrowAdvantage?.includes(activeAbilityKey))
+              .map((src) => src.name) ?? [];
+            const disNames = stats.extraData?.statBonusSources
+              ?.filter((src) => (src as any).savingThrowDisadvantage?.includes(activeAbilityKey))
+              .map((src) => src.name) ?? [];
+            if (advNames.length) sources.push({ label: `優勢：${advNames.join('、')}`, value: 0, hideValue: true });
+            if (disNames.length) sources.push({ label: `劣勢：${disNames.join('、')}`, value: 0, hideValue: true });
             return [...sources, ...fromAbilities];
           })()}
           isSaveProficient={
