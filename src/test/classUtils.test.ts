@@ -520,7 +520,7 @@ describe('classUtils - D&D 5E 職業工具函數', () => {
         initiative: 2,
         speed: 30,
         abilityScores: { str: 16, dex: 14, con: 16, int: 14, wis: 12, cha: 10 },
-        proficiencies: { "運動": 1, "奧秘": 1 },
+        proficiencies: { "運動": 1, "奧術": 1 },
         savingProficiencies: ["str", "con"],
         downtime: 15,
         renown: { used: 1, total: 5 },

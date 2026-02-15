@@ -14,7 +14,7 @@ export const SKILLS_MAP: { name: string; base: keyof CharacterStats['abilityScor
   { name: '特技', base: 'dex' },
   { name: '巧手', base: 'dex' },
   { name: '隱匿', base: 'dex' },
-  { name: '奧秘', base: 'int' },
+  { name: '奧術', base: 'int' },
   { name: '歷史', base: 'int' },
   { name: '調查', base: 'int' },
   { name: '自然', base: 'int' },
