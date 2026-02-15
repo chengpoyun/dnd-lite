@@ -192,9 +192,10 @@ const AddDamageModal: React.FC<AddDamageModalProps> = ({
         originalValue: e.originalDamage
       }));
 
-      let result = { success: true as boolean, error: undefined as string | undefined };
+      let result: { success: boolean; error: string | undefined } = { success: true, error: undefined };
       if (updates.length > 0) {
-        result = await CombatService.updateDamageLogBatch(monsterId, updates);
+        const batchResult = await CombatService.updateDamageLogBatch(monsterId, updates);
+        result = { success: batchResult.success, error: batchResult.error };
         if (!result.success) {
           showError(result.error || '更新傷害失敗');
           setIsSubmitting(false);
@@ -214,9 +215,10 @@ const AddDamageModal: React.FC<AddDamageModalProps> = ({
             originalValue: e.originalDamage
           }));
         if (newEntries.length > 0) {
-          result = await CombatService.addDamage(monsterId, newEntries, {
+          const addResult = await CombatService.addDamage(monsterId, newEntries, {
             createdAt: editingLogs[0].created_at
           });
+          result = { success: addResult.success, error: addResult.error };
           if (result.success) {
             const resistancesToUpdate: Record<string, ResistanceType> = {};
             newEntries.forEach(e => {
@@ -234,7 +236,8 @@ const AddDamageModal: React.FC<AddDamageModalProps> = ({
       // 刪除的列（編輯時少掉的列）
       if (calculatedEntries.length < editingLogs.length && result.success) {
         const idsToDelete = editingLogs.slice(calculatedEntries.length).map(l => l.id);
-        result = await CombatService.deleteDamageLogBatch(idsToDelete, monsterId);
+        const delResult = await CombatService.deleteDamageLogBatch(idsToDelete, monsterId);
+        result = { success: delResult.success, error: delResult.error };
       }
 
       if (result.success) {

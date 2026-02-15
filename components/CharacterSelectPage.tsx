@@ -190,7 +190,7 @@ export const CharacterSelectPage: React.FC<CharacterSelectPageProps> = ({
                     {character.character_class || (character as any).class || '戰士'} 等級 {character.level}
                   </p>
                   <p className={combineStyles(STYLES.text.muted, 'mt-0.5 sm:mt-1')}>
-                    最後更新: {formatDate(character.updated_at || character.created_at || Date.now())}
+                    最後更新: {formatDate(new Date((character.updated_at || character.created_at) as string | number || Date.now()))}
                   </p>
                 </div>
               </div>
@@ -266,7 +266,7 @@ export const CharacterSelectPage: React.FC<CharacterSelectPageProps> = ({
         </div>
         ) : (
           <Card className="p-4 sm:p-6">
-            <Subtitle text="創建新角色" className="mb-3 sm:mb-4" />
+            <Subtitle className="mb-3 sm:mb-4">創建新角色</Subtitle>
             
             <div className="flex flex-col sm:flex-row gap-3">
               <Input
@@ -306,7 +306,6 @@ export const CharacterSelectPage: React.FC<CharacterSelectPageProps> = ({
                   }}
                   disabled={!newCharacterName.trim() || isCreating}
                   variant="primary"
-                  size="md"
                 >
                   {isCreating ? '創建中...' : '創建角色'}
                 </Button>
@@ -317,7 +316,6 @@ export const CharacterSelectPage: React.FC<CharacterSelectPageProps> = ({
                     setNewCharacterName('')
                   }}
                   variant="ghost"
-                  size="md"
                   disabled={isCreating}
                 >
                   取消

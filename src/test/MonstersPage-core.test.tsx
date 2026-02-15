@@ -65,7 +65,9 @@ describe('MonstersPage - 戰鬥會話生命週期管理', () => {
           is_active: true,
           last_updated: '2026-02-01T10:00:00Z',
           created_at: '2026-02-01T10:00:00Z',
-          ended_at: null
+          ended_at: null,
+          user_id: null,
+          anonymous_id: null
         },
         monsters: []
       });
@@ -114,7 +116,7 @@ describe('MonstersPage - 戰鬥會話生命週期管理', () => {
     });
 
     it('應使用已登入用戶的 userId', async () => {
-      const mockUser: AuthUser = { id: 'user-123', email: 'test@example.com' };
+      const mockUser: AuthUser = { id: 'user-123', email: 'test@example.com', full_name: undefined, avatar_url: undefined };
       setupMockAuth(mockUser);
 
       vi.mocked(CombatService.createSession).mockResolvedValue({
@@ -123,7 +125,7 @@ describe('MonstersPage - 戰鬥會話生命週期管理', () => {
       });
       vi.mocked(CombatService.getCombatData).mockResolvedValue({
         success: true,
-        session: { id: '1', session_code: 'ABC123', is_active: true, last_updated: '2026-02-01T10:00:00Z', created_at: '2026-02-01T10:00:00Z', ended_at: null },
+        session: { id: '1', session_code: 'ABC123', is_active: true, last_updated: '2026-02-01T10:00:00Z', created_at: '2026-02-01T10:00:00Z', ended_at: null, user_id: null, anonymous_id: null },
         monsters: []
       });
 
@@ -157,7 +159,9 @@ describe('MonstersPage - 戰鬥會話生命週期管理', () => {
           is_active: true,
           last_updated: '2026-02-01T10:00:00Z',
           created_at: '2026-02-01T10:00:00Z',
-          ended_at: null
+          ended_at: null,
+          user_id: null,
+          anonymous_id: null
         },
         monsters: []
       });
@@ -265,6 +269,7 @@ describe('MonstersPage - 資料同步與衝突處理', () => {
           is_dead: false,
           created_at: '2026-02-01T10:00:00Z',
           resistances: {},
+          notes: null,
           damage_logs: []
         }
       ];
@@ -283,7 +288,9 @@ describe('MonstersPage - 資料同步與衝突處理', () => {
             is_active: true,
             last_updated: '2026-02-01T10:00:00Z',
             created_at: '2026-02-01T10:00:00Z',
-            ended_at: null
+            ended_at: null,
+            user_id: null,
+            anonymous_id: null
           },
           monsters: []
         })
@@ -295,7 +302,9 @@ describe('MonstersPage - 資料同步與衝突處理', () => {
             is_active: true,
             last_updated: '2026-02-01T10:05:00Z',
             created_at: '2026-02-01T10:00:00Z',
-            ended_at: null
+            ended_at: null,
+            user_id: null,
+            anonymous_id: null
           },
           monsters: mockMonsters
         });
@@ -336,21 +345,25 @@ describe('MonstersPage - 資料同步與衝突處理', () => {
             is_active: true,
             last_updated: '2026-02-01T10:00:00Z',
             created_at: '2026-02-01T10:00:00Z',
-            ended_at: null
+            ended_at: null,
+            user_id: null,
+            anonymous_id: null
           },
           monsters: []
         })
         .mockResolvedValueOnce({
           success: true,
-          session: {
-            id: '1',
-            session_code: 'ABC123',
-            is_active: false, // 戰鬥已結束
-            last_updated: '2026-02-01T10:10:00Z',
-            created_at: '2026-02-01T10:00:00Z',
-            ended_at: '2026-02-01T10:10:00Z'
-          },
-          monsters: []
+session: {
+          id: '1',
+          session_code: 'ABC123',
+          is_active: false, // 戰鬥已結束
+          last_updated: '2026-02-01T10:10:00Z',
+          created_at: '2026-02-01T10:00:00Z',
+          ended_at: '2026-02-01T10:10:00Z',
+          user_id: null,
+          anonymous_id: null
+        },
+        monsters: []
         });
 
       render(<MonstersPage />);
@@ -388,7 +401,9 @@ describe('MonstersPage - 資料同步與衝突處理', () => {
             is_active: true,
             last_updated: '2026-02-01T10:00:00Z',
             created_at: '2026-02-01T10:00:00Z',
-            ended_at: null
+            ended_at: null,
+            user_id: null,
+            anonymous_id: null
           },
           monsters: []
         })
@@ -431,7 +446,9 @@ describe('MonstersPage - 資料同步與衝突處理', () => {
           is_active: true,
           last_updated: '2026-02-01T10:00:00Z',
           created_at: '2026-02-01T10:00:00Z',
-          ended_at: null
+          ended_at: null,
+          user_id: null,
+          anonymous_id: null
         },
         monsters: []
       });
@@ -483,7 +500,9 @@ describe('MonstersPage - localStorage 持久化', () => {
         is_active: true,
         last_updated: '2026-02-01T10:00:00Z',
         created_at: '2026-02-01T10:00:00Z',
-        ended_at: null
+        ended_at: null,
+        user_id: null,
+        anonymous_id: null
       },
       monsters: []
     });
@@ -509,7 +528,9 @@ describe('MonstersPage - localStorage 持久化', () => {
         is_active: true,
         last_updated: '2026-02-01T10:00:00Z',
         created_at: '2026-02-01T10:00:00Z',
-        ended_at: null
+        ended_at: null,
+        user_id: null,
+        anonymous_id: null
       },
       monsters: []
     });
@@ -555,7 +576,9 @@ describe('MonstersPage - 載入與 modal 入口', () => {
         is_active: true,
         last_updated: '2026-02-01T10:00:00Z',
         created_at: '2026-02-01T10:00:00Z',
-        ended_at: null
+        ended_at: null,
+        user_id: null,
+        anonymous_id: null
       },
       monsters: []
     });

@@ -56,7 +56,7 @@ function buildCharacterAbility(
 }
 
 describe('AbilitiesPage - 來源篩選', () => {
-  const mockedGetCharacterAbilities = AbilityService.getCharacterAbilities as unknown as vi.Mock;
+  const mockedGetCharacterAbilities = AbilityService.getCharacterAbilities as unknown as ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     vi.clearAllMocks();

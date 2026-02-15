@@ -28,7 +28,7 @@ vi.mock('../../services/itemService', async () => {
 });
 
 describe('ItemsPage - 魔法物品篩選', () => {
-  const mockedGetCharacterItems = ItemService.getCharacterItems as unknown as vi.Mock;
+  const mockedGetCharacterItems = ItemService.getCharacterItems as unknown as ReturnType<typeof vi.fn>;
 
   const buildItem = (overrides: Partial<GlobalItem>): GlobalItem => ({
     id: `global-${overrides.name || 'item'}`,

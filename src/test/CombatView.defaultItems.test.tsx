@@ -29,8 +29,8 @@ describe('CombatView - 預設項目保護功能測試', () => {
     localStorageMock.clear();
   });
 
-  const mockStats: CharacterStats = {
-    hp: { current: 25, max: 30 },
+  const mockStats = {
+    hp: { current: 25, max: 30, temp: 0 },
     ac: 15,
     initiative: 3,
     speed: 30,
@@ -38,7 +38,7 @@ describe('CombatView - 預設項目保護功能測試', () => {
       str: 14, dex: 16, con: 14, int: 10, wis: 12, cha: 8
     },
     hitDice: { current: 3, total: 5, die: 'd8' }
-  };
+  } as CharacterStats;
 
   const defaultProps = {
     stats: mockStats,
@@ -50,7 +50,7 @@ describe('CombatView - 預設項目保護功能測試', () => {
   };
 
   // 模擬資料庫中的戰鬥項目（包含預設和自訂）
-  const mockCombatItems = [
+  const mockCombatItems: import('../../lib/supabase').CharacterCombatAction[] = [
     // 預設項目（有 default_item_id）
     {
       id: 'db-uuid-1',
@@ -66,7 +66,7 @@ describe('CombatView - 預設項目保護功能測試', () => {
       default_item_id: 'attack'
     },
     {
-      id: 'db-uuid-2', 
+      id: 'db-uuid-2',
       character_id: 'test-character-123',
       category: 'action',
       name: '疾跑',
@@ -90,7 +90,7 @@ describe('CombatView - 預設項目保護功能測試', () => {
       recovery_type: 'turn',
       is_default: false, // 假設舊資料沒有標記
       is_custom: false,
-      default_item_id: null
+      default_item_id: undefined
     },
     // 自訂項目
     {
@@ -104,7 +104,7 @@ describe('CombatView - 預設項目保護功能測試', () => {
       recovery_type: 'long_rest',
       is_default: false,
       is_custom: true,
-      default_item_id: null
+      default_item_id: undefined
     }
   ];
 
@@ -133,7 +133,7 @@ describe('CombatView - 預設項目保護功能測試', () => {
 
   it('應該為有 default_item_id 的項目隱藏刪除按鈕', async () => {
     // 創建一個有 default_item_id 的項目（即使 is_default 為 false）
-    const itemsWithDefaultId = [
+    const itemsWithDefaultId: import('../../lib/supabase').CharacterCombatAction[] = [
       ...mockCombatItems.filter(item => item.name !== '藥水'), // 移除原有的藥水
       {
         id: 'db-uuid-5',
@@ -256,7 +256,7 @@ describe('CombatView - 預設項目保護功能測試', () => {
 
   it('應該優先檢查 default_item_id 而非 is_default 標記', async () => {
     // 測試即使 is_default 為 false，只要有 default_item_id 就視為預設項目
-    const variantItems = [
+    const variantItems: import('../../lib/supabase').CharacterCombatAction[] = [
       {
         id: 'db-uuid-5',
         character_id: 'test-character-123',
@@ -281,7 +281,7 @@ describe('CombatView - 預設項目保護功能測試', () => {
         recovery_type: 'turn',
         is_default: true, // 使用 is_default，沒有 default_item_id
         is_custom: false,
-        default_item_id: null
+        default_item_id: undefined
       }
     ];
 

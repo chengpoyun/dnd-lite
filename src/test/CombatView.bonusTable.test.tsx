@@ -3,6 +3,7 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { CombatView } from '../../components/CombatView';
 import { HybridDataManager } from '../../services/hybridDataManager';
+import type { CharacterCombatAction } from '../../lib/supabase';
 import type { CharacterStats } from '../../types';
 
 // Mock external dependencies
@@ -24,8 +25,8 @@ const localStorageMock = (() => {
 Object.defineProperty(window, 'localStorage', { value: localStorageMock });
 
 describe('CombatView - 加值表功能測試', () => {
-  const mockCombatItems = [
-    { id: 'r1', character_id: 'test-id', category: 'resource', name: '法術位', icon: '✨', current_uses: 2, max_uses: 3, recovery_type: 'long_rest', is_default: false, is_custom: false, default_item_id: null },
+  const mockCombatItems: CharacterCombatAction[] = [
+    { id: 'r1', character_id: 'test-id', category: 'resource', name: '法術位', icon: '✨', current_uses: 2, max_uses: 3, recovery_type: 'long_rest', is_default: false, is_custom: false, default_item_id: undefined },
     { id: 'a1', character_id: 'test-id', category: 'action', name: '攻擊', icon: '⚔️', current_uses: 1, max_uses: 1, recovery_type: 'turn', is_default: true, is_custom: false, default_item_id: 'attack' },
   ];
 

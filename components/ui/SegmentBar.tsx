@@ -20,7 +20,7 @@ interface SegmentBarProps<T> {
   onChange: (value: T) => void;
 }
 
-export function SegmentBar<T extends string>({ options, value, onChange }: SegmentBarProps<T>) {
+export function SegmentBar<T extends string | number>({ options, value, onChange }: SegmentBarProps<T>) {
   return (
     <div className={SEGMENT_BAR_WRAPPER_CLASS}>
       {options.map((opt) => {
@@ -28,7 +28,7 @@ export function SegmentBar<T extends string>({ options, value, onChange }: Segme
         const activeClass = opt.activeClassName ?? SEGMENT_BUTTON_ACTIVE_DEFAULT_CLASS;
         return (
           <button
-            key={opt.value}
+            key={String(opt.value)}
             type="button"
             onClick={() => onChange(opt.value)}
             className={`${SEGMENT_BUTTON_BASE_CLASS} ${isActive ? activeClass : SEGMENT_BUTTON_INACTIVE_CLASS}`}

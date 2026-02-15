@@ -284,7 +284,7 @@ export async function uploadCharacterSpellToGlobal(
     if (existing && !findError) {
       targetSpellId = existing.id;
     } else {
-      if (findError && findError.code !== 'PGRST116' && findError.status !== 406) {
+      if (findError && findError.code !== 'PGRST116' && (findError as { status?: number }).status !== 406) {
         console.error('查詢全域法術失敗:', findError);
         return { success: false, error: '查詢全域法術失敗' };
       }

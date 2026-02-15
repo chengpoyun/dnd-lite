@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import type { Spell, CreateSpellData } from '../services/spellService';
+import type { Spell, CreateSpellData } from '../../services/spellService';
 
 /**
  * 法術系統單元測試

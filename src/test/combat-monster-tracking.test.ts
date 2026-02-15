@@ -4,7 +4,7 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import type { CombatDamageLog, CombatMonsterWithLogs } from '../lib/supabase';
+import type { CombatDamageLog, CombatMonsterWithLogs } from '../../lib/supabase';
 
 // ===== 傷害記錄分組邏輯測試 =====
 describe('複合傷害分組邏輯', () => {
@@ -19,6 +19,7 @@ describe('複合傷害分組邏輯', () => {
     id,
     monster_id: 'monster-1',
     damage_value: damageValue,
+    damage_value_origin: null,
     damage_type: damageType,
     resistance_type: resistanceType,
     created_at: createdAt

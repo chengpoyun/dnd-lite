@@ -98,7 +98,7 @@ export class AuthService {
   }
 
   // 監聽認證狀態變化
-  static onAuthStateChange(callback: (user: AuthUser | null) => void) {
+  static onAuthStateChange(callback: (user: AuthUser | null, event?: string) => void) {
     return supabase.auth.onAuthStateChange(async (event, session) => {
       // 只在重要事件時記錄日誌
       if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
@@ -113,9 +113,9 @@ export class AuthService {
           avatar_url: session.user.user_metadata?.avatar_url || session.user.user_metadata?.picture
         }
 
-        callback(authUser)
+        callback(authUser, event)
       } else {
-        callback(null)
+        callback(null, event)
       }
     })
   }

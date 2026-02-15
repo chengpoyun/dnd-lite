@@ -138,7 +138,7 @@ export const ConversionPage: React.FC<ConversionPageProps> = ({ userId, onComple
     <div className="fixed inset-0 bg-slate-900/95 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <Card className="max-w-md w-full">
         <div className="text-center mb-6">
-          <Title size="medium" className="mb-2">
+          <Title size="normal" className="mb-2">
             帳號整合
           </Title>
         </div>

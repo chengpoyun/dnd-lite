@@ -19,6 +19,8 @@ vi.mock('../../lib/supabase', () => ({
 }))
 
 // 為了測試真實的業務邏輯，我們需要一個不使用 mock 的版本
+type ChainableMock = { select: (...a: any[]) => any; update: (...a: any[]) => any; insert: (...a: any[]) => any; eq: (...a: any[]) => any; single: (...a: any[]) => any };
+
 class TestDetailedCharacterService {
   static async updateExtraData(characterId: string, extraData: any): Promise<boolean> {
     try {
@@ -29,35 +31,38 @@ class TestDetailedCharacterService {
       }
 
       // 模擬查詢現有記錄
-      const mockFromResult = {
-        select: vi.fn(() => ({
-          eq: vi.fn(() => ({
-            single: vi.fn().mockResolvedValue({ 
-              data: { id: '1', character_id: characterId, current_hp: 45 }, 
-              error: null 
+      const mockFromResult: ChainableMock = {
+        select: vi.fn((..._a: any[]) => ({
+          eq: vi.fn((..._b: any[]) => ({
+            single: vi.fn().mockResolvedValue({
+              data: { id: '1', character_id: characterId, current_hp: 45 },
+              error: null
             })
           }))
-        }))
+        })),
+        update: vi.fn(),
+        insert: vi.fn(),
+        eq: vi.fn(),
+        single: vi.fn()
       }
 
-      const mockSupabase = { from: vi.fn(() => mockFromResult) }
-      const { data: existingStats } = await mockSupabase.from('character_current_stats')
-        .select('*')
-        .eq('character_id', characterId)
-        .single()
+      const mockSupabase = { from: vi.fn((..._a: any[]) => mockFromResult) as any }
+      const fromChain = (mockSupabase.from as (...a: any[]) => ChainableMock)('character_current_stats')
+      const { data: existingStats } = await fromChain.select('*').eq('character_id', characterId).single()
 
       if (existingStats) {
         // 模擬更新操作
-        const mockUpdateResult = {
-          update: vi.fn(() => ({
-            eq: vi.fn().mockResolvedValue({ error: null })
-          }))
+        const mockUpdateResult: ChainableMock = {
+          select: vi.fn(),
+          update: vi.fn((..._a: any[]) => ({ eq: vi.fn().mockResolvedValue({ error: null }) })),
+          insert: vi.fn(),
+          eq: vi.fn(),
+          single: vi.fn()
         }
-        mockSupabase.from = vi.fn(() => mockUpdateResult)
+        ;(mockSupabase as any).from = vi.fn((..._a: any[]) => mockUpdateResult)
 
-        const { error } = await mockSupabase.from('character_current_stats')
-          .update({ extra_data: extraData, updated_at: new Date().toISOString() })
-          .eq('character_id', characterId)
+        const updateChain = (mockSupabase.from as (...a: any[]) => ChainableMock)('character_current_stats')
+        const { error } = await (updateChain as any).update({ extra_data: extraData, updated_at: new Date().toISOString() }).eq('character_id', characterId)
 
         if (error) {
           console.error('更新額外數據失敗:', error)
@@ -65,13 +70,17 @@ class TestDetailedCharacterService {
         }
       } else {
         // 模擬插入操作
-        const mockInsertResult = {
-          insert: vi.fn().mockResolvedValue({ error: null })
+        const mockInsertResult: ChainableMock = {
+          select: vi.fn(),
+          update: vi.fn(),
+          insert: vi.fn().mockResolvedValue({ error: null }),
+          eq: vi.fn(),
+          single: vi.fn()
         }
-        mockSupabase.from = vi.fn(() => mockInsertResult)
+        ;(mockSupabase as any).from = vi.fn((..._a: any[]) => mockInsertResult)
 
-        const { error } = await mockSupabase.from('character_current_stats')
-          .insert({
+        const insertChain = (mockSupabase.from as (...a: any[]) => ChainableMock)('character_current_stats')
+        const { error } = await (insertChain as any).insert({
             character_id: characterId,
             current_hp: 1,
             max_hp: 1,

@@ -17,15 +17,16 @@ describe('Max HP 系統測試', () => {
   const baseMonster: CombatMonsterWithLogs = {
     id: 'test-monster-1',
     session_code: 'TEST123',
+    monster_number: 1,
     name: '地精',
-    number: 1,
+    ac_min: 0,
+    ac_max: null,
     total_damage: 25,
-    ac_range_min: 0,
-    ac_range_max: null,
+    is_dead: false,
     max_hp: null,
     resistances: {},
+    notes: null,
     damage_logs: [],
-    last_updated: new Date().toISOString(),
     created_at: new Date().toISOString(),
   };
 
@@ -38,7 +39,7 @@ describe('Max HP 系統測試', () => {
           monster={monster}
           onAddDamage={vi.fn()}
           onAdjustAC={vi.fn()}
-          onSettings={vi.fn()}
+          onAdjustSettings={vi.fn()}
           onDelete={vi.fn()}
         />
       );
@@ -59,7 +60,7 @@ describe('Max HP 系統測試', () => {
           monster={monster}
           onAddDamage={vi.fn()}
           onAdjustAC={vi.fn()}
-          onSettings={vi.fn()}
+          onAdjustSettings={vi.fn()}
           onDelete={vi.fn()}
         />
       );
@@ -78,7 +79,7 @@ describe('Max HP 系統測試', () => {
           monster={monster}
           onAddDamage={vi.fn()}
           onAdjustAC={vi.fn()}
-          onSettings={vi.fn()}
+          onAdjustSettings={vi.fn()}
           onDelete={vi.fn()}
         />
       );
@@ -107,7 +108,7 @@ describe('Max HP 系統測試', () => {
           monster={monster}
           onAddDamage={vi.fn()}
           onAdjustAC={vi.fn()}
-          onSettings={vi.fn()}
+          onAdjustSettings={vi.fn()}
           onDelete={vi.fn()}
         />
       );
@@ -124,7 +125,7 @@ describe('Max HP 系統測試', () => {
           monster={monster}
           onAddDamage={vi.fn()}
           onAdjustAC={vi.fn()}
-          onSettings={vi.fn()}
+          onAdjustSettings={vi.fn()}
           onDelete={vi.fn()}
         />
       );
@@ -142,7 +143,7 @@ describe('Max HP 系統測試', () => {
           monster={monster}
           onAddDamage={vi.fn()}
           onAdjustAC={vi.fn()}
-          onSettings={vi.fn()}
+          onAdjustSettings={vi.fn()}
           onDelete={vi.fn()}
         />
       );
@@ -205,7 +206,7 @@ describe('Max HP 系統測試', () => {
           monster={monster}
           onAddDamage={vi.fn()}
           onAdjustAC={vi.fn()}
-          onSettings={vi.fn()}
+          onAdjustSettings={vi.fn()}
           onDelete={vi.fn()}
         />
       );
@@ -224,7 +225,7 @@ describe('Max HP 系統測試', () => {
           monster={monster}
           onAddDamage={vi.fn()}
           onAdjustAC={vi.fn()}
-          onSettings={vi.fn()}
+          onAdjustSettings={vi.fn()}
           onDelete={vi.fn()}
         />
       );
@@ -241,7 +242,7 @@ describe('Max HP 系統測試', () => {
           monster={monster}
           onAddDamage={vi.fn()}
           onAdjustAC={vi.fn()}
-          onSettings={vi.fn()}
+          onAdjustSettings={vi.fn()}
           onDelete={vi.fn()}
         />
       );

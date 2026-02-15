@@ -167,6 +167,7 @@ describe('AbilityService - 個人能力與上傳邏輯', () => {
 
     const data: AbilityService.CreateCharacterAbilityData = {
       name: '個人能力',
+      name_en: '',
       source: '其他',
       recovery_type: '短休'
     };

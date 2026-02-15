@@ -17,6 +17,8 @@ const mockCharacterItem: CharacterItem = {
   name_override: null,
   description_override: '原本的描述',
   category_override: null,
+  created_at: new Date().toISOString(),
+  updated_at: new Date().toISOString(),
   item: {
     id: 'item-1',
     name: '測試物品',

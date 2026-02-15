@@ -241,6 +241,7 @@ describe('Modal UI 優化測試', () => {
           currentACRange={{ min: 0, max: null }}
           currentMaxHP={null}
           currentResistances={{}}
+          currentNotes={null}
           onSuccess={vi.fn()}
           onConflict={vi.fn().mockResolvedValue(false)}
         />
@@ -278,6 +279,7 @@ describe('Modal UI 優化測試', () => {
           currentACRange={{ min: 0, max: null }}
           currentMaxHP={null}
           currentResistances={{}}
+          currentNotes={null}
           onSuccess={vi.fn()}
           onConflict={vi.fn().mockResolvedValue(false)}
         />

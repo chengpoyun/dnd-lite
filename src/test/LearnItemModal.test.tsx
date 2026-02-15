@@ -16,7 +16,7 @@ vi.mock('../../services/itemService', async () => {
 });
 
 describe('LearnItemModal - keyword gating', () => {
-  const mockedSearchGlobalItems = ItemService.searchGlobalItems as unknown as vi.Mock;
+  const mockedSearchGlobalItems = ItemService.searchGlobalItems as unknown as ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     vi.clearAllMocks();

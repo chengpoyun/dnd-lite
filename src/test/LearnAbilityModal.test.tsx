@@ -16,7 +16,7 @@ vi.mock('../../services/abilityService', async () => {
 });
 
 describe('LearnAbilityModal - keyword gating', () => {
-  const mockedGetAllAbilities = AbilityService.getAllAbilities as unknown as vi.Mock;
+  const mockedGetAllAbilities = AbilityService.getAllAbilities as unknown as ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     vi.clearAllMocks();

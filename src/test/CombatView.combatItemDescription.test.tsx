@@ -25,14 +25,14 @@ const localStorageMock = (() => {
 Object.defineProperty(window, 'localStorage', { value: localStorageMock });
 
 describe('CombatView - 自定義項目 description', () => {
-  const mockStats: CharacterStats = {
-    hp: { current: 25, max: 30 },
+  const mockStats = {
+    hp: { current: 25, max: 30, temp: 0 },
     ac: 15,
     initiative: 3,
     speed: 30,
     abilityScores: { str: 14, dex: 16, con: 14, int: 10, wis: 12, cha: 8 },
     hitDice: { current: 3, total: 5, die: 'd8' },
-  };
+  } as CharacterStats;
 
   const defaultProps = {
     stats: mockStats,

@@ -73,7 +73,6 @@ export const WelcomePage: React.FC<WelcomePageProps> = ({ onNext, initError, onR
                   <Button
                     onClick={onRetry}
                     variant="secondary"
-                    size="small"
                     className="w-full"
                   >
                     🔄 重新載入

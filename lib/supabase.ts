@@ -102,7 +102,6 @@ export interface CharacterCurrentStats {
   // 舊格式（migration 前向後相容）
   max_hp?: number
   armor_class?: number
-  initiative_bonus?: number
   speed?: number
   weapon_attack_bonus?: number
   weapon_damage_bonus?: number
@@ -241,6 +240,7 @@ export interface CombatSession {
   created_at: string
   last_updated: string
   is_active: boolean
+  ended_at?: string | null
 }
 
 export interface CombatMonster {
