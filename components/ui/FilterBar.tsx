@@ -4,6 +4,7 @@
  */
 
 import React from 'react';
+import { STYLES, combineStyles } from '../../styles/common';
 
 export interface FilterBarOption {
   label: string;
@@ -22,7 +23,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
   onSelect,
 }) => (
   <div
-    className="flex gap-2 mb-6 overflow-x-auto pb-2"
+    className={STYLES.filterRow.scroll}
     onTouchStart={(e) => e.stopPropagation()}
     onTouchMove={(e) => e.stopPropagation()}
     onTouchEnd={(e) => e.stopPropagation()}
@@ -32,11 +33,10 @@ export const FilterBar: React.FC<FilterBarProps> = ({
         key={opt.value}
         type="button"
         onClick={() => onSelect(opt.value)}
-        className={`px-4 py-2 rounded-lg font-medium whitespace-nowrap transition-colors ${
-          selectedValue === opt.value
-            ? 'bg-amber-600 text-white shadow-md'
-            : 'bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700'
-        }`}
+        className={combineStyles(
+          STYLES.filterChip.base,
+          selectedValue === opt.value ? STYLES.filterChip.selected : STYLES.filterChip.unselected
+        )}
       >
         {opt.label}
       </button>

@@ -29,8 +29,14 @@ export const STYLES = {
     body: 'text-slate-200 text-sm sm:text-base',
     bodySmall: 'text-slate-300 text-xs sm:text-sm',
     muted: 'text-slate-500 text-xs',
+    emphasis: 'text-amber-400 font-bold',
+    warning: 'text-amber-600',
     error: 'text-red-400 text-sm',
     success: 'text-green-400 text-sm',
+    /** 擲骰／檢定結果：成功（綠、粗體） */
+    outcomeSuccess: 'font-bold text-green-400',
+    /** 擲骰／檢定結果：失敗（紅、粗體） */
+    outcomeFailure: 'font-bold text-red-400',
   },
   
   // 按鈕
@@ -80,6 +86,46 @@ export const STYLES = {
     grid: 'grid gap-3 sm:gap-4',
   },
   
+  // 空狀態 / 空列表區塊（AbilitiesPage、ItemsPage、SpellsPage、TerrainPage 等）
+  emptyState: {
+    container: 'text-center py-12 bg-slate-800 border border-slate-700 rounded-lg',
+  },
+
+  // 篩選列按鈕（FilterBar、TerrainPage 多選 filter 共用）
+  filterChip: {
+    base: 'px-4 py-2 rounded-lg font-medium whitespace-nowrap transition-colors',
+    selected: 'bg-amber-600 text-white shadow-md',
+    unselected: 'bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700',
+  },
+
+  // 篩選列外層（一列可換行 vs 一列橫向捲動）
+  filterRow: {
+    wrap: 'flex flex-wrap gap-2 mb-6',
+    scroll: 'flex gap-2 mb-6 overflow-x-auto pb-2',
+  },
+
+  // 標籤/小 chip（地形卡地貌、法術 V/S/M 等中性標籤）
+  tag: {
+    default: 'px-2 py-0.5 rounded bg-slate-800 text-slate-400 text-xs',
+  },
+
+  // 選項按鈕（Modal 內多選一、列表選項等）
+  choiceChip: {
+    base: 'px-3 py-2 rounded-lg border text-sm transition-colors',
+    selected: 'border-amber-400 bg-amber-400/20 text-amber-400',
+    unselected: 'border-slate-600 bg-slate-800 text-slate-300',
+  },
+
+  // 緊湊表格（地形卡物資表等）：每欄至少 2 個中文字寬，奇偶欄背景區分
+  table: {
+    wrapper: 'overflow-x-auto',
+    base: 'w-full text-left border border-slate-700 rounded-lg overflow-hidden text-xs min-w-[18em] [&_th:nth-child(odd)]:bg-slate-800 [&_th:nth-child(even)]:bg-slate-700/90 [&_td:nth-child(odd)]:bg-slate-800/50 [&_td:nth-child(even)]:bg-slate-700/40',
+    theadRow: '',
+    th: 'px-2 py-1.5 border-b border-slate-700 text-slate-400 font-medium whitespace-nowrap min-w-[3em]',
+    tbodyRow: '',
+    td: 'px-2 py-1 border-b border-slate-700/50 text-slate-300 min-w-[3em]',
+  },
+
   // 列表卡片（ItemCard / AbilityCard / MonsterCard 共用基底）
   listCard: {
     base: 'bg-slate-800 border border-slate-700 rounded-lg p-4',

@@ -862,17 +862,7 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
         <div className="grid grid-cols-3 gap-1.5">
           {SKILLS_MAP.map((skill) => {
             const profLevel = stats.proficiencies[skill.name] || 0;
-            const overrides =
-              (stats.extraData as any)?.skillBasicOverrides as
-                | Record<string, number>
-                | undefined;
-            const overrideBasic = overrides?.[skill.name];
-            // 有手動覆寫時 = 覆寫值 + 其他加值；否則 = 最終技能加值（含能力調整、熟練、misc）
-            const bonus =
-              typeof overrideBasic === 'number'
-                ? overrideBasic +
-                  (((stats.extraData as any)?.skillBonuses as Record<string, number> | undefined)?.[skill.name] ?? 0)
-                : getFinalSkillBonus(stats, skill.name);
+            const bonus = getFinalSkillBonus(stats, skill.name);
             const skillVariant = (stats.extraData?.skillAdvantageDisadvantage?.[skill.name] as 'advantage' | 'normal' | 'disadvantage') ?? 'normal';
             return (
               <AdvantageDisadvantageBorder key={skill.name} variant={skillVariant}>

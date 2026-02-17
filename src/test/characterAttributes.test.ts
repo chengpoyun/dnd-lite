@@ -291,4 +291,44 @@ describe('characterAttributes - getFinalSkillBonus', () => {
     });
     expect(getFinalSkillBonus(stats, '運動')).toBe(2 + 2);
   });
+
+  it('有 skillBasicOverrides 時應回傳覆寫基礎值 + misc_bonus（與角色表、地形獎勵、戰鬥加值表一致）', () => {
+    const stats = createMockStats({
+      abilityScores: { str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10 },
+      level: 5,
+      proficiencies: { '求生': 0 },
+      extraData: {
+        skillBasicOverrides: { '求生': 10 },
+        skillBonuses: {} as Record<string, number>,
+      } as any,
+    });
+    expect(getFinalSkillBonus(stats, '求生')).toBe(10);
+  });
+
+  it('skillBasicOverrides + skillBonuses 應相加', () => {
+    const stats = createMockStats({
+      abilityScores: { str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10 },
+      level: 5,
+      proficiencies: {},
+      extraData: {
+        skillBasicOverrides: { '求生': 10 },
+        skillBonuses: { '求生': 2 } as Record<string, number>,
+      } as any,
+    });
+    expect(getFinalSkillBonus(stats, '求生')).toBe(12);
+  });
+
+  it('僅有覆寫的技能使用覆寫值，其他技能仍用公式', () => {
+    const stats = createMockStats({
+      abilityScores: { str: 16, dex: 10, con: 10, int: 10, wis: 10, cha: 10 },
+      level: 5,
+      proficiencies: { '運動': 1 },
+      extraData: {
+        skillBasicOverrides: { '求生': 10 },
+        skillBonuses: {} as Record<string, number>,
+      } as any,
+    });
+    expect(getFinalSkillBonus(stats, '求生')).toBe(10);
+    expect(getFinalSkillBonus(stats, '運動')).toBe(3 + 3);
+  });
 });
