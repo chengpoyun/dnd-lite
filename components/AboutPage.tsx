@@ -1,5 +1,6 @@
 import React from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import packageJson from '../package.json';
 
 interface AboutPageProps {
   userMode: 'authenticated' | 'anonymous';
@@ -29,7 +30,7 @@ export const AboutPage: React.FC<AboutPageProps> = ({
         <div className="space-y-3 text-sm">
           <div className="flex justify-between py-2 border-b border-slate-700">
             <span className="text-slate-400">版本</span>
-            <span className="text-slate-200 font-mono">v1.0.0</span>
+            <span className="text-slate-200 font-mono">v{packageJson.version}</span>
           </div>
           <div className="flex justify-between py-2">
             <span className="text-slate-400">遊戲系統</span>
