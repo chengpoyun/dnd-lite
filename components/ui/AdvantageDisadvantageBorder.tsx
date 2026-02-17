@@ -24,7 +24,7 @@ export const AdvantageDisadvantageBorder: React.FC<AdvantageDisadvantageBorderPr
       ? 'ring-2 ring-emerald-500'
       : 'ring-2 ring-rose-500';
   return (
-    <div className={`rounded-lg ${ringClass} ${className}`.trim()}>
+    <div className={`w-full min-w-0 rounded-lg ${ringClass} ${className}`.trim()}>
       {children}
     </div>
   );

@@ -869,7 +869,7 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
                 <Button
                   variant="ghost"
                   onClick={() => handleSkillClick(skill)}
-                  className={`!px-2 !py-0 flex items-center justify-between transition-all h-9 ${profLevel > 0 ? 'bg-amber-500/10 border-amber-500/40 shadow-sm' : 'bg-slate-800/30 border-slate-800'}`}
+                  className={`w-full !px-2 !py-0 flex items-center justify-between transition-all h-9 ${profLevel > 0 ? 'bg-amber-500/10 border-amber-500/40 shadow-sm' : 'bg-slate-800/30 border-slate-800'}`}
                 >
                   <div className="flex items-center gap-1 min-w-0 flex-1">
                      <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${profLevel === 1 ? 'bg-amber-500' : profLevel === 2 ? 'bg-amber-500 shadow-[0_0_5px_rgba(245,158,11,1)] ring-1 ring-amber-300' : 'bg-slate-700 opacity-30'}`} />
