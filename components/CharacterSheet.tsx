@@ -818,7 +818,7 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
         }}
       />
 
-      <div className="grid grid-cols-2 gap-1.5">
+      <div className="px-2 grid grid-cols-2 gap-1.5">
         {ABILITY_KEYS.map(key => {
           const score = getFinalAbilityScore(stats, key);
           const mod = getFinalAbilityModifier(stats, key);
