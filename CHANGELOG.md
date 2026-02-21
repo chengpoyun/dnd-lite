@@ -4,6 +4,11 @@
 
 ---
 
+## 1.1.4
+
+- 資料庫效能與 Performance Advisor：移除 16 個未使用索引（0005）、為 3 個外鍵補上索引（0001）；修正 RLS 的 auth_rls_initplan（0003）與 multiple_permissive_policies（0006）；為 `global_items` 搜尋新增 pg_trgm + GIN 索引以加速 ILIKE 查詢。
+- 於 `docs/database-migration.md` 補充 Performance Advisor（0001/0005/0003/0006）與 Query Performance 說明。
+
 ## 1.1.3
 
 - 修復 Supabase Security Advisor 警告：為 `update_abilities_updated_at` 設定 `search_path`（0011）；將 `global_items`、`spells` 的過於寬鬆 RLS 改為明確的 JWT role 條件（0024），不影響用戶上傳物品／法術／能力。
