@@ -66,6 +66,22 @@ npm run db:status
 
 ---
 
+## Supabase Security Advisor 警告處理
+
+專案在 Supabase Dashboard → Database → Security Advisor 可能會出現以下警告，處理方式如下。
+
+### 已由遷移修復（無需手動）
+
+- **0011 function_search_path_mutable**：觸發器函數未設定 `search_path`。已於遷移 `20260221151638_fix_supabase_security_warnings.sql` 為 `update_abilities_updated_at` 補上 `SET search_path = public`。
+- **0024 permissive_rls_policy**：`global_items`、`spells` 的「USING (true) / WITH CHECK (true)」已改為明確的 JWT role 條件（仍允許 authenticated 與 anon），以消除過於寬鬆的寫入政策警告。
+
+### 需在 Dashboard 或產品取捨的項目
+
+- **0012 auth_allow_anonymous_sign_ins**：多張表的 RLS 允許匿名使用者存取。本專案**刻意支援匿名角色**（未登入即可建立角色、戰鬥等），因此若需保留此功能，可保留現有政策並接受此警告。若不需要匿名玩法，可在 [Supabase Authentication 設定](https://supabase.com/dashboard/project/_/auth/providers) 關閉 Anonymous sign-ins，並視需求調整 RLS（僅允許 `authenticated`）。
+- **Leaked Password Protection**：為 Auth 設定，無法用遷移修改。若要在登入時檢查密碼是否曾外洩，請在 [Supabase Dashboard](https://supabase.com/dashboard) → **Authentication** → **Settings** → [Password Security](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection) 中啟用「Leaked password protection」。
+
+---
+
 ## 相關檔案
 
 - 遷移檔目錄：`supabase/migrations/`
