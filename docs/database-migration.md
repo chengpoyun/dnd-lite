@@ -80,6 +80,21 @@ npm run db:status
 - **0012 auth_allow_anonymous_sign_ins**：多張表的 RLS 允許匿名使用者存取。本專案**刻意支援匿名角色**（未登入即可建立角色、戰鬥等），因此若需保留此功能，可保留現有政策並接受此警告。若不需要匿名玩法，可在 [Supabase Authentication 設定](https://supabase.com/dashboard/project/_/auth/providers) 關閉 Anonymous sign-ins，並視需求調整 RLS（僅允許 `authenticated`）。
 - **Leaked Password Protection**：為 Auth 設定，無法用遷移修改。若要在登入時檢查密碼是否曾外洩，請在 [Supabase Dashboard](https://supabase.com/dashboard) → **Authentication** → **Settings** → [Password Security](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection) 中啟用「Leaked password protection」。
 
+### Performance Advisor：外鍵索引 vs 未使用索引
+
+- **0001 unindexed_foreign_keys**：建議為外鍵欄位建立索引（利於 JOIN、CASCADE）。已於遷移 `20260221154000_add_indexes_for_foreign_keys.sql` 為 `characters.user_id`、`combat_sessions.user_id`、`character_combat_actions.default_item_id` 建立索引。
+- **0005 unused_index**：上述三個索引可能被標示為「未使用」。此為 **INFO** 等級，且與 0001 衝突（若移除會再觸發 0001）。專案選擇**保留**這三個外鍵索引以符合 0001 建議，可忽略此三筆 unused 提示。
+
+### Performance Advisor：RLS 效能 (0003, 0006)
+
+- **0003 auth_rls_initplan**：RLS 中 `auth.uid()`、`current_setting()` 改為 `(select auth.uid())`、`(select auth.jwt())` 等避免每行重算。已於遷移 `20260221160000` / `20260221162000` 修正相關 policy。
+- **0006 multiple_permissive_policies**：`characters` 表原為兩條 permissive policy（認證／匿名），已於同遷移合併為單一 `characters_policy`，權限行為不變。
+
+### Query Performance：應用層查詢優化
+
+- Dashboard / PostgREST 的系統查詢（pg_timezone_names、pg_extension、table_privileges 等）無法由專案修改。
+- **global_items 搜尋**（`searchGlobalItems`：name / name_en / description ILIKE）已於遷移 `20260221170000_add_global_items_trigram_indexes.sql` 啟用 `pg_trgm` 並為三欄建立 GIN trigram 索引，可加速 ILIKE '%...%'，不改變查詢結果或功能。
+
 ---
 
 ## 相關檔案
