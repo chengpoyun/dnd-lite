@@ -4,6 +4,11 @@
 
 ---
 
+## 1.1.3
+
+- 修復 Supabase Security Advisor 警告：為 `update_abilities_updated_at` 設定 `search_path`（0011）；將 `global_items`、`spells` 的過於寬鬆 RLS 改為明確的 JWT role 條件（0024），不影響用戶上傳物品／法術／能力。
+- 於 `docs/database-migration.md` 補充 Security Advisor 各項警告的處理說明（含 0012 匿名存取與 Leaked Password 的 Dashboard 設定）。
+
 ## 1.1.2
 
 - 修復屬性區豁免優劣勢框框左右被裁切：僅在六格屬性區加左右 padding，不影響技能調整區。
