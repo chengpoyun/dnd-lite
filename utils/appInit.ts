@@ -1,4 +1,5 @@
 import type { CharacterStats } from '../types';
+import { ABILITY_KEYS, ABILITY_FULL_TO_STR } from './characterConstants';
 import { getModifier } from './helpers';
 import { getClassHitDie, calculateHitDiceTotals } from './classUtils';
 import { ensureDisplayClass, migrateLegacyCharacterStats, needsMulticlassMigration } from './migrationHelpers';
@@ -125,18 +126,7 @@ export function buildCharacterStats(characterData: any, previousStats: Character
         if (Array.isArray(characterData.savingThrows)) {
           const proficientSaves = characterData.savingThrows
             .filter((st: any) => st && st.is_proficient)
-            .map((st: any) => {
-              // 將完整的資料庫名稱映射回前端使用的縮寫
-              const abilityMap = {
-                strength: 'str',
-                dexterity: 'dex', 
-                constitution: 'con',
-                intelligence: 'int',
-                wisdom: 'wis',
-                charisma: 'cha'
-              } as any
-              return abilityMap[st.ability] || st.ability
-            }) as (keyof typeof INITIAL_STATS.abilityScores)[]
+            .map((st: any) => ABILITY_FULL_TO_STR[st.ability as keyof typeof ABILITY_FULL_TO_STR] ?? st.ability) as (keyof typeof INITIAL_STATS.abilityScores)[]
             
           return proficientSaves
         }
@@ -158,12 +148,11 @@ export function buildCharacterStats(characterData: any, previousStats: Character
       const prestige = ed?.prestige && typeof ed.prestige === 'object' ? ed.prestige : INITIAL_STATS.prestige;
       const customRecords = Array.isArray(ed?.customRecords) ? ed.customRecords : INITIAL_STATS.customRecords;
       const attacks = Array.isArray(ed?.attacks) ? ed.attacks : INITIAL_STATS.attacks;
-      const abilityKeys = ['str', 'dex', 'con', 'int', 'wis', 'cha'] as const;
       // 屬性值／調整值加值一律來自 extra_data（由 getFullCharacter 聚合能力／物品 stat_bonuses 與既有 extra_data 寫入）
       // 舊版 character_ability_scores.*_bonus / *_modifier_bonus 已淘汰不再讀取
       const abilityBonuses: Record<string, number> = {};
       const modifierBonuses: Record<string, number> = {};
-      for (const k of abilityKeys) {
+      for (const k of ABILITY_KEYS) {
         abilityBonuses[k] =
           (ed?.abilityBonuses && typeof ed.abilityBonuses === 'object' ? (ed.abilityBonuses as any)[k] ?? 0 : 0);
         modifierBonuses[k] =
@@ -245,10 +234,9 @@ export function buildCharacterStats(characterData: any, previousStats: Character
     saveBonuses: (() => {
       const saves = characterData.savingThrows;
       if (!Array.isArray(saves)) return undefined;
-      const abilityMap: Record<string, string> = { strength: 'str', dexterity: 'dex', constitution: 'con', intelligence: 'int', wisdom: 'wis', charisma: 'cha' };
       const out: Record<string, number> = {};
       saves.forEach((s: any) => {
-        if (s?.ability != null && typeof s.misc_bonus === 'number') out[abilityMap[s.ability] ?? s.ability] = s.misc_bonus;
+        if (s?.ability != null && typeof s.misc_bonus === 'number') out[ABILITY_FULL_TO_STR[s.ability as keyof typeof ABILITY_FULL_TO_STR] ?? s.ability] = s.misc_bonus;
       });
       return Object.keys(out).length > 0 ? out : undefined;
     })(),

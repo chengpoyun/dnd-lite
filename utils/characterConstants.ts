@@ -30,7 +30,10 @@ export const SKILLS_MAP: { name: string; base: keyof CharacterStats['abilityScor
   { name: '說服', base: 'cha' },
 ];
 
-export const ABILITY_KEYS: (keyof CharacterStats['abilityScores'])[] = [
+export type AbilityShortKey = keyof CharacterStats['abilityScores'];
+export type AbilityDbKey = 'strength' | 'dexterity' | 'constitution' | 'intelligence' | 'wisdom' | 'charisma';
+
+export const ABILITY_KEYS: AbilityShortKey[] = [
   'str',
   'dex',
   'con',
@@ -38,3 +41,23 @@ export const ABILITY_KEYS: (keyof CharacterStats['abilityScores'])[] = [
   'wis',
   'cha',
 ];
+
+/** 前端短鍵 → DB 完整鍵（用於寫入 character_saving_throws、character_ability_scores 等） */
+export const ABILITY_STR_TO_FULL: Record<AbilityShortKey, AbilityDbKey> = {
+  str: 'strength',
+  dex: 'dexterity',
+  con: 'constitution',
+  int: 'intelligence',
+  wis: 'wisdom',
+  cha: 'charisma',
+};
+
+/** DB 完整鍵 → 前端短鍵（用於從 DB 讀出後對應到 CharacterStats） */
+export const ABILITY_FULL_TO_STR: Record<AbilityDbKey, AbilityShortKey> = {
+  strength: 'str',
+  dexterity: 'dex',
+  constitution: 'con',
+  intelligence: 'int',
+  wisdom: 'wis',
+  charisma: 'cha',
+};

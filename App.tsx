@@ -22,6 +22,7 @@ const AboutPage = lazy(() => import('./components/AboutPage'));
 import { CharacterStats } from './types';
 import { formatClassDisplay, getPrimaryClass, getTotalLevel, getClassHitDie } from './utils/classUtils';
 import { getFinalAbilityModifier } from './utils/characterAttributes';
+import { ABILITY_STR_TO_FULL } from './utils/characterConstants';
 import { withSaveGuard } from './utils/saveGuard';
 import { isSpellcaster } from './utils/spellUtils';
 import { HybridDataManager } from './services/hybridDataManager';
@@ -144,12 +145,8 @@ const AuthenticatedApp: React.FC = () => {
       fn: async () => {
         try {
           console.log('🛡️ 保存豁免熟練度:', proficiencies)
-          const abilityMap: Record<string, string> = {
-            str: 'strength', dex: 'dexterity', con: 'constitution',
-            int: 'intelligence', wis: 'wisdom', cha: 'charisma'
-          }
           const savingThrows = proficiencies.map((ability: string) => {
-            const fullAbility = abilityMap[ability] || ability;
+            const fullAbility = ABILITY_STR_TO_FULL[ability as keyof typeof ABILITY_STR_TO_FULL] ?? ability;
             return {
               character_id: currentCharacter!.id,
               ability: fullAbility as 'strength' | 'dexterity' | 'constitution' | 'intelligence' | 'wisdom' | 'charisma',

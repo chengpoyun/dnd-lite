@@ -4,6 +4,10 @@
 
 ---
 
+## 1.1.6
+
+- 優化：能力鍵對應集中至 `utils/characterConstants`（`ABILITY_STR_TO_FULL`、`ABILITY_FULL_TO_STR`），App、appInit、detailedCharacter 改為匯入使用。
+
 ## 1.1.5
 
 - 優化：抽出 `withSaveGuard` 共用儲存流程守衛（utils/saveGuard.ts），App.tsx 各 onSaveXxx 改為使用，減少重複 guard 與 try/finally。

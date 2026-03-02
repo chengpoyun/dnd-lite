@@ -12,6 +12,7 @@ import type {
   FullCharacterData 
 } from '../lib/supabase'
 import type { CharacterStats } from '../types'
+import { ABILITY_KEYS, ABILITY_STR_TO_FULL, ABILITY_FULL_TO_STR } from '../utils/characterConstants'
 import {
   getSpecialEffectId,
   getSpecialEffectCombatBonus,
@@ -560,12 +561,9 @@ export class DetailedCharacterService {
         console.error('updateAbilityBonuses: 無效的 characterId:', characterId)
         return false
       }
-      const keys: { short: keyof Record<string, number>; db: 'strength' | 'dexterity' | 'constitution' | 'intelligence' | 'wisdom' | 'charisma' }[] = [
-        { short: 'str', db: 'strength' }, { short: 'dex', db: 'dexterity' }, { short: 'con', db: 'constitution' },
-        { short: 'int', db: 'intelligence' }, { short: 'wis', db: 'wisdom' }, { short: 'cha', db: 'charisma' }
-      ]
       const row: Record<string, number | string> = { character_id: characterId }
-      for (const { short: k, db } of keys) {
+      for (const k of ABILITY_KEYS) {
+        const db = ABILITY_STR_TO_FULL[k]
         row[`${db}_bonus`] = typeof abilityBonuses?.[k] === 'number' && Number.isFinite(abilityBonuses[k]) ? abilityBonuses[k] : 0
         row[`${db}_modifier_bonus`] = typeof modifierBonuses?.[k] === 'number' && Number.isFinite(modifierBonuses[k]) ? modifierBonuses[k] : 0
       }
@@ -743,13 +741,10 @@ export class DetailedCharacterService {
     }
   }
 
-  // 屬性鍵（與前端 ABILITY_KEYS 一致），用於正規化 abilityBonuses / modifierBonuses
-  private static readonly EXTRA_DATA_ABILITY_KEYS = ['str', 'dex', 'con', 'int', 'wis', 'cha'] as const
-
   // 正規化為 { str, dex, con, int, wis, cha } 數字物件，確保可寫入 JSONB
   private static normalizeAbilityBonusMap(obj: any): Record<string, number> {
     const out: Record<string, number> = {}
-    for (const key of this.EXTRA_DATA_ABILITY_KEYS) {
+    for (const key of ABILITY_KEYS) {
       const v = obj?.[key]
       out[key] = typeof v === 'number' && Number.isFinite(v) ? v : 0
     }
@@ -1267,10 +1262,9 @@ export class DetailedCharacterService {
         return Object.keys(out).length ? out : undefined
       })(),
       saveBonuses: (() => {
-        const abilityMap: Record<string, string> = { strength: 'str', dexterity: 'dex', constitution: 'con', intelligence: 'int', wisdom: 'wis', charisma: 'cha' }
         const out: Record<string, number> = {}
         fullData.savingThrows.forEach((s: any) => {
-          if (s?.ability != null && typeof s.misc_bonus === 'number') out[abilityMap[s.ability] ?? s.ability] = s.misc_bonus
+          if (s?.ability != null && typeof s.misc_bonus === 'number') out[ABILITY_FULL_TO_STR[s.ability as keyof typeof ABILITY_FULL_TO_STR] ?? s.ability] = s.misc_bonus
         })
         return Object.keys(out).length ? out : undefined
       })(),
