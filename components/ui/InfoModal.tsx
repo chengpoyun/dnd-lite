@@ -1,5 +1,5 @@
 import React from 'react';
-import { Modal } from './Modal';
+import { Modal, ModalButton } from './Modal';
 import {
   MODAL_CONTAINER_CLASS,
   MODAL_BODY_TEXT_CLASS,
@@ -34,12 +34,9 @@ export const InfoModal: React.FC<InfoModalProps> = ({
         )}
         <p className={`${MODAL_BODY_TEXT_CLASS} text-center mb-5`}>{message}</p>
         <div className={MODAL_FOOTER_BUTTONS_CLASS}>
-          <button
-            onClick={onClose}
-            className={`px-6 py-3 rounded-lg font-medium transition-colors ${MODAL_BUTTON_APPLY_AMBER_CLASS} text-white`}
-          >
+          <ModalButton variant="primary" className={MODAL_BUTTON_APPLY_AMBER_CLASS} onClick={onClose}>
             確定
-          </button>
+          </ModalButton>
         </div>
       </div>
     </Modal>

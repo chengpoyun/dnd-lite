@@ -71,6 +71,8 @@ export const MODAL_INPUT_NUMBER_SM_CLASS = "w-16 bg-slate-800 border border-slat
 export const MODAL_INPUT_NUMBER_LG_CLASS = "w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-center text-white text-base";
 /** 刪除按鈕（塊級、紅色） */
 export const MODAL_BUTTON_DELETE_BLOCK_CLASS = "w-full px-4 py-2 bg-red-950/40 text-red-400 border border-red-900/30 rounded-xl font-bold text-xs mt-2";
+/** 確認刪除按鈕（橫列兩鈕時，實心紅） */
+export const MODAL_BUTTON_DELETE_CONFIRM_CLASS = "flex-1 px-6 py-3 !bg-red-600 hover:!bg-red-700 rounded-lg font-medium text-white";
 /** 新增一列按鈕（如職業列表的 +） */
 export const MODAL_BUTTON_ADD_ROW_CLASS = "w-full py-2 bg-slate-700/50 text-slate-400 rounded-lg border border-slate-600 hover:bg-slate-700 transition-colors flex items-center justify-center font-bold";
 /** 移除列按鈕（小圖示） */

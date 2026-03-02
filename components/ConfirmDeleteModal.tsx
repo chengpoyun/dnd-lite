@@ -1,6 +1,6 @@
 import React from 'react'
-import { Modal } from './ui/Modal'
-import { MODAL_CONTAINER_CLASS } from '../styles/modalStyles'
+import { Modal, ModalButton } from './ui/Modal'
+import { MODAL_CONTAINER_CLASS, BUTTON_SECONDARY_CLASS, MODAL_BUTTON_DELETE_CONFIRM_CLASS } from '../styles/modalStyles'
 
 interface ConfirmDeleteModalProps {
   isOpen: boolean
@@ -67,18 +67,12 @@ export const ConfirmDeleteModal: React.FC<ConfirmDeleteModalProps> = ({
         </div>
         
         <div className="flex gap-3">
-          <button
-            onClick={handleCancel}
-            className="flex-1 px-6 py-3 bg-slate-700 hover:bg-slate-600 rounded-lg font-medium transition-colors"
-          >
+          <ModalButton variant="secondary" className={BUTTON_SECONDARY_CLASS} onClick={handleCancel}>
             取消
-          </button>
-          <button
-            onClick={onConfirm}
-            className="flex-1 px-6 py-3 bg-red-600 hover:bg-red-700 rounded-lg font-medium transition-colors"
-          >
+          </ModalButton>
+          <ModalButton variant="danger" className={MODAL_BUTTON_DELETE_CONFIRM_CLASS} onClick={onConfirm}>
             {confirmText || '確認刪除'}
-          </button>
+          </ModalButton>
         </div>
       </div>
     </Modal>
