@@ -4,6 +4,10 @@
 
 ---
 
+## 1.1.5
+
+- 優化：抽出 `withSaveGuard` 共用儲存流程守衛（utils/saveGuard.ts），App.tsx 各 onSaveXxx 改為使用，減少重複 guard 與 try/finally。
+
 ## 1.1.4
 
 - 資料庫效能與 Performance Advisor：移除 16 個未使用索引（0005）、為 3 個外鍵補上索引（0001）；修正 RLS 的 auth_rls_initplan（0003）與 multiple_permissive_policies（0006）；為 `global_items` 搜尋新增 pg_trgm + GIN 索引以加速 ILIKE 查詢。

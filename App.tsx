@@ -22,6 +22,7 @@ const AboutPage = lazy(() => import('./components/AboutPage'));
 import { CharacterStats } from './types';
 import { formatClassDisplay, getPrimaryClass, getTotalLevel, getClassHitDie } from './utils/classUtils';
 import { getFinalAbilityModifier } from './utils/characterAttributes';
+import { withSaveGuard } from './utils/saveGuard';
 import { isSpellcaster } from './utils/spellUtils';
 import { HybridDataManager } from './services/hybridDataManager';
 import { DetailedCharacterService } from './services/detailedCharacter';
@@ -135,185 +136,161 @@ const AuthenticatedApp: React.FC = () => {
 
   // 保存豁免熟練度
   const saveSavingThrowProficiencies = async (proficiencies: string[]) => {
-    if (!currentCharacter || isSaving) return false
-    
-    // 驗證 session
-    if (!await validateSessionBeforeSave()) return false
-    
-    setIsSaving(true)
-    try {
-      console.log('🛡️ 保存豁免熟練度:', proficiencies)
-      const abilityMap: Record<string, string> = {
-        str: 'strength', dex: 'dexterity', con: 'constitution',
-        int: 'intelligence', wis: 'wisdom', cha: 'charisma'
-      }
-      
-      const savingThrows = proficiencies.map((ability: string) => {
-        const fullAbility = abilityMap[ability] || ability;
-        return {
-          character_id: currentCharacter.id,
-          ability: fullAbility as 'strength' | 'dexterity' | 'constitution' | 'intelligence' | 'wisdom' | 'charisma',
-          is_proficient: true
+    return withSaveGuard({
+      currentCharacter,
+      isSaving,
+      validate: validateSessionBeforeSave,
+      setSaving: setIsSaving,
+      fn: async () => {
+        try {
+          console.log('🛡️ 保存豁免熟練度:', proficiencies)
+          const abilityMap: Record<string, string> = {
+            str: 'strength', dex: 'dexterity', con: 'constitution',
+            int: 'intelligence', wis: 'wisdom', cha: 'charisma'
+          }
+          const savingThrows = proficiencies.map((ability: string) => {
+            const fullAbility = abilityMap[ability] || ability;
+            return {
+              character_id: currentCharacter!.id,
+              ability: fullAbility as 'strength' | 'dexterity' | 'constitution' | 'intelligence' | 'wisdom' | 'charisma',
+              is_proficient: true
+            }
+          })
+          const characterUpdate: CharacterUpdateData = { savingThrows }
+          const success = await HybridDataManager.updateCharacter(currentCharacter!.id, characterUpdate)
+          if (success) console.log('✅ 豁免熟練度保存成功')
+          return success
+        } catch (error) {
+          console.error('❌ 豁免熟練度保存失敗:', error)
+          throw error
         }
-      })
-      
-      const characterUpdate: CharacterUpdateData = { savingThrows }
-      const success = await HybridDataManager.updateCharacter(currentCharacter.id, characterUpdate)
-      if (success) {
-        console.log('✅ 豁免熟練度保存成功')
-      }
-      return success
-    } catch (error) {
-      console.error('❌ 豁免熟練度保存失敗:', error)
-      return false
-    } finally {
-      setIsSaving(false)
-    }
+      },
+    })
   }
 
   // 保存角色基本信息（名字、職業、等級）
   const saveCharacterBasicInfo = async (name: string, characterClass: string, level: number) => {
-    if (!currentCharacter || isSaving) return false
-    
-    // 驗證 session
-    if (!await validateSessionBeforeSave()) return false
-    
-    setIsSaving(true)
-    try {
-      console.log('📝 保存角色基本信息:', { name, characterClass, level })
-      const characterUpdate: CharacterUpdateData = {
-        character: {
-          ...currentCharacter,
-          name: name,
-          character_class: characterClass,
-          level: level,
-          updated_at: new Date().toISOString()
+    return withSaveGuard({
+      currentCharacter,
+      isSaving,
+      validate: validateSessionBeforeSave,
+      setSaving: setIsSaving,
+      fn: async () => {
+        try {
+          console.log('📝 保存角色基本信息:', { name, characterClass, level })
+          const characterUpdate: CharacterUpdateData = {
+            character: {
+              ...currentCharacter!,
+              name,
+              character_class: characterClass,
+              level,
+              updated_at: new Date().toISOString()
+            }
+          }
+          const success = await HybridDataManager.updateCharacter(currentCharacter!.id, characterUpdate)
+          if (success) {
+            console.log('✅ 角色基本信息保存成功')
+            setStats(prev => ({ ...prev, name, class: characterClass, level }))
+          }
+          return success
+        } catch (error) {
+          console.error('❌ 角色基本信息保存失敗:', error)
+          throw error
         }
-      }
-      
-      const success = await HybridDataManager.updateCharacter(currentCharacter.id, characterUpdate)
-      if (success) {
-        console.log('✅ 角色基本信息保存成功')
-        // 立即更新本地狀態，讓戰鬥檢視（CombatView）最大 HP 等依等級/職業的公式即時更新
-        setStats(prev => ({ ...prev, name, class: characterClass, level }))
-      }
-      return success
-    } catch (error) {
-      console.error('❌ 角色基本信息保存失敗:', error)
-      return false
-    } finally {
-      setIsSaving(false)
-    }
+      },
+    })
   }
 
   // 保存能力值
   const saveAbilityScores = async (abilityScores: CharacterStats['abilityScores']) => {
-    if (!currentCharacter || isSaving) return false
-    
-    // 驗證 session
-    if (!await validateSessionBeforeSave()) return false
-    
-    setIsSaving(true)
-    try {
-      console.log('💪 保存能力值:', abilityScores)
-      const characterUpdate: CharacterUpdateData = {
-        abilityScores: {
-          character_id: currentCharacter.id,
-          strength: abilityScores.str,
-          dexterity: abilityScores.dex,
-          constitution: abilityScores.con,
+    return withSaveGuard({
+      currentCharacter,
+      isSaving,
+      validate: validateSessionBeforeSave,
+      setSaving: setIsSaving,
+      fn: async () => {
+        try {
+          console.log('💪 保存能力值:', abilityScores)
+          const characterUpdate: CharacterUpdateData = {
+            abilityScores: {
+              character_id: currentCharacter!.id,
+              strength: abilityScores.str,
+              dexterity: abilityScores.dex,
+              constitution: abilityScores.con,
           intelligence: abilityScores.int,
           wisdom: abilityScores.wis,
           charisma: abilityScores.cha
         } as Partial<CharacterAbilityScores>
       }
-      
-      const success = await HybridDataManager.updateCharacter(currentCharacter.id, characterUpdate)
-      if (success) {
-        console.log('✅ 能力值保存成功')
-        // 保存成功後，立即更新本地狀態，確保與資料庫一致
-        setStats(prev => ({
-          ...prev,
-          abilityScores: abilityScores
-        }))
-      }
-      return success
-    } catch (error) {
-      console.error('❌ 能力值保存失敗:', error)
-      return false
-    } finally {
-      setIsSaving(false)
-    }
+          const success = await HybridDataManager.updateCharacter(currentCharacter!.id, characterUpdate)
+          if (success) {
+            console.log('✅ 能力值保存成功')
+            setStats(prev => ({ ...prev, abilityScores }))
+          }
+          return success
+        } catch (error) {
+          console.error('❌ 能力值保存失敗:', error)
+          throw error
+        }
+      },
+    })
   }
 
   // 保存屬性額外調整值（寫入 character_ability_scores 的 *_bonus / *_modifier_bonus）
   const saveAbilityBonuses = async (abilityBonuses: Record<string, number>, modifierBonuses: Record<string, number>) => {
-    if (!currentCharacter || isSaving) return false
-    if (!await validateSessionBeforeSave()) return false
-    setIsSaving(true)
-    try {
-      const success = await DetailedCharacterService.updateAbilityBonuses(currentCharacter.id, abilityBonuses, modifierBonuses)
-      if (success) console.log('✅ 屬性加成保存成功')
-      return success
-    } catch (error) {
-      console.error('❌ 屬性加成保存失敗:', error)
-      return false
-    } finally {
-      setIsSaving(false)
-    }
+    return withSaveGuard({
+      currentCharacter,
+      isSaving,
+      validate: validateSessionBeforeSave,
+      setSaving: setIsSaving,
+      fn: async () => {
+        try {
+          const success = await DetailedCharacterService.updateAbilityBonuses(currentCharacter!.id, abilityBonuses, modifierBonuses)
+          if (success) console.log('✅ 屬性加成保存成功')
+          return success
+        } catch (error) {
+          console.error('❌ 屬性加成保存失敗:', error)
+          throw error
+        }
+      },
+    })
   }
 
   // 保存 HP：當前、暫時、最大 HP basic（0=用公式）
   const saveHP = async (currentHP: number, temporaryHP?: number, maxHpBasic?: number) => {
-    if (!currentCharacter || isSaving) return false
-
-    if (!await validateSessionBeforeSave()) return false
-
-    setIsSaving(true)
-    try {
-      const updateData: Partial<CharacterCurrentStats> = {
-        character_id: currentCharacter.id,
-        current_hp: currentHP,
-      }
-      if (temporaryHP !== undefined) {
-        updateData.temporary_hp = temporaryHP
-      }
-      if (maxHpBasic !== undefined) {
-        updateData.max_hp_basic = maxHpBasic
-        updateData.max_hp_bonus = (typeof (stats as any).maxHp === 'object' && (stats as any).maxHp ? (stats as any).maxHp.bonus : 0) ?? 0
-      }
-
-      const characterUpdate: CharacterUpdateData = {
-        currentStats: updateData,
-      }
-      const success = await HybridDataManager.updateCharacter(currentCharacter.id, characterUpdate)
-      if (success) {
-        console.log('✅ HP保存成功')
-        // 更新本地狀態，讓最大 HP（含公式）與當前/暫時 HP 即時反映
-        setStats(prev => ({
-          ...prev,
-          hp: {
-            ...prev.hp,
-            current: currentHP,
-            ...(temporaryHP !== undefined ? { temp: temporaryHP } : {})
-          },
-          ...(maxHpBasic !== undefined
-            ? {
-                maxHp: {
-                  basic: maxHpBasic,
-                  bonus: (typeof (prev as any).maxHp === 'object' && (prev as any).maxHp ? (prev as any).maxHp.bonus : 0) ?? 0
-                }
-              }
-            : {})
-        }))
-      }
-      return success
-    } catch (error) {
-      console.error('❌ HP保存失敗:', error)
-      return false
-    } finally {
-      setIsSaving(false)
-    }
+    return withSaveGuard({
+      currentCharacter,
+      isSaving,
+      validate: validateSessionBeforeSave,
+      setSaving: setIsSaving,
+      fn: async () => {
+        try {
+          const updateData: Partial<CharacterCurrentStats> = {
+            character_id: currentCharacter!.id,
+            current_hp: currentHP,
+          }
+          if (temporaryHP !== undefined) updateData.temporary_hp = temporaryHP
+          if (maxHpBasic !== undefined) {
+            updateData.max_hp_basic = maxHpBasic
+            updateData.max_hp_bonus = (typeof (stats as any).maxHp === 'object' && (stats as any).maxHp ? (stats as any).maxHp.bonus : 0) ?? 0
+          }
+          const characterUpdate: CharacterUpdateData = { currentStats: updateData }
+          const success = await HybridDataManager.updateCharacter(currentCharacter!.id, characterUpdate)
+          if (success) {
+            console.log('✅ HP保存成功')
+            setStats(prev => ({
+              ...prev,
+              hp: { ...prev.hp, current: currentHP, ...(temporaryHP !== undefined ? { temp: temporaryHP } : {}) },
+              ...(maxHpBasic !== undefined ? { maxHp: { basic: maxHpBasic, bonus: (typeof (prev as any).maxHp === 'object' && (prev as any).maxHp ? (prev as any).maxHp.bonus : 0) ?? 0 } } : {})
+            }))
+          }
+          return success
+        } catch (error) {
+          console.error('❌ HP保存失敗:', error)
+          throw error
+        }
+      },
+    })
   }
 
   // 僅將最大 HP 基礎值寫入 DB（等級/職業變更後同步公式值，供 refetch 使用）
@@ -329,345 +306,293 @@ const AuthenticatedApp: React.FC = () => {
 
   // 保存AC
   const saveAC = async (ac: number) => {
-    if (!currentCharacter || isSaving) return false
-    
-    // 驗證 session
-    if (!await validateSessionBeforeSave()) return false
-    
-    setIsSaving(true)
-    try {
-      console.log('🛡️ 保存AC:', ac)
-      const characterUpdate: CharacterUpdateData = {
-        currentStats: {
-          character_id: currentCharacter.id,
-          ac_basic: ac,
-          ac_bonus: (typeof stats.ac === 'object' && stats.ac ? (stats.ac as any).bonus : 0) ?? 0
-        } as Partial<CharacterCurrentStats>
-      }
-      
-      const success = await HybridDataManager.updateCharacter(currentCharacter.id, characterUpdate)
-      if (success) {
-        console.log('✅ AC保存成功')
-        setStats(prev => ({
-          ...prev,
-          ac: { basic: ac, bonus: (typeof prev.ac === 'object' && prev.ac ? (prev.ac as any).bonus : 0) ?? 0 }
-        }))
-      }
-      return success
-    } catch (error) {
-      console.error('❌ AC保存失敗:', error)
-      return false
-    } finally {
-      setIsSaving(false)
-    }
+    return withSaveGuard({
+      currentCharacter,
+      isSaving,
+      validate: validateSessionBeforeSave,
+      setSaving: setIsSaving,
+      fn: async () => {
+        try {
+          console.log('🛡️ 保存AC:', ac)
+          const bonus = (typeof stats.ac === 'object' && stats.ac ? (stats.ac as any).bonus : 0) ?? 0
+          const characterUpdate: CharacterUpdateData = {
+            currentStats: { character_id: currentCharacter!.id, ac_basic: ac, ac_bonus: bonus } as Partial<CharacterCurrentStats>
+          }
+          const success = await HybridDataManager.updateCharacter(currentCharacter!.id, characterUpdate)
+          if (success) {
+            console.log('✅ AC保存成功')
+            setStats(prev => ({ ...prev, ac: { basic: ac, bonus: (typeof prev.ac === 'object' && prev.ac ? (prev.ac as any).bonus : 0) ?? 0 } }))
+          }
+          return success
+        } catch (error) {
+          console.error('❌ AC保存失敗:', error)
+          throw error
+        }
+      },
+    })
   }
 
   // 保存先攻值
   const saveInitiative = async (initiative: number) => {
-    if (!currentCharacter || isSaving) return false
-    
-    // 驗證 session
-    if (!await validateSessionBeforeSave()) return false
-    
-    setIsSaving(true)
-    try {
-      console.log('⚡ 保存先攻值:', initiative)
-      const characterUpdate: CharacterUpdateData = {
-        currentStats: {
-          character_id: currentCharacter.id,
-          initiative_basic: initiative,
-          initiative_bonus: (typeof stats.initiative === 'object' && stats.initiative ? (stats.initiative as any).bonus : 0) ?? 0
-        } as Partial<CharacterCurrentStats>
-      }
-      
-      const success = await HybridDataManager.updateCharacter(currentCharacter.id, characterUpdate)
-      if (success) {
-        console.log('✅ 先攻值保存成功')
-        setStats(prev => ({
-          ...prev,
-          initiative: { basic: initiative, bonus: (typeof prev.initiative === 'object' && prev.initiative ? (prev.initiative as any).bonus : 0) ?? 0 }
-        }))
-      }
-      return success
-    } catch (error) {
-      console.error('❌ 先攻值保存失敗:', error)
-      return false
-    } finally {
-      setIsSaving(false)
-    }
+    return withSaveGuard({
+      currentCharacter,
+      isSaving,
+      validate: validateSessionBeforeSave,
+      setSaving: setIsSaving,
+      fn: async () => {
+        try {
+          console.log('⚡ 保存先攻值:', initiative)
+          const bonus = (typeof stats.initiative === 'object' && stats.initiative ? (stats.initiative as any).bonus : 0) ?? 0
+          const characterUpdate: CharacterUpdateData = {
+            currentStats: { character_id: currentCharacter!.id, initiative_basic: initiative, initiative_bonus: bonus } as Partial<CharacterCurrentStats>
+          }
+          const success = await HybridDataManager.updateCharacter(currentCharacter!.id, characterUpdate)
+          if (success) {
+            console.log('✅ 先攻值保存成功')
+            setStats(prev => ({ ...prev, initiative: { basic: initiative, bonus: (typeof prev.initiative === 'object' && prev.initiative ? (prev.initiative as any).bonus : 0) ?? 0 } }))
+          }
+          return success
+        } catch (error) {
+          console.error('❌ 先攻值保存失敗:', error)
+          throw error
+        }
+      },
+    })
   }
 
   // 保存速度值
   const saveSpeed = async (speed: number) => {
-    if (!currentCharacter || isSaving) return false
-    
-    // 驗證 session
-    if (!await validateSessionBeforeSave()) return false
-    
-    setIsSaving(true)
-    try {
-      console.log('🏃 保存速度值:', speed)
-      const characterUpdate: CharacterUpdateData = {
-        currentStats: {
-          character_id: currentCharacter.id,
-          speed_basic: speed,
-          speed_bonus: (typeof stats.speed === 'object' && stats.speed ? (stats.speed as any).bonus : 0) ?? 0
-        } as Partial<CharacterCurrentStats>
-      }
-      
-      const success = await HybridDataManager.updateCharacter(currentCharacter.id, characterUpdate)
-      if (success) {
-        console.log('✅ 速度值保存成功')
-        setStats(prev => ({
-          ...prev,
-          speed: { basic: speed, bonus: (typeof prev.speed === 'object' && prev.speed ? (prev.speed as any).bonus : 0) ?? 0 }
-        }))
-      }
-      return success
-    } catch (error) {
-      console.error('❌ 速度值保存失敗:', error)
-      return false
-    } finally {
-      setIsSaving(false)
-    }
+    return withSaveGuard({
+      currentCharacter,
+      isSaving,
+      validate: validateSessionBeforeSave,
+      setSaving: setIsSaving,
+      fn: async () => {
+        try {
+          console.log('🏃 保存速度值:', speed)
+          const bonus = (typeof stats.speed === 'object' && stats.speed ? (stats.speed as any).bonus : 0) ?? 0
+          const characterUpdate: CharacterUpdateData = {
+            currentStats: { character_id: currentCharacter!.id, speed_basic: speed, speed_bonus: bonus } as Partial<CharacterCurrentStats>
+          }
+          const success = await HybridDataManager.updateCharacter(currentCharacter!.id, characterUpdate)
+          if (success) {
+            console.log('✅ 速度值保存成功')
+            setStats(prev => ({ ...prev, speed: { basic: speed, bonus: (typeof prev.speed === 'object' && prev.speed ? (prev.speed as any).bonus : 0) ?? 0 } }))
+          }
+          return success
+        } catch (error) {
+          console.error('❌ 速度值保存失敗:', error)
+          throw error
+        }
+      },
+    })
   }
 
   // 保存法術攻擊加值
   const saveSpellAttackBonus = async (newBonus: number) => {
-    if (!currentCharacter || isSaving) return false
-    
-    // 驗證 session
-    if (!await validateSessionBeforeSave()) return false
-    
-    setIsSaving(true)
-    try {
-      console.log('🎯 保存法術攻擊加值:', newBonus)
-      const characterUpdate: CharacterUpdateData = {
-        character: currentCharacter,
-        currentStats: {
-          character_id: currentCharacter.id,
-          spell_hit_basic: newBonus,
-          spell_hit_bonus: (typeof (stats as any).spellHit === 'object' && (stats as any).spellHit ? (stats as any).spellHit.bonus : 0) ?? 0
-        } as Partial<CharacterCurrentStats>
-      }
-      
-      const success = await HybridDataManager.updateCharacter(currentCharacter.id, characterUpdate)
-      if (success) {
-        console.log('✅ 法術命中保存成功')
-        setStats(prev => ({
-          ...prev,
-          spellHit: { basic: newBonus, bonus: (typeof (prev as any).spellHit === 'object' && (prev as any).spellHit ? (prev as any).spellHit.bonus : 0) ?? 0 }
-        }))
-      }
-      return success
-    } catch (error) {
-      console.error('❌ 法術攻擊加值保存失敗:', error)
-      return false
-    } finally {
-      setIsSaving(false)
-    }
+    return withSaveGuard({
+      currentCharacter,
+      isSaving,
+      validate: validateSessionBeforeSave,
+      setSaving: setIsSaving,
+      fn: async () => {
+        try {
+          console.log('🎯 保存法術攻擊加值:', newBonus)
+          const bonus = (typeof (stats as any).spellHit === 'object' && (stats as any).spellHit ? (stats as any).spellHit.bonus : 0) ?? 0
+          const characterUpdate: CharacterUpdateData = {
+            character: currentCharacter!,
+            currentStats: { character_id: currentCharacter!.id, spell_hit_basic: newBonus, spell_hit_bonus: bonus } as Partial<CharacterCurrentStats>
+          }
+          const success = await HybridDataManager.updateCharacter(currentCharacter!.id, characterUpdate)
+          if (success) {
+            console.log('✅ 法術命中保存成功')
+            setStats(prev => ({ ...prev, spellHit: { basic: newBonus, bonus: (typeof (prev as any).spellHit === 'object' && (prev as any).spellHit ? (prev as any).spellHit.bonus : 0) ?? 0 } }))
+          }
+          return success
+        } catch (error) {
+          console.error('❌ 法術攻擊加值保存失敗:', error)
+          throw error
+        }
+      },
+    })
   }
 
   // 保存法術豁免DC
   const saveSpellSaveDC = async (newDC: number) => {
-    if (!currentCharacter || isSaving) return false
-    
-    // 驗證 session
-    if (!await validateSessionBeforeSave()) return false
-    
-    setIsSaving(true)
-    try {
-      console.log('🛡️ 保存法術豁免DC:', newDC)
-      const characterUpdate: CharacterUpdateData = {
-        character: currentCharacter,
-        currentStats: {
-          character_id: currentCharacter.id,
-          spell_dc_basic: newDC,
-          spell_dc_bonus: (typeof (stats as any).spellDc === 'object' && (stats as any).spellDc ? (stats as any).spellDc.bonus : 0) ?? 0
-        } as Partial<CharacterCurrentStats>
-      }
-      
-      const success = await HybridDataManager.updateCharacter(currentCharacter.id, characterUpdate)
-      if (success) {
-        console.log('✅ 法術DC保存成功')
-        setStats(prev => ({
-          ...prev,
-          spellDc: { basic: newDC, bonus: (typeof (prev as any).spellDc === 'object' && (prev as any).spellDc ? (prev as any).spellDc.bonus : 0) ?? 0 }
-        }))
-      }
-      return success
-    } catch (error) {
-      console.error('❌ 法術豁免DC保存失敗:', error)
-      return false
-    } finally {
-      setIsSaving(false)
-    }
+    return withSaveGuard({
+      currentCharacter,
+      isSaving,
+      validate: validateSessionBeforeSave,
+      setSaving: setIsSaving,
+      fn: async () => {
+        try {
+          console.log('🛡️ 保存法術豁免DC:', newDC)
+          const bonus = (typeof (stats as any).spellDc === 'object' && (stats as any).spellDc ? (stats as any).spellDc.bonus : 0) ?? 0
+          const characterUpdate: CharacterUpdateData = {
+            character: currentCharacter!,
+            currentStats: { character_id: currentCharacter!.id, spell_dc_basic: newDC, spell_dc_bonus: bonus } as Partial<CharacterCurrentStats>
+          }
+          const success = await HybridDataManager.updateCharacter(currentCharacter!.id, characterUpdate)
+          if (success) {
+            console.log('✅ 法術DC保存成功')
+            setStats(prev => ({ ...prev, spellDc: { basic: newDC, bonus: (typeof (prev as any).spellDc === 'object' && (prev as any).spellDc ? (prev as any).spellDc.bonus : 0) ?? 0 } }))
+          }
+          return success
+        } catch (error) {
+          console.error('❌ 法術豁免DC保存失敗:', error)
+          throw error
+        }
+      },
+    })
   }
 
   // 保存武器命中加值
   const saveWeaponAttackBonus = async (newBonus: number) => {
-    if (!currentCharacter || isSaving) return false
-    if (!await validateSessionBeforeSave()) return false
-    setIsSaving(true)
-    try {
-      const characterUpdate: CharacterUpdateData = {
-        character: currentCharacter,
-        currentStats: {
-          character_id: currentCharacter.id,
-          attack_hit_basic: newBonus,
-          attack_hit_bonus: (typeof (stats as any).attackHit === 'object' && (stats as any).attackHit ? (stats as any).attackHit.bonus : 0) ?? 0
-        } as Partial<CharacterCurrentStats>
-      }
-      const success = await HybridDataManager.updateCharacter(currentCharacter.id, characterUpdate)
-      if (success) {
-        setStats(prev => ({ ...prev, attackHit: { basic: newBonus, bonus: (typeof (prev as any).attackHit === 'object' && (prev as any).attackHit ? (prev as any).attackHit.bonus : 0) ?? 0 } }))
-      }
-      return success
-    } catch (error) {
-      console.error('❌ 武器命中保存失敗:', error)
-      return false
-    } finally {
-      setIsSaving(false)
-    }
+    return withSaveGuard({
+      currentCharacter,
+      isSaving,
+      validate: validateSessionBeforeSave,
+      setSaving: setIsSaving,
+      fn: async () => {
+        try {
+          const bonus = (typeof (stats as any).attackHit === 'object' && (stats as any).attackHit ? (stats as any).attackHit.bonus : 0) ?? 0
+          const characterUpdate: CharacterUpdateData = {
+            character: currentCharacter!,
+            currentStats: { character_id: currentCharacter!.id, attack_hit_basic: newBonus, attack_hit_bonus: bonus } as Partial<CharacterCurrentStats>
+          }
+          const success = await HybridDataManager.updateCharacter(currentCharacter!.id, characterUpdate)
+          if (success) setStats(prev => ({ ...prev, attackHit: { basic: newBonus, bonus: (typeof (prev as any).attackHit === 'object' && (prev as any).attackHit ? (prev as any).attackHit.bonus : 0) ?? 0 } }))
+          return success
+        } catch (error) {
+          console.error('❌ 武器命中保存失敗:', error)
+          throw error
+        }
+      },
+    })
   }
 
   // 保存武器傷害加值
   const saveWeaponDamageBonus = async (newBonus: number) => {
-    if (!currentCharacter || isSaving) return false
-    if (!await validateSessionBeforeSave()) return false
-    setIsSaving(true)
-    try {
-      const characterUpdate: CharacterUpdateData = {
-        character: currentCharacter,
-        currentStats: {
-          character_id: currentCharacter.id,
-          attack_damage_basic: newBonus,
-          attack_damage_bonus: (typeof (stats as any).attackDamage === 'object' && (stats as any).attackDamage ? (stats as any).attackDamage.bonus : 0) ?? 0
-        } as Partial<CharacterCurrentStats>
-      }
-      const success = await HybridDataManager.updateCharacter(currentCharacter.id, characterUpdate)
-      if (success) {
-        setStats(prev => ({ ...prev, attackDamage: { basic: newBonus, bonus: (typeof (prev as any).attackDamage === 'object' && (prev as any).attackDamage ? (prev as any).attackDamage.bonus : 0) ?? 0 } }))
-      }
-      return success
-    } catch (error) {
-      console.error('❌ 武器傷害加值保存失敗:', error)
-      return false
-    } finally {
-      setIsSaving(false)
-    }
+    return withSaveGuard({
+      currentCharacter,
+      isSaving,
+      validate: validateSessionBeforeSave,
+      setSaving: setIsSaving,
+      fn: async () => {
+        try {
+          const bonus = (typeof (stats as any).attackDamage === 'object' && (stats as any).attackDamage ? (stats as any).attackDamage.bonus : 0) ?? 0
+          const characterUpdate: CharacterUpdateData = {
+            character: currentCharacter!,
+            currentStats: { character_id: currentCharacter!.id, attack_damage_basic: newBonus, attack_damage_bonus: bonus } as Partial<CharacterCurrentStats>
+          }
+          const success = await HybridDataManager.updateCharacter(currentCharacter!.id, characterUpdate)
+          if (success) setStats(prev => ({ ...prev, attackDamage: { basic: newBonus, bonus: (typeof (prev as any).attackDamage === 'object' && (prev as any).attackDamage ? (prev as any).attackDamage.bonus : 0) ?? 0 } }))
+          return success
+        } catch (error) {
+          console.error('❌ 武器傷害加值保存失敗:', error)
+          throw error
+        }
+      },
+    })
   }
 
   // 保存貨幣和經驗值
   const saveCurrencyAndExp = async (gp: number, exp: number) => {
-    if (!currentCharacter || isSaving) return false
-    
-    // 驗證 session
-    if (!await validateSessionBeforeSave()) return false
-    
-    setIsSaving(true)
-    try {
-      console.log('💰 保存貨幣和經驗值:', { gp, exp })
-      const characterUpdate: CharacterUpdateData = {
-        character: {
-          ...currentCharacter,
-          experience: exp,
-          updated_at: new Date().toISOString()
-        },
-        currency: {
-          character_id: currentCharacter.id,
-          gp: gp,
-          copper: stats.currency.cp || 0,
-          silver: stats.currency.sp || 0,
-          electrum: stats.currency.ep || 0,
-          platinum: stats.currency.pp || 0
-        } as Partial<CharacterCurrency>
-      }
-      
-      const success = await HybridDataManager.updateCharacter(currentCharacter.id, characterUpdate)
-      if (success) {
-        console.log('✅ 貨幣和經驗值保存成功')
-      }
-      return success
-    } catch (error) {
-      console.error('❌ 貨幣和經驗值保存失敗:', error)
-      return false
-    } finally {
-      setIsSaving(false)
-    }
+    return withSaveGuard({
+      currentCharacter,
+      isSaving,
+      validate: validateSessionBeforeSave,
+      setSaving: setIsSaving,
+      fn: async () => {
+        try {
+          console.log('💰 保存貨幣和經驗值:', { gp, exp })
+          const characterUpdate: CharacterUpdateData = {
+            character: { ...currentCharacter!, experience: exp, updated_at: new Date().toISOString() },
+            currency: {
+              character_id: currentCharacter!.id,
+              gp,
+              copper: stats.currency.cp || 0,
+              silver: stats.currency.sp || 0,
+              electrum: stats.currency.ep || 0,
+              platinum: stats.currency.pp || 0
+            } as Partial<CharacterCurrency>
+          }
+          const success = await HybridDataManager.updateCharacter(currentCharacter!.id, characterUpdate)
+          if (success) console.log('✅ 貨幣和經驗值保存成功')
+          return success
+        } catch (error) {
+          console.error('❌ 貨幣和經驗值保存失敗:', error)
+          throw error
+        }
+      },
+    })
   }
 
   // 保存頭像 URL
   const saveAvatarUrl = async (avatarUrl: string) => {
-    if (!currentCharacter || isSaving) return false
-    
-    // 驗證 session
-    if (!await validateSessionBeforeSave()) return false
-    
-    setIsSaving(true)
-    try {
-      console.log('🖼️ 保存頭像 URL:', avatarUrl)
-      const characterUpdate: CharacterUpdateData = {
-        character: {
-          ...currentCharacter,
-          avatar_url: avatarUrl,
-          updated_at: new Date().toISOString()
+    return withSaveGuard({
+      currentCharacter,
+      isSaving,
+      validate: validateSessionBeforeSave,
+      setSaving: setIsSaving,
+      fn: async () => {
+        try {
+          console.log('🖼️ 保存頭像 URL:', avatarUrl)
+          const characterUpdate: CharacterUpdateData = {
+            character: { ...currentCharacter!, avatar_url: avatarUrl, updated_at: new Date().toISOString() }
+          }
+          const success = await HybridDataManager.updateCharacter(currentCharacter!.id, characterUpdate)
+          if (success) {
+            console.log('✅ 頭像保存成功')
+            setCurrentCharacter(prev => prev ? { ...prev, avatar_url: avatarUrl } : null)
+          }
+          return success
+        } catch (error) {
+          console.error('❌ 頭像保存失敗:', error)
+          throw error
         }
-      }
-      
-      const success = await HybridDataManager.updateCharacter(currentCharacter.id, characterUpdate)
-      if (success) {
-        console.log('✅ 頭像保存成功')
-        // 更新本地角色資料
-        setCurrentCharacter(prev => prev ? { ...prev, avatar_url: avatarUrl } : null)
-      }
-      return success
-    } catch (error) {
-      console.error('❌ 頭像保存失敗:', error)
-      return false
-    } finally {
-      setIsSaving(false)
-    }
+      },
+    })
   }
 
   // 保存戰鬥筆記
   const saveCombatNotes = async (notes: string | null) => {
-    if (!currentCharacter || isSaving) return false;
-    if (!(await validateSessionBeforeSave())) return false;
-    setIsSaving(true);
-    try {
-      const success = await DetailedCharacterService.updateCurrentStats(currentCharacter.id, { combat_notes: notes });
-      if (success) console.log('✅ 戰鬥筆記保存成功');
-      return success;
-    } catch (error) {
-      console.error('❌ 戰鬥筆記保存失敗:', error);
-      return false;
-    } finally {
-      setIsSaving(false);
-    }
+    return withSaveGuard({
+      currentCharacter,
+      isSaving,
+      validate: validateSessionBeforeSave,
+      setSaving: setIsSaving,
+      fn: async () => {
+        try {
+          const success = await DetailedCharacterService.updateCurrentStats(currentCharacter!.id, { combat_notes: notes });
+          if (success) console.log('✅ 戰鬥筆記保存成功');
+          return success;
+        } catch (error) {
+          console.error('❌ 戰鬥筆記保存失敗:', error);
+          throw error;
+        }
+      },
+    });
   };
 
   // 保存額外數據（downtime、renown、自定義記錄等）
   const saveExtraData = async (extraData: any) => {
-    if (!currentCharacter || isSaving) return false
-    
-    // 驗證 session
-    if (!await validateSessionBeforeSave()) return false
-    
-    setIsSaving(true)
-    try {
-      // 使用專門的 updateExtraData 方法，只更新 extra_data 欄位
-      const success = await DetailedCharacterService.updateExtraData(currentCharacter.id, extraData)
-      if (success) {
-        console.log('✅ 額外數據保存成功')
-      }
-      return success
-    } catch (error) {
-      console.error('❌ 額外數據保存失敗:', error)
-      return false
-    } finally {
-      setIsSaving(false)
-    }
+    return withSaveGuard({
+      currentCharacter,
+      isSaving,
+      validate: validateSessionBeforeSave,
+      setSaving: setIsSaving,
+      fn: async () => {
+        try {
+          const success = await DetailedCharacterService.updateExtraData(currentCharacter!.id, extraData)
+          if (success) console.log('✅ 額外數據保存成功')
+          return success
+        } catch (error) {
+          console.error('❌ 額外數據保存失敗:', error)
+          throw error
+        }
+      },
+    })
   }
 
 
