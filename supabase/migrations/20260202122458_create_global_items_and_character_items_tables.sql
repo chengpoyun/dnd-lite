@@ -1,6 +1,8 @@
 -- 遷移: create_global_items_and_character_items_tables
 -- 創建時間: 2026-02-02 12:24:58
+-- 說明: 本檔為 placeholder（無 DDL）；實際建表與 RLS 在下一支 20260202122503 執行。
 
+-- （以下為範本註解，未執行任何變更）
 -- 在這裡添加你的 SQL 指令
 -- 例如:
 -- CREATE TABLE IF NOT EXISTS new_table (

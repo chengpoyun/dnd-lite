@@ -2,7 +2,7 @@
 
 > 現代化的 D&D 5e 角色管理網頁應用，專為數位桌遊與跑團設計。支援角色卡、戰鬥輔助、法術/物品管理、內建骰子與雲端同步。
 
-[![Tests](https://img.shields.io/badge/tests-365%20passing-brightgreen)](src/test/) [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue)](tsconfig.json) [![React](https://img.shields.io/badge/React-19-61dafb)](package.json)
+[![Tests](https://img.shields.io/badge/tests-476%20passing-brightgreen)](src/test/) [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue)](tsconfig.json) [![React](https://img.shields.io/badge/React-19-61dafb)](package.json)
 
 ---
 
@@ -146,6 +146,7 @@ VITE_SUPABASE_ANON_KEY=your-anon-key-here
 | [docs/ai-workflow.md](docs/ai-workflow.md) | AI 協作工作流：需求確認、先寫測試再實作、回報 |
 | [docs/MARKDOWN-SUPPORT.md](docs/MARKDOWN-SUPPORT.md) | 法術/物品描述欄位的 Markdown 與 HTML 支援 |
 | [TEST-README.md](TEST-README.md) | 測試：如何執行、覆蓋範圍、撰寫新測試 |
+| [CHANGELOG.md](CHANGELOG.md) | 版本紀錄與關鍵變更 |
 
 ---
 

@@ -54,14 +54,14 @@ npx vitest run --coverage
 ```
 src/test/
 ├── avatar-save.test.ts
-├── character-data-services.test.ts
-├── CharacterSheet.test.tsx
 ├── classUtils.test.ts
-├── CombatView.clean.test.tsx
+├── CharacterSheet.test.tsx
 ├── CombatView.defaultItems.test.tsx
-├── DeleteFunction.simple.test.tsx
-├── save-logic.test.ts
+├── common-styles.test.ts
+├── ConfirmDeleteModal.test.tsx
+├── saveGuard.test.ts
 ├── updateExtraData.test.ts
+├── ability-service.test.ts
 └── setup.ts
 ```
 
@@ -74,7 +74,7 @@ src/test/
 - **角色與儲存**：角色基本資料、能力值、技能、經驗值與貨幣、儲存邏輯（如 `save-logic.test.ts`）。
 - **職業與兼職**：職業資訊、生命骰、兼職計算、遷移與顯示（如 `classUtils.test.ts`）。
 - **戰鬥**：預設動作保護、自訂動作 CRUD、編輯模式（如 `CombatView.*.test.tsx`）。
-- **資料與服務**：Supabase 整合、同步、錯誤處理、匿名支援（如 `character-data-services.test.ts`）。
+- **資料與服務**：Supabase 整合、同步、錯誤處理、匿名支援（如 `updateExtraData.test.ts`、`ability-service.test.ts`）。
 - **額外資料**：extra_data、downtime、renown、customRecords（如 `updateExtraData.test.ts`）。
 - **UI 與互動**：角色表渲染、表單與提交、頭像上傳、刪除確認（如 `CharacterSheet.test.tsx`、`avatar-save.test.ts`、`DeleteFunction.simple.test.tsx`）。
 - **樣式與工具**：`styles/common.ts` 的 `STYLES`、`combineStyles`、`conditionalStyle`（如 `common-styles.test.ts`）。

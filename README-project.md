@@ -17,6 +17,7 @@
 | 用 AI 協作開發（先寫測試再實作） | [docs/ai-workflow.md](docs/ai-workflow.md) |
 | 寫或跑測試 | [TEST-README.md](TEST-README.md) |
 | 法術/物品描述的 Markdown、HTML | [docs/MARKDOWN-SUPPORT.md](docs/MARKDOWN-SUPPORT.md) |
+| 查看版本紀錄與變更 | [CHANGELOG.md](CHANGELOG.md) |
 
 ---
 
@@ -129,4 +130,5 @@ npm run dev    # 開發伺服器 http://localhost:3000
 - **架構或目錄、服務職責、DB 對應**：更新 [docs/code-architecture.md](docs/code-architecture.md)。
 - **遷移流程或 Supabase 設定**：更新 [docs/database-migration.md](docs/database-migration.md)。
 - **測試方式或慣例**：更新 [TEST-README.md](TEST-README.md)。
+- **版本紀錄**：發版或重大變更時更新 [CHANGELOG.md](CHANGELOG.md)。
 - 在 PR 或 Issue 中可提醒：是否需同步更新上述文件。
