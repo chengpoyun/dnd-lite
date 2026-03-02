@@ -92,7 +92,7 @@ export const INPUT_FULL_WIDTH_CLASS = "w-full px-3 py-2.5 bg-slate-700/50 border
 export const SELECT_CLASS = "px-3 py-2 bg-slate-800 border border-slate-700 rounded text-sm focus:outline-none focus:border-amber-500";
 
 // ===== 按鈕樣式 =====
-export const BUTTON_PRIMARY_CLASS = "flex-1 px-6 py-3 bg-green-600 hover:bg-green-700 rounded-lg font-medium text-white transition-colors disabled:opacity-50";
+export const BUTTON_PRIMARY_CLASS = "flex-1 px-6 py-3 bg-amber-600 hover:bg-amber-700 rounded-lg font-medium text-slate-900 transition-colors disabled:opacity-50";
 export const BUTTON_SECONDARY_CLASS = "flex-1 px-6 py-3 bg-slate-700 hover:bg-slate-600 rounded-lg font-medium text-slate-300 transition-colors";
 export const BUTTON_WARNING_CLASS = "flex-1 px-6 py-3 bg-orange-600 hover:bg-orange-700 rounded-lg font-medium text-white transition-colors disabled:opacity-50";
 export const BUTTON_DANGER_CLASS = "flex-1 px-6 py-3 bg-amber-600 hover:bg-amber-700 rounded-lg font-medium text-white transition-colors disabled:opacity-50";
