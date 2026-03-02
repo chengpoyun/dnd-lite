@@ -4,6 +4,10 @@
 
 ---
 
+## 1.1.11
+
+- 修正文件：移除不存在的 `combatStyles`，改為 `STYLES`、`combineStyles`、`conditionalStyle`。
+
 ## 1.1.10
 
 - 優化：抽出 `PageLoadingFallback` 元件，App.tsx 各 Suspense fallback 改為使用，統一載入樣式。

@@ -26,7 +26,7 @@
 | `components/` | 頁面與 Modal；`ui/` 下為共用 UI（Modal、FilterBar、FinalTotalRow 等） |
 | `services/` | 資料存取：`hybridDataManager`、`detailedCharacter` 等 |
 | `utils/` | `characterConstants`、`appInit`（組裝 CharacterStats）、`characterAttributes`（basic+bonus 計算） |
-| `styles/` | `modalStyles.ts`、`common.ts`（STYLES、combatStyles、combineStyles） |
+| `styles/` | `modalStyles.ts`、`common.ts`（STYLES、combineStyles、conditionalStyle） |
 | `types.ts` | `CharacterStats`、`CustomRecord`、`ClassInfo` 等前端型別 |
 | `lib/supabase.ts` | Supabase 客戶端與 DB 型別（如 `CharacterCurrentStats`） |
 | `src/test/` | Vitest 測試 |

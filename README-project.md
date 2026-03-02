@@ -50,7 +50,7 @@
 | `contexts/` | `AuthContext`：登入狀態與使用者識別 |
 | `services/` | 資料存取與領域邏輯：`hybridDataManager`、`detailedCharacter`、`itemService`、`spellService`、`abilityService`、`combatService` 等 |
 | `utils/` | 角色常數（`characterConstants`）、組裝 `CharacterStats`（`appInit`）、屬性與戰鬥數值計算（`characterAttributes`）、職業與兼職（`classUtils`） |
-| `styles/` | 共用樣式：`modalStyles.ts`、`common.ts`（STYLES、combatStyles、combineStyles） |
+| `styles/` | 共用樣式：`modalStyles.ts`、`common.ts`（STYLES、combineStyles、conditionalStyle） |
 | `hooks/` | `useAppInitialization`、`useToast` |
 | `lib/` | Supabase 客戶端（`lib/supabase.ts`）與型別 |
 | `data/` | 靜態 JSON/CSV（物品、法術等基礎資料） |
