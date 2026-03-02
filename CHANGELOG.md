@@ -4,6 +4,11 @@
 
 ---
 
+## 1.1.13
+
+- 優化：ConfirmDeleteModal、InfoModal 改用 `ModalButton` 與 modalStyles，統一 Modal 按鈕樣式；新增 `MODAL_BUTTON_DELETE_CONFIRM_CLASS`。
+- 測試：新增 ConfirmDeleteModal 元件測試（標題、取消／確認行為、自訂文案與角色／項目情境）。
+
 ## 1.1.12
 
 - 優化：detailedCharacter 改用 `AbilityDbKey` 型別，集中至 characterConstants。
