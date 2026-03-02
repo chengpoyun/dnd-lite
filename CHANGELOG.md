@@ -4,6 +4,10 @@
 
 ---
 
+## 1.1.9
+
+- 優化：按鈕語意統一，`modalStyles.BUTTON_PRIMARY_CLASS` 改為 amber（與 STYLES.button.primary、Modal 一致）。
+
 ## 1.1.8
 
 - 優化：新增 `getCombatStatBonus(stats, key)`，App.tsx 儲存戰鬥屬性時改為使用，減少重複 basic/bonus 讀取。
