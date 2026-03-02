@@ -21,7 +21,7 @@ const AboutPage = lazy(() => import('./components/AboutPage'));
 
 import { CharacterStats } from './types';
 import { formatClassDisplay, getPrimaryClass, getTotalLevel, getClassHitDie } from './utils/classUtils';
-import { getFinalAbilityModifier } from './utils/characterAttributes';
+import { getFinalAbilityModifier, getCombatStatBonus } from './utils/characterAttributes';
 import { ABILITY_STR_TO_FULL } from './utils/characterConstants';
 import { withSaveGuard } from './utils/saveGuard';
 import { isSpellcaster } from './utils/spellUtils';
@@ -269,7 +269,7 @@ const AuthenticatedApp: React.FC = () => {
           if (temporaryHP !== undefined) updateData.temporary_hp = temporaryHP
           if (maxHpBasic !== undefined) {
             updateData.max_hp_basic = maxHpBasic
-            updateData.max_hp_bonus = (typeof (stats as any).maxHp === 'object' && (stats as any).maxHp ? (stats as any).maxHp.bonus : 0) ?? 0
+            updateData.max_hp_bonus = getCombatStatBonus(stats, 'maxHp')
           }
           const characterUpdate: CharacterUpdateData = { currentStats: updateData }
           const success = await HybridDataManager.updateCharacter(currentCharacter!.id, characterUpdate)
@@ -278,7 +278,7 @@ const AuthenticatedApp: React.FC = () => {
             setStats(prev => ({
               ...prev,
               hp: { ...prev.hp, current: currentHP, ...(temporaryHP !== undefined ? { temp: temporaryHP } : {}) },
-              ...(maxHpBasic !== undefined ? { maxHp: { basic: maxHpBasic, bonus: (typeof (prev as any).maxHp === 'object' && (prev as any).maxHp ? (prev as any).maxHp.bonus : 0) ?? 0 } } : {})
+              ...(maxHpBasic !== undefined ? { maxHp: { basic: maxHpBasic, bonus: getCombatStatBonus(prev, 'maxHp') } } : {})
             }))
           }
           return success
@@ -311,14 +311,13 @@ const AuthenticatedApp: React.FC = () => {
       fn: async () => {
         try {
           console.log('🛡️ 保存AC:', ac)
-          const bonus = (typeof stats.ac === 'object' && stats.ac ? (stats.ac as any).bonus : 0) ?? 0
           const characterUpdate: CharacterUpdateData = {
-            currentStats: { character_id: currentCharacter!.id, ac_basic: ac, ac_bonus: bonus } as Partial<CharacterCurrentStats>
+            currentStats: { character_id: currentCharacter!.id, ac_basic: ac, ac_bonus: getCombatStatBonus(stats, 'ac') } as Partial<CharacterCurrentStats>
           }
           const success = await HybridDataManager.updateCharacter(currentCharacter!.id, characterUpdate)
           if (success) {
             console.log('✅ AC保存成功')
-            setStats(prev => ({ ...prev, ac: { basic: ac, bonus: (typeof prev.ac === 'object' && prev.ac ? (prev.ac as any).bonus : 0) ?? 0 } }))
+            setStats(prev => ({ ...prev, ac: { basic: ac, bonus: getCombatStatBonus(prev, 'ac') } }))
           }
           return success
         } catch (error) {
@@ -339,14 +338,13 @@ const AuthenticatedApp: React.FC = () => {
       fn: async () => {
         try {
           console.log('⚡ 保存先攻值:', initiative)
-          const bonus = (typeof stats.initiative === 'object' && stats.initiative ? (stats.initiative as any).bonus : 0) ?? 0
           const characterUpdate: CharacterUpdateData = {
-            currentStats: { character_id: currentCharacter!.id, initiative_basic: initiative, initiative_bonus: bonus } as Partial<CharacterCurrentStats>
+            currentStats: { character_id: currentCharacter!.id, initiative_basic: initiative, initiative_bonus: getCombatStatBonus(stats, 'initiative') } as Partial<CharacterCurrentStats>
           }
           const success = await HybridDataManager.updateCharacter(currentCharacter!.id, characterUpdate)
           if (success) {
             console.log('✅ 先攻值保存成功')
-            setStats(prev => ({ ...prev, initiative: { basic: initiative, bonus: (typeof prev.initiative === 'object' && prev.initiative ? (prev.initiative as any).bonus : 0) ?? 0 } }))
+            setStats(prev => ({ ...prev, initiative: { basic: initiative, bonus: getCombatStatBonus(prev, 'initiative') } }))
           }
           return success
         } catch (error) {
@@ -367,14 +365,13 @@ const AuthenticatedApp: React.FC = () => {
       fn: async () => {
         try {
           console.log('🏃 保存速度值:', speed)
-          const bonus = (typeof stats.speed === 'object' && stats.speed ? (stats.speed as any).bonus : 0) ?? 0
           const characterUpdate: CharacterUpdateData = {
-            currentStats: { character_id: currentCharacter!.id, speed_basic: speed, speed_bonus: bonus } as Partial<CharacterCurrentStats>
+            currentStats: { character_id: currentCharacter!.id, speed_basic: speed, speed_bonus: getCombatStatBonus(stats, 'speed') } as Partial<CharacterCurrentStats>
           }
           const success = await HybridDataManager.updateCharacter(currentCharacter!.id, characterUpdate)
           if (success) {
             console.log('✅ 速度值保存成功')
-            setStats(prev => ({ ...prev, speed: { basic: speed, bonus: (typeof prev.speed === 'object' && prev.speed ? (prev.speed as any).bonus : 0) ?? 0 } }))
+            setStats(prev => ({ ...prev, speed: { basic: speed, bonus: getCombatStatBonus(prev, 'speed') } }))
           }
           return success
         } catch (error) {
@@ -395,15 +392,14 @@ const AuthenticatedApp: React.FC = () => {
       fn: async () => {
         try {
           console.log('🎯 保存法術攻擊加值:', newBonus)
-          const bonus = (typeof (stats as any).spellHit === 'object' && (stats as any).spellHit ? (stats as any).spellHit.bonus : 0) ?? 0
           const characterUpdate: CharacterUpdateData = {
             character: currentCharacter!,
-            currentStats: { character_id: currentCharacter!.id, spell_hit_basic: newBonus, spell_hit_bonus: bonus } as Partial<CharacterCurrentStats>
+            currentStats: { character_id: currentCharacter!.id, spell_hit_basic: newBonus, spell_hit_bonus: getCombatStatBonus(stats, 'spellHit') } as Partial<CharacterCurrentStats>
           }
           const success = await HybridDataManager.updateCharacter(currentCharacter!.id, characterUpdate)
           if (success) {
             console.log('✅ 法術命中保存成功')
-            setStats(prev => ({ ...prev, spellHit: { basic: newBonus, bonus: (typeof (prev as any).spellHit === 'object' && (prev as any).spellHit ? (prev as any).spellHit.bonus : 0) ?? 0 } }))
+            setStats(prev => ({ ...prev, spellHit: { basic: newBonus, bonus: getCombatStatBonus(prev, 'spellHit') } }))
           }
           return success
         } catch (error) {
@@ -424,15 +420,14 @@ const AuthenticatedApp: React.FC = () => {
       fn: async () => {
         try {
           console.log('🛡️ 保存法術豁免DC:', newDC)
-          const bonus = (typeof (stats as any).spellDc === 'object' && (stats as any).spellDc ? (stats as any).spellDc.bonus : 0) ?? 0
           const characterUpdate: CharacterUpdateData = {
             character: currentCharacter!,
-            currentStats: { character_id: currentCharacter!.id, spell_dc_basic: newDC, spell_dc_bonus: bonus } as Partial<CharacterCurrentStats>
+            currentStats: { character_id: currentCharacter!.id, spell_dc_basic: newDC, spell_dc_bonus: getCombatStatBonus(stats, 'spellDc') } as Partial<CharacterCurrentStats>
           }
           const success = await HybridDataManager.updateCharacter(currentCharacter!.id, characterUpdate)
           if (success) {
             console.log('✅ 法術DC保存成功')
-            setStats(prev => ({ ...prev, spellDc: { basic: newDC, bonus: (typeof (prev as any).spellDc === 'object' && (prev as any).spellDc ? (prev as any).spellDc.bonus : 0) ?? 0 } }))
+            setStats(prev => ({ ...prev, spellDc: { basic: newDC, bonus: getCombatStatBonus(prev, 'spellDc') } }))
           }
           return success
         } catch (error) {
@@ -452,13 +447,12 @@ const AuthenticatedApp: React.FC = () => {
       setSaving: setIsSaving,
       fn: async () => {
         try {
-          const bonus = (typeof (stats as any).attackHit === 'object' && (stats as any).attackHit ? (stats as any).attackHit.bonus : 0) ?? 0
           const characterUpdate: CharacterUpdateData = {
             character: currentCharacter!,
-            currentStats: { character_id: currentCharacter!.id, attack_hit_basic: newBonus, attack_hit_bonus: bonus } as Partial<CharacterCurrentStats>
+            currentStats: { character_id: currentCharacter!.id, attack_hit_basic: newBonus, attack_hit_bonus: getCombatStatBonus(stats, 'attackHit') } as Partial<CharacterCurrentStats>
           }
           const success = await HybridDataManager.updateCharacter(currentCharacter!.id, characterUpdate)
-          if (success) setStats(prev => ({ ...prev, attackHit: { basic: newBonus, bonus: (typeof (prev as any).attackHit === 'object' && (prev as any).attackHit ? (prev as any).attackHit.bonus : 0) ?? 0 } }))
+          if (success) setStats(prev => ({ ...prev, attackHit: { basic: newBonus, bonus: getCombatStatBonus(prev, 'attackHit') } }))
           return success
         } catch (error) {
           console.error('❌ 武器命中保存失敗:', error)
@@ -477,13 +471,12 @@ const AuthenticatedApp: React.FC = () => {
       setSaving: setIsSaving,
       fn: async () => {
         try {
-          const bonus = (typeof (stats as any).attackDamage === 'object' && (stats as any).attackDamage ? (stats as any).attackDamage.bonus : 0) ?? 0
           const characterUpdate: CharacterUpdateData = {
             character: currentCharacter!,
-            currentStats: { character_id: currentCharacter!.id, attack_damage_basic: newBonus, attack_damage_bonus: bonus } as Partial<CharacterCurrentStats>
+            currentStats: { character_id: currentCharacter!.id, attack_damage_basic: newBonus, attack_damage_bonus: getCombatStatBonus(stats, 'attackDamage') } as Partial<CharacterCurrentStats>
           }
           const success = await HybridDataManager.updateCharacter(currentCharacter!.id, characterUpdate)
-          if (success) setStats(prev => ({ ...prev, attackDamage: { basic: newBonus, bonus: (typeof (prev as any).attackDamage === 'object' && (prev as any).attackDamage ? (prev as any).attackDamage.bonus : 0) ?? 0 } }))
+          if (success) setStats(prev => ({ ...prev, attackDamage: { basic: newBonus, bonus: getCombatStatBonus(prev, 'attackDamage') } }))
           return success
         } catch (error) {
           console.error('❌ 武器傷害加值保存失敗:', error)

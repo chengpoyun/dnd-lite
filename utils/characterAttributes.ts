@@ -133,6 +133,41 @@ export function getBasicCombatStat(
 }
 
 /**
+ * 取得戰鬥屬性的 bonus 值（供儲存時保留既有 bonus 用）
+ */
+export function getCombatStatBonus(
+  stats: CharacterStats,
+  key: CombatStatKey
+): number {
+  switch (key) {
+    case 'ac':
+      return getBonusValue((stats as any).ac);
+    case 'initiative':
+      return getBonusValue((stats as any).initiative);
+    case 'speed':
+      return getBonusValue((stats as any).speed);
+    case 'maxHp':
+      return getBonusValue((stats as any).maxHp);
+    case 'attackHit': {
+      const v = (stats as any).attackHit ?? (stats as any).weapon_attack_bonus;
+      return getBonusValue(v);
+    }
+    case 'attackDamage': {
+      const v = (stats as any).attackDamage ?? (stats as any).weapon_damage_bonus;
+      return getBonusValue(v);
+    }
+    case 'spellHit': {
+      const v = (stats as any).spellHit ?? (stats as any).spell_attack_bonus;
+      return getBonusValue(v);
+    }
+    case 'spellDc': {
+      const v = (stats as any).spellDc ?? (stats as any).spell_save_dc;
+      return getBonusValue(v);
+    }
+  }
+}
+
+/**
  * 取得戰鬥屬性 final 值（支援舊 flat 與新 basic+bonus 格式）
  */
 export function getFinalCombatStat(

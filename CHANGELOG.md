@@ -4,6 +4,10 @@
 
 ---
 
+## 1.1.8
+
+- 優化：新增 `getCombatStatBonus(stats, key)`，App.tsx 儲存戰鬥屬性時改為使用，減少重複 basic/bonus 讀取。
+
 ## 1.1.7
 
 - 優化：技能加值單一來源為 `extraData.skillBonuses`；`getFinalSkillBonus` 僅讀取該處，appInit 合併 character_skill_proficiencies.misc_bonus 進 extraData.skillBonuses，top-level `skillBonuses` 標為 deprecated。

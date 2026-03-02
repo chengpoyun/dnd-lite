@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   getFinalCombatStat,
   getBasicCombatStat,
+  getCombatStatBonus,
   getFinalAbilityModifier,
   getFinalSavingThrow,
   getFinalSkillBonus,
@@ -258,6 +259,18 @@ describe('characterAttributes - getFinalSavingThrow', () => {
       saveBonuses: { str: 2 } as any,
     });
     expect(getFinalSavingThrow(stats, 'str')).toBe(2);
+  });
+});
+
+describe('characterAttributes - getCombatStatBonus', () => {
+  it('應回傳 basic+bonus 結構的 bonus 值', () => {
+    const stats = createMockStats({ ac: { basic: 14, bonus: 2 }, initiative: { basic: 2, bonus: 1 } } as any);
+    expect(getCombatStatBonus(stats, 'ac')).toBe(2);
+    expect(getCombatStatBonus(stats, 'initiative')).toBe(1);
+  });
+  it('flat 數值時應回傳 0', () => {
+    const stats = createMockStats({ ac: 16 } as any);
+    expect(getCombatStatBonus(stats, 'ac')).toBe(0);
   });
 });
 
