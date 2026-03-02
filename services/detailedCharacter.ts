@@ -12,7 +12,7 @@ import type {
   FullCharacterData 
 } from '../lib/supabase'
 import type { CharacterStats } from '../types'
-import { ABILITY_KEYS, ABILITY_STR_TO_FULL, ABILITY_FULL_TO_STR } from '../utils/characterConstants'
+import { ABILITY_KEYS, ABILITY_STR_TO_FULL, ABILITY_FULL_TO_STR, type AbilityDbKey } from '../utils/characterConstants'
 import {
   getSpecialEffectId,
   getSpecialEffectCombatBonus,
@@ -588,7 +588,7 @@ export class DetailedCharacterService {
   // 保存基礎屬性值（獨立函數）
   static async saveAbilityBaseValue(
     characterId: string,
-    ability: 'strength' | 'dexterity' | 'constitution' | 'intelligence' | 'wisdom' | 'charisma',
+    ability: AbilityDbKey,
     value: number
   ): Promise<boolean> {
     try {
@@ -620,7 +620,7 @@ export class DetailedCharacterService {
   // 保存屬性裝備加成（獨立函數）
   static async saveAbilityBonus(
     characterId: string,
-    ability: 'strength' | 'dexterity' | 'constitution' | 'intelligence' | 'wisdom' | 'charisma',
+    ability: AbilityDbKey,
     bonus: number
   ): Promise<boolean> {
     try {
@@ -653,7 +653,7 @@ export class DetailedCharacterService {
   // 保存調整值額外加成（獨立函數）
   static async saveModifierBonus(
     characterId: string,
-    ability: 'strength' | 'dexterity' | 'constitution' | 'intelligence' | 'wisdom' | 'charisma',
+    ability: AbilityDbKey,
     bonus: number
   ): Promise<boolean> {
     try {

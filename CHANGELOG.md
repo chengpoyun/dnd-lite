@@ -4,6 +4,10 @@
 
 ---
 
+## 1.1.12
+
+- 優化：detailedCharacter 改用 `AbilityDbKey` 型別，集中至 characterConstants。
+
 ## 1.1.11
 
 - 修正文件：移除不存在的 `combatStyles`，改為 `STYLES`、`combineStyles`、`conditionalStyle`。
