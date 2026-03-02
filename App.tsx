@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { WelcomePage } from './components/WelcomePage';
 import { CharacterSheet } from './components/CharacterSheet';
+import { PageLoadingFallback } from './components/ui/PageLoadingFallback';
 import { SessionExpiredModal } from './components/SessionExpiredModal';
 import { useAppInitialization } from './hooks/useAppInitialization';
 
@@ -680,12 +681,11 @@ const AuthenticatedApp: React.FC = () => {
   if (appState === 'conversion' && user) {
     return (
       <Suspense fallback={
-        <div className="flex items-center justify-center h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-500 mx-auto mb-4"></div>
-            <p className="text-slate-400">載入轉換頁面...</p>
-          </div>
-        </div>
+        <PageLoadingFallback
+          message="載入轉換頁面..."
+          heightClass="h-screen"
+          className="bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950"
+        />
       }>
         <ConversionPage 
           userId={user.id} 
@@ -858,24 +858,12 @@ const AuthenticatedApp: React.FC = () => {
                   onSaveAvatarUrl={saveAvatarUrl}
                 />
               ) : (
-                <div className="flex items-center justify-center h-64">
-                  <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-                    <p className="text-gray-600">載入角色資料中...</p>
-                  </div>
-                </div>
+                <PageLoadingFallback message="載入角色資料中..." />
               )}
             </>
           )}
           {activeTab === Tab.COMBAT && (
-            <Suspense fallback={
-              <div className="flex items-center justify-center h-64">
-                <div className="text-center">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-500 mx-auto mb-4"></div>
-                  <p className="text-slate-400">載入戰鬥檢視...</p>
-                </div>
-              </div>
-            }>
+            <Suspense fallback={<PageLoadingFallback message="載入戰鬥檢視..." />}>
               <CombatView 
                 stats={stats} 
                 setStats={setStats} 
@@ -896,66 +884,31 @@ const AuthenticatedApp: React.FC = () => {
           )}
 
           {activeTab === Tab.MONSTERS && (
-            <Suspense fallback={
-              <div className="flex items-center justify-center h-64">
-                <div className="text-center">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-500 mx-auto mb-4"></div>
-                  <p className="text-slate-400">載入怪物頁...</p>
-                </div>
-              </div>
-            }>
+            <Suspense fallback={<PageLoadingFallback message="載入怪物頁..." />}>
               <MonstersPage />
             </Suspense>
           )}
 
           {activeTab === Tab.ITEMS && (
-            <Suspense fallback={
-              <div className="flex items-center justify-center h-64">
-                <div className="text-center">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-500 mx-auto mb-4"></div>
-                  <p className="text-slate-400">載入道具頁面...</p>
-                </div>
-              </div>
-            }>
+            <Suspense fallback={<PageLoadingFallback message="載入道具頁面..." />}>
               <ItemsPage characterId={currentCharacter?.id || ''} onCharacterDataChanged={refetchCharacterStats} />
             </Suspense>
           )}
 
           {activeTab === Tab.EQUIPMENT && currentCharacter && (
-            <Suspense fallback={
-              <div className="flex items-center justify-center h-64">
-                <div className="text-center">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-500 mx-auto mb-4"></div>
-                  <p className="text-slate-400">載入裝備頁面...</p>
-                </div>
-              </div>
-            }>
+            <Suspense fallback={<PageLoadingFallback message="載入裝備頁面..." />}>
               <EquipmentPage characterId={currentCharacter.id} onCharacterDataChanged={refetchCharacterStats} />
             </Suspense>
           )}
 
           {activeTab === Tab.ABILITIES && currentCharacter && (
-            <Suspense fallback={
-              <div className="flex items-center justify-center h-64">
-                <div className="text-center">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-500 mx-auto mb-4"></div>
-                  <p className="text-slate-400">載入特殊能力頁面...</p>
-                </div>
-              </div>
-            }>
+            <Suspense fallback={<PageLoadingFallback message="載入特殊能力頁面..." />}>
               <AbilitiesPage characterId={currentCharacter.id} onCharacterDataChanged={refetchCharacterStats} />
             </Suspense>
           )}
 
           {activeTab === Tab.SPELLS && currentCharacter && (
-            <Suspense fallback={
-              <div className="flex items-center justify-center h-64">
-                <div className="text-center">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-500 mx-auto mb-4"></div>
-                  <p className="text-slate-400">載入法術頁面...</p>
-                </div>
-              </div>
-            }>
+            <Suspense fallback={<PageLoadingFallback message="載入法術頁面..." />}>
               <SpellsPage
                 characterId={currentCharacter.id}
                 characterClasses={stats.classes || [
@@ -972,40 +925,19 @@ const AuthenticatedApp: React.FC = () => {
           )}
 
           {activeTab === Tab.DICE && (
-            <Suspense fallback={
-              <div className="flex items-center justify-center h-64">
-                <div className="text-center">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-500 mx-auto mb-4"></div>
-                  <p className="text-slate-400">載入骰子頁面...</p>
-                </div>
-              </div>
-            }>
+            <Suspense fallback={<PageLoadingFallback message="載入骰子頁面..." />}>
               <DiceRoller />
             </Suspense>
           )}
 
           {activeTab === Tab.NOTES && currentCharacter?.id && (
-            <Suspense fallback={
-              <div className="flex items-center justify-center h-64">
-                <div className="text-center">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-500 mx-auto mb-4"></div>
-                  <p className="text-slate-400">載入筆記頁面...</p>
-                </div>
-              </div>
-            }>
+            <Suspense fallback={<PageLoadingFallback message="載入筆記頁面..." />}>
               <NotesPage characterId={currentCharacter.id} />
             </Suspense>
           )}
 
           {activeTab === Tab.TERRAIN && currentCharacter?.id && (
-            <Suspense fallback={
-              <div className="flex items-center justify-center h-64">
-                <div className="text-center">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-500 mx-auto mb-4"></div>
-                  <p className="text-slate-400">載入地形頁面...</p>
-                </div>
-              </div>
-            }>
+            <Suspense fallback={<PageLoadingFallback message="載入地形頁面..." />}>
               <TerrainPage
                 stats={stats}
                 setStats={setStats}
@@ -1017,14 +949,7 @@ const AuthenticatedApp: React.FC = () => {
           )}
 
           {activeTab === Tab.ABOUT && (
-            <Suspense fallback={
-              <div className="flex items-center justify-center h-64">
-                <div className="text-center">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-500 mx-auto mb-4"></div>
-                  <p className="text-slate-400">載入關於頁面...</p>
-                </div>
-              </div>
-            }>
+            <Suspense fallback={<PageLoadingFallback message="載入關於頁面..." />}>
               <AboutPage
                 userMode={userMode}
                 onSwitchCharacter={handleBackToCharacterSelect}

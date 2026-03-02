@@ -4,6 +4,10 @@
 
 ---
 
+## 1.1.10
+
+- 優化：抽出 `PageLoadingFallback` 元件，App.tsx 各 Suspense fallback 改為使用，統一載入樣式。
+
 ## 1.1.9
 
 - 優化：按鈕語意統一，`modalStyles.BUTTON_PRIMARY_CLASS` 改為 amber（與 STYLES.button.primary、Modal 一致）。
