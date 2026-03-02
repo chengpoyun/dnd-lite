@@ -4,6 +4,10 @@
 
 ---
 
+## 1.1.14
+
+- 優化（4.1–4.3）：新增 `styles/common.ts` 單元測試（STYLES、combineStyles、conditionalStyle）；TEST-README 補上樣式測試覆蓋說明；code-architecture 明確說明 App 以 React.lazy 載入分頁並搭配 PageLoadingFallback。
+
 ## 1.1.13
 
 - 優化：ConfirmDeleteModal、InfoModal 改用 `ModalButton` 與 modalStyles，統一 Modal 按鈕樣式；新增 `MODAL_BUTTON_DELETE_CONFIRM_CLASS`。

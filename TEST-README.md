@@ -77,6 +77,7 @@ src/test/
 - **資料與服務**：Supabase 整合、同步、錯誤處理、匿名支援（如 `character-data-services.test.ts`）。
 - **額外資料**：extra_data、downtime、renown、customRecords（如 `updateExtraData.test.ts`）。
 - **UI 與互動**：角色表渲染、表單與提交、頭像上傳、刪除確認（如 `CharacterSheet.test.tsx`、`avatar-save.test.ts`、`DeleteFunction.simple.test.tsx`）。
+- **樣式與工具**：`styles/common.ts` 的 `STYLES`、`combineStyles`、`conditionalStyle`（如 `common-styles.test.ts`）。
 
 詳細案例與情境請直接參考各 `src/test/*.test.*` 檔案。
 

@@ -84,7 +84,7 @@ flowchart TD
 ### Page 元件
 
 - 接收 `stats`、`setStats`、`characterId`、`onSaveXxx`（視需要）。
-- 可使用 lazy 載入。
+- **Lazy 載入**：`App.tsx` 以 `React.lazy` 載入各分頁（CharacterSelectPage、CombatView、SpellsPage 等），搭配 `Suspense` 與 `PageLoadingFallback` 顯示載入中。
 
 ---
 
