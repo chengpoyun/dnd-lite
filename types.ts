@@ -43,6 +43,7 @@ export interface CharacterStats {
   attackDamage?: { basic: number; bonus: number };
   spellHit?: { basic: number; bonus: number };
   spellDc?: { basic: number; bonus: number };
+  /** @deprecated 請使用 extraData.skillBonuses；buildCharacterStats 仍會從 DB 填入以相容舊資料，getFinalSkillBonus 僅讀 extraData.skillBonuses */
   skillBonuses?: Record<string, number>;
   saveBonuses?: Record<string, number>;
   abilityScores: {

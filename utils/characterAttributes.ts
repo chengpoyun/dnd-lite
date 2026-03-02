@@ -239,10 +239,7 @@ export function getFinalSkillBonus(
 ): number {
   const skill = SKILLS_MAP.find((s) => s.name === skillName);
   if (!skill) return 0;
-  const miscBonus =
-    (stats.extraData?.skillBonuses as Record<string, number>)?.[skillName] ??
-    ((stats as any).skillBonuses as Record<string, number>)?.[skillName] ??
-    0;
+  const miscBonus = (stats.extraData?.skillBonuses as Record<string, number>)?.[skillName] ?? 0;
   const overrideBasic = (stats.extraData?.skillBasicOverrides as Record<string, number>)?.[skillName];
   if (typeof overrideBasic === 'number') {
     return overrideBasic + miscBonus;

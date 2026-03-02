@@ -173,11 +173,17 @@ export function buildCharacterStats(characterData: any, previousStats: Character
             ed?.skillBasicOverrides && typeof ed.skillBasicOverrides === 'object'
               ? (ed.skillBasicOverrides as Record<string, number>)
               : {},
-          // 其他技能加值：由後端整合後直接載入（DB misc_bonus + 能力／物品 stat_bonuses.skills 等）
-          skillBonuses:
-            ed?.skillBonuses && typeof ed.skillBonuses === 'object'
-              ? (ed.skillBonuses as Record<string, number>)
-              : {},
+          // 其他技能加值：單一來源，合併 extra_data.skillBonuses 與 character_skill_proficiencies.misc_bonus
+          skillBonuses: (() => {
+            const fromEd = ed?.skillBonuses && typeof ed.skillBonuses === 'object' ? { ...(ed.skillBonuses as Record<string, number>) } : {};
+            const profs = characterData.skillProficiencies;
+            if (Array.isArray(profs)) {
+              profs.forEach((p: any) => {
+                if (p?.skill_name != null && typeof p.misc_bonus === 'number') fromEd[p.skill_name] = (fromEd[p.skill_name] ?? 0) + p.misc_bonus;
+              });
+            }
+            return fromEd;
+          })(),
           // 來源明細：由後端 DetailedCharacterService.collectSourceBonusesForCharacter 聚合寫入
           statBonusSources: Array.isArray((ed as any)?.statBonusSources)
             ? ((ed as any).statBonusSources as any[])

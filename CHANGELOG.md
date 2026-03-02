@@ -4,6 +4,10 @@
 
 ---
 
+## 1.1.7
+
+- 優化：技能加值單一來源為 `extraData.skillBonuses`；`getFinalSkillBonus` 僅讀取該處，appInit 合併 character_skill_proficiencies.misc_bonus 進 extraData.skillBonuses，top-level `skillBonuses` 標為 deprecated。
+
 ## 1.1.6
 
 - 優化：能力鍵對應集中至 `utils/characterConstants`（`ABILITY_STR_TO_FULL`、`ABILITY_FULL_TO_STR`），App、appInit、detailedCharacter 改為匯入使用。

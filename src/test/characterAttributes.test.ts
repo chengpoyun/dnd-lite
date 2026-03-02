@@ -273,12 +273,12 @@ describe('characterAttributes - getFinalSkillBonus', () => {
     expect(getFinalSkillBonus(stats, '特技')).toBe(0);
   });
 
-  it('應加上 skillBonuses misc_bonus', () => {
+  it('應加上 extraData.skillBonuses misc_bonus', () => {
     const stats = createMockStats({
       abilityScores: { str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10 },
       level: 5,
       proficiencies: {},
-      skillBonuses: { '運動': 2 } as any,
+      extraData: { skillBonuses: { '運動': 2 } } as any,
     });
     expect(getFinalSkillBonus(stats, '運動')).toBe(2);
   });
