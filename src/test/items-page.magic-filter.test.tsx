@@ -14,7 +14,6 @@ vi.mock('../../hooks/useToast', () => ({
 
 vi.mock('../../components/LearnItemModal', () => ({ LearnItemModal: () => null }));
 vi.mock('../../components/AddPersonalItemModal', () => ({ AddPersonalItemModal: () => null }));
-vi.mock('../../components/GlobalItemFormModal', () => ({ GlobalItemFormModal: () => null }));
 vi.mock('../../components/CharacterItemEditModal', () => ({ CharacterItemEditModal: () => null }));
 vi.mock('../../components/ItemDetailModal', () => ({ default: () => null }));
 vi.mock('../../components/ConfirmDeleteModal', () => ({ ConfirmDeleteModal: () => null }));

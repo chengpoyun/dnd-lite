@@ -103,7 +103,7 @@ export const AddPersonalSpellModal: React.FC<AddPersonalSpellModalProps> = ({
         <LoadingOverlay visible={isSubmitting} />
         <h2 className="text-xl font-bold mb-5">新增個人法術</h2>
         <p className="text-slate-400 text-sm mb-4">
-          此法術僅屬於此角色；之後若想讓大家都能取得，可在法術詳情中「上傳到資料庫」。
+          此法術僅屬於此角色。
         </p>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-3">

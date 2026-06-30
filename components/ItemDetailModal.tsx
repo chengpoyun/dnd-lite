@@ -17,8 +17,6 @@ interface ItemDetailModalProps {
   onDelete: () => void;
   /** 數量變更時呼叫（會寫入 DB，呼叫端需負責 refetch 並更新 characterItem） */
   onQuantityChange?: (characterItemId: string, quantity: number) => Promise<void>;
-  /** 僅個人物品（未關聯 global_items）時顯示「上傳到資料庫」並呼叫此 callback */
-  onUploadToDb?: () => void;
 }
 
 export default function ItemDetailModal({
@@ -28,14 +26,12 @@ export default function ItemDetailModal({
   onEdit,
   onDelete,
   onQuantityChange,
-  onUploadToDb,
 }: ItemDetailModalProps) {
   const [quantityUpdating, setQuantityUpdating] = useState(false);
 
   if (!characterItem) return null;
 
   const display = getDisplayValues(characterItem);
-  const isPersonalOnly = !characterItem.item_id || !characterItem.item;
   const qty = characterItem.quantity;
 
   const handleQuantityDelta = async (delta: number) => {
@@ -131,14 +127,6 @@ export default function ItemDetailModal({
                 刪除
               </button>
             </div>
-            {isPersonalOnly && onUploadToDb && (
-              <button
-                onClick={onUploadToDb}
-                className="w-full px-6 py-3 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors font-medium"
-              >
-                上傳到資料庫
-              </button>
-            )}
           </div>
         </div>
       </div>

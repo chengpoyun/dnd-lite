@@ -17,8 +17,6 @@ interface AbilityDetailModalProps {
   onEdit: () => void;
   onDelete: () => void;
   onUse: () => void;
-  /** 僅個人能力（未關聯 abilities）時顯示「上傳到資料庫」並呼叫此 callback */
-  onUploadToDb?: () => void;
 }
 
 export default function AbilityDetailModal({
@@ -27,8 +25,7 @@ export default function AbilityDetailModal({
   characterAbility,
   onEdit,
   onDelete,
-  onUse,
-  onUploadToDb
+  onUse
 }: AbilityDetailModalProps) {
   if (!characterAbility) return null;
 
@@ -38,7 +35,6 @@ export default function AbilityDetailModal({
   const recoveryType = display.recovery_type || '常駐';
   const isPassive = recoveryType === '常駐';
   const canUse = !isPassive && current_uses > 0;
-  const isPersonalOnly = !characterAbility.ability_id || !characterAbility.ability;
   // 取得關聯的 ability（Supabase 有時回傳 ability 或 abilities，且可能為陣列）
   const abilityRef = characterAbility.ability ?? (characterAbility as { abilities?: unknown }).abilities;
   const abilityObj = Array.isArray(abilityRef) ? abilityRef[0] : abilityRef;
@@ -162,14 +158,6 @@ export default function AbilityDetailModal({
                 移除
               </button>
             </div>
-            {isPersonalOnly && onUploadToDb && (
-              <button
-                onClick={onUploadToDb}
-                className="w-full px-6 py-3 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors font-medium"
-              >
-                上傳到資料庫
-              </button>
-            )}
           </div>
         </div>
       </div>

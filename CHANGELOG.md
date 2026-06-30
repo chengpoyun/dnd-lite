@@ -4,6 +4,11 @@
 
 ---
 
+## 1.2.0
+
+- 移除「上傳到資料庫」與「新增到資料庫」功能：實際使用後確認共享全域庫的寫入流程是多餘的。拔除三類（法術／物品／能力）的個人項目上傳與直接新增到全域庫的入口、服務函式（`uploadCharacterXxxToGlobal`、`createSpell`/`updateSpell`、`createAbility`、`createGlobalItem`）與相關型別；刪除僅供上傳使用的 `SpellFormModal`、`GlobalItemFormModal`；`AbilityFormModal` 精簡為「編輯個人能力」專用。**保留**瀏覽／學習既有共享項目與個人項目的新增／編輯。
+- 測試：移除三個 service 測試的上傳區塊（刪除 `item-service.test.ts`）、清理 `items-page.magic-filter` 對已刪元件的 mock。
+
 ## 1.1.15
 
 - 修正：更新經驗值後，同一 session 未 reload 直接調整等級會導致經驗值被回溯。原因為角色基本資料存檔以陳舊的本地快照重建整列寫回 DB，覆蓋了剛存好的經驗值。改為各存檔只送變動欄位（partial update），並於存檔後同步本地角色快照；同類問題（戰鬥加值、頭像存檔挾帶整列）一併修正。

@@ -69,41 +69,6 @@ export interface SpellFilters {
   searchText?: string;
 }
 
-export interface CreateSpellData {
-  name: string;
-  name_en: string;
-  level: number;
-  casting_time: string;
-  school: Spell['school'];
-  concentration: boolean;
-  ritual: boolean;
-  duration: string;
-  range: string;
-  source: string;
-  verbal: boolean;
-  somatic: boolean;
-  material: string;
-  description: string;
-}
-
-// 上傳角色法術到全域法術庫時使用的資料（所有欄位必填）
-export interface CreateSpellDataForUpload {
-  name: string;
-  name_en: string;
-  level: number;
-  casting_time: string;
-  school: Spell['school'];
-  concentration: boolean;
-  ritual: boolean;
-  duration: string;
-  range: string;
-  source: string;
-  verbal: boolean;
-  somatic: boolean;
-  material: string;
-  description: string;
-}
-
 /** 新增個人法術（直接寫入 character_spells，不經 spells） */
 export interface CreateCharacterSpellData {
   name: string;
@@ -156,7 +121,6 @@ export async function getAllSpells(filters?: SpellFilters): Promise<Spell[]> {
 
 /**
  * 新增個人法術（直接寫入 character_spells，不建立 spells）
- * 所有欄位必填（同 SpellFormModal）
  */
 export async function createCharacterSpell(
   characterId: string,
@@ -220,127 +184,6 @@ export async function createCharacterSpell(
     console.error('新增個人法術異常:', error);
     return { success: false, error: '新增個人法術時發生錯誤' };
   }
-}
-
-/**
- * 新增法術到資料庫
- */
-export async function createSpell(spellData: CreateSpellData): Promise<Spell> {
-  const { data, error } = await supabase
-    .from('spells')
-    .insert([spellData])
-    .select()
-    .single();
-
-  if (error) {
-    console.error('新增法術失敗:', error);
-    throw error;
-  }
-
-  return data;
-}
-
-/**
- * 將角色法術上傳到全域法術庫：
- * - 以 name_en（不分大小寫）檢查 spells 是否已存在
- * - 若已存在：只更新該角色法術的 spell_id 指向既有 spell
- * - 若不存在：建立新的 spell，再更新角色法術的 spell_id
- */
-export async function uploadCharacterSpellToGlobal(
-  characterSpellId: string,
-  data: CreateSpellDataForUpload
-): Promise<{
-  success: boolean;
-  error?: string;
-}> {
-  try {
-    if (!characterSpellId) {
-      return { success: false, error: '角色法術 ID 無效' };
-    }
-
-    const requiredFields = [
-      data.name,
-      data.name_en,
-      data.casting_time,
-      data.duration,
-      data.range,
-      data.source,
-      data.material,
-      data.description,
-    ];
-
-    if (requiredFields.some((value) => !value?.toString().trim())) {
-      return { success: false, error: '所有欄位皆為必填' };
-    }
-
-    const { data: existing, error: findError } = await (supabase
-      .from('spells')
-      .select('*')
-      .ilike('name_en', data.name_en)
-      .maybeSingle());
-
-    let targetSpellId: string | null = null;
-
-    if (existing && !findError) {
-      targetSpellId = existing.id;
-    } else {
-      if (findError && findError.code !== 'PGRST116' && (findError as { status?: number }).status !== 406) {
-        console.error('查詢全域法術失敗:', findError);
-        return { success: false, error: '查詢全域法術失敗' };
-      }
-
-      const { data: inserted, error: insertError } = await supabase
-        .from('spells')
-        .insert([data])
-        .select()
-        .single();
-
-      if (insertError || !inserted) {
-        console.error('創建全域法術失敗:', insertError);
-        return { success: false, error: insertError?.message || '創建全域法術失敗' };
-      }
-
-      targetSpellId = inserted.id;
-    }
-
-    if (!targetSpellId) {
-      return { success: false, error: '無法取得全域法術 ID' };
-    }
-
-    const { error: updateError } = await supabase
-      .from('character_spells')
-      .update({ spell_id: targetSpellId })
-      .eq('id', characterSpellId);
-
-    if (updateError) {
-      console.error('更新角色法術關聯失敗:', updateError);
-      return { success: false, error: updateError.message };
-    }
-
-    return { success: true };
-  } catch (error) {
-    console.error('上傳法術到全域庫異常:', error);
-    return { success: false, error: '上傳法術到全域庫時發生錯誤' };
-  }
-}
-
-/**
- * 編輯法術
- */
-export async function updateSpell(spellId: string, spellData: Partial<CreateSpellData>): Promise<Spell> {
-  const { data, error } = await supabase
-    .from('spells')
-    .update(spellData)
-    .eq('id', spellId)
-    .select()
-    .single();
-
-  if (error) {
-    console.error('編輯法術失敗:', error);
-    throw error;
-  }
-
-  return data;
 }
 
 /**

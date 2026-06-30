@@ -81,7 +81,7 @@ export const AddPersonalAbilityModal: React.FC<AddPersonalAbilityModalProps> = (
         <LoadingOverlay visible={isSubmitting} />
         <h2 className="text-xl font-bold mb-5">新增個人能力</h2>
         <p className="text-slate-400 text-sm mb-4">
-          此能力僅屬於此角色；之後若想讓大家都能取得，可在能力詳情中「上傳到資料庫」。
+          此能力僅屬於此角色。
         </p>
         <form onSubmit={handleSubmit} className="space-y-3">
           <div>

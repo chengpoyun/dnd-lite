@@ -103,7 +103,6 @@ export default function AbilitiesPage({ characterId, onCharacterDataChanged }: A
   const [isLearnModalOpen, setIsLearnModalOpen] = useState(false);
   const [isAddPersonalModalOpen, setIsAddPersonalModalOpen] = useState(false);
   const [addPersonalInitialName, setAddPersonalInitialName] = useState('');
-  const [uploadFromCharacterAbility, setUploadFromCharacterAbility] = useState<CharacterAbilityWithDetails | null>(null);
   const [selectedCharacterAbility, setSelectedCharacterAbility] = useState<CharacterAbilityWithDetails | null>(null);
   const [editingCharacterAbility, setEditingCharacterAbility] = useState<CharacterAbilityWithDetails | null>(null);
 
@@ -142,7 +141,6 @@ export default function AbilitiesPage({ characterId, onCharacterDataChanged }: A
 
   const closeFormModal = useCallback(() => {
     setIsFormModalOpen(false);
-    setUploadFromCharacterAbility(null);
     setEditingCharacterAbility(null);
   }, []);
 
@@ -198,19 +196,6 @@ export default function AbilitiesPage({ characterId, onCharacterDataChanged }: A
     [characterId, characterAbilities, showError]
   );
 
-  // 新增能力到全域資料庫（不自動學習）
-  const handleCreate = async (data: AbilityService.CreateAbilityData) => {
-    try {
-      await AbilityService.createAbility(data);
-      showSuccess('特殊能力已新增到資料庫');
-      setIsFormModalOpen(false);
-      loadData();
-    } catch (error) {
-      console.error('新增特殊能力失敗:', error);
-      showError('新增特殊能力失敗');
-    }
-  };
-
   // 新增個人能力（不寫入 abilities）
   const handleAddPersonalAbility = async (data: AbilityService.CreateCharacterAbilityData) => {
     const result = await AbilityService.createCharacterAbility(characterId, data);
@@ -220,20 +205,6 @@ export default function AbilitiesPage({ characterId, onCharacterDataChanged }: A
       loadData();
     } else {
       showError(result.error || '新增能力失敗');
-    }
-  };
-
-  // 上傳角色能力到全域庫（依 name_en 決定新增或關聯既有）
-  const handleUploadToGlobal = async (data: AbilityService.CreateAbilityDataForUpload) => {
-    if (!uploadFromCharacterAbility) return;
-    const result = await AbilityService.uploadCharacterAbilityToGlobal(uploadFromCharacterAbility.id, data);
-    if (result.success) {
-      showSuccess('已上傳至資料庫，其他玩家可取得此能力');
-      setUploadFromCharacterAbility(null);
-      setIsFormModalOpen(false);
-      loadData();
-    } else {
-      showError(result.error || '上傳失敗');
     }
   };
 
@@ -461,27 +432,8 @@ export default function AbilitiesPage({ characterId, onCharacterDataChanged }: A
       <AbilityFormModal
         isOpen={isFormModalOpen}
         onClose={closeFormModal}
-        onSubmit={uploadFromCharacterAbility ? handleUploadToGlobal : editingCharacterAbility ? handleUpdate : handleCreate}
+        onSubmit={handleUpdate}
         editingAbility={editingCharacterAbility}
-        mode={uploadFromCharacterAbility ? 'upload' : 'create'}
-        uploadInitialData={uploadFromCharacterAbility ? (() => {
-          const display = AbilityService.getDisplayValues(uploadFromCharacterAbility);
-          const ca = uploadFromCharacterAbility as { affects_stats?: boolean; stat_bonuses?: Record<string, unknown> };
-          const abilityRaw = (uploadFromCharacterAbility as { ability?: { affects_stats?: boolean; stat_bonuses?: Record<string, unknown> } }).ability;
-          const overrideBonuses = ca.stat_bonuses;
-          const hasOverrideStats =
-            (typeof ca.affects_stats === 'boolean' && ca.affects_stats) ||
-            (overrideBonuses && typeof overrideBonuses === 'object' && Object.keys(overrideBonuses).length > 0);
-          return {
-            name: display.name,
-            name_en: display.name_en ?? '',
-            description: display.description,
-            source: display.source || '其他',
-            recovery_type: display.recovery_type || '常駐',
-            affects_stats: hasOverrideStats ? (ca.affects_stats ?? false) : (abilityRaw?.affects_stats ?? false),
-            stat_bonuses: hasOverrideStats ? (overrideBonuses ?? {}) : (abilityRaw?.stat_bonuses ?? {}),
-          };
-        })() : undefined}
       />
 
       <AddPersonalAbilityModal
@@ -498,12 +450,6 @@ export default function AbilitiesPage({ characterId, onCharacterDataChanged }: A
         onEdit={handleEditClick}
         onDelete={handleDeleteClick}
         onUse={handleUse}
-        onUploadToDb={selectedCharacterAbility && (!selectedCharacterAbility.ability_id || !selectedCharacterAbility.ability) ? () => {
-          setUploadFromCharacterAbility(selectedCharacterAbility);
-          setIsDetailModalOpen(false);
-          setSelectedCharacterAbility(null);
-          setIsFormModalOpen(true);
-        } : undefined}
       />
 
       <ConfirmDeleteModal

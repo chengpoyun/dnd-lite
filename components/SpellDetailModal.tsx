@@ -11,8 +11,6 @@ interface SpellDetailModalProps {
   characterSpell: CharacterSpell | null;
   onEdit: (characterSpell: CharacterSpell) => void;
   onForget: (spellId: string | null, characterSpellId?: string) => void;
-  /** 僅個人法術（未關聯 spells）時顯示「上傳到資料庫」並呼叫此 callback */
-  onUploadToDb?: () => void;
 }
 
 export const SpellDetailModal: React.FC<SpellDetailModalProps> = ({
@@ -20,13 +18,11 @@ export const SpellDetailModal: React.FC<SpellDetailModalProps> = ({
   onClose,
   characterSpell,
   onEdit,
-  onForget,
-  onUploadToDb
+  onForget
 }) => {
   if (!characterSpell) return null;
 
   const display = getDisplayValues(characterSpell);
-  const isPersonalOnly = !characterSpell.spell_id || !characterSpell.spell;
   const schoolColor = getSchoolColor(display.displaySchool);
 
   return (
@@ -132,14 +128,6 @@ export const SpellDetailModal: React.FC<SpellDetailModalProps> = ({
               遺忘
             </button>
           </div>
-          {isPersonalOnly && onUploadToDb && (
-            <button
-              onClick={onUploadToDb}
-              className="w-full px-6 py-3 rounded-lg bg-amber-600 text-white text-[16px] font-bold active:bg-amber-700"
-            >
-              上傳到資料庫
-            </button>
-          )}
           <button
             onClick={onClose}
             className="px-6 py-3 rounded-lg bg-slate-700 text-slate-200 text-[16px] font-bold active:bg-slate-600"

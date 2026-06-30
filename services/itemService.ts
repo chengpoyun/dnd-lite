@@ -94,29 +94,6 @@ export interface CharacterItemWithDetails extends CharacterItem {
   displayIsMagic: boolean;
 }
 
-export interface CreateGlobalItemData {
-  name: string;
-  name_en?: string;
-  description?: string;
-  category: ItemCategory;
-  is_magic: boolean;
-  affects_stats?: boolean;
-  stat_bonuses?: GlobalItem['stat_bonuses'];
-  equipment_kind?: string | null;
-}
-
-// 上傳角色物品到全域物品庫時使用的資料（所有欄位必填）
-export interface CreateGlobalItemDataForUpload {
-  name: string;
-  name_en: string;
-  description: string;
-  category: ItemCategory;
-  is_magic: boolean;
-  affects_stats?: boolean;
-  stat_bonuses?: GlobalItem['stat_bonuses'];
-  equipment_kind?: string | null;
-}
-
 export interface UpdateCharacterItemData {
   quantity?: number;
   name_override?: string | null;
@@ -213,117 +190,6 @@ export async function searchGlobalItems(query: string): Promise<{
   } catch (error) {
     console.error('❌ 搜尋全域物品異常:', error);
     return { success: false, error: '搜尋物品時發生錯誤' };
-  }
-}
-
-/**
- * 將角色物品上傳到全域物品庫：
- * - 以 name_en（不分大小寫）檢查 global_items 是否已存在
- * - 若已存在：只更新該角色物品的 item_id 指向既有 global_item
- * - 若不存在：建立新的 global_item，再更新角色物品的 item_id
- */
-export async function uploadCharacterItemToGlobal(
-  characterItemId: string,
-  data: CreateGlobalItemDataForUpload
-): Promise<{
-  success: boolean;
-  error?: string;
-}> {
-  try {
-    if (!characterItemId) {
-      return { success: false, error: '角色物品 ID 無效' };
-    }
-
-    const { name, name_en, description, category } = data;
-
-    if (!name.trim() || !name_en.trim() || !description.trim() || !category) {
-      return { success: false, error: '所有欄位皆為必填' };
-    }
-    if (typeof data.is_magic !== 'boolean') {
-      return { success: false, error: '魔法物品欄位無效' };
-    }
-
-    // 1. 先嘗試以 name_en（不分大小寫）尋找既有 global_item
-    const { data: existing, error: findError } = await (supabase
-      .from('global_items')
-      .select('*')
-      .ilike('name_en', name_en)
-      .maybeSingle());
-
-    let targetGlobalItemId: string | null = null;
-
-    if (existing && !findError) {
-      // 已有同名（不分大小寫）的 global_item：更新該 global_item 的 affects_stats / stat_bonuses（及基本欄位）
-      targetGlobalItemId = existing.id;
-      const updatePayload: Record<string, unknown> = {
-        name,
-        description,
-        category,
-        is_magic: data.is_magic,
-      };
-      if (data.affects_stats !== undefined) updatePayload.affects_stats = data.affects_stats;
-      if (data.stat_bonuses !== undefined) updatePayload.stat_bonuses = data.stat_bonuses;
-      if (data.equipment_kind !== undefined) updatePayload.equipment_kind = data.equipment_kind;
-      const { error: updateGlobalError } = await supabase
-        .from('global_items')
-        .update(updatePayload)
-        .eq('id', targetGlobalItemId);
-      if (updateGlobalError) {
-        console.error('❌ 更新全域物品欄位失敗:', updateGlobalError);
-        return { success: false, error: updateGlobalError.message };
-      }
-    } else {
-      // 若錯誤碼不是「查無資料」，則視為真正錯誤（findError 可能為 null 表示查詢成功但無結果）
-      const findStatus = findError ? (findError as { status?: number }).status : undefined;
-      if (findError && findError.code !== 'PGRST116' && findStatus !== 406) {
-        console.error('❌ 查詢全域物品失敗:', findError);
-        return { success: false, error: '查詢全域物品失敗' };
-      }
-
-      // 2. 不存在時，建立新的 global_item（含 affects_stats / stat_bonuses）
-      const insertPayload: Record<string, unknown> = {
-        name,
-        name_en,
-        description,
-        category,
-        is_magic: data.is_magic,
-      };
-      if (data.affects_stats !== undefined) insertPayload.affects_stats = data.affects_stats;
-      if (data.stat_bonuses !== undefined) insertPayload.stat_bonuses = data.stat_bonuses;
-      if (data.equipment_kind !== undefined) insertPayload.equipment_kind = data.equipment_kind;
-      const { data: inserted, error: insertError } = await supabase
-        .from('global_items')
-        .insert(insertPayload)
-        .select()
-        .single();
-
-      if (insertError || !inserted) {
-        console.error('❌ 創建全域物品失敗:', insertError);
-        return { success: false, error: insertError?.message || '創建全域物品失敗' };
-      }
-
-      targetGlobalItemId = inserted.id;
-    }
-
-    if (!targetGlobalItemId) {
-      return { success: false, error: '無法取得全域物品 ID' };
-    }
-
-    // 3. 將角色物品關聯到這個 global_item
-    const { error: updateError } = await supabase
-      .from('character_items')
-      .update({ item_id: targetGlobalItemId })
-      .eq('id', characterItemId);
-
-    if (updateError) {
-      console.error('❌ 更新角色物品關聯失敗:', updateError);
-      return { success: false, error: updateError.message };
-    }
-
-    return { success: true };
-  } catch (error) {
-    console.error('❌ 上傳物品到全域庫異常:', error);
-    return { success: false, error: '上傳物品到全域庫時發生錯誤' };
   }
 }
 
@@ -469,46 +335,6 @@ export async function createCharacterItem(
   } catch (error) {
     console.error('❌ 新增個人物品異常:', error);
     return { success: false, error: '新增個人物品時發生錯誤' };
-  }
-}
-
-/**
- * 創建全域物品（添加到 global_items）
- */
-export async function createGlobalItem(data: CreateGlobalItemData): Promise<{
-  success: boolean;
-  item?: GlobalItem;
-  error?: string;
-}> {
-  try {
-    if (!data.name || !data.category) {
-      return { success: false, error: '名稱和類別為必填欄位' };
-    }
-
-    const insertPayload: Record<string, unknown> = {
-      name: data.name,
-      name_en: data.name_en,
-      description: data.description || '',
-      category: data.category,
-      is_magic: data.is_magic ?? false,
-    };
-    if (data.equipment_kind !== undefined) insertPayload.equipment_kind = data.equipment_kind;
-
-    const { data: item, error } = await supabase
-      .from('global_items')
-      .insert(insertPayload)
-      .select()
-      .single();
-
-    if (error) {
-      console.error('❌ 創建全域物品失敗:', error);
-      return { success: false, error: error.message };
-    }
-
-    return { success: true, item };
-  } catch (error) {
-    console.error('❌ 創建全域物品異常:', error);
-    return { success: false, error: '創建物品時發生錯誤' };
   }
 }
 

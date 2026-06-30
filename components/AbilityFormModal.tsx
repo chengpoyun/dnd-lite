@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Modal } from './ui/Modal';
 import { ModalSaveButton } from './ui/ModalSaveButton';
 import { LoadingOverlay } from './ui/LoadingOverlay';
-import { CreateAbilityData, CreateAbilityDataForUpload, getDisplayValues, ABILITY_SOURCE_ORDER } from '../services/abilityService';
+import { CreateAbilityData, getDisplayValues, ABILITY_SOURCE_ORDER } from '../services/abilityService';
 import type { CharacterAbilityWithDetails } from '../lib/supabase';
 import { MODAL_CONTAINER_CLASS } from '../styles/modalStyles';
 import { StatBonusEditor, type StatBonusEditorValue } from './StatBonusEditor';
@@ -10,18 +10,8 @@ import { StatBonusEditor, type StatBonusEditorValue } from './StatBonusEditor';
 interface AbilityFormModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: (CreateAbilityData & { maxUses?: number }) | CreateAbilityDataForUpload) => Promise<void>;
+  onSubmit: (data: CreateAbilityData & { maxUses?: number }) => Promise<void>;
   editingAbility?: CharacterAbilityWithDetails | null;
-  mode?: 'create' | 'upload';
-  uploadInitialData?: {
-    name: string;
-    name_en: string;
-    description: string;
-    source: (typeof ABILITY_SOURCE_ORDER)[number];
-    recovery_type: '常駐' | '短休' | '長休';
-    affects_stats?: boolean;
-    stat_bonuses?: Record<string, unknown>;
-  } | null;
 }
 
 const SOURCES = [...ABILITY_SOURCE_ORDER];
@@ -32,10 +22,7 @@ export const AbilityFormModal: React.FC<AbilityFormModalProps> = ({
   onClose,
   onSubmit,
   editingAbility,
-  mode = 'create',
-  uploadInitialData = null,
 }) => {
-  const isUpload = mode === 'upload';
   const [formData, setFormData] = useState<CreateAbilityData>({
     name: '',
     name_en: '',
@@ -47,7 +34,6 @@ export const AbilityFormModal: React.FC<AbilityFormModalProps> = ({
   });
   const [maxUses, setMaxUses] = useState<number>(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
 
   useEffect(() => {
     if (editingAbility) {
@@ -73,17 +59,6 @@ export const AbilityFormModal: React.FC<AbilityFormModalProps> = ({
           : ((abilityRaw?.stat_bonuses ?? {}) || {}),
       });
       setMaxUses(editingAbility.max_uses);
-    } else if (isUpload && uploadInitialData) {
-      setFormData({
-        name: uploadInitialData.name,
-        name_en: uploadInitialData.name_en ?? '',
-        description: uploadInitialData.description,
-        source: uploadInitialData.source,
-        recovery_type: uploadInitialData.recovery_type,
-        affects_stats: uploadInitialData.affects_stats ?? false,
-        stat_bonuses: (uploadInitialData.stat_bonuses ?? {}) as CreateAbilityData['stat_bonuses'],
-      });
-      setMaxUses(0);
     } else {
       // 重置表單
       setFormData({
@@ -97,51 +72,19 @@ export const AbilityFormModal: React.FC<AbilityFormModalProps> = ({
       });
       setMaxUses(0);
     }
-    setShowConfirm(false);
-  }, [editingAbility, isUpload, uploadInitialData, isOpen]);
+  }, [editingAbility, isOpen]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // 驗證必填欄位（編輯自己的能力時效果說明為非必填）
     if (!formData.name) {
       return;
     }
-    if (!editingAbility && !formData.description) {
-      return;
-    }
-    if (isUpload && !formData.name_en) {
-      return;
-    }
 
-    // 如果是新增（非編輯），先顯示確認
-    if (!editingAbility) {
-      setShowConfirm(true);
-      return;
-    }
-
-    // 編輯模式直接提交
-    await performSubmit();
-  };
-
-  const performSubmit = async () => {
     setIsSubmitting(true);
     try {
-      if (isUpload) {
-        await onSubmit({
-          name: formData.name.trim(),
-          name_en: formData.name_en.trim(),
-          description: formData.description.trim(),
-          source: formData.source,
-          recovery_type: formData.recovery_type,
-          affects_stats: formData.affects_stats,
-          stat_bonuses: formData.stat_bonuses,
-        });
-      } else if (editingAbility) {
-        await onSubmit({ ...formData, maxUses });
-      } else {
-        await onSubmit(formData);
-      }
+      await onSubmit({ ...formData, maxUses });
       onClose();
     } catch (error) {
       console.error('提交特殊能力失敗:', error);
@@ -151,62 +94,16 @@ export const AbilityFormModal: React.FC<AbilityFormModalProps> = ({
   };
 
   return (
-    <Modal 
-      isOpen={isOpen} 
+    <Modal
+      isOpen={isOpen}
       onClose={onClose}
       size="2xl"
       disableBackdropClose={isSubmitting}
     >
       <div className={`${MODAL_CONTAINER_CLASS} relative`}>
         <LoadingOverlay visible={isSubmitting} />
-        {showConfirm ? (
-          // 確認画面
-          <>
-            <h2 className="text-xl font-bold mb-5">
-              {isUpload ? '確認上傳' : '確認新增'}
-            </h2>
-            <div className="space-y-4">
-              <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4">
-                <p className="text-slate-200 text-center">
-                  {isUpload ? '是否確定上傳到資料庫？' : '是否確定新增到資料庫？'}
-                  <br />
-                  <span className="text-amber-400 text-sm">該資料會能被其他玩家獲取。</span>
-                </p>
-              </div>
-              <div className="flex gap-3">
-                <button
-                  type="button"
-                  onClick={() => setShowConfirm(false)}
-                  className="flex-1 px-6 py-3 bg-slate-700 text-white rounded-lg hover:bg-slate-600 transition-colors font-medium"
-                  disabled={isSubmitting}
-                >
-                  取消
-                </button>
-                <ModalSaveButton
-                  type="button"
-                  onClick={performSubmit}
-                  loading={isSubmitting}
-                  variant="primary"
-                  className="flex-1 px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors font-medium"
-                >
-                  {isUpload ? '確定上傳' : '確定新增'}
-                </ModalSaveButton>
-              </div>
-            </div>
-          </>
-        ) : (
-          // 表單画面
-          <>
-            <h2 className="text-xl font-bold mb-5">
-              {isUpload ? '上傳到資料庫' : editingAbility ? '編輯特殊能力' : '新增特殊能力到資料庫'}
-            </h2>
+        <h2 className="text-xl font-bold mb-5">編輯特殊能力</h2>
 
-            {isUpload && (
-              <p className="text-slate-400 text-sm mb-4">
-                所有欄位皆為必填，且英文名稱（name_en）將用於比對是否已存在，大小寫視為相同。
-              </p>
-            )}
-        
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* 中文名稱 */}
           <div>
@@ -223,7 +120,7 @@ export const AbilityFormModal: React.FC<AbilityFormModalProps> = ({
         {/* 英文名稱 */}
         <div>
           <label className="block text-[14px] text-slate-400 mb-2">
-            英文名稱 {isUpload ? '*' : ''}
+            英文名稱
           </label>
           <input
             type="text"
@@ -231,7 +128,6 @@ export const AbilityFormModal: React.FC<AbilityFormModalProps> = ({
             onChange={(e) => setFormData({ ...formData, name_en: e.target.value })}
             className="w-full bg-slate-800 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500"
             placeholder="例：Cunning Action"
-            required={isUpload}
           />
         </div>
 
@@ -267,7 +163,7 @@ export const AbilityFormModal: React.FC<AbilityFormModalProps> = ({
         {/* 效果說明（編輯自己的能力時為非必填） */}
         <div>
           <label className="block text-[14px] text-slate-400 mb-2">
-            效果說明 {editingAbility ? '' : '*'}
+            效果說明
             <span className="text-slate-500 ml-2 text-[12px]">（支援 Markdown 語法）</span>
           </label>
           <textarea
@@ -313,8 +209,8 @@ export const AbilityFormModal: React.FC<AbilityFormModalProps> = ({
           )}
         </div>
 
-        {/* 最大使用次數（僅編輯模式顯示） */}
-        {editingAbility && formData.recovery_type !== '常駐' && (
+        {/* 最大使用次數 */}
+        {formData.recovery_type !== '常駐' && (
           <div>
             <label className="block text-[14px] text-slate-400 mb-2">
               最大使用次數 *
@@ -342,20 +238,12 @@ export const AbilityFormModal: React.FC<AbilityFormModalProps> = ({
           <ModalSaveButton
             type="submit"
             loading={isSubmitting}
-            className={`flex-1 px-6 py-3 text-white rounded-lg transition-colors font-medium ${
-              isUpload
-                ? 'bg-amber-600 hover:bg-amber-700'
-                : editingAbility
-                  ? 'bg-blue-600 hover:bg-blue-700'
-                  : 'bg-red-600 hover:bg-red-700'
-            }`}
+            className="flex-1 px-6 py-3 text-white rounded-lg transition-colors font-medium bg-blue-600 hover:bg-blue-700"
           >
-            {isUpload ? '上傳' : (editingAbility ? '更新' : '新增')}
+            更新
           </ModalSaveButton>
         </div>
       </form>
-          </>
-        )}
       </div>
     </Modal>
   );

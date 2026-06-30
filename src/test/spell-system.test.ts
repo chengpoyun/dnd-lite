@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import type { Spell, CreateSpellData } from '../../services/spellService';
+import type { Spell, CreateCharacterSpellData } from '../../services/spellService';
 
 /**
  * 法術系統單元測試
@@ -56,7 +56,7 @@ describe('法術系統 - 資料結構測試', () => {
       ];
 
       validCastingTimes.forEach(time => {
-        const spell: Partial<CreateSpellData> = {
+        const spell: Partial<CreateCharacterSpellData> = {
           casting_time: time
         };
         expect(validCastingTimes).toContain(spell.casting_time);
@@ -70,7 +70,7 @@ describe('法術系統 - 資料結構測試', () => {
       ];
 
       validDurations.forEach(duration => {
-        const spell: Partial<CreateSpellData> = {
+        const spell: Partial<CreateCharacterSpellData> = {
           duration: duration
         };
         expect(validDurations).toContain(spell.duration);
@@ -84,7 +84,7 @@ describe('法術系統 - 資料結構測試', () => {
       ];
 
       validRanges.forEach(range => {
-        const spell: Partial<CreateSpellData> = {
+        const spell: Partial<CreateCharacterSpellData> = {
           range: range
         };
         expect(validRanges).toContain(spell.range);
@@ -98,7 +98,7 @@ describe('法術系統 - 資料結構測試', () => {
       ];
 
       validSources.forEach(source => {
-        const spell: Partial<CreateSpellData> = {
+        const spell: Partial<CreateCharacterSpellData> = {
           source: source
         };
         expect(validSources).toContain(spell.source);
@@ -111,7 +111,7 @@ describe('法術系統 - 資料結構測試', () => {
       ];
 
       validSchools.forEach(school => {
-        const spell: Partial<CreateSpellData> = {
+        const spell: Partial<CreateCharacterSpellData> = {
           school: school
         };
         expect(validSchools).toContain(spell.school);
@@ -157,7 +157,7 @@ describe('法術系統 - 資料結構測試', () => {
 
 describe('法術系統 - 表單資料完整性', () => {
   it('表單驗證應該通過有效資料', () => {
-    const validSpell: CreateSpellData = {
+    const validSpell: CreateCharacterSpellData = {
       name: '火球術',
       name_en: 'Fireball',
       level: 3,
@@ -190,7 +190,7 @@ describe('法術系統 - 表單資料完整性', () => {
   });
 
   it('表單驗證應該拒絕缺少必填欄位的資料', () => {
-    const invalidSpells: Partial<CreateSpellData>[] = [
+    const invalidSpells: Partial<CreateCharacterSpellData>[] = [
       { name: '', description: '測試' }, // 缺少名稱
       { name: '測試', description: '' }, // 缺少描述
       { name: '測試', description: '測試', name_en: '' }, // name_en 空字串

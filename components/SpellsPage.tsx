@@ -2,25 +2,18 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { SpellCard } from './SpellCard';
 import { SpellDetailModal } from './SpellDetailModal';
 import { LearnSpellModal } from './LearnSpellModal';
-import { SpellFormModal } from './SpellFormModal';
 import { CharacterSpellEditModal } from './CharacterSpellEditModal';
 import { AddPersonalSpellModal } from './AddPersonalSpellModal';
 import { Modal, ModalButton } from './ui/Modal';
 import { MODAL_CONTAINER_CLASS, MODAL_FOOTER_BUTTONS_CLASS, MODAL_BUTTON_CANCEL_CLASS, MODAL_BUTTON_APPLY_INDIGO_CLASS, MODAL_DESCRIPTION_CLASS } from '../styles/modalStyles';
-import { 
-  CharacterSpell, 
-  Spell,
-  CreateSpellData,
-  CreateSpellDataForUpload,
+import {
+  CharacterSpell,
   CreateCharacterSpellData,
-  getCharacterSpells, 
-  learnSpell, 
-  forgetSpell, 
+  getCharacterSpells,
+  learnSpell,
+  forgetSpell,
   togglePrepared,
-  createSpell,
-  updateSpell,
   createCharacterSpell,
-  uploadCharacterSpellToGlobal,
   getDisplayValues,
   getPreparedSpellsCount,
   getPreparedCantripsCount
@@ -47,16 +40,13 @@ export const SpellsPage: React.FC<SpellsPageProps> = ({
 }) => {
   const [characterSpells, setCharacterSpells] = useState<CharacterSpell[]>([]);
   const [isLearnModalOpen, setIsLearnModalOpen] = useState(false);
-  const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isOverLimitWarningOpen, setIsOverLimitWarningOpen] = useState(false);
   const [isAddPersonalModalOpen, setIsAddPersonalModalOpen] = useState(false);
-  const [uploadFromCharacterSpell, setUploadFromCharacterSpell] = useState<CharacterSpell | null>(null);
   const [pendingPrepareSpell, setPendingPrepareSpell] = useState<{ characterSpellId: string; spellId: string | null; isPrepared: boolean } | null>(null);
   const [selectedCharacterSpell, setSelectedCharacterSpell] = useState<CharacterSpell | null>(null);
   const [editingCharacterSpell, setEditingCharacterSpell] = useState<CharacterSpell | null>(null);
-  const [editingSpell, setEditingSpell] = useState<Spell | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [preparedCount, setPreparedCount] = useState(0);
   const [preparedCantripsCount, setPreparedCantripsCount] = useState(0);
@@ -176,16 +166,6 @@ export const SpellsPage: React.FC<SpellsPageProps> = ({
     setIsOverLimitWarningOpen(false);
   };
 
-  const handleCreateSpell = async (data: CreateSpellData) => {
-    try {
-      await createSpell(data);
-      setIsFormModalOpen(false);
-    } catch (error) {
-      console.error('新增法術失敗:', error);
-      throw error;
-    }
-  };
-
   const handleAddPersonalSpell = async (data: CreateCharacterSpellData) => {
     const result = await createCharacterSpell(characterId, data);
     if (result.success) {
@@ -196,42 +176,10 @@ export const SpellsPage: React.FC<SpellsPageProps> = ({
     }
   };
 
-  const handleUploadToGlobal = async (data: CreateSpellDataForUpload) => {
-    if (!uploadFromCharacterSpell) return;
-    const result = await uploadCharacterSpellToGlobal(uploadFromCharacterSpell.id, data);
-    if (result.success) {
-      setUploadFromCharacterSpell(null);
-      setIsFormModalOpen(false);
-      loadCharacterSpells();
-    } else {
-      console.error(result.error || '上傳失敗');
-    }
-  };
-
-  const handleUpdateSpell = async (data: CreateSpellData) => {
-    if (!editingSpell) return;
-    
-    try {
-      await updateSpell(editingSpell.id, data);
-      // 重新載入法術列表以更新資料
-      await loadCharacterSpells();
-      setIsFormModalOpen(false);
-      setEditingSpell(null);
-    } catch (error) {
-      console.error('更新法術失敗:', error);
-      throw error;
-    }
-  };
-
   const handleEditSpell = (characterSpell: CharacterSpell) => {
     // 編輯角色專屬法術（不影響全域）
     setEditingCharacterSpell(characterSpell);
     setIsEditModalOpen(true);
-  };
-
-  const handleCloseFormModal = () => {
-    setIsFormModalOpen(false);
-    setEditingSpell(null);
   };
 
   const handleCloseEditModal = () => {
@@ -368,12 +316,6 @@ export const SpellsPage: React.FC<SpellsPageProps> = ({
         characterSpell={selectedCharacterSpell}
         onEdit={handleEditSpell}
         onForget={(spellId, characterSpellId) => handleForgetSpell(spellId, characterSpellId)}
-        onUploadToDb={selectedCharacterSpell && (!selectedCharacterSpell.spell_id || !selectedCharacterSpell.spell) ? () => {
-          setUploadFromCharacterSpell(selectedCharacterSpell);
-          setIsDetailModalOpen(false);
-          setSelectedCharacterSpell(null);
-          setIsFormModalOpen(true);
-        } : undefined}
       />
 
       <LearnSpellModal
@@ -382,40 +324,9 @@ export const SpellsPage: React.FC<SpellsPageProps> = ({
         onLearnSpell={handleLearnSpell}
         onCreateNew={() => {
           setIsLearnModalOpen(false);
-          setEditingSpell(null);
           setIsAddPersonalModalOpen(true);
         }}
         learnedSpellIds={learnedSpellIds}
-      />
-
-      <SpellFormModal
-        isOpen={isFormModalOpen}
-        onClose={() => {
-          handleCloseFormModal();
-          setUploadFromCharacterSpell(null);
-        }}
-        onSubmit={uploadFromCharacterSpell ? handleUploadToGlobal : editingSpell ? handleUpdateSpell : handleCreateSpell}
-        editingSpell={editingSpell}
-        mode={uploadFromCharacterSpell ? 'upload' : 'create'}
-        uploadInitialData={uploadFromCharacterSpell ? (() => {
-          const display = getDisplayValues(uploadFromCharacterSpell);
-          return {
-            name: display.displayName,
-            name_en: display.displayNameEn || '',
-            level: display.displayLevel,
-            casting_time: display.displayCastingTime,
-            school: display.displaySchool,
-            concentration: display.displayConcentration,
-            ritual: display.displayRitual,
-            duration: display.displayDuration,
-            range: display.displayRange,
-            source: display.displaySource,
-            verbal: display.displayVerbal,
-            somatic: display.displaySomatic,
-            material: display.displayMaterial,
-            description: display.displayDescription,
-          };
-        })() : undefined}
       />
 
       <AddPersonalSpellModal
