@@ -25,6 +25,7 @@ import { formatClassDisplay, getPrimaryClass, getTotalLevel, getClassHitDie } fr
 import { getFinalAbilityModifier, getCombatStatBonus } from './utils/characterAttributes';
 import { ABILITY_STR_TO_FULL } from './utils/characterConstants';
 import { withSaveGuard } from './utils/saveGuard';
+import { buildBasicInfoCharacterUpdate, buildExpCharacterUpdate, buildAvatarCharacterUpdate } from './utils/characterUpdate';
 import { isSpellcaster } from './utils/spellUtils';
 import { HybridDataManager } from './services/hybridDataManager';
 import { DetailedCharacterService } from './services/detailedCharacter';
@@ -176,19 +177,16 @@ const AuthenticatedApp: React.FC = () => {
       fn: async () => {
         try {
           console.log('📝 保存角色基本信息:', { name, characterClass, level })
+          // 只送變動欄位，避免以陳舊快照覆蓋其他欄位（如 experience）
           const characterUpdate: CharacterUpdateData = {
-            character: {
-              ...currentCharacter!,
-              name,
-              character_class: characterClass,
-              level,
-              updated_at: new Date().toISOString()
-            }
+            character: buildBasicInfoCharacterUpdate(name, characterClass, level)
           }
           const success = await HybridDataManager.updateCharacter(currentCharacter!.id, characterUpdate)
           if (success) {
             console.log('✅ 角色基本信息保存成功')
             setStats(prev => ({ ...prev, name, class: characterClass, level }))
+            // 同步本地角色快照，避免後續存檔挾帶舊值
+            setCurrentCharacter(prev => prev ? { ...prev, name, character_class: characterClass, level } : null)
           }
           return success
         } catch (error) {
@@ -394,7 +392,6 @@ const AuthenticatedApp: React.FC = () => {
         try {
           console.log('🎯 保存法術攻擊加值:', newBonus)
           const characterUpdate: CharacterUpdateData = {
-            character: currentCharacter!,
             currentStats: { character_id: currentCharacter!.id, spell_hit_basic: newBonus, spell_hit_bonus: getCombatStatBonus(stats, 'spellHit') } as Partial<CharacterCurrentStats>
           }
           const success = await HybridDataManager.updateCharacter(currentCharacter!.id, characterUpdate)
@@ -422,7 +419,6 @@ const AuthenticatedApp: React.FC = () => {
         try {
           console.log('🛡️ 保存法術豁免DC:', newDC)
           const characterUpdate: CharacterUpdateData = {
-            character: currentCharacter!,
             currentStats: { character_id: currentCharacter!.id, spell_dc_basic: newDC, spell_dc_bonus: getCombatStatBonus(stats, 'spellDc') } as Partial<CharacterCurrentStats>
           }
           const success = await HybridDataManager.updateCharacter(currentCharacter!.id, characterUpdate)
@@ -449,7 +445,6 @@ const AuthenticatedApp: React.FC = () => {
       fn: async () => {
         try {
           const characterUpdate: CharacterUpdateData = {
-            character: currentCharacter!,
             currentStats: { character_id: currentCharacter!.id, attack_hit_basic: newBonus, attack_hit_bonus: getCombatStatBonus(stats, 'attackHit') } as Partial<CharacterCurrentStats>
           }
           const success = await HybridDataManager.updateCharacter(currentCharacter!.id, characterUpdate)
@@ -473,7 +468,6 @@ const AuthenticatedApp: React.FC = () => {
       fn: async () => {
         try {
           const characterUpdate: CharacterUpdateData = {
-            character: currentCharacter!,
             currentStats: { character_id: currentCharacter!.id, attack_damage_basic: newBonus, attack_damage_bonus: getCombatStatBonus(stats, 'attackDamage') } as Partial<CharacterCurrentStats>
           }
           const success = await HybridDataManager.updateCharacter(currentCharacter!.id, characterUpdate)
@@ -497,8 +491,9 @@ const AuthenticatedApp: React.FC = () => {
       fn: async () => {
         try {
           console.log('💰 保存貨幣和經驗值:', { gp, exp })
+          // 只送變動欄位（experience），避免覆蓋 name/level 等其他角色欄位
           const characterUpdate: CharacterUpdateData = {
-            character: { ...currentCharacter!, experience: exp, updated_at: new Date().toISOString() },
+            character: buildExpCharacterUpdate(exp),
             currency: {
               character_id: currentCharacter!.id,
               gp,
@@ -509,7 +504,11 @@ const AuthenticatedApp: React.FC = () => {
             } as Partial<CharacterCurrency>
           }
           const success = await HybridDataManager.updateCharacter(currentCharacter!.id, characterUpdate)
-          if (success) console.log('✅ 貨幣和經驗值保存成功')
+          if (success) {
+            console.log('✅ 貨幣和經驗值保存成功')
+            // 同步本地角色快照，避免後續存檔挾帶舊的 experience
+            setCurrentCharacter(prev => prev ? { ...prev, experience: exp } : null)
+          }
           return success
         } catch (error) {
           console.error('❌ 貨幣和經驗值保存失敗:', error)
@@ -529,8 +528,9 @@ const AuthenticatedApp: React.FC = () => {
       fn: async () => {
         try {
           console.log('🖼️ 保存頭像 URL:', avatarUrl)
+          // 只送變動欄位（avatar_url），避免覆蓋其他角色欄位
           const characterUpdate: CharacterUpdateData = {
-            character: { ...currentCharacter!, avatar_url: avatarUrl, updated_at: new Date().toISOString() }
+            character: buildAvatarCharacterUpdate(avatarUrl)
           }
           const success = await HybridDataManager.updateCharacter(currentCharacter!.id, characterUpdate)
           if (success) {

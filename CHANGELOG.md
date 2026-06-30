@@ -4,6 +4,11 @@
 
 ---
 
+## 1.1.15
+
+- 修正：更新經驗值後，同一 session 未 reload 直接調整等級會導致經驗值被回溯。原因為角色基本資料存檔以陳舊的本地快照重建整列寫回 DB，覆蓋了剛存好的經驗值。改為各存檔只送變動欄位（partial update），並於存檔後同步本地角色快照；同類問題（戰鬥加值、頭像存檔挾帶整列）一併修正。
+- 測試：新增 `utils/characterUpdate` 單元測試（驗證各 payload 只攜帶變動欄位、重現經驗值回溯情境）。
+
 ## 1.1.14
 
 - 優化（4.1–4.3）：新增 `styles/common.ts` 單元測試（STYLES、combineStyles、conditionalStyle）；TEST-README 補上樣式測試覆蓋說明；code-architecture 明確說明 App 以 React.lazy 載入分頁並搭配 PageLoadingFallback。
