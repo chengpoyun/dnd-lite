@@ -32,6 +32,7 @@ export default function NotesPage({ characterId }: NotesPageProps) {
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const [searchText, setSearchText] = useState('');
   const localContent = useRef('');
   const localTitle = useRef('');
 
@@ -212,6 +213,14 @@ export default function NotesPage({ characterId }: NotesPageProps) {
     );
   }
 
+  const filteredNotes = (() => {
+    const q = searchText.trim().toLowerCase();
+    if (!q) return notes;
+    return notes.filter(
+      (n) => n.title.toLowerCase().includes(q) || n.content.toLowerCase().includes(q)
+    );
+  })();
+
   return (
     <PageContainer>
       <div className={combineStyles(STYLES.layout.flexBetween, STYLES.spacing.marginBottomSmall)}>
@@ -230,23 +239,36 @@ export default function NotesPage({ characterId }: NotesPageProps) {
           </Button>
         </Card>
       ) : (
-        <div className="flex flex-col gap-3">
-          {notes.map((note) => (
-            <ListCard
-              key={note.id}
-              onClick={() => {
-                setSelectedNoteId(note.id);
-                localTitle.current = note.title;
-                localContent.current = note.content;
-              }}
-            >
-              <div className={STYLES.text.title}>{note.title}</div>
-              <pre className={combineStyles(STYLES.text.bodySmall, 'mt-1 whitespace-pre-wrap font-sans text-slate-400')}>
-                {getTwoLinePreview(note.content) || '（無內容）'}
-              </pre>
-            </ListCard>
-          ))}
-        </div>
+        <>
+          <input
+            type="text"
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            placeholder="搜尋筆記..."
+            className={combineStyles(STYLES.input.base, 'w-full', STYLES.spacing.marginBottomSmall)}
+          />
+          {filteredNotes.length === 0 ? (
+            <p className={STYLES.text.muted}>找不到符合的筆記</p>
+          ) : (
+            <div className="flex flex-col gap-3">
+              {filteredNotes.map((note) => (
+                <ListCard
+                  key={note.id}
+                  onClick={() => {
+                    setSelectedNoteId(note.id);
+                    localTitle.current = note.title;
+                    localContent.current = note.content;
+                  }}
+                >
+                  <div className={STYLES.text.title}>{note.title}</div>
+                  <pre className={combineStyles(STYLES.text.bodySmall, 'mt-1 whitespace-pre-wrap font-sans text-slate-400')}>
+                    {getTwoLinePreview(note.content) || '（無內容）'}
+                  </pre>
+                </ListCard>
+              ))}
+            </div>
+          )}
+        </>
       )}
     </PageContainer>
   );
