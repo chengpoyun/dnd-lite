@@ -15,7 +15,7 @@ import type { CharacterStats } from '../types'
 import { ABILITY_KEYS, ABILITY_STR_TO_FULL, ABILITY_FULL_TO_STR, type AbilityDbKey } from '../utils/characterConstants'
 import {
   getSpecialEffectId,
-  getSpecialEffectCombatBonus,
+  getSpecialEffectBonus,
   type SpecialEffectContext,
 } from '../utils/specialEffects'
 import { computeSaveAndSkillAdvantageDisadvantage } from '../utils/advantageDisadvantage'
@@ -343,6 +343,15 @@ export class DetailedCharacterService {
               level: c.class_level ?? c.level ?? 1,
               hitDie: c.hit_die ?? c.hitDie,
             })),
+            // 基礎屬性值（供依屬性計算的特殊效果使用，如食人魔力量手套設力量為 19）
+            abilityScores: abilityScores ? {
+              str: (abilityScores as any).strength,
+              dex: (abilityScores as any).dexterity,
+              con: (abilityScores as any).constitution,
+              int: (abilityScores as any).intelligence,
+              wis: (abilityScores as any).wisdom,
+              cha: (abilityScores as any).charisma,
+            } : undefined,
           };
           const aggregated = await this.collectSourceBonusesForCharacter(character.id, specialEffectContext);
           const rawExtra = (currentStats as any).extra_data ?? (currentStats as any).extraData ?? {};
@@ -1530,6 +1539,10 @@ export class DetailedCharacterService {
     }
 
     try {
+      // 屬性值「下限」效果（如食人魔力量手套）需在彙總所有其他加值後才套用，
+      // 因此先收集，待能力／物品兩個迴圈跑完再依「base + 其他加值」計算補足差額。
+      const pendingFloors: { perSource: any; ability: string; floor: number }[] = []
+
       // 1. 角色能力 -> abilities（優先使用 character_abilities 的 affects_stats / stat_bonuses 覆寫；個人能力 ability_id 為 null 時只用 row）
       const { data: characterAbilities, error: caError } = await supabase
         .from('character_abilities')
@@ -1642,11 +1655,20 @@ export class DetailedCharacterService {
           }
 
           if (isSpecial && context && effectId) {
-            const specialBonus = getSpecialEffectCombatBonus(effectId, context)
-            if (specialBonus && typeof specialBonus === 'object' && Object.keys(specialBonus).length > 0) {
+            const special = getSpecialEffectBonus(effectId, context)
+            if (special.abilityScores && Object.keys(special.abilityScores).length) {
+              if (!perSource.abilityScores) perSource.abilityScores = {}
+              mergeNumberMap(perSource.abilityScores, special.abilityScores)
+              mergeNumberMap(totals.abilityScores, special.abilityScores)
+            }
+            for (const [ab, floor] of Object.entries(special.abilityScoreFloors ?? {})) {
+              if (typeof floor === 'number') pendingFloors.push({ perSource, ability: ab, floor })
+            }
+            const { abilityScores: _sa, abilityScoreFloors: _sf, ...specialCombat } = special
+            if (Object.keys(specialCombat).length) {
               if (!perSource.combatStats) perSource.combatStats = {}
-              mergeCombatStats(perSource.combatStats, specialBonus)
-              mergeCombatStats(totals.combatStats, specialBonus)
+              mergeCombatStats(perSource.combatStats, specialCombat)
+              mergeCombatStats(totals.combatStats, specialCombat)
             }
           }
 
@@ -1771,6 +1793,27 @@ export class DetailedCharacterService {
             }
           }
 
+          // 特殊效果（如食人魔力量手套：依基礎力量計算「設為 19」的差額）
+          const itemEffectId = getSpecialEffectId(bonuses)
+          if (itemEffectId && context) {
+            const special = getSpecialEffectBonus(itemEffectId, context)
+            if (special.abilityScores && Object.keys(special.abilityScores).length) {
+              if (!perSource.abilityScores) perSource.abilityScores = {}
+              mergeNumberMap(perSource.abilityScores, special.abilityScores)
+              mergeNumberMap(totals.abilityScores, special.abilityScores)
+            }
+            // 屬性值下限（如食人魔力量手套）延後到所有加值彙總後再套用
+            for (const [ab, floor] of Object.entries(special.abilityScoreFloors ?? {})) {
+              if (typeof floor === 'number') pendingFloors.push({ perSource, ability: ab, floor })
+            }
+            const { abilityScores: _specialAbilityScores, abilityScoreFloors: _specialFloors, ...specialCombat } = special
+            if (Object.keys(specialCombat).length) {
+              if (!perSource.combatStats) perSource.combatStats = {}
+              mergeCombatStats(perSource.combatStats, specialCombat)
+              mergeCombatStats(totals.combatStats, specialCombat)
+            }
+          }
+
           if (savingThrowAdvantage?.length) perSource.savingThrowAdvantage = savingThrowAdvantage
           if (savingThrowDisadvantage?.length) perSource.savingThrowDisadvantage = savingThrowDisadvantage
           if (skillAdvantage?.length) perSource.skillAdvantage = skillAdvantage
@@ -1780,6 +1823,20 @@ export class DetailedCharacterService {
               perSource.savingThrowAdvantage || perSource.savingThrowDisadvantage || perSource.skillAdvantage || perSource.skillDisadvantage) {
             totals.bySource.push(perSource)
           }
+        }
+      }
+
+      // 套用屬性值「下限」效果（如食人魔力量手套）：
+      // 以「基礎值 + 其他所有加值」為最終屬性值，若低於下限才補足差額至下限。
+      for (const f of pendingFloors) {
+        const base = (context?.abilityScores as Record<string, number> | undefined)?.[f.ability] ?? 10
+        const finalWithoutFloor = base + (totals.abilityScores[f.ability] ?? 0)
+        const delta = Math.max(0, f.floor - finalWithoutFloor)
+        if (delta > 0) {
+          totals.abilityScores[f.ability] = (totals.abilityScores[f.ability] ?? 0) + delta
+          if (!f.perSource.abilityScores) f.perSource.abilityScores = {}
+          f.perSource.abilityScores[f.ability] = (f.perSource.abilityScores[f.ability] ?? 0) + delta
+          if (!totals.bySource.includes(f.perSource)) totals.bySource.push(f.perSource)
         }
       }
 

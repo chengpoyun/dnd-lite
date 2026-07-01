@@ -4,6 +4,12 @@
 
 ---
 
+## 1.3.0
+
+- 新增：全域物品「食人魔力量手套」(Gauntlets of Ogre Power)。裝備（穿戴中）時，若「所有加值後的最終力量」低於 **19** 才補足至 19（最終已 ≥19 則無效）；不影響其他來源加的力量調整值／豁免。參考「健壯」的 specialEffect 機制，擴充特殊效果引擎：新增「屬性值下限（abilityScoreFloors）」概念，於彙總所有加值後才套用（新增 `ogrePower` 效果），並在能力／物品聚合都支援。
+- 資料：新增 migration 種子該全域物品（`stat_bonuses.specialEffectId = 'ogrePower'`）。
+- 測試：`ogrePower` 單元測試、屬性疊加測試（力量設 19 仍與其他調整值／豁免加值疊加）、`collectSourceBonusesForCharacter` 整合測試。
+
 ## 1.2.2
 
 - 修正：學習特殊能力時，已學會的能力（如「健壯」）被整個濾掉而「搜尋不到」。改為仍顯示於搜尋結果，但標記「已學習」且不可點選（避免誤以為能力消失或重複學習）。

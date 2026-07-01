@@ -3,6 +3,7 @@ import {
   getFinalCombatStat,
   getBasicCombatStat,
   getCombatStatBonus,
+  getFinalAbilityScore,
   getFinalAbilityModifier,
   getFinalSavingThrow,
   getFinalSkillBonus,
@@ -343,5 +344,33 @@ describe('characterAttributes - getFinalSkillBonus', () => {
     });
     expect(getFinalSkillBonus(stats, '求生')).toBe(10);
     expect(getFinalSkillBonus(stats, '運動')).toBe(3 + 3);
+  });
+});
+
+// 食人魔力量手套：把力量設為 19（abilityBonuses.str）。
+// 重點：其他來源加的「力量調整值」與「力量豁免」仍要正常疊加。
+describe('characterAttributes - 食人魔力量手套(力量設為19)與其他加值疊加', () => {
+  it('力量最終值為 19；其他來源的力量調整值與豁免加值仍生效', () => {
+    const stats = createMockStats({
+      level: 5,
+      abilityScores: { str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10 },
+      savingProficiencies: ['str'],
+      saveBonuses: { str: 2 } as any, // DB misc 力量豁免加值（其他來源）
+      extraData: {
+        abilityBonuses: { str: 9 },   // 手套：base 10 → final 19
+        modifierBonuses: { str: 1 },  // 其他來源加的力量調整值
+        statBonusSources: [
+          { id: 'glove', type: 'item', name: '食人魔力量手套', abilityScores: { str: 9 } },
+          { id: 'feat', type: 'ability', name: '某力量豁免能力', savingThrows: { str: 3 } },
+        ],
+      } as any,
+    });
+
+    // 力量最終 = 10 + 9 = 19
+    expect(getFinalAbilityScore(stats, 'str')).toBe(19);
+    // 力量調整值 = mod(19)=+4 加上其他來源 modifierBonuses.str(+1) = 5
+    expect(getFinalAbilityModifier(stats, 'str')).toBe(5);
+    // 力量豁免 = mod(5) + 熟練(5級=+3) + DB misc(+2) + 來源 savingThrows(+3) = 13
+    expect(getFinalSavingThrow(stats, 'str')).toBe(13);
   });
 });
