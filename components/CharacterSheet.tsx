@@ -3,7 +3,7 @@ import { CharacterStats, CustomRecord } from '../types';
 import { getProfBonus, formatDecimal } from '../utils/helpers';
 import { getFinalAbilityModifier, getFinalAbilityScore, getFinalSavingThrow, getFinalSkillBonus, getFinalCombatStat, getBasicCombatStat, getDefaultMaxHpBasic, type AbilityKey } from '../utils/characterAttributes';
 import { STAT_LABELS, SKILLS_MAP, ABILITY_KEYS } from '../utils/characterConstants';
-import { getAvailableClasses, getClassHitDie, formatClassDisplay, calculateHitDiceTotals, canSelectSubclass } from '../utils/classUtils';
+import { getAvailableClasses, getClassHitDie, formatClassDisplayLines, calculateHitDiceTotals, canSelectSubclass } from '../utils/classUtils';
 import { PageContainer, Card, Button, Title, Subtitle, Input, BackButton } from './ui';
 import { AdvantageDisadvantageBorder } from './ui/AdvantageDisadvantageBorder';
 import { STYLES, combineStyles } from '../styles/common';
@@ -766,14 +766,26 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
             </label>
             <button onClick={openInfoModal} className="flex-1 min-w-0 text-left active:opacity-70">
               <h1 className="text-2xl font-fantasy text-white leading-tight truncate">{stats.name}</h1>
-              <div className="flex items-center gap-2 mt-1">
-                <span className="text-lg text-slate-300 font-black uppercase">LV {stats.level}</span>
-                <span className="text-lg text-slate-400 font-bold uppercase truncate">
-                  {stats.classes && stats.classes.length > 0 
-                    ? formatClassDisplay(stats.classes, 'primary')
-                    : stats.class
-                  }
-                </span>
+              <div className="flex flex-col mt-1">
+                {stats.classes && stats.classes.length > 1 ? (
+                  <>
+                    <span className="text-lg text-slate-300 font-black uppercase truncate min-w-0">LV {stats.level}</span>
+                    {formatClassDisplayLines(stats.classes).map((line, index) => (
+                      <span key={index} className="text-lg text-slate-400 font-bold uppercase truncate min-w-0">{line}</span>
+                    ))}
+                  </>
+                ) : (
+                  <>
+                    <span className="text-lg text-slate-300 font-black uppercase truncate min-w-0">
+                      LV {stats.level} {stats.classes && stats.classes.length === 1 ? stats.classes[0].name : stats.class}
+                    </span>
+                    {stats.classes && stats.classes.length === 1 && stats.classes[0].subclassName && (
+                      <span className="text-base text-slate-400 font-bold uppercase truncate min-w-0">
+                        （{stats.classes[0].subclassName}）
+                      </span>
+                    )}
+                  </>
+                )}
               </div>
             </button>
           </div>

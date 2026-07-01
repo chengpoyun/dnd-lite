@@ -100,6 +100,21 @@ export const formatClassDisplay = (
 }
 
 /**
+ * 依主職業排序，逐一職業格式化為「職業（子職業） LvX」陣列，供每個職業各自一行顯示使用
+ * （角色頭部多職業時，避免將所有職業擠在同一行導致爆版）
+ */
+export const formatClassDisplayLines = (classes: ClassInfo[]): string[] => {
+  if (!classes.length) return []
+
+  const sortedClasses = [...classes].sort((a, b) => {
+    if (b.level !== a.level) return b.level - a.level
+    return a.isPrimary ? -1 : 1
+  })
+
+  return sortedClasses.map(c => `${formatClassName(c)} Lv${c.level}`)
+}
+
+/**
  * 計算各類型生命骰的總數
  */
 export const calculateHitDiceTotals = (classes: ClassInfo[]): HitDicePools => {

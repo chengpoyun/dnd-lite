@@ -74,7 +74,7 @@ describe('CharacterSheet - 保存功能測試', () => {
     const { getByText } = renderCharacterSheet()
     
     expect(getByText(/LV.*5/)).toBeInTheDocument()
-    expect(getByText('戰士')).toBeInTheDocument()
+    expect(getByText(/戰士/)).toBeInTheDocument()
   })
 
   it('應該正確顯示冒險紀錄', () => {

@@ -8,6 +8,7 @@ import {
   getPrimaryClass,
   getTotalLevel,
   formatClassDisplay,
+  formatClassDisplayLines,
   calculateHitDiceTotals,
   isValidClassName,
   getClassInfo,
@@ -149,6 +150,35 @@ describe('classUtils - D&D 5E 職業工具函數', () => {
         ]
         expect(formatClassDisplay(mixed, 'full')).toBe('牧師（生命領域） Lv5 / 法師 Lv3')
       })
+    })
+  })
+
+  describe('formatClassDisplayLines', () => {
+    it('依主職業排序後，每個職業各自一行「職業（子職業） LvX」', () => {
+      const withSub: ClassInfo[] = [
+        { name: '法師', level: 3, hitDie: 'd6', isPrimary: false, subclassName: '塑能學派' },
+        { name: '戰士', level: 5, hitDie: 'd10', isPrimary: true, subclassName: '冠軍' },
+      ]
+      expect(formatClassDisplayLines(withSub)).toEqual(['戰士（冠軍） Lv5', '法師（塑能學派） Lv3'])
+    })
+
+    it('未選子職業的職業該行不加括號', () => {
+      const classes: ClassInfo[] = [
+        { name: '戰士', level: 5, hitDie: 'd10', isPrimary: true },
+        { name: '法師', level: 3, hitDie: 'd6', isPrimary: false },
+      ]
+      expect(formatClassDisplayLines(classes)).toEqual(['戰士 Lv5', '法師 Lv3'])
+    })
+
+    it('單一職業時回傳長度為1的陣列', () => {
+      const classes: ClassInfo[] = [
+        { name: '奇械師', level: 5, hitDie: 'd8', isPrimary: true, subclassName: '火砲師' },
+      ]
+      expect(formatClassDisplayLines(classes)).toEqual(['奇械師（火砲師） Lv5'])
+    })
+
+    it('空陣列回傳空陣列', () => {
+      expect(formatClassDisplayLines([])).toEqual([])
     })
   })
 
