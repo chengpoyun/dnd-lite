@@ -154,47 +154,50 @@ export default function NotesPage({ characterId }: NotesPageProps) {
   if (selectedNoteId && selectedNote) {
     return (
       <PageContainer>
-        <div className="flex items-center justify-between gap-3 mb-4">
-          <BackButton onClick={handleBack} />
-          <span className={STYLES.text.bodySmall + ' flex items-center gap-2'}>
-            {isSaving && (
-              <>
-                <span className="animate-spin rounded-full h-4 w-4 border-2 border-amber-500 border-t-transparent flex-shrink-0" aria-hidden />
-                <span>儲存中…</span>
-              </>
-            )}
-          </span>
-        </div>
-        <div className={STYLES.layout.grid}>
-          <label className="block">
-            <span className={STYLES.text.subtitle}>標題</span>
-            <input
-              type="text"
-              className={combineStyles(STYLES.input.base, 'w-full mt-1')}
-              defaultValue={selectedNote.title}
-              onChange={(e) => handleTitleChange(e.target.value)}
-              onBlur={(e) => {
-                localTitle.current = e.target.value;
-                if (selectedNoteId) {
-                  setIsSaving(true);
-                  saveCurrentNote(selectedNoteId, e.target.value, localContent.current);
-                }
-              }}
-            />
-          </label>
-          <label className="block">
-            <span className={STYLES.text.subtitle}>內容</span>
-            <textarea
-              className={combineStyles(STYLES.input.base, 'w-full mt-1 min-h-[200px] resize-y')}
-              defaultValue={selectedNote.content}
-              onChange={(e) => handleContentChange(e.target.value)}
-              onBlur={handleContentBlur}
-            />
-          </label>
-          <div className="flex justify-end">
-            <Button variant="danger" onClick={handleDeleteClick} disabled={isDeleting}>
-              {isDeleting ? '刪除中…' : '刪除筆記'}
-            </Button>
+        {/* 扣除頂部分頁列與頁面上下留白的高度，讓下方內容欄位能撐滿剩餘畫面 */}
+        <div className="flex flex-col" style={{ minHeight: 'calc(100dvh - 6rem)' }}>
+          <div className="flex items-center justify-between gap-3 mb-4 shrink-0">
+            <BackButton onClick={handleBack} />
+            <span className={STYLES.text.bodySmall + ' flex items-center gap-2'}>
+              {isSaving && (
+                <>
+                  <span className="animate-spin rounded-full h-4 w-4 border-2 border-amber-500 border-t-transparent flex-shrink-0" aria-hidden />
+                  <span>儲存中…</span>
+                </>
+              )}
+            </span>
+          </div>
+          <div className="flex flex-col gap-3 sm:gap-4 flex-1 min-h-0">
+            <label className="block shrink-0">
+              <span className={STYLES.text.subtitle}>標題</span>
+              <input
+                type="text"
+                className={combineStyles(STYLES.input.base, 'w-full mt-1')}
+                defaultValue={selectedNote.title}
+                onChange={(e) => handleTitleChange(e.target.value)}
+                onBlur={(e) => {
+                  localTitle.current = e.target.value;
+                  if (selectedNoteId) {
+                    setIsSaving(true);
+                    saveCurrentNote(selectedNoteId, e.target.value, localContent.current);
+                  }
+                }}
+              />
+            </label>
+            <label className="flex flex-col flex-1 min-h-0">
+              <span className={STYLES.text.subtitle}>內容</span>
+              <textarea
+                className={combineStyles(STYLES.input.base, 'w-full mt-1 flex-1 min-h-[200px] resize-none')}
+                defaultValue={selectedNote.content}
+                onChange={(e) => handleContentChange(e.target.value)}
+                onBlur={handleContentBlur}
+              />
+            </label>
+            <div className="flex justify-end shrink-0">
+              <Button variant="danger" onClick={handleDeleteClick} disabled={isDeleting}>
+                {isDeleting ? '刪除中…' : '刪除筆記'}
+              </Button>
+            </div>
           </div>
         </div>
         <ConfirmDeleteModal
