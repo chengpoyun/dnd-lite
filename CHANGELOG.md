@@ -4,6 +4,11 @@
 
 ---
 
+## 1.2.1
+
+- 修正：戰鬥頁刪除自訂項目（如「劍歌」）後，reload 仍會重新出現。原因為刪除時以「顯示用 id ＋ 前端類別字串」回查資料庫項目，但資料庫的 `bonus_action` 與前端的 `bonus` 不符（預設衍生項目的 id 也是 default_item_id），導致 bonus 類別項目找不到、未真正從資料庫刪除。改為直接以本地項目保存的資料庫列 ID（item_id）刪除；並讓新建項目即時記下資料庫列 ID，未 reload 前也能正確刪除。
+- 測試：新增 CombatView 刪除 bonus_action 自訂項目的回歸測試。
+
 ## 1.2.0
 
 - 移除「上傳到資料庫」與「新增到資料庫」功能：實際使用後確認共享全域庫的寫入流程是多餘的。拔除三類（法術／物品／能力）的個人項目上傳與直接新增到全域庫的入口、服務函式（`uploadCharacterXxxToGlobal`、`createSpell`/`updateSpell`、`createAbility`、`createGlobalItem`）與相關型別；刪除僅供上傳使用的 `SpellFormModal`、`GlobalItemFormModal`；`AbilityFormModal` 精簡為「編輯個人能力」專用。**保留**瀏覽／學習既有共享項目與個人項目的新增／編輯。

@@ -447,7 +447,7 @@ export const CombatView: React.FC<CombatViewProps> = ({
       };
       setter(prev => [...prev, newItem]);
       try {
-        await HybridDataManager.createCombatItem({
+        const created = await HybridDataManager.createCombatItem({
           character_id: characterId,
           category: mapCategoryToDb(activeCategory),
           name: formName,
@@ -459,6 +459,10 @@ export const CombatView: React.FC<CombatViewProps> = ({
           is_custom: true,
           ...(descriptionToSave ? { description: descriptionToSave } : {})
         });
+        // 記下資料庫列 ID，讓尚未 reload 前也能正確刪除
+        if (created?.id) {
+          setter(prev => prev.map(item => item.id === newItemId ? { ...item, item_id: created.id } : item));
+        }
         console.log('✅ 新項目創建成功:', formName);
       } catch (error) {
         console.error('❌ 新項目創建失敗:', error);
@@ -469,18 +473,21 @@ export const CombatView: React.FC<CombatViewProps> = ({
   };
 
   const removeItem = async (category: ItemCategory, id: string) => {
+    const list = category === 'action' ? actions : category === 'bonus' ? bonusActions : category === 'reaction' ? reactions : resources;
     const setter = category === 'action' ? setActions : category === 'bonus' ? setBonusActions : category === 'reaction' ? setReactions : setResources;
+
+    // 以本地項目保存的資料庫列 ID（item_id）刪除。
+    // 不可用顯示用 id 回查（預設項目的 id 是 default_item_id）或比對前端類別字串
+    // （資料庫為 'bonus_action' 而前端為 'bonus'），否則 bonus／預設衍生項目會找不到而刪不掉。
+    const target = list.find(item => item.id === id);
     setter(prev => prev.filter(item => item.id !== id));
-    
-    // 從資料庫刪除
+
+    const dbRowId = target?.item_id;
+    if (!dbRowId) return;
+
     try {
-      const combatItems = await HybridDataManager.getCombatItems(characterId);
-      const dbItem = combatItems.find(item => item.id === id && item.category === category);
-      
-      if (dbItem) {
-        await HybridDataManager.deleteCombatItem(dbItem.id);
-        console.log(`✅ 成功刪除戰鬥項目: ${dbItem.name}`);
-      }
+      await HybridDataManager.deleteCombatItem(dbRowId);
+      console.log(`✅ 成功刪除戰鬥項目: ${target?.name ?? dbRowId}`);
     } catch (error) {
       console.error('從資料庫刪除項目失敗:', error);
     }
