@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { CharacterStats } from '../types';
+import { CharacterStats, ClassInfo } from '../types';
 import { evaluateValue, getProfBonus, handleValueInput } from '../utils/helpers';
 import { STAT_LABELS, SKILLS_MAP, ABILITY_KEYS } from '../utils/characterConstants';
 import { getFinalCombatStat, getBasicCombatStat, getFinalAbilityModifier, getFinalSavingThrow, getFinalSkillBonus, getDefaultMaxHpBasic, type CombatStatKey } from '../utils/characterAttributes';
 import { formatHitDicePools, getTotalCurrentHitDice, useHitDie, recoverHitDiceOnLongRest } from '../utils/classUtils';
+import { calculateCasterLevelForSpellSlots } from '../utils/spellSlots';
 import { HybridDataManager } from '../services/hybridDataManager';
 import { MulticlassService } from '../services/multiclassService';
 import { resetAbilityUses } from '../services/abilityService';
@@ -38,6 +39,7 @@ interface CombatItem {
   item_id?: string;
   created_at?: string;
   is_default?: boolean; // 是否為預設項目
+  maxUsesBasic?: number; // 自動計算項目（如法術位）的 basic 值；有值代表 max 為 basic+bonus，編輯時應換算為 bonus
   // D&D 5E 進階屬性
   description?: string;
   action_type?: 'attack' | 'spell' | 'ability' | 'item';
@@ -89,6 +91,12 @@ export const CombatView: React.FC<CombatViewProps> = ({
     ? stats.classes.map(item => item.name)
     : (stats.class ? [stats.class] : []);
   const isCaster = isSpellcaster(spellcasterClassNames);
+
+  // 全施法者法術位：依合併施法者等級計算（見 utils/spellSlots.ts）
+  const casterLevelClasses: ClassInfo[] = stats.classes?.length
+    ? stats.classes
+    : (stats.class ? [{ name: stats.class, level: stats.level, hitDie: 'd8', isPrimary: true }] : []);
+  const spellSlotCasterLevel = calculateCasterLevelForSpellSlots(casterLevelClasses);
 
   // 角色 ID 管理 - 優先使用從 props 傳入的 ID，否則從 localStorage 獲取
   const [characterId] = useState(() => {
@@ -191,17 +199,25 @@ export const CombatView: React.FC<CombatViewProps> = ({
       try {
         setIsLoading(true);
         setError(null);
-        
+
+        // 依目前的合併施法者等級同步「N環法術位」職業資源（見 utils/spellSlots.ts）
+        await HybridDataManager.syncSpellSlotResources(characterId, spellSlotCasterLevel);
+
         const combatItems = await HybridDataManager.getCombatItems(characterId);
         const filteredCombatItems = isCaster
           ? combatItems
           : combatItems.filter(item => !(item.name === '施法' && (item.is_default || item.default_item_id)));
-        
+
         // 將資料庫中的數據按類別分組
         const actionItems = filteredCombatItems.filter(item => item.category === 'action');
         const bonusItems = filteredCombatItems.filter(item => item.category === 'bonus_action');
         const reactionItems = filteredCombatItems.filter(item => item.category === 'reaction');
-        const resourceItems = filteredCombatItems.filter(item => item.category === 'resource');
+        // 尚未取得的法術位環不顯示卡片：未被同步覆寫過的範本項目沒有 max_uses_basic
+        // （因為那是取自全域範本、非角色專屬列），所以改用「有 default_item_id 但 max_uses
+        // 為 0」判斷——目前唯一會落入此情況的預設 resource 項目就是法術位。
+        const resourceItems = filteredCombatItems
+          .filter(item => item.category === 'resource')
+          .filter(item => !(item.default_item_id && item.max_uses === 0));
         
         // 轉換資料庫格式到組件格式
         const convertedActions = actionItems
@@ -232,7 +248,7 @@ export const CombatView: React.FC<CombatViewProps> = ({
     };
 
     loadData();
-  }, [characterId, isCaster]);
+  }, [characterId, isCaster, spellSlotCasterLevel]);
 
   // 分類映射 - 前端到資料庫
   const mapCategoryToDb = (category: ItemCategory): DatabaseCombatItem['category'] => {
@@ -298,6 +314,7 @@ export const CombatView: React.FC<CombatViewProps> = ({
       item_id: dbItem.id, // 保存資料庫 ID 作為 item_id
       created_at: dbItem.created_at,
       is_default: finalIsDefault,
+      maxUsesBasic: dbItem.max_uses_basic ?? undefined,
       // D&D 5E 進階屬性
       description: dbItem.description,
       action_type: dbItem.action_type as 'attack' | 'spell' | 'ability' | 'item',
@@ -327,12 +344,12 @@ export const CombatView: React.FC<CombatViewProps> = ({
       const newCurrent = item.current - 1;
       const setter = category === 'action' ? setActions : category === 'bonus' ? setBonusActions : setReactions;
       setter(prev => prev.map(i => i.id === id ? { ...i, current: newCurrent } : i));
-      await updateItemInDatabase(id, category, newCurrent);
+      await updateItemInDatabase(item.item_id, newCurrent);
     } else {
       if (item.current <= 0) return;
       const newCurrent = item.current - 1;
       setResources(prev => prev.map(i => i.id === id ? { ...i, current: newCurrent } : i));
-      await updateItemInDatabase(id, category, newCurrent);
+      await updateItemInDatabase(item.item_id, newCurrent);
     }
   };
 
@@ -357,32 +374,30 @@ export const CombatView: React.FC<CombatViewProps> = ({
   };
 
   // 更新資料庫中的項目使用次數
+  // dbRowId 必須是項目本地保存的資料庫列 ID（item.item_id），而非顯示用 id
+  // （預設關聯項目的顯示用 id 是 default_item_id，直接拿去查詢會找不到對應列，導致寫入被靜默略過）
   const updateItemInDatabase = async (
-    itemId: string,
-    category: string,
+    dbRowId: string | undefined,
     newCurrent: number,
-    additionalFields?: { name?: string; icon?: string; max_uses?: number; recovery?: 'round' | 'short' | 'long'; description?: string | null }
+    additionalFields?: { name?: string; icon?: string; max_uses?: number; max_uses_bonus?: number; recovery?: 'round' | 'short' | 'long'; description?: string | null }
   ) => {
+    if (!dbRowId) return;
     try {
-      const combatItems = await HybridDataManager.getCombatItems(characterId);
-      const dbItem = combatItems.find(item => item.id === itemId);
-      
-      if (dbItem) {
-        const updateData: any = {
-          current_uses: newCurrent,
-          character_id: characterId // 確保總是包含 character_id
-        };
-        
-        if (additionalFields) {
-          if (additionalFields.name) updateData.name = additionalFields.name;
-          if (additionalFields.icon) updateData.icon = additionalFields.icon;
-          if (additionalFields.max_uses !== undefined) updateData.max_uses = additionalFields.max_uses;
-          if (additionalFields.recovery) updateData.recovery_type = mapRecoveryToDb(additionalFields.recovery);
-          if (additionalFields.description !== undefined) updateData.description = additionalFields.description ?? '';
-        }
-        
-        await HybridDataManager.updateCombatItem(dbItem.id, updateData);
+      const updateData: any = {
+        current_uses: newCurrent,
+        character_id: characterId // 確保總是包含 character_id
+      };
+
+      if (additionalFields) {
+        if (additionalFields.name) updateData.name = additionalFields.name;
+        if (additionalFields.icon) updateData.icon = additionalFields.icon;
+        if (additionalFields.max_uses !== undefined) updateData.max_uses = additionalFields.max_uses;
+        if (additionalFields.max_uses_bonus !== undefined) updateData.max_uses_bonus = additionalFields.max_uses_bonus;
+        if (additionalFields.recovery) updateData.recovery_type = mapRecoveryToDb(additionalFields.recovery);
+        if (additionalFields.description !== undefined) updateData.description = additionalFields.description ?? '';
       }
+
+      await HybridDataManager.updateCombatItem(dbRowId, updateData);
     } catch (error) {
       console.error('更新資料庫項目失敗:', error);
     }
@@ -418,15 +433,23 @@ export const CombatView: React.FC<CombatViewProps> = ({
     const descriptionToSave = (formDescription ?? '').trim();
 
     if (editingItemId) {
+      const editingList = activeCategory === 'action' ? actions : activeCategory === 'bonus' ? bonusActions : activeCategory === 'reaction' ? reactions : resources;
+      const editingItem = editingList.find(item => item.id === editingItemId);
+      // 自動計算項目（如法術位）：max 由 basic+bonus 組成，使用者編輯 max 時換算為 bonus 保存，
+      // 讓下次依等級重新計算 basic 時，這個手動加值仍會保留（見 utils/spellSlots.ts 的設計說明）
+      const maxUsesBonus = editingItem?.maxUsesBasic !== undefined
+        ? maxValue - editingItem.maxUsesBasic
+        : undefined;
       const updatedItem = { name: formName, icon: formIcon, current: currentValue, max: maxValue, recovery: formRecovery, description: descriptionToSave || undefined };
       setter(prev => prev.map(item =>
         item.id === editingItemId ? { ...item, ...updatedItem } : item
       ));
       try {
-        await updateItemInDatabase(editingItemId, activeCategory, currentValue, {
+        await updateItemInDatabase(editingItem?.item_id, currentValue, {
           name: formName,
           icon: formIcon,
           max_uses: maxValue,
+          ...(maxUsesBonus !== undefined ? { max_uses_bonus: maxUsesBonus } : {}),
           recovery: formRecovery,
           description: descriptionToSave || null
         });
@@ -494,33 +517,32 @@ export const CombatView: React.FC<CombatViewProps> = ({
   };
 
   const resetByRecovery = async (periods: ('round' | 'short' | 'long')[]) => {
-    const update = (list: CombatItem[]) => list.map(item => 
+    // 保留重設前的項目，用來比對是否真的需要寫入資料庫、以及取得正確的資料庫列 ID（item_id）
+    const beforeItems = [...actions, ...bonusActions, ...reactions, ...resources];
+
+    const update = (list: CombatItem[]) => list.map(item =>
       periods.includes(item.recovery) ? { ...item, current: item.max } : item
     );
-    
+
     const updatedActions = update(actions);
     const updatedBonusActions = update(bonusActions);
     const updatedReactions = update(reactions);
     const updatedResources = update(resources);
-    
+
     setActions(updatedActions);
     setBonusActions(updatedBonusActions);
     setReactions(updatedReactions);
     setResources(updatedResources);
-    
+
     // 同步到資料庫
+    // 以重設前的 item_id（實際資料庫列 ID）寫入，而非顯示用 id（預設關聯項目的顯示用 id 是
+    // default_item_id，直接拿去比對會找不到列，導致寫入被靜默略過）
     try {
-      const allUpdatedItems = [...updatedActions, ...updatedBonusActions, ...updatedReactions, ...updatedResources];
-      const combatItems = await HybridDataManager.getCombatItems(characterId);
-      
-      for (const localItem of allUpdatedItems) {
-        if (periods.includes(localItem.recovery)) {
-          const dbItem = combatItems.find(item => item.id === localItem.id);
-          if (dbItem && dbItem.current_uses !== localItem.max) {
-            await HybridDataManager.updateCombatItem(dbItem.id, {
-              current_uses: localItem.max
-            });
-          }
+      for (const beforeItem of beforeItems) {
+        if (periods.includes(beforeItem.recovery) && beforeItem.item_id && beforeItem.current !== beforeItem.max) {
+          await HybridDataManager.updateCombatItem(beforeItem.item_id, {
+            current_uses: beforeItem.max
+          });
         }
       }
     } catch (error) {

@@ -442,6 +442,13 @@ export class HybridDataManager {
     }
   }
 
+  /**
+   * 依角色目前的合併施法者等級，同步「N環法術位」職業資源項目
+   */
+  static async syncSpellSlotResources(characterId: string, casterLevel: number): Promise<void> {
+    await CombatItemService.syncSpellSlotResources(characterId, casterLevel)
+  }
+
   // 單獨更新技能熟練度的專用方法
   static async updateSingleSkillProficiency(characterId: string, skillName: string, level: number): Promise<boolean> {
     try {

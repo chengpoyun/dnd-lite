@@ -1,5 +1,6 @@
 import { supabase, type Character, type CharacterCombatAction as CombatItem, type DefaultCombatAction } from '../lib/supabase'
 import type { CharacterStats } from '../types'
+import { getSpellSlotsForCasterLevel } from '../utils/spellSlots'
 
 // 廢棄的 CharacterService 已移除，請使用 DetailedCharacterService
 
@@ -122,6 +123,96 @@ export class CombatItemService {
         return []
       }
       throw error // 重新拋出錯誤以便UI處理
+    }
+  }
+
+  /**
+   * 依角色的合併施法者等級，同步「N環法術位」職業資源項目：
+   * - 尚未取得的環位（basic=0）不建立項目。
+   * - 已取得但等級變動時，更新 max_uses_basic 並保留使用者手動加值（max_uses_bonus）；
+   *   max_uses 維持 basic+bonus，current_uses 隨 basic 的變動量同步增減（clamp 於 [0, max]）。
+   * - basic 與圖示皆沒有變動時不寫入資料庫；圖示與範本不同（例如範本圖示調整過）時會自動修正。
+   */
+  static async syncSpellSlotResources(characterId: string, casterLevel: number): Promise<void> {
+    try {
+      const basics = getSpellSlotsForCasterLevel(casterLevel)
+
+      const { data: templates, error: templateError } = await supabase
+        .from('default_combat_actions')
+        .select('*')
+        .not('spell_level', 'is', null)
+
+      if (templateError) {
+        console.error('讀取法術位範本失敗:', templateError)
+        return
+      }
+
+      const templateList = (templates || []) as DefaultCombatAction[]
+      if (templateList.length === 0) return
+
+      const templateIds = templateList.map(t => t.id)
+
+      const { data: existingRows, error: existingError } = await supabase
+        .from('character_combat_actions')
+        .select('*')
+        .eq('character_id', characterId)
+        .in('default_item_id', templateIds)
+
+      if (existingError) {
+        console.error('讀取角色法術位資料失敗:', existingError)
+        return
+      }
+
+      const existingByTemplateId = new Map<string, CombatItem>()
+      ;(existingRows || []).forEach((row: CombatItem) => {
+        if (row.default_item_id) existingByTemplateId.set(row.default_item_id, row)
+      })
+
+      for (const tmpl of templateList) {
+        const level = tmpl.spell_level
+        if (!level || level < 1 || level > 9) continue
+
+        const newBasic = basics[level - 1] ?? 0
+        const existing = existingByTemplateId.get(tmpl.id)
+
+        if (!existing) {
+          if (newBasic > 0) {
+            const { error } = await supabase.from('character_combat_actions').insert([{
+              character_id: characterId,
+              category: 'resource',
+              name: tmpl.name,
+              icon: tmpl.icon,
+              max_uses: newBasic,
+              current_uses: newBasic,
+              max_uses_basic: newBasic,
+              max_uses_bonus: 0,
+              recovery_type: 'long_rest',
+              is_default: false,
+              is_custom: false,
+              default_item_id: tmpl.id,
+            }])
+            if (error) console.error(`建立${tmpl.name}失敗:`, error)
+          }
+          continue
+        }
+
+        const oldBasic = existing.max_uses_basic ?? 0
+        const iconOutdated = existing.icon !== tmpl.icon
+        if (newBasic === oldBasic && !iconOutdated) continue
+
+        const bonus = existing.max_uses_bonus ?? 0
+        const delta = newBasic - oldBasic
+        const newMax = Math.max(0, newBasic + bonus)
+        const newCurrent = Math.min(newMax, Math.max(0, existing.current_uses + delta))
+
+        const { error } = await supabase
+          .from('character_combat_actions')
+          .update({ max_uses: newMax, max_uses_basic: newBasic, current_uses: newCurrent, icon: tmpl.icon })
+          .eq('id', existing.id)
+        if (error) console.error(`更新${tmpl.name}失敗:`, error)
+      }
+    } catch (error) {
+      console.error('同步法術位資源失敗:', error)
     }
   }
 

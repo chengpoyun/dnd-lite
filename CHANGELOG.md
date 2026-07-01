@@ -4,6 +4,13 @@
 
 ---
 
+## 1.5.0
+
+- 新增：全施法者職業（吟遊詩人、牧師、德魯伊、術士、法師）的**法術位**依等級自動計算，顯示為戰鬥頁「職業資源」的 1~9 環卡片。多職施法者依官方規則合併施法者等級：全施法者等級直接加總、半施法者（聖騎士、遊俠）加總後除以2無條件捨去、奇械師除以2無條件進位、1/3施法者（戰士之奧術騎士、遊蕩者之奧術詭術師，須符合子職業）加總後除以3無條件捨去。
+- 資料：`character_combat_actions` 新增 `max_uses_basic`／`max_uses_bonus`（沿用專案既有 basic+bonus=final 慣例），使用者手動調整上限（例如裝備額外給予的法術位）會以加值形式保留，之後升級只更新 basic，`max = basic + bonus` 不會蓋掉手動加值；`default_combat_actions` 新增 `spell_level` 標記 9 個新增的法術位範本列。尚未取得的環位（basic 為 0）不會顯示卡片。
+- 修正：`CombatView` 的 `updateItemInDatabase`／`resetByRecovery` 原本以顯示用 id（預設關聯項目為 `default_item_id`）回頭比對資料庫列，導致消耗/編輯/重置這類項目時寫入被靜默略過（因動作/附贈動作/反應皆每回合重置而未被發現）；改為直接使用項目本地保存的資料庫列 ID（`item_id`，沿用刪除功能既有的正確作法），法術位等長休才重置的資源才能正確持久化。
+- 測試：新增 `utils/spellSlots`（法術位表與多職合併規則）、`CombatItemService.syncSpellSlotResources`（建立/更新/保留加值）、`CombatView` 法術位整合（同步觸發、消耗與編輯上限的持久化）測試。
+
 ## 1.4.4
 
 - 工具：移除舊版 DB 推送/查詢腳本（`db:migrate`、`db:status` 與其底層 `scripts/migrate-wrapper.sh`、`scripts/auto-migrate.sh`、`scripts/status-wrapper.sh`），統一改用 `npm run db:push`（`scripts/db-push.mjs`，內部走 `npx supabase`，免本機安裝 CLI）。查看遷移狀態改為文件中提供的手動指令（`npx supabase link` + `npx supabase migration list --linked`）。`.gitignore` 移除不再需要的 `supabase-cli` 條目；`create-migration.sh` 的完成提示改指向 `npm run db:push`。README、README-project、CLAUDE.md、docs/database-migration 同步更新。
