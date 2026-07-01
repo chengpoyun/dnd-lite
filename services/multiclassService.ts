@@ -41,7 +41,8 @@ export class MulticlassService {
         name: dbClass.class_name,
         level: dbClass.class_level,
         hitDie: dbClass.hit_die as any,
-        isPrimary: dbClass.is_primary
+        isPrimary: dbClass.is_primary,
+        subclassName: dbClass.subclass_name ?? undefined
       }))
 
       const hitDicePools: HitDicePools | null = hitDiceData ? {

@@ -1,11 +1,27 @@
 // D&D 5E 職業工具函數
-import { DND_CLASSES, type DndClassName, type ClassInfo, type HitDicePools } from '../types'
+import { DND_CLASSES, SUBCLASSES_BY_CLASS, type DndClassName, type ClassInfo, type HitDicePools } from '../types'
 
 /**
  * 獲取所有可用的D&D職業列表
  */
 export const getAvailableClasses = (): DndClassName[] => {
   return Object.keys(DND_CLASSES) as DndClassName[]
+}
+
+/**
+ * 取得某職業的可選子職業列表（未知職業回傳空陣列）
+ */
+export const getSubclassesForClass = (className: string): string[] => {
+  return SUBCLASSES_BY_CLASS[className as DndClassName] ?? []
+}
+
+/**
+ * 格式化單一職業名稱（有子職業時加上括號，如「牧師（生命領域）」）
+ */
+const formatClassName = (classInfo: ClassInfo): string => {
+  return classInfo.subclassName
+    ? `${classInfo.name}（${classInfo.subclassName}）`
+    : classInfo.name
 }
 
 /**
@@ -39,35 +55,35 @@ export const getTotalLevel = (classes: ClassInfo[]): number => {
 }
 
 /**
- * 格式化職業顯示文字
+ * 格式化職業顯示文字（有子職業時以括號附加，如「牧師（生命領域）」）
  * @param classes 職業列表
  * @param format 'full' | 'primary' | 'simple'
- * - full: "戰士 Lv5 / 法師 Lv3"  
- * - primary: "戰士" (只顯示主職業)
- * - simple: "戰士/法師" (不顯示等級)
+ * - full: "戰士（冠軍） Lv5 / 法師 Lv3"
+ * - primary: "戰士（冠軍）" (只顯示主職業)
+ * - simple: "戰士（冠軍）/法師" (不顯示等級)
  */
 export const formatClassDisplay = (
-  classes: ClassInfo[], 
+  classes: ClassInfo[],
   format: 'full' | 'primary' | 'simple' = 'full'
 ): string => {
   if (!classes.length) return '無職業'
-  
+
   // 按等級排序（主職業在前）
   const sortedClasses = [...classes].sort((a, b) => {
     if (b.level !== a.level) return b.level - a.level
     return a.isPrimary ? -1 : 1
   })
-  
+
   switch (format) {
     case 'primary':
-      return sortedClasses[0]?.name || '無職業'
-      
+      return sortedClasses[0] ? formatClassName(sortedClasses[0]) : '無職業'
+
     case 'simple':
-      return sortedClasses.map(c => c.name).join('/')
-      
+      return sortedClasses.map(c => formatClassName(c)).join('/')
+
     case 'full':
     default:
-      return sortedClasses.map(c => `${c.name} Lv${c.level}`).join(' / ')
+      return sortedClasses.map(c => `${formatClassName(c)} Lv${c.level}`).join(' / ')
   }
 }
 

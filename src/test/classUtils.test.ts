@@ -15,9 +15,11 @@ import {
   useHitDie,
   formatHitDicePools,
   getTotalCurrentHitDice,
-  getTotalMaxHitDice
+  getTotalMaxHitDice,
+  getSubclassesForClass
 } from '../../utils/classUtils'
 import { migrateLegacyCharacterStats, needsMulticlassMigration, validateMulticlassData, ensureDisplayClass } from '../../utils/migrationHelpers'
+import { DND_CLASSES, SUBCLASSES_BY_CLASS } from '../../types'
 import type { ClassInfo, HitDicePools, CharacterStats } from '../../types'
 
 describe('classUtils - D&D 5E 職業工具函數', () => {
@@ -118,6 +120,68 @@ describe('classUtils - D&D 5E 職業工具函數', () => {
     it('空陣列應該返回無職業', () => {
       expect(formatClassDisplay([], 'full')).toBe('無職業')
       expect(formatClassDisplay([], 'primary')).toBe('無職業')
+    })
+
+    describe('子職業顯示', () => {
+      const withSub: ClassInfo[] = [
+        { name: '戰士', level: 5, hitDie: 'd10', isPrimary: true, subclassName: '冠軍' },
+        { name: '法師', level: 3, hitDie: 'd6', isPrimary: false, subclassName: '塑能學派' }
+      ]
+
+      it('primary 有子職業時以括號附加', () => {
+        expect(formatClassDisplay(withSub, 'primary')).toBe('戰士（冠軍）')
+      })
+
+      it('full 每個職業都帶子職業', () => {
+        expect(formatClassDisplay(withSub, 'full')).toBe('戰士（冠軍） Lv5 / 法師（塑能學派） Lv3')
+      })
+
+      it('simple 帶子職業但不帶等級', () => {
+        expect(formatClassDisplay(withSub, 'simple')).toBe('戰士（冠軍）/法師（塑能學派）')
+      })
+
+      it('未選子職業的職業不加括號（混用）', () => {
+        const mixed: ClassInfo[] = [
+          { name: '牧師', level: 5, hitDie: 'd8', isPrimary: true, subclassName: '生命領域' },
+          { name: '法師', level: 3, hitDie: 'd6', isPrimary: false }
+        ]
+        expect(formatClassDisplay(mixed, 'full')).toBe('牧師（生命領域） Lv5 / 法師 Lv3')
+      })
+    })
+  })
+
+  describe('getSubclassesForClass', () => {
+    it('已知職業回傳非空子職業列表', () => {
+      expect(getSubclassesForClass('牧師')).toContain('生命領域')
+      expect(getSubclassesForClass('戰士')).toContain('冠軍')
+    })
+
+    it('未知職業回傳空陣列', () => {
+      expect(getSubclassesForClass('不存在的職業')).toEqual([])
+    })
+  })
+
+  describe('SUBCLASSES_BY_CLASS 完整性', () => {
+    it('涵蓋所有 13 個職業且各職業皆有子職業', () => {
+      const classKeys = Object.keys(DND_CLASSES)
+      expect(classKeys).toHaveLength(13)
+      classKeys.forEach((cls) => {
+        const subs = (SUBCLASSES_BY_CLASS as Record<string, string[]>)[cls]
+        expect(Array.isArray(subs)).toBe(true)
+        expect(subs.length).toBeGreaterThan(0)
+      })
+    })
+
+    it('SUBCLASSES_BY_CLASS 沒有未知職業的鍵值', () => {
+      Object.keys(SUBCLASSES_BY_CLASS).forEach((cls) => {
+        expect(cls in DND_CLASSES).toBe(true)
+      })
+    })
+
+    it('每個職業的子職業名稱皆不重複', () => {
+      Object.entries(SUBCLASSES_BY_CLASS).forEach(([, subs]) => {
+        expect(new Set(subs).size).toBe(subs.length)
+      })
     })
   })
 

@@ -214,7 +214,8 @@ export function buildCharacterStats(characterData: any, previousStats: Character
             name: c.name,
             level: c.level,
             hitDie: c.hitDie || getClassHitDie(c.name),
-            isPrimary: c.isPrimary
+            isPrimary: c.isPrimary,
+            subclassName: c.subclassName ?? undefined
           }))
         : (characterData.classes && characterData.classes.length > 0
             ? characterData.classes.map((c: any) => ({
@@ -222,7 +223,8 @@ export function buildCharacterStats(characterData: any, previousStats: Character
                 name: c.class_name,
                 level: c.class_level,
                 hitDie: c.hit_die,
-                isPrimary: c.is_primary
+                isPrimary: c.is_primary,
+                subclassName: c.subclass_name ?? undefined
               }))
             : undefined);
     })(),

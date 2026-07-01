@@ -5,9 +5,10 @@ import React from 'react';
 import { Modal, ModalButton } from './ui/Modal';
 import { ModalSaveButton } from './ui/ModalSaveButton';
 import { LoadingOverlay } from './ui/LoadingOverlay';
+import { getSubclassesForClass } from '../utils/classUtils';
 import { MODAL_CONTAINER_CLASS, MODAL_BUTTON_CANCEL_CLASS, MODAL_FOOTER_BUTTONS_CLASS, INPUT_FULL_WIDTH_CLASS, SELECT_CLASS, MODAL_LABEL_CLASS, MODAL_SECTION_CLASS, MODAL_FIELD_CLASS, MODAL_INPUT_NUMBER_SM_CLASS, MODAL_BUTTON_REMOVE_ICON_CLASS, MODAL_BUTTON_ADD_ROW_CLASS, MODAL_BUTTON_APPLY_AMBER_CLASS } from '../styles/modalStyles';
 
-export type EditClassRow = { id: string; name: string; level: number; isPrimary: boolean };
+export type EditClassRow = { id: string; name: string; level: number; isPrimary: boolean; subclassName?: string };
 
 interface CharacterInfoModalProps {
   isOpen: boolean;
@@ -16,7 +17,7 @@ interface CharacterInfoModalProps {
   setEditInfo: (v: { name: string; class: string; level: string }) => void;
   editClasses: EditClassRow[];
   availableClasses: string[];
-  updateEditClass: (index: number, field: 'name' | 'level', value: string | number) => void;
+  updateEditClass: (index: number, field: 'name' | 'level' | 'subclass', value: string | number) => void;
   removeEditClass: (index: number) => void;
   addNewEditClass: () => void;
   totalLevel: number;
@@ -56,38 +57,55 @@ export default function CharacterInfoModal({
           <div className="space-y-2">
             <label className={MODAL_LABEL_CLASS}>職業與等級</label>
             <div className="space-y-2">
-              {editClasses.map((classInfo, index) => (
-                <div key={classInfo.id || index} className="flex items-center gap-2">
-                  <select
-                    value={classInfo.name}
-                    onChange={(e) => updateEditClass(index, 'name', e.target.value)}
-                    className={`flex-1 ${SELECT_CLASS} px-3 py-2 text-white text-sm`}
-                  >
-                    {availableClasses
-                      .filter((className) => className === classInfo.name || !editClasses.some((c) => c.name === className))
-                      .map((className) => (
-                        <option key={className} value={className}>{className}</option>
-                      ))}
-                  </select>
-                  <input
-                    type="number"
-                    min={1}
-                    max={20}
-                    value={classInfo.level}
-                    onChange={(e) => updateEditClass(index, 'level', e.target.value)}
-                    className={MODAL_INPUT_NUMBER_SM_CLASS}
-                  />
-                  {editClasses.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={() => removeEditClass(index)}
-                      className={MODAL_BUTTON_REMOVE_ICON_CLASS}
-                    >
-                      ×
-                    </button>
-                  )}
-                </div>
-              ))}
+              {editClasses.map((classInfo, index) => {
+                const subclasses = getSubclassesForClass(classInfo.name);
+                return (
+                  <div key={classInfo.id || index} className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <select
+                        value={classInfo.name}
+                        onChange={(e) => updateEditClass(index, 'name', e.target.value)}
+                        className={`flex-1 ${SELECT_CLASS} px-3 py-2 text-white text-sm`}
+                      >
+                        {availableClasses
+                          .filter((className) => className === classInfo.name || !editClasses.some((c) => c.name === className))
+                          .map((className) => (
+                            <option key={className} value={className}>{className}</option>
+                          ))}
+                      </select>
+                      <input
+                        type="number"
+                        min={1}
+                        max={20}
+                        value={classInfo.level}
+                        onChange={(e) => updateEditClass(index, 'level', e.target.value)}
+                        className={MODAL_INPUT_NUMBER_SM_CLASS}
+                      />
+                      {editClasses.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => removeEditClass(index)}
+                          className={MODAL_BUTTON_REMOVE_ICON_CLASS}
+                        >
+                          ×
+                        </button>
+                      )}
+                    </div>
+                    {subclasses.length > 0 && (
+                      <select
+                        value={classInfo.subclassName ?? ''}
+                        onChange={(e) => updateEditClass(index, 'subclass', e.target.value)}
+                        className={`w-full ${SELECT_CLASS} px-3 py-2 text-slate-300 text-sm`}
+                      >
+                        <option value="">未選擇子職業</option>
+                        {subclasses.map((sub) => (
+                          <option key={sub} value={sub}>{sub}</option>
+                        ))}
+                      </select>
+                    )}
+                  </div>
+                );
+              })}
               <button
                 type="button"
                 onClick={addNewEditClass}

@@ -4,6 +4,13 @@
 
 ---
 
+## 1.4.0
+
+- 新增：**子職業（subclass）**功能。`ClassInfo` 新增 `subclassName`（選填），並在 `types.ts` 新增 `SUBCLASSES_BY_CLASS` 常數（13 職業對應之子職業清單，如牧師→生命領域、戰士→冠軍等）。編輯角色資料時每個職業列多一個「子職業」下拉（依所選職業過濾，可選「未選擇子職業」；換職業時清空子職業）。角色標頭與 `formatClassDisplay` 以括號顯示子職業（如「LV 5 牧師（生命領域）」、多職「戰士（冠軍） Lv5 / 法師（塑能學派） Lv3」）；未選子職業時維持原顯示。
+- 資料：新增 migration 為 `character_classes` 加上 `subclass_name TEXT`（可空）；讀寫（`multiclassService`、`appInit`、`saveInfoWithClasses`）皆對應 `subclass_name ↔ subclassName`。
+- 測試：`formatClassDisplay` 子職業顯示、`getSubclassesForClass`、`SUBCLASSES_BY_CLASS` 完整性（涵蓋 13 職業、鍵值合法、子職業不重複）。
+- 注意：此版本需在遠端 DB 執行 `ALTER TABLE character_classes ADD COLUMN IF NOT EXISTS subclass_name TEXT;`（本機無 Supabase access token／CLI，需於 Supabase SQL Editor 手動套用）後，子職業儲存才會生效。
+
 ## 1.3.1
 
 - 文件：新增 `CLAUDE.md`（Claude Code 入口濃縮頁）：常用指令、陷阱（登入牆、migration 即推送、`scripts/` 為 `.sh`、等級/職業變更後 refetch 等）、架構速覽與慣例，並連結至現有 `docs/`；不重複既有文件內容。

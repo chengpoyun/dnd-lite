@@ -61,12 +61,13 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
   const [editInfo, setEditInfo] = useState({ name: stats.name, class: stats.class, level: stats.level.toString() });
   
   // 兼職編輯狀態
-  const [editClasses, setEditClasses] = useState<Array<{id: string, name: string, level: number, isPrimary: boolean}>>(
-    stats.classes?.map((c, index) => ({ 
-      id: `class-${index}`, 
-      name: c.name, 
-      level: c.level, 
-      isPrimary: c.isPrimary 
+  const [editClasses, setEditClasses] = useState<Array<{id: string, name: string, level: number, isPrimary: boolean, subclassName?: string}>>(
+    stats.classes?.map((c, index) => ({
+      id: `class-${index}`,
+      name: c.name,
+      level: c.level,
+      isPrimary: c.isPrimary,
+      subclassName: c.subclassName
     })) || [{ id: 'class-0', name: stats.class, level: stats.level, isPrimary: true }]
   );
   const [newClassName, setNewClassName] = useState('');
@@ -87,11 +88,12 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
     // 只在 stats.classes 真正存在且有數據時才設定多職業
     if (stats.classes && stats.classes.length > 0) {
       setEditClasses(
-        stats.classes.map((c, index) => ({ 
-          id: c.id || `class-${index}`, 
-          name: c.name, 
-          level: c.level, 
-          isPrimary: c.isPrimary 
+        stats.classes.map((c, index) => ({
+          id: c.id || `class-${index}`,
+          name: c.name,
+          level: c.level,
+          isPrimary: c.isPrimary,
+          subclassName: c.subclassName
         }))
       );
     } else {
@@ -167,11 +169,12 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
   const openMulticlassModal = () => {
     // 初始化編輯狀態
     setEditClasses(
-      stats.classes?.map((c, index) => ({ 
-        id: `class-${index}`, 
-        name: c.name, 
-        level: c.level, 
-        isPrimary: c.isPrimary 
+      stats.classes?.map((c, index) => ({
+        id: `class-${index}`,
+        name: c.name,
+        level: c.level,
+        isPrimary: c.isPrimary,
+        subclassName: c.subclassName
       })) || [{ id: 'class-0', name: stats.class, level: stats.level, isPrimary: true }]
     );
     setActiveModal('multiclass');
@@ -410,14 +413,21 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
   };
   
   // 簡化的職業編輯函數
-  const updateEditClass = (index: number, field: 'name' | 'level', value: string | number) => {
-    setEditClasses(prev => 
-      prev.map((classInfo, i) => 
-        i === index ? { 
-          ...classInfo, 
-          [field]: value // 直接使用值，不強制轉換
-        } : classInfo
-      )
+  const updateEditClass = (index: number, field: 'name' | 'level' | 'subclass', value: string | number) => {
+    setEditClasses(prev =>
+      prev.map((classInfo, i) => {
+        if (i !== index) return classInfo;
+        if (field === 'subclass') {
+          // 空字串代表未選擇子職業
+          return { ...classInfo, subclassName: value ? String(value) : undefined };
+        }
+        if (field === 'name') {
+          // 換職業時清除子職業（子職業歸屬於特定職業）
+          return { ...classInfo, name: String(value), subclassName: undefined };
+        }
+        // level：編輯過程可能為字串，於儲存時再 parseInt
+        return { ...classInfo, level: value as number };
+      })
     );
   };
   
@@ -502,7 +512,8 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
             class_name: classInfo.name,
             class_level: classInfo.level,
             hit_die: getClassHitDie(classInfo.name),
-            is_primary: classInfo.isPrimary
+            is_primary: classInfo.isPrimary,
+            subclass_name: classInfo.subclassName ?? null
           });
           
         if (error) {
@@ -519,7 +530,8 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
         name: c.name,
         level: c.level,
         hitDie: getClassHitDie(c.name),
-        isPrimary: c.isPrimary
+        isPrimary: c.isPrimary,
+        subclassName: c.subclassName
       }));
       const newHitDicePools = calculateHitDiceTotals(newClasses);
       setStats(prev => ({ 

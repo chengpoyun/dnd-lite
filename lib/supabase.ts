@@ -172,6 +172,7 @@ export interface CharacterClass {
   class_level: number
   hit_die: 'd4' | 'd6' | 'd8' | 'd10' | 'd12'
   is_primary: boolean
+  subclass_name?: string | null
   created_at?: string
   updated_at?: string
 }
