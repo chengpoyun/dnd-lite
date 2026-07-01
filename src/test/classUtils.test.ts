@@ -16,7 +16,9 @@ import {
   formatHitDicePools,
   getTotalCurrentHitDice,
   getTotalMaxHitDice,
-  getSubclassesForClass
+  getSubclassesForClass,
+  canSelectSubclass,
+  SUBCLASS_MIN_LEVEL
 } from '../../utils/classUtils'
 import { migrateLegacyCharacterStats, needsMulticlassMigration, validateMulticlassData, ensureDisplayClass } from '../../utils/migrationHelpers'
 import { DND_CLASSES, SUBCLASSES_BY_CLASS } from '../../types'
@@ -158,6 +160,27 @@ describe('classUtils - D&D 5E 職業工具函數', () => {
 
     it('未知職業回傳空陣列', () => {
       expect(getSubclassesForClass('不存在的職業')).toEqual([])
+    })
+  })
+
+  describe('canSelectSubclass', () => {
+    it('最低等級為 3', () => {
+      expect(SUBCLASS_MIN_LEVEL).toBe(3)
+    })
+
+    it('1、2 等不可選子職業', () => {
+      expect(canSelectSubclass(1)).toBe(false)
+      expect(canSelectSubclass(2)).toBe(false)
+    })
+
+    it('3 等（含）以上可選子職業', () => {
+      expect(canSelectSubclass(3)).toBe(true)
+      expect(canSelectSubclass(20)).toBe(true)
+    })
+
+    it('非數字或 0 視為不可選', () => {
+      expect(canSelectSubclass(0)).toBe(false)
+      expect(canSelectSubclass(NaN as any)).toBe(false)
     })
   })
 

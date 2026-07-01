@@ -5,7 +5,7 @@ import React from 'react';
 import { Modal, ModalButton } from './ui/Modal';
 import { ModalSaveButton } from './ui/ModalSaveButton';
 import { LoadingOverlay } from './ui/LoadingOverlay';
-import { getSubclassesForClass } from '../utils/classUtils';
+import { getSubclassesForClass, canSelectSubclass } from '../utils/classUtils';
 import { MODAL_CONTAINER_CLASS, MODAL_BUTTON_CANCEL_CLASS, MODAL_FOOTER_BUTTONS_CLASS, INPUT_FULL_WIDTH_CLASS, SELECT_CLASS, MODAL_LABEL_CLASS, MODAL_SECTION_CLASS, MODAL_FIELD_CLASS, MODAL_INPUT_NUMBER_SM_CLASS, MODAL_BUTTON_REMOVE_ICON_CLASS, MODAL_BUTTON_ADD_ROW_CLASS, MODAL_BUTTON_APPLY_AMBER_CLASS } from '../styles/modalStyles';
 
 export type EditClassRow = { id: string; name: string; level: number; isPrimary: boolean; subclassName?: string };
@@ -59,6 +59,8 @@ export default function CharacterInfoModal({
             <div className="space-y-2">
               {editClasses.map((classInfo, index) => {
                 const subclasses = getSubclassesForClass(classInfo.name);
+                // 子職業 3 等後才可選（1–2 等不顯示下拉）
+                const showSubclass = subclasses.length > 0 && canSelectSubclass(parseInt(String(classInfo.level)) || 0);
                 return (
                   <div key={classInfo.id || index} className="space-y-1">
                     <div className="flex items-center gap-2">
@@ -91,7 +93,7 @@ export default function CharacterInfoModal({
                         </button>
                       )}
                     </div>
-                    {subclasses.length > 0 && (
+                    {showSubclass && (
                       <select
                         value={classInfo.subclassName ?? ''}
                         onChange={(e) => updateEditClass(index, 'subclass', e.target.value)}

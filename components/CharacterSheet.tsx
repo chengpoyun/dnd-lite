@@ -3,7 +3,7 @@ import { CharacterStats, CustomRecord } from '../types';
 import { getProfBonus, formatDecimal } from '../utils/helpers';
 import { getFinalAbilityModifier, getFinalAbilityScore, getFinalSavingThrow, getFinalSkillBonus, getFinalCombatStat, getBasicCombatStat, getDefaultMaxHpBasic, type AbilityKey } from '../utils/characterAttributes';
 import { STAT_LABELS, SKILLS_MAP, ABILITY_KEYS } from '../utils/characterConstants';
-import { getAvailableClasses, getClassHitDie, formatClassDisplay, calculateHitDiceTotals } from '../utils/classUtils';
+import { getAvailableClasses, getClassHitDie, formatClassDisplay, calculateHitDiceTotals, canSelectSubclass } from '../utils/classUtils';
 import { PageContainer, Card, Button, Title, Subtitle, Input, BackButton } from './ui';
 import { AdvantageDisadvantageBorder } from './ui/AdvantageDisadvantageBorder';
 import { STYLES, combineStyles } from '../styles/common';
@@ -472,11 +472,15 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
     }
     
     setIsSavingInfo(true);
-    // 驗證所有等級為有效數字
-    const validClasses = editClasses.map(c => ({
-      ...c,
-      level: Math.max(1, parseInt(String(c.level)) || 1) // 確保等級至少為1
-    }));
+    // 驗證所有等級為有效數字；子職業需 3 等以上，低於 3 等一律清除
+    const validClasses = editClasses.map(c => {
+      const level = Math.max(1, parseInt(String(c.level)) || 1); // 確保等級至少為1
+      return {
+        ...c,
+        level,
+        subclassName: canSelectSubclass(level) ? c.subclassName : undefined
+      };
+    });
     
     // 計算總等級
     const totalLevel = validClasses.reduce((sum, c) => sum + c.level, 0);

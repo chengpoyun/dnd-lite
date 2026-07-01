@@ -16,6 +16,18 @@ export const getSubclassesForClass = (className: string): string[] => {
 }
 
 /**
+ * 子職業可選的最低職業等級（D&D 5E：3 等後才取得子職業）
+ */
+export const SUBCLASS_MIN_LEVEL = 3
+
+/**
+ * 該職業等級是否已可選擇子職業（3 等以上）
+ */
+export const canSelectSubclass = (level: number): boolean => {
+  return (Number(level) || 0) >= SUBCLASS_MIN_LEVEL
+}
+
+/**
  * 格式化單一職業名稱（有子職業時加上括號，如「牧師（生命領域）」）
  */
 const formatClassName = (classInfo: ClassInfo): string => {
