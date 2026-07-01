@@ -18,13 +18,24 @@ npm run db:create "add_new_feature"
 
 ### 2. 執行遷移（推送到 Supabase）
 
+**推薦（跨平台）：**
+
+```bash
+npm run db:push
+```
+
+- Node 腳本 `scripts/db-push.mjs`，Windows / macOS / Linux 皆可，無需 Git Bash 或本機安裝 supabase CLI（改用 `npx supabase`）。
+- 自 `.env` 讀取 `SUPABASE_ACCESS_TOKEN`、`SUPABASE_DB_PASSWORD` 與 project ref（由 `VITE_SUPABASE_URL` 解析），自動 `link` 後 `db push` 未套用的遷移；缺憑證會明確提示。
+
+**舊版（僅限 Git Bash）：**
+
 ```bash
 npm run db:migrate
 ```
 
-- 會檢查未套用的遷移並推送到遠端 Supabase 專案。
-- 依專案設定會透過 `scripts/migrate-wrapper.sh` 呼叫實際遷移腳本（如 `auto-migrate.sh`）。
-- **重要**：只要有新增 migration，應立即執行 `db:migrate` 推送到遠端，避免本機與遠端 schema 不一致。
+- 透過 `scripts/migrate-wrapper.sh` → `auto-migrate.sh`，需本機有 `supabase` CLI（PATH 或 `./supabase-cli`）與 `SUPABASE_ACCESS_TOKEN`。Windows 上請用 Git Bash 執行，不能用 PowerShell/cmd。
+
+**重要**：只要有新增 migration，應立即推送到遠端，避免本機與遠端 schema 不一致。
 
 ### 3. 查看遷移狀態
 
@@ -39,9 +50,11 @@ npm run db:status
 ## 環境設定
 
 - **Supabase 專案**：需先在 [Supabase](https://supabase.com) 建立專案。
-- **環境變數**：若遷移腳本需連線，請在專案根目錄設定 `.env`，例如：
-  - `SUPABASE_ACCESS_TOKEN`（若腳本使用 Supabase CLI 推送）
-- **Supabase CLI**：腳本可能依賴本機安裝的 `supabase`（PATH），或專案根目錄的 `./supabase-cli`；請依腳本與 CI 需求安裝。
+- **環境變數**：於專案根目錄的 `.env`（gitignored）設定：
+  - `SUPABASE_ACCESS_TOKEN`：Supabase personal access token（`sbp_…`），見 [Account Tokens](https://supabase.com/dashboard/account/tokens)。
+  - `SUPABASE_DB_PASSWORD`：資料庫密碼（`db:push` 連線 `db push` 用），見 Project Settings → Database。
+  - project ref 由 `VITE_SUPABASE_URL` 自動解析，或另設 `SUPABASE_PROJECT_REF`。
+- **Supabase CLI**：`db:push` 透過 `npx supabase` 取用（無需預先安裝）；舊版 `db:migrate` 才需本機 `supabase`（PATH）或 `./supabase-cli`。
 
 前端連線 Supabase 使用的為 `VITE_SUPABASE_URL` 與 `VITE_SUPABASE_ANON_KEY`，見 [README.md](../README.md) 的「Supabase 設定」。
 

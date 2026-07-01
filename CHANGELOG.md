@@ -4,6 +4,10 @@
 
 ---
 
+## 1.4.3
+
+- 文件：同步子職業與 `db:push` 相關說明。README 功能總覽補上子職業、指令表加入 `db:push`（推薦）；README-project、docs/database-migration（新增 `db:push` 段落與 `SUPABASE_ACCESS_TOKEN`／`SUPABASE_DB_PASSWORD` 環境變數）、docs/code-architecture（`ClassInfo.subclassName`、`SUBCLASSES_BY_CLASS`、3 等門檻、`character_classes.subclass_name`、`formatClassDisplay` 括號顯示）一併更新。
+
 ## 1.4.2
 
 - 工具：新增跨平台 DB 推送指令 `npm run db:push`（`scripts/db-push.mjs`，Node 撰寫，Windows/macOS/Linux 皆可）。自 `.env` 讀取 `SUPABASE_ACCESS_TOKEN`、`SUPABASE_DB_PASSWORD` 與 project ref，透過 `npx supabase` 自動 link 並 push 未套用的 migration，取代僅限 Git Bash 的 `db:migrate`（`.sh`）。CLAUDE.md 同步更新指令說明。

@@ -20,7 +20,7 @@
 
 ## 功能總覽
 
-- **角色管理**：能力值、技能熟練度、兼職（multiclass）支援、經驗值與貨幣
+- **角色管理**：能力值、技能熟練度、兼職（multiclass）與子職業（subclass，3 等後可選）支援、經驗值與貨幣
 - **戰鬥輔助**：血量（HP）、護甲等級（AC）、先攻、戰鬥動作與獎勵動作、休息（短休/長休）
 - **法術與物品**：法術表、物品庫、角色法術/物品裝備，描述欄位支援 [Markdown/HTML](docs/MARKDOWN-SUPPORT.md)
 - **怪物**：怪物卡與戰役內怪物管理
@@ -99,7 +99,8 @@ VITE_SUPABASE_ANON_KEY=your-anon-key-here
 | `npm run test:watch` | 監聽模式執行測試 |
 | `npm run test:ui` | 開啟 Vitest UI |
 | `npm run db:create "描述"` | 建立新的 DB 遷移檔 |
-| `npm run db:migrate` | 執行遷移並推送到 Supabase |
+| `npm run db:push` | 推送遷移到 Supabase（跨平台，推薦；讀 `.env` 憑證） |
+| `npm run db:migrate` | 舊版推送（`.sh`，需 Git Bash 與本機 supabase CLI） |
 | `npm run db:status` | 查看遷移狀態 |
 
 ---
