@@ -41,21 +41,19 @@ export const LearnAbilityModal: React.FC<LearnAbilityModalProps> = ({
   }, [isOpen]);
 
   useEffect(() => {
-    let filtered = abilities;
-    filtered = filtered.filter(ability => !learnedAbilityIds.includes(ability.id));
+    // 已學習的能力不再整個濾掉（避免使用者以為能力消失搜尋不到）；
+    // 改為在列表中顯示並標記「已學習」、不可點選。
     if (!searchText) {
       setFilteredAbilities([]);
       return;
     }
-    if (searchText) {
-      const search = searchText.toLowerCase();
-      filtered = filtered.filter(ability =>
-        ability.name.toLowerCase().includes(search) ||
-        (ability.name_en && ability.name_en.toLowerCase().includes(search))
-      );
-    }
+    const search = searchText.toLowerCase();
+    const filtered = abilities.filter(ability =>
+      ability.name.toLowerCase().includes(search) ||
+      (ability.name_en && ability.name_en.toLowerCase().includes(search))
+    );
     setFilteredAbilities(filtered);
-  }, [abilities, searchText, learnedAbilityIds]);
+  }, [abilities, searchText]);
 
   const loadAbilities = async () => {
     setIsLoading(true);
@@ -70,6 +68,8 @@ export const LearnAbilityModal: React.FC<LearnAbilityModalProps> = ({
   };
 
   const handleSelectAbility = (ability: Ability) => {
+    // 已學習的能力不可再次學習
+    if (learnedAbilityIds.includes(ability.id)) return;
     setSelectedAbility(ability);
     setIsConfirming(true);
     // 根據恢復類型設定預設次數
@@ -250,11 +250,17 @@ export const LearnAbilityModal: React.FC<LearnAbilityModalProps> = ({
               {searchText ? '找不到符合條件的能力' : '請輸入關鍵字以搜尋能力'}
             </div>
           ) : (
-            filteredAbilities.map(ability => (
+            filteredAbilities.map(ability => {
+              const isLearned = learnedAbilityIds.includes(ability.id);
+              return (
               <div
                 key={ability.id}
                 onClick={() => handleSelectAbility(ability)}
-                className="bg-slate-800/50 rounded-lg p-3 border border-slate-700 hover:border-amber-500/50 transition-colors cursor-pointer"
+                className={`bg-slate-800/50 rounded-lg p-3 border border-slate-700 transition-colors ${
+                  isLearned
+                    ? 'opacity-60 cursor-not-allowed'
+                    : 'hover:border-amber-500/50 cursor-pointer'
+                }`}
               >
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex-1 min-w-0">
@@ -262,6 +268,9 @@ export const LearnAbilityModal: React.FC<LearnAbilityModalProps> = ({
                       <h3 className="text-[16px] font-bold text-slate-200">{ability.name}</h3>
                       {ability.name_en && (
                         <span className="text-[14px] text-slate-400">({ability.name_en})</span>
+                      )}
+                      {isLearned && (
+                        <span className="px-2 py-0.5 rounded text-[12px] font-bold bg-slate-600/40 text-slate-300 whitespace-nowrap">已學習</span>
                       )}
                     </div>
                     <div className="flex gap-2 mb-1">
@@ -278,7 +287,8 @@ export const LearnAbilityModal: React.FC<LearnAbilityModalProps> = ({
                   </div>
                 </div>
               </div>
-            ))
+              );
+            })
           )}
         </div>
       </div>

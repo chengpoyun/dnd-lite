@@ -61,4 +61,51 @@ describe('LearnAbilityModal - keyword gating', () => {
       expect(screen.getByText('偷襲')).toBeInTheDocument();
     });
   });
+
+  // 回歸測試：DB 裡有「健壯」但學習時搜尋不到
+  // 原因為已學過的能力被整個濾掉，使用者以為能力消失了。
+  // 期望：仍顯示於搜尋結果，但標記「已學習」且不可點選。
+  it('已學習的能力仍會出現在搜尋結果，並標記「已學習」且點擊不進入學習流程', async () => {
+    const abilities: Ability[] = [
+      {
+        id: 'ability-tough',
+        name: '健壯',
+        name_en: 'tough',
+        description: 'desc',
+        source: '專長',
+        recovery_type: '常駐',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      },
+    ];
+
+    mockedGetAllAbilities.mockResolvedValue(abilities);
+    const onLearnAbility = vi.fn();
+
+    render(
+      <LearnAbilityModal
+        isOpen
+        onClose={vi.fn()}
+        onLearnAbility={onLearnAbility}
+        onCreateNew={vi.fn()}
+        learnedAbilityIds={['ability-tough']}
+      />
+    );
+
+    fireEvent.change(screen.getByPlaceholderText('輸入能力名稱（中文或英文）...'), {
+      target: { value: '健壯' },
+    });
+
+    // 仍會出現在結果中（不再被整個濾掉）
+    await waitFor(() => {
+      expect(screen.getByText('健壯')).toBeInTheDocument();
+    });
+    // 標記「已學習」
+    expect(screen.getByText('已學習')).toBeInTheDocument();
+
+    // 點擊不應進入學習確認流程（不會出現「返回」按鈕）
+    fireEvent.click(screen.getByText('健壯'));
+    expect(screen.queryByText('返回')).not.toBeInTheDocument();
+    expect(onLearnAbility).not.toHaveBeenCalled();
+  });
 });
