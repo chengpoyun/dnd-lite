@@ -4,6 +4,10 @@
 
 ---
 
+## 1.4.2
+
+- 工具：新增跨平台 DB 推送指令 `npm run db:push`（`scripts/db-push.mjs`，Node 撰寫，Windows/macOS/Linux 皆可）。自 `.env` 讀取 `SUPABASE_ACCESS_TOKEN`、`SUPABASE_DB_PASSWORD` 與 project ref，透過 `npx supabase` 自動 link 並 push 未套用的 migration，取代僅限 Git Bash 的 `db:migrate`（`.sh`）。CLAUDE.md 同步更新指令說明。
+
 ## 1.4.1
 
 - 調整：子職業僅在該職業達 **3 等（含）以上**才顯示可選下拉（1–2 等不顯示，符合 D&D 5E 於 3 等取得子職業）。多職時各職業依自身等級判定。新增 `canSelectSubclass` / `SUBCLASS_MIN_LEVEL`；儲存時會清除低於 3 等職業殘留的子職業。

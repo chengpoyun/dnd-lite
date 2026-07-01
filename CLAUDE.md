@@ -13,14 +13,15 @@ D&D 冒險者助手 — Vite + React 19 + TypeScript 的手機優先角色管理
 | `npm run test:watch` | Vitest watch |
 | `npm run build` | 產出 `dist/`（target 含 `safari14`，勿產出過新語法） |
 | `npm run db:create "描述"` | 建立 migration |
-| `npm run db:migrate` | 推送 migration 到遠端 DB |
+| `npm run db:push` | **推送 migration 到遠端 DB（跨平台，推薦）**；讀 `.env` 憑證，走 `node scripts/db-push.mjs` |
+| `npm run db:migrate` | 舊版推送（`.sh`，Windows 需 Git Bash 且本機要有 supabase CLI）|
 
 ## 陷阱與注意事項
 
 - **登入牆**：App 開啟後先要登入（Google OAuth 或「匿名試用」），才會進到角色頁。測試用的既有角色叫「**新**」。
 - **DB migration 一建立就要立刻推送**：新增 migration 後必須馬上 `npm run db:migrate` 推到遠端，勿累積。
-- **`scripts/` 是 `.sh`**：`db:*` 指令走 shell script，在 Windows 上要用 Git Bash（本專案的 Bash 工具）執行，不能用 PowerShell 直接跑。
-- **環境變數**：`.env` 需要 `VITE_SUPABASE_URL`、`VITE_SUPABASE_ANON_KEY`。
+- **`scripts/` 多為 `.sh`**：`db:migrate` / `db:create` / `db:status` 走 shell script，在 Windows 上要用 Git Bash 執行，不能用 PowerShell/cmd 直接跑。**例外**：`db:push` 是 Node 腳本（`scripts/db-push.mjs`），跨平台可直接 `npm run db:push`（推薦用它推送）。
+- **環境變數**：`.env` 需要 `VITE_SUPABASE_URL`、`VITE_SUPABASE_ANON_KEY`；DB 遷移另需 `SUPABASE_ACCESS_TOKEN`、`SUPABASE_DB_PASSWORD`（皆在 gitignored 的 `.env`）。
 - **等級/職業變更後必須 refetch**：依等級或職業計算的數值來自 `extra_data.statBonusSources`；改動等級或職業並寫入 DB 後，要呼叫 `refetchCharacterStats`，否則 max HP、加值列表等會沿用舊值（細節見 `docs/code-architecture.md` §2.1）。
 - **路徑別名**：`@` → 專案根目錄（vite 與 vitest 皆設定）。
 
