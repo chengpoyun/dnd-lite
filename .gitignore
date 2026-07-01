@@ -30,6 +30,5 @@ dist-ssr
 
 # Assistant notes (not tracked by git)
 .assistant-notes.md
-supabase-cli
 # Local-only Supabase credentials (never commit)
 .supabase-credentials.local

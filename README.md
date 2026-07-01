@@ -99,9 +99,7 @@ VITE_SUPABASE_ANON_KEY=your-anon-key-here
 | `npm run test:watch` | 監聽模式執行測試 |
 | `npm run test:ui` | 開啟 Vitest UI |
 | `npm run db:create "描述"` | 建立新的 DB 遷移檔 |
-| `npm run db:push` | 推送遷移到 Supabase（跨平台，推薦；讀 `.env` 憑證） |
-| `npm run db:migrate` | 舊版推送（`.sh`，需 Git Bash 與本機 supabase CLI） |
-| `npm run db:status` | 查看遷移狀態 |
+| `npm run db:push` | 推送遷移到 Supabase（跨平台；讀 `.env` 憑證） |
 
 ---
 

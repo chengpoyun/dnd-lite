@@ -47,4 +47,4 @@ EOF
 
 echo -e "${GREEN}✅ 遷移文件已創建: $FILEPATH${NC}"
 echo -e "${BLUE}📝 請編輯文件添加你的 SQL 指令${NC}"
-echo -e "${YELLOW}⚠️ 完成後運行: ./scripts/auto-migrate.sh${NC}"
+echo -e "${YELLOW}⚠️ 完成後運行: npm run db:push${NC}"

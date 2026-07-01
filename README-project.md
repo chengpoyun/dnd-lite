@@ -91,8 +91,7 @@ npm run dev    # 開發伺服器 http://localhost:3000
 ### 資料庫遷移
 
 - **新增遷移**：`npm run db:create "描述"`，會在 `supabase/migrations/` 產生新 SQL 檔。
-- **執行遷移**：`npm run db:push`（跨平台、推薦；讀 `.env` 憑證後 `npx supabase link` + `db push`）。舊版 `npm run db:migrate` 為 `.sh`，Windows 需 Git Bash 且本機要有 supabase CLI。
-- **查看狀態**：`npm run db:status`。
+- **執行遷移**：`npm run db:push`（跨平台；讀 `.env` 憑證後 `npx supabase link` + `db push`）。
 
 詳見 [docs/database-migration.md](docs/database-migration.md)。**重要**：新增 migration 後應盡快推送到遠端 DB，避免本機與遠端 schema 不一致。
 

@@ -4,6 +4,10 @@
 
 ---
 
+## 1.4.4
+
+- 工具：移除舊版 DB 推送/查詢腳本（`db:migrate`、`db:status` 與其底層 `scripts/migrate-wrapper.sh`、`scripts/auto-migrate.sh`、`scripts/status-wrapper.sh`），統一改用 `npm run db:push`（`scripts/db-push.mjs`，內部走 `npx supabase`，免本機安裝 CLI）。查看遷移狀態改為文件中提供的手動指令（`npx supabase link` + `npx supabase migration list --linked`）。`.gitignore` 移除不再需要的 `supabase-cli` 條目；`create-migration.sh` 的完成提示改指向 `npm run db:push`。README、README-project、CLAUDE.md、docs/database-migration 同步更新。
+
 ## 1.4.3
 
 - 文件：同步子職業與 `db:push` 相關說明。README 功能總覽補上子職業、指令表加入 `db:push`（推薦）；README-project、docs/database-migration（新增 `db:push` 段落與 `SUPABASE_ACCESS_TOKEN`／`SUPABASE_DB_PASSWORD` 環境變數）、docs/code-architecture（`ClassInfo.subclassName`、`SUBCLASSES_BY_CLASS`、3 等門檻、`character_classes.subclass_name`、`formatClassDisplay` 括號顯示）一併更新。
