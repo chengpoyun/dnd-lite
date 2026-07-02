@@ -10,20 +10,35 @@ export const getModifier = (score: number) => Math.floor((score - 10) / 2);
 export const getProfBonus = (level: number) => Math.ceil(level / 4) + 1;
 
 /**
+ * 將運算式字串（如 "+5"、"10-3"）依 current 補上基底後，依 +/- 切成 tokens
+ * 回傳 null 代表輸入為空或無有效內容，呼叫端應直接回傳 current
+ */
+const tokenizeExpression = (input: string, current: number): string[] | null => {
+  const text = input.replace(/\s+/g, '');
+  if (!text) return null;
+
+  const tokens = text.startsWith('+') || text.startsWith('-')
+    ? (current.toString() + text).split(/([\+\-])/)
+    : text.split(/([\+\-])/);
+
+  const cleanTokens = tokens.filter(t => t !== '');
+  return cleanTokens.length === 0 ? null : cleanTokens;
+};
+
+/**
+ * 計算有效最小值：allowNegative 時用 minValue 本身；否則允許 0（allowZero）或退回 minValue
+ */
+const resolveEffectiveMin = (minValue: number, allowZero: boolean, allowNegative: boolean): number =>
+  allowNegative ? minValue : (allowZero ? 0 : minValue);
+
+/**
  * 解析字串運算，支援 "+5", "-2", "10+5" 等格式
  * 用於 HP、金幣、經驗值等數值的快速增減
  */
 export const evaluateValue = (input: string, current: number, max?: number): number => {
-  const text = input.replace(/\s+/g, '');
-  if (!text) return current;
-  
-  let tokens = text.startsWith('+') || text.startsWith('-') 
-    ? (current.toString() + text).split(/([\+\-])/) 
-    : text.split(/([\+\-])/);
-    
-  const cleanTokens = tokens.filter(t => t !== '');
-  if (cleanTokens.length === 0) return current;
-  
+  const cleanTokens = tokenizeExpression(input, current);
+  if (!cleanTokens) return current;
+
   let result = parseInt(cleanTokens[0]) || 0;
   for (let i = 1; i < cleanTokens.length; i += 2) {
     const op = cleanTokens[i];
@@ -50,15 +65,8 @@ export const evaluateDecimalValue = (
   decimalPlaces?: number,
   allowNegative: boolean = false
 ): number => {
-  const text = input.replace(/\s+/g, '');
-  if (!text) return current;
-
-  let tokens = text.startsWith('+') || text.startsWith('-')
-    ? (current.toString() + text).split(/([\+\-])/)
-    : text.split(/([\+\-])/);
-
-  const cleanTokens = tokens.filter(t => t !== '');
-  if (cleanTokens.length === 0) return current;
+  const cleanTokens = tokenizeExpression(input, current);
+  if (!cleanTokens) return current;
 
   let result = parseFloat(cleanTokens[0]) || 0;
   for (let i = 1; i < cleanTokens.length; i += 2) {
@@ -106,9 +114,9 @@ export const setNormalValue = (value: string, minValue: number = 1, allowZero: b
     return { isValid: false, numericValue: 0 };
   }
   
-  const effectiveMin = allowNegative ? minValue : (allowZero ? 0 : minValue);
+  const effectiveMin = resolveEffectiveMin(minValue, allowZero, allowNegative);
   const isValid = numericValue >= effectiveMin;
-  
+
   return { isValid, numericValue: isValid ? numericValue : 0 };
 };
 
@@ -161,7 +169,7 @@ export const handleDecimalInput = (
   }
 
   // 檢查範圍
-  const effectiveMin = allowNegative ? minValue : (allowZero ? 0 : minValue);
+  const effectiveMin = resolveEffectiveMin(minValue, allowZero, allowNegative);
   let isValid = numericValue >= effectiveMin;
   if (maxValue !== undefined) {
     isValid = isValid && numericValue <= maxValue;
@@ -210,7 +218,7 @@ export const handleValueInput = (
   if (actualMode === 'calculate' && currentValue !== undefined) {
     // 使用 evaluateValue 處理運算表達式
     const result = evaluateValue(value, currentValue, maxValue);
-    const effectiveMin = allowNegative ? minValue : (allowZero ? 0 : minValue);
+    const effectiveMin = resolveEffectiveMin(minValue, allowZero, allowNegative);
     const isValid = result >= effectiveMin && (maxValue === undefined || result <= maxValue);
     
     return { 

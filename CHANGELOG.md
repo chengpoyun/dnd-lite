@@ -12,6 +12,7 @@
 - 工具：`vitest.config.ts` 排除 `.claude/worktrees/**`，避免背景任務的獨立 worktree 程式碼被誤跑進本機測試結果。
 - 重構：`utils/classUtils.ts` 的 `formatClassDisplay`/`formatClassDisplayLines` 抽出共用的 `sortClassesByPrimary`，取代兩處重複的排序邏輯，行為不變。
 - 重構：架構健檢發現 `DowntimeModal`、`CurrencyModal` 各自手刻一份與 `NumberEditModal` 幾乎相同的 Modal/輸入框/預覽列版面。改為兩者皆改為包裝 `NumberEditModal`（新增 `decimal`、`inputLabel`、`showValuePreview`、`inputClassName`、`inputLabelClassName` 等可選 prop 支援客製樣式），外部呼叫介面不變，消除重複的 boilerplate。`ExpModal`、`RenownModal` 因需求差異較大暫不合併。
+- 重構：`utils/helpers.ts` 的 `evaluateValue`/`evaluateDecimalValue` 抽出共用的 `tokenizeExpression`（消除逐字重複的運算式切 token 邏輯），`setNormalValue`/`handleDecimalInput`/`handleValueInput` 抽出共用的 `resolveEffectiveMin`；純內部重構，簽章與行為不變。
 
 ## 1.7.1
 
