@@ -1,5 +1,6 @@
 import { supabase } from '../lib/supabase';
 import type { Ability, CharacterAbility, CharacterAbilityWithDetails } from '../lib/supabase';
+import { byRowIdOrComposite } from './supabaseQueryHelpers';
 
 /** 能力來源顯示順序（篩選、表單選單、標籤等依此順序） */
 export const ABILITY_SOURCE_ORDER = ['職業', '種族', '裝備', '專長', '背景', '其他'] as const;
@@ -263,9 +264,10 @@ export async function unlearnAbility(
     .from('character_abilities')
     .delete();
 
-  const { error } = characterAbilityId
-    ? await query.eq('id', characterAbilityId)
-    : await query.eq('character_id', characterId).eq('ability_id', abilityId);
+  const { error } = await byRowIdOrComposite(query, characterAbilityId, [
+    ['character_id', characterId],
+    ['ability_id', abilityId],
+  ]);
 
   if (error) {
     console.error('移除特殊能力失敗:', error);
@@ -289,9 +291,10 @@ export async function useAbility(
     .from('character_abilities')
     .select('*');
 
-  const { data: current, error: fetchError } = characterAbilityId
-    ? await fetchQuery.eq('id', characterAbilityId).single()
-    : await fetchQuery.eq('character_id', characterId).eq('ability_id', abilityId).single();
+  const { data: current, error: fetchError } = await byRowIdOrComposite(fetchQuery, characterAbilityId, [
+    ['character_id', characterId],
+    ['ability_id', abilityId],
+  ]).single();
 
   if (fetchError || !current) {
     console.error('取得特殊能力使用記錄失敗:', fetchError);
@@ -307,9 +310,10 @@ export async function useAbility(
     .from('character_abilities')
     .update({ current_uses: current.current_uses - 1 });
 
-  const { data, error } = characterAbilityId
-    ? await updateQuery.eq('id', characterAbilityId).select().single()
-    : await updateQuery.eq('character_id', characterId).eq('ability_id', abilityId).select().single();
+  const { data, error } = await byRowIdOrComposite(updateQuery, characterAbilityId, [
+    ['character_id', characterId],
+    ['ability_id', abilityId],
+  ]).select().single();
 
   if (error) {
     console.error('使用特殊能力失敗:', error);
@@ -424,14 +428,15 @@ export async function updateAbilityMaxUses(
 
   const updateQuery = supabase
     .from('character_abilities')
-    .update({ 
+    .update({
       max_uses: maxUses,
       current_uses: maxUses // 同時重設當前次數
     });
 
-  const { data, error } = characterAbilityId
-    ? await updateQuery.eq('id', characterAbilityId).select().single()
-    : await updateQuery.eq('character_id', characterId).eq('ability_id', abilityId).select().single();
+  const { data, error } = await byRowIdOrComposite(updateQuery, characterAbilityId, [
+    ['character_id', characterId],
+    ['ability_id', abilityId],
+  ]).select().single();
 
   if (error) {
     console.error('更新特殊能力最大次數失敗:', error);
@@ -481,9 +486,10 @@ export async function updateCharacterAbility(
     .from('character_abilities')
     .update(updateData);
 
-  const { data, error } = characterAbilityId
-    ? await updateQuery.eq('id', characterAbilityId).select().single()
-    : await updateQuery.eq('character_id', characterId).eq('ability_id', abilityId).select().single();
+  const { data, error } = await byRowIdOrComposite(updateQuery, characterAbilityId, [
+    ['character_id', characterId],
+    ['ability_id', abilityId],
+  ]).select().single();
 
   if (error) {
     console.error('更新角色特殊能力失敗:', error);

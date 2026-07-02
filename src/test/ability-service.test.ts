@@ -13,6 +13,19 @@ type SupabaseBuilder = {
   single?: () => Promise<any>;
 };
 
+/** 建立可鏈式呼叫（delete/update/select/eq）且最終可被 await 的假 query（模擬 supabase 的 thenable builder） */
+function createChainable(finalResult: { data?: any; error: any }) {
+  const builder: any = {
+    delete: vi.fn(() => builder),
+    update: vi.fn(() => builder),
+    select: vi.fn(() => builder),
+    eq: vi.fn(() => builder),
+    single: vi.fn(() => Promise.resolve(finalResult)),
+    then: (resolve: (v: any) => void) => resolve(finalResult),
+  };
+  return builder;
+}
+
 describe('AbilityService - 個人能力', () => {
   const mockedSupabase = supabase as unknown as {
     from: Mock;
@@ -20,6 +33,63 @@ describe('AbilityService - 個人能力', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+
+  describe('by 組合鍵（未傳 characterAbilityId 時，改用 characterId + abilityId）', () => {
+    it('unlearnAbility：依 character_id + ability_id 刪除', async () => {
+      const builder = createChainable({ error: null });
+      mockedSupabase.from.mockImplementation((table: string) => {
+        if (table === 'character_abilities') return builder;
+        throw new Error(`Unexpected table: ${table}`);
+      });
+
+      await AbilityService.unlearnAbility('char-1', 'ability-1');
+
+      expect(builder.eq).toHaveBeenNthCalledWith(1, 'character_id', 'char-1');
+      expect(builder.eq).toHaveBeenNthCalledWith(2, 'ability_id', 'ability-1');
+    });
+
+    it('useAbility：依 character_id + ability_id 查詢並扣除次數', async () => {
+      const fetchBuilder = createChainable({ data: { current_uses: 2 }, error: null });
+      const updateBuilder = createChainable({ data: { id: 'ca-1', current_uses: 1 }, error: null });
+      mockedSupabase.from
+        .mockImplementationOnce(() => fetchBuilder)
+        .mockImplementationOnce(() => updateBuilder);
+
+      const result = await AbilityService.useAbility('char-1', 'ability-1');
+
+      expect(fetchBuilder.eq).toHaveBeenNthCalledWith(1, 'character_id', 'char-1');
+      expect(fetchBuilder.eq).toHaveBeenNthCalledWith(2, 'ability_id', 'ability-1');
+      expect(updateBuilder.eq).toHaveBeenNthCalledWith(1, 'character_id', 'char-1');
+      expect(updateBuilder.eq).toHaveBeenNthCalledWith(2, 'ability_id', 'ability-1');
+      expect(result.current_uses).toBe(1);
+    });
+
+    it('updateAbilityMaxUses：依 character_id + ability_id 更新最大次數', async () => {
+      const builder = createChainable({ data: { id: 'ca-1', max_uses: 5 }, error: null });
+      mockedSupabase.from.mockImplementation((table: string) => {
+        if (table === 'character_abilities') return builder;
+        throw new Error(`Unexpected table: ${table}`);
+      });
+
+      await AbilityService.updateAbilityMaxUses('char-1', 'ability-1', 5);
+
+      expect(builder.eq).toHaveBeenNthCalledWith(1, 'character_id', 'char-1');
+      expect(builder.eq).toHaveBeenNthCalledWith(2, 'ability_id', 'ability-1');
+    });
+
+    it('updateCharacterAbility：未傳 characterAbilityId 時依 character_id + ability_id 更新', async () => {
+      const builder = createChainable({ data: { id: 'ca-1' }, error: null });
+      mockedSupabase.from.mockImplementation((table: string) => {
+        if (table === 'character_abilities') return builder;
+        throw new Error(`Unexpected table: ${table}`);
+      });
+
+      await AbilityService.updateCharacterAbility('char-1', 'ability-1', { max_uses: 3 });
+
+      expect(builder.eq).toHaveBeenNthCalledWith(1, 'character_id', 'char-1');
+      expect(builder.eq).toHaveBeenNthCalledWith(2, 'ability_id', 'ability-1');
+    });
   });
 
   it('新增個人能力時，應寫入 character_abilities 且 ability_id 為 null', async () => {

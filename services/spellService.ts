@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import { byRowIdOrComposite } from './supabaseQueryHelpers';
 
 export interface Spell {
   id: string;
@@ -247,9 +248,10 @@ export async function forgetSpell(
     .from('character_spells')
     .delete();
 
-  const { error } = characterSpellId
-    ? await query.eq('id', characterSpellId)
-    : await query.eq('character_id', characterId).eq('spell_id', spellId);
+  const { error } = await byRowIdOrComposite(query, characterSpellId, [
+    ['character_id', characterId],
+    ['spell_id', spellId],
+  ]);
 
   if (error) {
     console.error('遺忘法術失敗:', error);
@@ -274,9 +276,10 @@ export async function togglePrepared(
     .from('character_spells')
     .update({ is_prepared: isPrepared });
 
-  const { error } = characterSpellId
-    ? await query.eq('id', characterSpellId)
-    : await query.eq('character_id', characterId).eq('spell_id', spellId);
+  const { error } = await byRowIdOrComposite(query, characterSpellId, [
+    ['character_id', characterId],
+    ['spell_id', spellId],
+  ]);
 
   if (error) {
     console.error('切換準備狀態失敗:', error);

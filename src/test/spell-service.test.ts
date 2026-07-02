@@ -13,6 +13,17 @@ type SupabaseBuilder = {
   single?: () => Promise<any>;
 };
 
+/** 建立可鏈式呼叫（delete/update/eq）且最終可被 await 的假 query（模擬 supabase 的 thenable builder） */
+function createChainable(finalResult: { data?: any; error: any }) {
+  const builder: any = {
+    delete: vi.fn(() => builder),
+    update: vi.fn(() => builder),
+    eq: vi.fn(() => builder),
+    then: (resolve: (v: any) => void) => resolve(finalResult),
+  };
+  return builder;
+}
+
 describe('SpellService - 個人法術', () => {
   const mockedSupabase = supabase as unknown as {
     from: Mock;
@@ -20,6 +31,34 @@ describe('SpellService - 個人法術', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+
+  describe('by 組合鍵（未傳 characterSpellId 時，改用 characterId + spellId）', () => {
+    it('forgetSpell：依 character_id + spell_id 刪除', async () => {
+      const builder = createChainable({ error: null });
+      mockedSupabase.from.mockImplementation((table: string) => {
+        if (table === 'character_spells') return builder;
+        throw new Error(`Unexpected table: ${table}`);
+      });
+
+      await SpellService.forgetSpell('char-1', 'spell-1');
+
+      expect(builder.eq).toHaveBeenNthCalledWith(1, 'character_id', 'char-1');
+      expect(builder.eq).toHaveBeenNthCalledWith(2, 'spell_id', 'spell-1');
+    });
+
+    it('togglePrepared：依 character_id + spell_id 更新準備狀態', async () => {
+      const builder = createChainable({ error: null });
+      mockedSupabase.from.mockImplementation((table: string) => {
+        if (table === 'character_spells') return builder;
+        throw new Error(`Unexpected table: ${table}`);
+      });
+
+      await SpellService.togglePrepared('char-1', 'spell-1', true);
+
+      expect(builder.eq).toHaveBeenNthCalledWith(1, 'character_id', 'char-1');
+      expect(builder.eq).toHaveBeenNthCalledWith(2, 'spell_id', 'spell-1');
+    });
   });
 
   it('新增個人法術時，應寫入 character_spells 且 spell_id 為 null', async () => {

@@ -13,6 +13,7 @@
 - 重構：`utils/classUtils.ts` 的 `formatClassDisplay`/`formatClassDisplayLines` 抽出共用的 `sortClassesByPrimary`，取代兩處重複的排序邏輯，行為不變。
 - 重構：架構健檢發現 `DowntimeModal`、`CurrencyModal` 各自手刻一份與 `NumberEditModal` 幾乎相同的 Modal/輸入框/預覽列版面。改為兩者皆改為包裝 `NumberEditModal`（新增 `decimal`、`inputLabel`、`showValuePreview`、`inputClassName`、`inputLabelClassName` 等可選 prop 支援客製樣式），外部呼叫介面不變，消除重複的 boilerplate。`ExpModal`、`RenownModal` 因需求差異較大暫不合併。
 - 重構：`utils/helpers.ts` 的 `evaluateValue`/`evaluateDecimalValue` 抽出共用的 `tokenizeExpression`（消除逐字重複的運算式切 token 邏輯），`setNormalValue`/`handleDecimalInput`/`handleValueInput` 抽出共用的 `resolveEffectiveMin`；純內部重構，簽章與行為不變。
+- 重構：架構健檢發現 `abilityService.ts`（`unlearnAbility`、`useAbility`、`updateAbilityMaxUses`、`updateCharacterAbility`）與 `spellService.ts`（`forgetSpell`、`togglePrepared`）共 7 處都逐字重複「用列 id，還是用 (characterId + 全域實體 id) 組合鍵定位資料列」的判斷邏輯。抽出共用的 `services/supabaseQueryHelpers.ts::byRowIdOrComposite`，7 處呼叫點皆改用它，行為不變。這 7 個函式原本完全沒有單元測試覆蓋，這次一併補上組合鍵分支的測試，並用瀏覽器對真實資料庫驗證「新增個人能力→使用→移除」流程正常。`itemService.ts` 沒有這個模式（物品只用單一 characterItemId 路徑），未受影響；三個 service 的整體 CRUD 樣板因欄位差異大，暫不做進一步的泛型抽象。
 
 ## 1.7.1
 
