@@ -74,6 +74,49 @@ export class MulticlassService {
   }
 
   /**
+   * 完整替換角色的職業列表（先刪除全部現有 character_classes，再一次性批次寫入新的）。
+   * 刪除與寫入皆會檢查錯誤並回傳 false，呼叫端應在收到 false 時中止、不要更新本地狀態，
+   * 避免刪除成功但寫入失敗時，角色卡在職業被清空的半殘狀態卻又顯示成功。
+   */
+  static async replaceCharacterClasses(
+    characterId: string,
+    classes: { name: string; level: number; isPrimary: boolean; subclassName?: string }[]
+  ): Promise<boolean> {
+    try {
+      const { error: deleteError } = await supabase
+        .from('character_classes')
+        .delete()
+        .eq('character_id', characterId)
+
+      if (deleteError) {
+        console.error('清除舊職業資料失敗:', deleteError)
+        return false
+      }
+
+      const { error: insertError } = await supabase
+        .from('character_classes')
+        .insert(classes.map(c => ({
+          character_id: characterId,
+          class_name: c.name,
+          class_level: c.level,
+          hit_die: getClassHitDie(c.name),
+          is_primary: c.isPrimary,
+          subclass_name: c.subclassName ?? null
+        })))
+
+      if (insertError) {
+        console.error('寫入新職業資料失敗:', insertError)
+        return false
+      }
+
+      return true
+    } catch (error) {
+      console.error('替換職業資料失敗:', error)
+      return false
+    }
+  }
+
+  /**
    * 保存職業變更（當用戶修改職業時）
    */
   static async updateCharacterClass(

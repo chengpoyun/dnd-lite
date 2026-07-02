@@ -4,6 +4,16 @@
 
 ---
 
+## 1.7.2
+
+- 修正：架構健檢發現 `CharacterSheet.tsx` 儲存兼職職業時（新增職業的 `addNewClass`、以及實際被 `CharacterInfoModal` 使用的 `saveInfoWithClasses`），`character_classes` 是「先刪除全部、再逐筆 insert」且完全不檢查錯誤，若中途失敗會讓角色卡在職業被刪光、只補回部分的半殘狀態。新增 `MulticlassService.replaceCharacterClasses` 統一處理：單次批次 insert 並檢查刪除/寫入的錯誤，失敗時不繼續、不更新本地狀態。
+- 移除：`components/CharacterSelector.tsx`（架構健檢發現的死碼，全專案沒有任何地方引用，實際在用的是 `CharacterSelectPage.tsx`），以及 `CharacterSheet.tsx` 內 7 個從未被呼叫過的兼職編輯函式（`saveMulticlassInfo`、`updateExistingClassLevel`、`setExistingClassAsPrimary`、`deleteExistingClass`、`removeClassById`、`updateClassLevel`、`setPrimaryClass`）。
+
+## 1.7.1
+
+- 移除：`DetailedCharacterService.createDefaultCombatActions`（架構健檢發現的死碼）。此函式在建立角色時寫入 12 筆 `character_combat_actions`，但因未設定 `default_item_id` 且 `is_custom=false`，不符合 `CombatItemService.getCombatItems` 合併邏輯的任何分類，從未被戰鬥頁讀取或顯示，純粹是每次建角色都多寫的垃圾資料。
+- 資料庫：新增 migration 清除過去累積的這批垃圾列（`is_default=true AND default_item_id IS NULL`，此條件只對應這個函式寫入的資料，不影響其他資料）。
+
 ## 1.7.0
 
 - 新增：經驗值、修整期、名聲（使用/累計）、金幣皆改為支援小數與負數，小數位數不限、依使用者輸入原樣呈現。

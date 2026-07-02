@@ -213,20 +213,13 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
       // 持久化到 character_classes 並重新計算生命骰池
       if (characterId) {
         const { MulticlassService } = await import('../services/multiclassService');
-        const { supabase } = await import('../lib/supabase');
-        await supabase.from('character_classes').delete().eq('character_id', characterId);
-        for (const classInfo of validClasses) {
-          await supabase.from('character_classes').insert({
-            character_id: characterId,
-            class_name: classInfo.name,
-            class_level: classInfo.level,
-            hit_die: getClassHitDie(classInfo.name),
-            is_primary: classInfo.isPrimary
-          });
+        const replaceSuccess = await MulticlassService.replaceCharacterClasses(characterId, validClasses);
+        if (!replaceSuccess) {
+          return;
         }
         await MulticlassService.recalculateHitDicePools(characterId);
       }
-      
+
       if (onSaveExtraData) {
         await onSaveExtraData({ ...stats.extraData, classes: validClasses });
       }
@@ -253,165 +246,6 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
     }
   };
 
-  const removeClassById = (classId: string) => {
-    setEditClasses(prev => {
-      const filtered = prev.filter(c => c.id !== classId);
-      // 確保至少有一個主職業
-      if (filtered.length > 0 && !filtered.some(c => c.isPrimary)) {
-        filtered[0].isPrimary = true;
-      }
-      return filtered;
-    });
-  };
-
-  const updateClassLevel = (classId: string, newLevel: number) => {
-    if (newLevel < 1) return;
-    setEditClasses(prev => 
-      prev.map(c => c.id === classId ? { ...c, level: newLevel } : c)
-    );
-  };
-
-  const setPrimaryClass = (classId: string) => {
-    setEditClasses(prev => 
-      prev.map(c => ({ ...c, isPrimary: c.id === classId }))
-    );
-  };
-
-  const saveMulticlassInfo = async () => {
-    if (editClasses.length === 0) return;
-    
-    // 計算總等級
-    const totalLevel = editClasses.reduce((sum, c) => sum + c.level, 0);
-    const primaryClass = editClasses.find(c => c.isPrimary) || editClasses[0];
-    
-    if (onSaveCharacterBasicInfo) {
-      const success = await onSaveCharacterBasicInfo(
-        editInfo.name, 
-        primaryClass.name, 
-        totalLevel
-      );
-      
-      if (success) {
-        console.log('✅ 兼職資料保存成功');
-        // 更新本地狀態
-        setStats(prev => ({ 
-          ...prev, 
-          name: editInfo.name,
-          class: primaryClass.name,
-          level: totalLevel,
-          classes: editClasses.map(c => ({
-            name: c.name,
-            level: c.level,
-            hitDie: getClassHitDie(c.name),
-            isPrimary: c.isPrimary
-          }))
-        }));
-        setActiveModal(null);
-      } else {
-        console.error('❌ 兼職資料保存失敗');
-      }
-    }
-  };
-  
-  // 管理現有兼職的函數
-  const updateExistingClassLevel = async (classIndex: number, newLevel: number) => {
-    if (newLevel < 1 || !stats.classes) return;
-    
-    const updatedClasses = stats.classes.map((classInfo, index) => 
-      index === classIndex ? { ...classInfo, level: newLevel } : classInfo
-    );
-    
-    const totalLevel = updatedClasses.reduce((sum, c) => sum + c.level, 0);
-    const primaryClass = updatedClasses.find(c => c.isPrimary) || updatedClasses[0];
-    
-    // 保存到數據庫
-    if (onSaveCharacterBasicInfo) {
-      const success = await onSaveCharacterBasicInfo(
-        stats.name, 
-        primaryClass.name, 
-        totalLevel
-      );
-      
-      if (success) {
-        console.log('✅ 兼職等級更新成功');
-        setStats(prev => ({ 
-          ...prev, 
-          level: totalLevel,
-          classes: updatedClasses
-        }));
-      } else {
-        console.error('❌ 兼職等級更新失敗');
-      }
-    }
-  };
-  
-  const setExistingClassAsPrimary = async (classIndex: number) => {
-    if (!stats.classes) return;
-    
-    const updatedClasses = stats.classes.map((classInfo, index) => 
-      ({ ...classInfo, isPrimary: index === classIndex })
-    );
-    
-    const totalLevel = updatedClasses.reduce((sum, c) => sum + c.level, 0);
-    const primaryClass = updatedClasses[classIndex];
-    
-    // 保存到數據庫
-    if (onSaveCharacterBasicInfo) {
-      const success = await onSaveCharacterBasicInfo(
-        stats.name, 
-        primaryClass.name, 
-        totalLevel
-      );
-      
-      if (success) {
-        console.log('✅ 主職業設定成功');
-        setStats(prev => ({ 
-          ...prev, 
-          class: primaryClass.name,
-          level: totalLevel,
-          classes: updatedClasses
-        }));
-      } else {
-        console.error('❌ 主職業設定失敗');
-      }
-    }
-  };
-  
-  const deleteExistingClass = async (classIndex: number) => {
-    if (!stats.classes || stats.classes.length <= 1) return;
-    
-    const updatedClasses = stats.classes.filter((_, index) => index !== classIndex);
-    
-    // 確保有主職業
-    if (!updatedClasses.some(c => c.isPrimary)) {
-      updatedClasses[0].isPrimary = true;
-    }
-    
-    const totalLevel = updatedClasses.reduce((sum, c) => sum + c.level, 0);
-    const primaryClass = updatedClasses.find(c => c.isPrimary) || updatedClasses[0];
-    
-    // 保存到數據庫
-    if (onSaveCharacterBasicInfo) {
-      const success = await onSaveCharacterBasicInfo(
-        stats.name, 
-        primaryClass.name, 
-        totalLevel
-      );
-      
-      if (success) {
-        console.log('✅ 兼職刪除成功');
-        setStats(prev => ({ 
-          ...prev, 
-          class: primaryClass.name,
-          level: totalLevel,
-          classes: updatedClasses
-        }));
-      } else {
-        console.error('❌ 兼職刪除失敗');
-      }
-    }
-  };
-  
   // 簡化的職業編輯函數
   const updateEditClass = (index: number, field: 'name' | 'level' | 'subclass', value: string | number) => {
     setEditClasses(prev =>
@@ -497,34 +331,13 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
         return;
       }
       
-      // 2. 使用 MulticlassService 保存多職業數據到專用表
+      // 2. 使用 MulticlassService 保存多職業數據到專用表（一次性替換，刪除/寫入皆檢查錯誤）
       const { MulticlassService } = await import('../services/multiclassService');
-      
-      // 先刪除所有現有職業
-      const { supabase } = await import('../lib/supabase');
-      await supabase
-        .from('character_classes')
-        .delete()
-        .eq('character_id', characterId);
-      
-      // 保存每個職業
-      for (const classInfo of validClasses) {
-        const { error } = await supabase
-          .from('character_classes')
-          .insert({
-            character_id: characterId,
-            class_name: classInfo.name,
-            class_level: classInfo.level,
-            hit_die: getClassHitDie(classInfo.name),
-            is_primary: classInfo.isPrimary,
-            subclass_name: classInfo.subclassName ?? null
-          });
-          
-        if (error) {
-          console.error('職業保存失敗:', classInfo.name, error);
-        }
+      const replaceSuccess = await MulticlassService.replaceCharacterClasses(characterId, validClasses);
+      if (!replaceSuccess) {
+        return;
       }
-      
+
       // 3. 重新計算並保存生命骰池
       await MulticlassService.recalculateHitDicePools(characterId);
       
