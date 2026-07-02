@@ -3,7 +3,6 @@ import type { Character } from '../lib/supabase';
 import type { CharacterStats } from '../types';
 import { AnonymousService } from '../services/anonymous';
 import { DatabaseInitService } from '../services/databaseInit';
-import { DetailedCharacterService } from '../services/detailedCharacter';
 import { HybridDataManager } from '../services/hybridDataManager';
 import { UserSettingsService } from '../services/userSettings';
 import { buildCharacterStats, INITIAL_STATS } from '../utils/appInit';
@@ -77,7 +76,7 @@ export function useAppInitialization({ user, authLoading }: AppInitParams) {
         
         if (user) {
           const conversionCheckStart = performance.now()
-          const hasAnonymousChars = await DetailedCharacterService.hasAnonymousCharactersToConvert()
+          const hasAnonymousChars = await HybridDataManager.hasAnonymousCharactersToConvert()
           console.log(`⏱️ 轉換檢查: ${(performance.now() - conversionCheckStart).toFixed(1)}ms`)
           
           if (hasAnonymousChars) {
@@ -165,7 +164,7 @@ export function useAppInitialization({ user, authLoading }: AppInitParams) {
     const checkConversion = async () => {
       if (user && userMode === 'anonymous') {
         try {
-          const hasAnonymousChars = await DetailedCharacterService.hasAnonymousCharactersToConvert()
+          const hasAnonymousChars = await HybridDataManager.hasAnonymousCharactersToConvert()
           if (hasAnonymousChars) {
             setNeedsConversion(true)
             setAppState('conversion')
@@ -253,7 +252,7 @@ export function useAppInitialization({ user, authLoading }: AppInitParams) {
   /** 清除目前角色的快取並重新載入角色數據（例如儲存能力/物品、或等級／職業變更後可呼叫以更新加值與 extra_data）。回傳 Promise 供呼叫端 await，載入期間會設 isLoadingCharacter 以阻擋操作。 */
   const refetchCharacterStats = useCallback(async (): Promise<void> => {
     if (!currentCharacter) return
-    DetailedCharacterService.clearCharacterCache(currentCharacter.id)
+    HybridDataManager.clearCharacterCache(currentCharacter.id)
     await loadCharacterStatsRef.current()
   }, [currentCharacter])
 

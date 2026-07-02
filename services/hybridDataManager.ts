@@ -1,7 +1,7 @@
 import { DetailedCharacterService } from './detailedCharacter'
 import { CombatItemService } from './database'
 import { supabase } from '../lib/supabase'
-import type { FullCharacterData, Character, CharacterCombatAction, CharacterUpdateData } from '../lib/supabase'
+import type { FullCharacterData, Character, CharacterCombatAction, CharacterCurrentStats, CharacterUpdateData } from '../lib/supabase'
 
 /**
  * 資料管理器 (原 HybridDataManager)
@@ -447,6 +447,72 @@ export class HybridDataManager {
    */
   static async syncSpellSlotResources(characterId: string, casterLevel: number): Promise<void> {
     await CombatItemService.syncSpellSlotResources(characterId, casterLevel)
+  }
+
+  /**
+   * 更新屬性額外調整值（直接寫入 DB）
+   */
+  static async updateAbilityBonuses(
+    characterId: string,
+    abilityBonuses: Record<string, number>,
+    modifierBonuses: Record<string, number>
+  ): Promise<boolean> {
+    try {
+      console.log(`更新屬性額外調整值到 DB: ${characterId}`)
+      return await DetailedCharacterService.updateAbilityBonuses(characterId, abilityBonuses, modifierBonuses)
+    } catch (error) {
+      console.error('更新屬性額外調整值失敗:', error)
+      return false
+    }
+  }
+
+  /**
+   * 更新當前狀態（血量、護甲值等，直接寫入 DB）
+   */
+  static async updateCurrentStats(characterId: string, stats: Partial<CharacterCurrentStats>): Promise<boolean> {
+    try {
+      console.log(`更新當前狀態到 DB: ${characterId}`)
+      return await DetailedCharacterService.updateCurrentStats(characterId, stats)
+    } catch (error) {
+      console.error('更新當前狀態失敗:', error)
+      return false
+    }
+  }
+
+  /**
+   * 更新 extra_data（修整期、名聲、屬性加成、自定義冒險紀錄等，直接寫入 DB）
+   */
+  static async updateExtraData(characterId: string, extraData: any): Promise<boolean> {
+    try {
+      console.log(`更新 extra_data 到 DB: ${characterId}`)
+      return await DetailedCharacterService.updateExtraData(characterId, extraData)
+    } catch (error) {
+      console.error('更新 extra_data 失敗:', error)
+      return false
+    }
+  }
+
+  // ===== 匿名用戶轉換 =====
+
+  /**
+   * 檢查是否有匿名角色需要轉換
+   */
+  static async hasAnonymousCharactersToConvert(): Promise<boolean> {
+    return DetailedCharacterService.hasAnonymousCharactersToConvert()
+  }
+
+  /**
+   * 將匿名用戶的角色轉換為登入用戶的角色
+   */
+  static async convertAnonymousCharactersToUser(userId: string): Promise<boolean> {
+    return DetailedCharacterService.convertAnonymousCharactersToUser(userId)
+  }
+
+  /**
+   * 清除角色詳細資料緩存（可指定角色，或省略以清除全部）
+   */
+  static clearCharacterCache(characterId?: string): void {
+    DetailedCharacterService.clearCharacterCache(characterId)
   }
 
   // 單獨更新技能熟練度的專用方法

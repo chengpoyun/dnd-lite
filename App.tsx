@@ -28,7 +28,6 @@ import { withSaveGuard } from './utils/saveGuard';
 import { buildBasicInfoCharacterUpdate, buildExpCharacterUpdate, buildAvatarCharacterUpdate } from './utils/characterUpdate';
 import { isSpellcaster } from './utils/spellUtils';
 import { HybridDataManager } from './services/hybridDataManager';
-import { DetailedCharacterService } from './services/detailedCharacter';
 import { AnonymousService } from './services/anonymous';
 import { UserSettingsService } from './services/userSettings';
 import type { Character, CharacterAbilityScores, CharacterCurrentStats, CharacterCurrency, CharacterUpdateData, CharacterSkillProficiency, CharacterSavingThrow } from './lib/supabase';
@@ -241,7 +240,7 @@ const AuthenticatedApp: React.FC = () => {
       setSaving: setIsSaving,
       fn: async () => {
         try {
-          const success = await DetailedCharacterService.updateAbilityBonuses(currentCharacter!.id, abilityBonuses, modifierBonuses)
+          const success = await HybridDataManager.updateAbilityBonuses(currentCharacter!.id, abilityBonuses, modifierBonuses)
           if (success) console.log('✅ 屬性加成保存成功')
           return success
         } catch (error) {
@@ -293,7 +292,7 @@ const AuthenticatedApp: React.FC = () => {
   const syncMaxHpBasicFromFormula = async (maxHpBasic: number): Promise<boolean> => {
     if (!currentCharacter) return false
     try {
-      return await DetailedCharacterService.updateCurrentStats(currentCharacter.id, { max_hp_basic: maxHpBasic })
+      return await HybridDataManager.updateCurrentStats(currentCharacter.id, { max_hp_basic: maxHpBasic })
     } catch (e) {
       console.error('syncMaxHpBasicFromFormula failed:', e)
       return false
@@ -555,7 +554,7 @@ const AuthenticatedApp: React.FC = () => {
       setSaving: setIsSaving,
       fn: async () => {
         try {
-          const success = await DetailedCharacterService.updateCurrentStats(currentCharacter!.id, { combat_notes: notes });
+          const success = await HybridDataManager.updateCurrentStats(currentCharacter!.id, { combat_notes: notes });
           if (success) console.log('✅ 戰鬥筆記保存成功');
           return success;
         } catch (error) {
@@ -575,7 +574,7 @@ const AuthenticatedApp: React.FC = () => {
       setSaving: setIsSaving,
       fn: async () => {
         try {
-          const success = await DetailedCharacterService.updateExtraData(currentCharacter!.id, extraData)
+          const success = await HybridDataManager.updateExtraData(currentCharacter!.id, extraData)
           if (success) console.log('✅ 額外數據保存成功')
           return success
         } catch (error) {
