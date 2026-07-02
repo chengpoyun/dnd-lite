@@ -67,6 +67,16 @@ export const getTotalLevel = (classes: ClassInfo[]): number => {
 }
 
 /**
+ * 依主職業排序（等級高者在前，等級相同時主職業優先），供職業顯示相關函式共用
+ */
+const sortClassesByPrimary = (classes: ClassInfo[]): ClassInfo[] => {
+  return [...classes].sort((a, b) => {
+    if (b.level !== a.level) return b.level - a.level
+    return a.isPrimary ? -1 : 1
+  })
+}
+
+/**
  * 格式化職業顯示文字（有子職業時以括號附加，如「牧師（生命領域）」）
  * @param classes 職業列表
  * @param format 'full' | 'primary' | 'simple'
@@ -80,11 +90,7 @@ export const formatClassDisplay = (
 ): string => {
   if (!classes.length) return '無職業'
 
-  // 按等級排序（主職業在前）
-  const sortedClasses = [...classes].sort((a, b) => {
-    if (b.level !== a.level) return b.level - a.level
-    return a.isPrimary ? -1 : 1
-  })
+  const sortedClasses = sortClassesByPrimary(classes)
 
   switch (format) {
     case 'primary':
@@ -106,10 +112,7 @@ export const formatClassDisplay = (
 export const formatClassDisplayLines = (classes: ClassInfo[]): string[] => {
   if (!classes.length) return []
 
-  const sortedClasses = [...classes].sort((a, b) => {
-    if (b.level !== a.level) return b.level - a.level
-    return a.isPrimary ? -1 : 1
-  })
+  const sortedClasses = sortClassesByPrimary(classes)
 
   return sortedClasses.map(c => `${formatClassName(c)} Lv${c.level}`)
 }
