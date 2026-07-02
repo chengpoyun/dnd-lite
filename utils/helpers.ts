@@ -39,30 +39,40 @@ export const evaluateValue = (input: string, current: number, max?: number): num
 
 /**
  * 解析字串運算（支援小數點），支援 "+5.5", "-2.25", "100.5+10.25" 等格式
- * 用於金幣等允許小數點的數值運算
+ * 用於金幣、經驗值等允許小數點的數值運算
+ * @param decimalPlaces 保留小數位數；未指定時不四捨五入，保留使用者輸入的完整精度
+ * @param allowNegative 是否允許負數結果；預設 false（維持既有 HP/AC 等场景的行為，結果會夾在 0 以上）
  */
-export const evaluateDecimalValue = (input: string, current: number, max?: number, decimalPlaces: number = 2): number => {
+export const evaluateDecimalValue = (
+  input: string,
+  current: number,
+  max?: number,
+  decimalPlaces?: number,
+  allowNegative: boolean = false
+): number => {
   const text = input.replace(/\s+/g, '');
   if (!text) return current;
-  
-  let tokens = text.startsWith('+') || text.startsWith('-') 
-    ? (current.toString() + text).split(/([\+\-])/) 
+
+  let tokens = text.startsWith('+') || text.startsWith('-')
+    ? (current.toString() + text).split(/([\+\-])/)
     : text.split(/([\+\-])/);
-    
+
   const cleanTokens = tokens.filter(t => t !== '');
   if (cleanTokens.length === 0) return current;
-  
+
   let result = parseFloat(cleanTokens[0]) || 0;
   for (let i = 1; i < cleanTokens.length; i += 2) {
     const op = cleanTokens[i];
     const val = parseFloat(cleanTokens[i + 1]) || 0;
-    if (op === '+') result += val; 
+    if (op === '+') result += val;
     else if (op === '-') result -= val;
   }
-  
-  // 四捨五入到指定小數位數
-  result = Math.round(result * Math.pow(10, decimalPlaces)) / Math.pow(10, decimalPlaces);
-  result = Math.max(0, result);
+
+  // 四捨五入到指定小數位數（未指定則不四捨五入，保留完整精度）
+  if (decimalPlaces !== undefined) {
+    result = Math.round(result * Math.pow(10, decimalPlaces)) / Math.pow(10, decimalPlaces);
+  }
+  if (!allowNegative) result = Math.max(0, result);
   if (max !== undefined) result = Math.min(max, result);
   return result;
 };
@@ -70,11 +80,11 @@ export const evaluateDecimalValue = (input: string, current: number, max?: numbe
 /**
  * 格式化數值，自動移除尾隨零
  * @param value 數值
- * @param decimalPlaces 小數位數，預設 2
+ * @param decimalPlaces 小數位數，預設 10（實務上等同不限位數，同時避免浮點運算雜訊）
  * @returns 格式化後的字串
  * @example 512.00 -> "512", 500.20 -> "500.2", 410.25 -> "410.25"
  */
-export const formatDecimal = (value: number, decimalPlaces: number = 2): string => {
+export const formatDecimal = (value: number, decimalPlaces: number = 10): string => {
   const fixed = value.toFixed(decimalPlaces);
   // parseFloat 會自動移除尾隨零，toString() 轉回字串
   return parseFloat(fixed).toString();
@@ -117,7 +127,7 @@ export const handleDecimalInput = (
     maxValue?: number;
     allowZero?: boolean;
     allowNegative?: boolean;
-    decimalPlaces?: number; // 保留小數位數，預設2位
+    decimalPlaces?: number; // 保留小數位數；未指定時不四捨五入，保留使用者輸入的完整精度
   } = {}
 ): { isValid: boolean, numericValue: number } => {
   const {
@@ -125,27 +135,29 @@ export const handleDecimalInput = (
     maxValue,
     allowZero = true,
     allowNegative = false,
-    decimalPlaces = 2
+    decimalPlaces
   } = options;
 
   // 檢查是否為運算表達式
   const isCalculation = value.includes('+') || value.includes('-');
-  
+
   let numericValue: number;
-  
+
   if (isCalculation && currentValue !== undefined) {
     // 使用 evaluateDecimalValue 處理運算表達式
-    numericValue = evaluateDecimalValue(value, currentValue, maxValue, decimalPlaces);
+    numericValue = evaluateDecimalValue(value, currentValue, maxValue, decimalPlaces, allowNegative);
   } else {
     // 解析為浮點數
     numericValue = parseFloat(value);
-    
+
     if (isNaN(numericValue)) {
       return { isValid: false, numericValue: 0 };
     }
-    
-    // 四捨五入到指定小數位數
-    numericValue = Math.round(numericValue * Math.pow(10, decimalPlaces)) / Math.pow(10, decimalPlaces);
+
+    // 四捨五入到指定小數位數（未指定則不四捨五入）
+    if (decimalPlaces !== undefined) {
+      numericValue = Math.round(numericValue * Math.pow(10, decimalPlaces)) / Math.pow(10, decimalPlaces);
+    }
   }
 
   // 檢查範圍

@@ -23,11 +23,11 @@ export default function CurrencyModal({
   currentGp,
   onApply,
 }: CurrencyModalProps) {
-  const result = handleDecimalInput(value, currentGp, { minValue: 0, allowZero: true, decimalPlaces: 2 });
+  const result = handleDecimalInput(value, currentGp, { minValue: -Infinity, allowZero: true, allowNegative: true });
   const gpPreview = result.isValid ? result.numericValue : currentGp;
 
   const handleApply = () => {
-    if (result.isValid && gpPreview >= 0) {
+    if (result.isValid) {
       onApply(gpPreview);
     }
   };

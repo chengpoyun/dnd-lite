@@ -3,7 +3,7 @@
  */
 import React from 'react';
 import { Modal, ModalButton, ModalInput } from './ui/Modal';
-import { handleValueInput } from '../utils/helpers';
+import { handleDecimalInput } from '../utils/helpers';
 import { MODAL_CONTAINER_CLASS, MODAL_BUTTON_CANCEL_CLASS, MODAL_FOOTER_BUTTONS_CLASS, MODAL_PREVIEW_LABEL_CLASS, MODAL_PREVIEW_ROW_CLASS, MODAL_BUTTON_APPLY_AMBER_CLASS } from '../styles/modalStyles';
 
 interface DowntimeModalProps {
@@ -23,7 +23,7 @@ export default function DowntimeModal({
   currentDowntime,
   onApply,
 }: DowntimeModalProps) {
-  const result = handleValueInput(value, currentDowntime, { minValue: 0, allowZero: true });
+  const result = handleDecimalInput(value, currentDowntime, { minValue: -Infinity, allowZero: true, allowNegative: true });
   const preview = result.isValid ? result.numericValue : currentDowntime;
 
   const handleApply = () => {

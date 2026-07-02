@@ -3,7 +3,7 @@
  */
 import React from 'react';
 import { Modal, ModalButton, ModalInput } from './ui/Modal';
-import { handleValueInput } from '../utils/helpers';
+import { handleDecimalInput } from '../utils/helpers';
 import { getLevelFromExp, getNextLevelExp } from '../utils/expLevelUtils';
 import { MODAL_CONTAINER_CLASS, MODAL_BUTTON_CANCEL_CLASS, MODAL_FOOTER_BUTTONS_CLASS, MODAL_LABEL_EMERALD_CLASS, MODAL_PREVIEW_LABEL_CLASS, MODAL_PREVIEW_DESC_CLASS, MODAL_BUTTON_APPLY_EMERALD_CLASS } from '../styles/modalStyles';
 
@@ -25,7 +25,7 @@ export default function ExpModal({
   onApply,
 }: ExpModalProps) {
   const currentExp = parseFloat(placeholder) || 0;
-  const result = handleValueInput(value, currentExp, { minValue: 0, allowZero: true });
+  const result = handleDecimalInput(value, currentExp, { minValue: -Infinity, allowZero: true, allowNegative: true });
   const expPreview = result.isValid ? result.numericValue : currentExp;
   const { exp: nextExp, isMaxLevel } = getNextLevelExp(expPreview);
 

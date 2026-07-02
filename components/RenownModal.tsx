@@ -5,7 +5,7 @@ import React, { useState } from 'react';
 import { Modal, ModalButton, ModalInput } from './ui/Modal';
 import { ModalSaveButton } from './ui/ModalSaveButton';
 import { LoadingOverlay } from './ui/LoadingOverlay';
-import { handleValueInput } from '../utils/helpers';
+import { handleDecimalInput } from '../utils/helpers';
 import { MODAL_CONTAINER_CLASS, MODAL_BUTTON_CANCEL_CLASS, MODAL_FOOTER_BUTTONS_CLASS, MODAL_LABEL_CLASS, MODAL_SECTION_CLASS, MODAL_FIELD_CLASS, MODAL_BUTTON_APPLY_AMBER_CLASS } from '../styles/modalStyles';
 
 interface RenownModalProps {
@@ -32,8 +32,8 @@ export default function RenownModal({
   onApply,
 }: RenownModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const usedResult = handleValueInput(usedValue, currentUsed, { minValue: 0, allowZero: true });
-  const totalResult = handleValueInput(totalValue, currentTotal, { minValue: 0, allowZero: true });
+  const usedResult = handleDecimalInput(usedValue, currentUsed, { minValue: -Infinity, allowZero: true, allowNegative: true });
+  const totalResult = handleDecimalInput(totalValue, currentTotal, { minValue: -Infinity, allowZero: true, allowNegative: true });
   const usedPreview = usedResult.isValid ? usedResult.numericValue : currentUsed;
   const totalPreview = totalResult.isValid ? totalResult.numericValue : currentTotal;
 
