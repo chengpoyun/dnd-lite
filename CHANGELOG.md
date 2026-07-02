@@ -8,6 +8,8 @@
 
 - 修正：架構健檢發現 `CharacterSheet.tsx` 儲存兼職職業時（新增職業的 `addNewClass`、以及實際被 `CharacterInfoModal` 使用的 `saveInfoWithClasses`），`character_classes` 是「先刪除全部、再逐筆 insert」且完全不檢查錯誤，若中途失敗會讓角色卡在職業被刪光、只補回部分的半殘狀態。新增 `MulticlassService.replaceCharacterClasses` 統一處理：單次批次 insert 並檢查刪除/寫入的錯誤，失敗時不繼續、不更新本地狀態。
 - 移除：`components/CharacterSelector.tsx`（架構健檢發現的死碼，全專案沒有任何地方引用，實際在用的是 `CharacterSelectPage.tsx`），以及 `CharacterSheet.tsx` 內 7 個從未被呼叫過的兼職編輯函式（`saveMulticlassInfo`、`updateExistingClassLevel`、`setExistingClassAsPrimary`、`deleteExistingClass`、`removeClassById`、`updateClassLevel`、`setPrimaryClass`）。
+- 移除：`lib/supabase.ts` 對應 2026-02-02 物品系統重構前舊 schema 的 `CharacterItem` 型別（跟 `services/itemService.ts` 現行使用的同名型別撞名，容易誤 import），以及唯一使用它的 `DetailedCharacterService.addItem`/`updateItem`/`deleteItem`（全專案無呼叫的死碼）。
+- 工具：`vitest.config.ts` 排除 `.claude/worktrees/**`，避免背景任務的獨立 worktree 程式碼被誤跑進本機測試結果。
 
 ## 1.7.1
 

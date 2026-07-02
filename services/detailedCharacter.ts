@@ -6,8 +6,7 @@ import type {
   CharacterSavingThrow, 
   CharacterSkillProficiency, 
   CharacterCurrentStats, 
-  CharacterCurrency, 
-  CharacterItem,
+  CharacterCurrency,
   CharacterCombatAction,
   FullCharacterData 
 } from '../lib/supabase'
@@ -1157,55 +1156,6 @@ export class DetailedCharacterService {
       return true
     } catch (error) {
       console.error('更新豁免骰熟練度失敗:', error)
-      return false
-    }
-  }
-
-  // 新增物品
-  static async addItem(characterId: string, item: Omit<CharacterItem, 'id' | 'character_id' | 'created_at' | 'updated_at'>): Promise<CharacterItem | null> {
-    try {
-      const { data, error } = await supabase
-        .from('character_items')
-        .insert([{
-          character_id: characterId,
-          ...item
-        }])
-        .select()
-        .single()
-
-      return error ? null : data
-    } catch (error) {
-      console.error('新增物品失敗:', error)
-      return null
-    }
-  }
-
-  // 更新物品
-  static async updateItem(itemId: string, updates: Partial<CharacterItem>): Promise<boolean> {
-    try {
-      const { error } = await supabase
-        .from('character_items')
-        .update({ ...updates, updated_at: new Date().toISOString() })
-        .eq('id', itemId)
-
-      return !error
-    } catch (error) {
-      console.error('更新物品失敗:', error)
-      return false
-    }
-  }
-
-  // 刪除物品
-  static async deleteItem(itemId: string): Promise<boolean> {
-    try {
-      const { error } = await supabase
-        .from('character_items')
-        .delete()
-        .eq('id', itemId)
-
-      return !error
-    } catch (error) {
-      console.error('刪除物品失敗:', error)
       return false
     }
   }

@@ -1,5 +1,5 @@
 import path from 'path'
-import { defineConfig } from 'vitest/config'
+import { defineConfig, configDefaults } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 
 export default defineConfig({
@@ -13,5 +13,8 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
+    // 排除 Claude Code 背景任務用的 git worktree（.claude/worktrees/**），
+    // 避免其他平行 session 的進行中程式碼被誤跑進本次測試結果
+    exclude: [...configDefaults.exclude, '**/.claude/**'],
   },
 })
