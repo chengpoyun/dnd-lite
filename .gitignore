@@ -32,3 +32,6 @@ dist-ssr
 .assistant-notes.md
 # Local-only Supabase credentials (never commit)
 .supabase-credentials.local
+
+# MCP server config (contains Supabase access token, never commit)
+.mcp.json
