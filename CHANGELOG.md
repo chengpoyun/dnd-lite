@@ -11,6 +11,7 @@
 - 移除：`lib/supabase.ts` 對應 2026-02-02 物品系統重構前舊 schema 的 `CharacterItem` 型別（跟 `services/itemService.ts` 現行使用的同名型別撞名，容易誤 import），以及唯一使用它的 `DetailedCharacterService.addItem`/`updateItem`/`deleteItem`（全專案無呼叫的死碼）。
 - 工具：`vitest.config.ts` 排除 `.claude/worktrees/**`，避免背景任務的獨立 worktree 程式碼被誤跑進本機測試結果。
 - 重構：`utils/classUtils.ts` 的 `formatClassDisplay`/`formatClassDisplayLines` 抽出共用的 `sortClassesByPrimary`，取代兩處重複的排序邏輯，行為不變。
+- 重構：架構健檢發現 `DowntimeModal`、`CurrencyModal` 各自手刻一份與 `NumberEditModal` 幾乎相同的 Modal/輸入框/預覽列版面。改為兩者皆改為包裝 `NumberEditModal`（新增 `decimal`、`inputLabel`、`showValuePreview`、`inputClassName`、`inputLabelClassName` 等可選 prop 支援客製樣式），外部呼叫介面不變，消除重複的 boilerplate。`ExpModal`、`RenownModal` 因需求差異較大暫不合併。
 
 ## 1.7.1
 

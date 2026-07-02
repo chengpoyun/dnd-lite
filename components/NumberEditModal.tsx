@@ -4,10 +4,10 @@
  */
 import React from 'react';
 import { Modal, ModalButton, ModalInput } from './ui/Modal';
-import { handleValueInput } from '../utils/helpers';
+import { handleValueInput, handleDecimalInput } from '../utils/helpers';
 import { FinalTotalRow } from './ui/FinalTotalRow';
 import { BonusSourcesList } from './ui/BonusSourcesList';
-import { MODAL_CONTAINER_CLASS, MODAL_BODY_TEXT_CLASS, MODAL_DESCRIPTION_CLASS, MODAL_BUTTON_CANCEL_CLASS, MODAL_BUTTON_RESET_CLASS, MODAL_FOOTER_BUTTONS_CLASS } from '../styles/modalStyles';
+import { MODAL_CONTAINER_CLASS, MODAL_BODY_TEXT_CLASS, MODAL_DESCRIPTION_CLASS, MODAL_BUTTON_CANCEL_CLASS, MODAL_BUTTON_RESET_CLASS, MODAL_FOOTER_BUTTONS_CLASS, MODAL_PREVIEW_LABEL_CLASS, MODAL_PREVIEW_ROW_CLASS } from '../styles/modalStyles';
 
 export interface BonusSource {
   label: string;
@@ -34,6 +34,24 @@ interface NumberEditModalProps {
   finalValue?: number;
   /** 重置按鈕還原的基礎值（如 AC=10、先攻=0、速度=30） */
   resetValue?: number;
+  /** 是否允許小數與負數（供經驗值/金幣等場景使用，內部改走 handleDecimalInput） */
+  decimal?: boolean;
+  /** 輸入框前的標籤，傳 null 隱藏（如修整期/金幣等單值編輯不需要「基礎值」字樣） */
+  inputLabel?: string | null;
+  /** 顯示「舊值→新值」預覽列，取代/獨立於 basic+bonus 的最終總計 */
+  showValuePreview?: boolean;
+  /** 預覽列標籤，預設「計算結果」 */
+  previewLabel?: string;
+  /** 預覽數值格式化（如金幣的 formatDecimal），預設原樣顯示 */
+  formatPreviewValue?: (n: number) => string | number;
+  /** 預覽數值單位後綴（如修整期的 " 天"） */
+  valueSuffix?: string;
+  /** 預覽新值的顏色/字級 class，預設沿用既有白字大字風格 */
+  previewValueClassName?: string;
+  /** 輸入框樣式覆寫（如修整期的大字置中、金幣的琥珀色），預設沿用既有 AC/先攻等樣式 */
+  inputClassName?: string;
+  /** 輸入框標籤樣式覆寫（如金幣的琥珀色標籤），預設沿用既有灰階樣式 */
+  inputLabelClassName?: string;
 }
 
 export default function NumberEditModal({
@@ -53,17 +71,26 @@ export default function NumberEditModal({
   description,
   finalValue,
   resetValue,
+  decimal = false,
+  inputLabel = '基礎值',
+  showValuePreview = false,
+  previewLabel = '計算結果',
+  formatPreviewValue = (n: number) => n,
+  valueSuffix = '',
+  previewValueClassName = 'text-white text-2xl',
+  inputClassName = 'text-2xl font-mono flex-1',
+  inputLabelClassName = `${MODAL_BODY_TEXT_CLASS} shrink-0`,
 }: NumberEditModalProps) {
   const baseValue = parseFloat(placeholder) || 0;
   const displayTotal = finalValue ?? (baseValue + (bonusValue ?? 0));
+  const inputResult = decimal
+    ? handleDecimalInput(value, baseValue, { minValue, allowZero, allowNegative: true })
+    : handleValueInput(value, baseValue, { minValue, allowZero });
+  const previewValue = inputResult.isValid ? inputResult.numericValue : baseValue;
 
   const handleApply = () => {
-    const result = handleValueInput(value, baseValue, {
-      minValue,
-      allowZero,
-    });
-    if (result.isValid) {
-      onApply(result.numericValue);
+    if (inputResult.isValid) {
+      onApply(inputResult.numericValue);
     }
   };
 
@@ -71,12 +98,14 @@ export default function NumberEditModal({
     <Modal isOpen={isOpen} onClose={onClose} title={title} size={size}>
       <div className={MODAL_CONTAINER_CLASS}>
         <div className="flex items-center gap-2 mb-4">
-          <span className={`${MODAL_BODY_TEXT_CLASS} shrink-0`}>基礎值</span>
+          {inputLabel !== null && (
+            <span className={inputLabelClassName}>{inputLabel}</span>
+          )}
           <ModalInput
             value={value}
             onChange={onChange}
             placeholder={placeholder}
-            className="text-2xl font-mono flex-1"
+            className={inputClassName}
             autoFocus
           />
         </div>
@@ -88,6 +117,16 @@ export default function NumberEditModal({
         )}
         {(finalValue !== undefined || bonusValue !== undefined) && (
           <FinalTotalRow label="最終總計" value={displayTotal} className="mb-3" />
+        )}
+        {showValuePreview && (
+          <div className="text-center mb-3">
+            <span className={MODAL_PREVIEW_LABEL_CLASS}>{previewLabel}</span>
+            <div className={MODAL_PREVIEW_ROW_CLASS}>
+              <span className="text-slate-400">{formatPreviewValue(baseValue)}{valueSuffix}</span>
+              <span className="text-slate-600">→</span>
+              <span className={previewValueClassName}>{formatPreviewValue(previewValue)}{valueSuffix}</span>
+            </div>
+          </div>
         )}
         <div className={MODAL_FOOTER_BUTTONS_CLASS}>
           <ModalButton variant="secondary" className={MODAL_BUTTON_RESET_CLASS} onClick={() => onChange(resetValue !== undefined ? String(resetValue) : placeholder)}>

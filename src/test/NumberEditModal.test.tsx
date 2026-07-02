@@ -174,4 +174,103 @@ describe('NumberEditModal', () => {
     fireEvent.click(screen.getByText('重置'));
     expect(onChange).toHaveBeenCalledWith('10');
   });
+
+  describe('decimal + showValuePreview（供 DowntimeModal/CurrencyModal 共用）', () => {
+    it('decimal=false（預設）時，負數輸入無法套用（維持既有整數行為，不受新 prop 影響）', () => {
+      const onApply = vi.fn();
+      render(
+        <NumberEditModal
+          {...defaultProps}
+          value="-5"
+          onChange={vi.fn()}
+          onApply={onApply}
+          placeholder="10"
+          minValue={0}
+          allowZero
+        />
+      );
+      fireEvent.click(screen.getByText('套用'));
+      // "-5" 含 "-"，會走運算式模式：10-5=5，非負數，仍會套用（驗證未受影響、非新增負數支援）
+      expect(onApply).toHaveBeenCalledWith(5);
+    });
+
+    it('decimal=true 時可輸入小數並保留完整精度', () => {
+      const onApply = vi.fn();
+      render(
+        <NumberEditModal
+          {...defaultProps}
+          value="12.5"
+          onChange={vi.fn()}
+          onApply={onApply}
+          placeholder="10"
+          minValue={-Infinity}
+          allowZero
+          decimal
+        />
+      );
+      fireEvent.click(screen.getByText('套用'));
+      expect(onApply).toHaveBeenCalledWith(12.5);
+    });
+
+    it('decimal=true 且 minValue=-Infinity 時，可算出負數結果並套用', () => {
+      const onApply = vi.fn();
+      render(
+        <NumberEditModal
+          {...defaultProps}
+          value="-500"
+          onChange={vi.fn()}
+          onApply={onApply}
+          placeholder="10"
+          minValue={-Infinity}
+          allowZero
+          decimal
+        />
+      );
+      fireEvent.click(screen.getByText('套用'));
+      expect(onApply).toHaveBeenCalledWith(-490);
+    });
+
+    it('showValuePreview 時顯示「舊值→新值」預覽列', () => {
+      render(
+        <NumberEditModal
+          {...defaultProps}
+          value="16"
+          onChange={vi.fn()}
+          placeholder="10"
+          showValuePreview
+          previewLabel="計算結果"
+        />
+      );
+      expect(screen.getByText('計算結果')).toBeInTheDocument();
+      expect(screen.getByText('10')).toBeInTheDocument();
+      expect(screen.getByText('16')).toBeInTheDocument();
+    });
+
+    it('showValuePreview 搭配 valueSuffix 與 formatPreviewValue 時，套用格式化與單位後綴', () => {
+      render(
+        <NumberEditModal
+          {...defaultProps}
+          value="3.5"
+          onChange={vi.fn()}
+          placeholder="1"
+          decimal
+          showValuePreview
+          valueSuffix=" 天"
+          formatPreviewValue={(n) => n.toFixed(1)}
+        />
+      );
+      expect(screen.getByText('3.5 天')).toBeInTheDocument();
+      expect(screen.getByText('1.0 天')).toBeInTheDocument();
+    });
+
+    it('inputLabel=null 時不顯示「基礎值」標籤', () => {
+      render(<NumberEditModal {...defaultProps} inputLabel={null} />);
+      expect(screen.queryByText('基礎值')).not.toBeInTheDocument();
+    });
+
+    it('未指定 inputLabel 時維持既有「基礎值」標籤（向下相容 AC/先攻/速度等既有用法）', () => {
+      render(<NumberEditModal {...defaultProps} />);
+      expect(screen.getByText('基礎值')).toBeInTheDocument();
+    });
+  });
 });
