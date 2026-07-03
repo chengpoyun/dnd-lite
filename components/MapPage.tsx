@@ -27,7 +27,7 @@ export const MapPage: React.FC = () => {
       <TransformWrapper
         initialScale={1}
         minScale={0.5}
-        maxScale={12}
+        maxScale={18}
         centerOnInit
         doubleClick={{ mode: 'toggle' }}
       >
