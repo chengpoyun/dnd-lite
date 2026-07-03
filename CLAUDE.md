@@ -17,7 +17,8 @@ D&D 冒險者助手 — Vite + React 19 + TypeScript 的手機優先角色管理
 
 ## 陷阱與注意事項
 
-- **登入牆**：App 開啟後先要登入（Google OAuth 或「匿名試用」），才會進到角色頁。測試用的既有角色叫「**新**」。
+- **登入牆**：App 開啟後先要登入（Google OAuth 或「匿名試用」），才會進到角色頁。測試用的既有角色叫「**新**」（Google 帳號登入，Claude 的瀏覽器 preview 連不到，因為那是另一個 OAuth 身分）。
+- **Preview 驗證用的固定匿名測試角色**：Claude 在瀏覽器 preview 驗證功能時，每次開新分頁都要重新走「匿名試用→建立角色」很浪費 token。已建好一個固定角色「開發固定測試角色」（`characters.id = 61669877-fe13-4b33-ba8a-9bce40c881a2`，法師5預言學派 + 遊蕩者5，涵蓋法術位/偷襲傷害等多種測試情境）。要直接跳到這個角色，在 preview 開啟後執行一次：`localStorage.setItem('dnd_anonymous_user_id', 'anon_devfixture'); location.reload();`（匿名模式一個帳號只能有一個角色，重新整理後會自動載入這個角色，不需要另外設定 `current_character_id`）。
 - **DB migration 一建立就要立刻推送**：新增 migration 後必須馬上 `npm run db:push` 推到遠端，勿累積。
 - **`scripts/` 多為 `.sh`**：`db:create` 走 shell script，在 Windows 上要用 Git Bash 執行，不能用 PowerShell/cmd 直接跑。**例外**：`db:push` 是 Node 腳本（`scripts/db-push.mjs`），跨平台可直接 `npm run db:push`。
 - **環境變數**：`.env` 需要 `VITE_SUPABASE_URL`、`VITE_SUPABASE_ANON_KEY`；DB 遷移另需 `SUPABASE_ACCESS_TOKEN`、`SUPABASE_DB_PASSWORD`（皆在 gitignored 的 `.env`）。
