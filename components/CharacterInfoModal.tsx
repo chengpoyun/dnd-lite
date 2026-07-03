@@ -121,14 +121,14 @@ export default function CharacterInfoModal({
             </div>
           </div>
           <div className={`${MODAL_FOOTER_BUTTONS_CLASS} pt-4`}>
-            <button
-              type="button"
+            <ModalButton
+              variant="secondary"
               onClick={onClose}
               disabled={isSaving}
-              className={`${MODAL_BUTTON_CANCEL_CLASS} px-4 py-2 rounded-xl font-bold disabled:opacity-50 disabled:cursor-not-allowed bg-slate-800 hover:bg-slate-700 text-slate-400`}
+              className={MODAL_BUTTON_CANCEL_CLASS}
             >
               取消
-            </button>
+            </ModalButton>
             <ModalSaveButton type="button" onClick={onSave} loading={isSaving} className={MODAL_BUTTON_APPLY_AMBER_CLASS}>
               儲存
             </ModalSaveButton>

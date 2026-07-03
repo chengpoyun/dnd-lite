@@ -15,6 +15,7 @@
 - 重構：`utils/helpers.ts` 的 `evaluateValue`/`evaluateDecimalValue` 抽出共用的 `tokenizeExpression`（消除逐字重複的運算式切 token 邏輯），`setNormalValue`/`handleDecimalInput`/`handleValueInput` 抽出共用的 `resolveEffectiveMin`；純內部重構，簽章與行為不變。
 - 重構：架構健檢發現 `abilityService.ts`（`unlearnAbility`、`useAbility`、`updateAbilityMaxUses`、`updateCharacterAbility`）與 `spellService.ts`（`forgetSpell`、`togglePrepared`）共 7 處都逐字重複「用列 id，還是用 (characterId + 全域實體 id) 組合鍵定位資料列」的判斷邏輯。抽出共用的 `services/supabaseQueryHelpers.ts::byRowIdOrComposite`，7 處呼叫點皆改用它，行為不變。這 7 個函式原本完全沒有單元測試覆蓋，這次一併補上組合鍵分支的測試，並用瀏覽器對真實資料庫驗證「新增個人能力→使用→移除」流程正常。`itemService.ts` 沒有這個模式（物品只用單一 characterItemId 路徑），未受影響；三個 service 的整體 CRUD 樣板因欄位差異大，暫不做進一步的泛型抽象。
 - 重構：架構健檢發現 `CombatView.tsx` 的 AC/先攻/速度/最大HP/攻擊命中/攻擊傷害/法術命中/法術DC 共 8 個戰鬥屬性編輯彈窗，各自內嵌重刻「從 basic+bonus 物件取出 bonus」（逐字重複 19 次）與「從 statBonusSources 撈出該屬性的加值明細」（重複 13 次），而非呼叫 `utils/characterAttributes.ts` 既有的邏輯。把 `getBonusValue` 改為 export，並新增 export 的 `getStatBonusSourcesBreakdown`，8 個屬性區塊全部改呼叫共用函式，行為不變。原本這些彈窗的加值顯示完全沒有測試覆蓋，這次補上單元測試與 CombatView 整合測試，並在瀏覽器對真實角色驗證 AC／攻擊命中彈窗顯示與儲存正確。
+- 整理：架構健檢發現 `CategoryUsageModal`、`CharacterInfoModal`、`CombatItemEditModal`、`CombatNoteModal`、`RenownModal` 這 5 個 modal 的取消按鈕沒有用共用的 `<ModalButton variant="secondary">`，而是自己刻了一個原生 `<button>` 並整段複製貼上 `ModalButton` 元件內建的預設樣式。改為統一用 `<ModalButton variant="secondary" className={MODAL_BUTTON_CANCEL_CLASS}>`，跟其餘約 10 個 modal 對齊。已用 `getComputedStyle` 在瀏覽器比對過，改動前後取消按鈕的實際顯示顏色完全一致，純粹是移除死碼、不是外觀變更。
 
 ## 1.7.1
 

@@ -74,14 +74,14 @@ export default function CombatNoteModal({
             <ModalSaveButton type="button" onClick={handleSave} loading={isSubmitting} className="min-w-0 truncate">
               儲存
             </ModalSaveButton>
-            <button
-              type="button"
+            <ModalButton
+              variant="secondary"
               onClick={handleCancel}
               disabled={isSubmitting}
-              className={`${MODAL_BUTTON_CANCEL_CLASS} min-w-0 truncate px-4 py-2 rounded-xl font-bold bg-slate-800 hover:bg-slate-700 text-slate-400 disabled:opacity-50 disabled:cursor-not-allowed`}
+              className={`${MODAL_BUTTON_CANCEL_CLASS} min-w-0 truncate`}
             >
               取消
-            </button>
+            </ModalButton>
             {hasContent && (
               <ModalButton variant="danger" onClick={handleDelete} disabled={isSubmitting} className="min-w-0 truncate">
                 刪除

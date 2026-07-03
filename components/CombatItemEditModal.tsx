@@ -159,14 +159,14 @@ export default function CombatItemEditModal({
             </div>
           )}
           <div className={`${MODAL_FOOTER_BUTTONS_CLASS} pt-2`}>
-            <button
-              type="button"
+            <ModalButton
+              variant="secondary"
               onClick={onClose}
               disabled={isSubmitting}
-              className={`${MODAL_BUTTON_CANCEL_CLASS} px-4 py-2 rounded-xl font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-slate-800 hover:bg-slate-700 text-slate-400`}
+              className={MODAL_BUTTON_CANCEL_CLASS}
             >
               取消
-            </button>
+            </ModalButton>
             <ModalSaveButton
               type="button"
               onClick={handleSave}
