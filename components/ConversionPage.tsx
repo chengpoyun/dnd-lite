@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { DetailedCharacterService } from '../services/detailedCharacter'
+import { HybridDataManager } from '../services/hybridDataManager'
 import { AnonymousService } from '../services/anonymous'
 import { Card, Title } from './ui'
 import { STYLES, combineStyles } from '../styles/common'
@@ -26,7 +26,7 @@ export const ConversionPage: React.FC<ConversionPageProps> = ({ userId, onComple
 
     try {
       // 檢查是否有匿名角色需要轉換
-      const hasAnonymousChars = await DetailedCharacterService.hasAnonymousCharactersToConvert()
+      const hasAnonymousChars = await HybridDataManager.hasAnonymousCharactersToConvert()
       
       if (!hasAnonymousChars) {
         // 沒有需要轉換的角色，直接完成
@@ -39,7 +39,7 @@ export const ConversionPage: React.FC<ConversionPageProps> = ({ userId, onComple
       // 開始轉換
       setConversionStatus('converting')
       
-      const success = await DetailedCharacterService.convertAnonymousCharactersToUser(userId)
+      const success = await HybridDataManager.convertAnonymousCharactersToUser(userId)
       
       if (success) {
         setConversionStatus('success')
