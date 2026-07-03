@@ -1,7 +1,7 @@
 {
   "name": "dnd-冒險者助手",
   "private": true,
-  "version": "1.9.0",
+  "version": "1.10.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -24,6 +24,7 @@
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
     "react-markdown": "^10.1.0",
+    "react-zoom-pan-pinch": "^4.0.3",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {

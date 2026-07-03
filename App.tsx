@@ -18,6 +18,7 @@ const EquipmentPage = lazy(() => import('./components/EquipmentPage').then(m => 
 const AbilitiesPage = lazy(() => import('./components/AbilitiesPage'));
 const NotesPage = lazy(() => import('./components/NotesPage').then(m => ({ default: m.default })));
 const TerrainPage = lazy(() => import('./components/TerrainPage').then(m => ({ default: m.default })));
+const MapPage = lazy(() => import('./components/MapPage'));
 const AboutPage = lazy(() => import('./components/AboutPage'));
 
 import { CharacterStats } from './types';
@@ -43,6 +44,7 @@ enum Tab {
   DICE = 'dice',
   NOTES = 'notes',
   TERRAIN = 'terrain',
+  MAP = 'map',
   ABOUT = 'about'
 }
 
@@ -729,6 +731,7 @@ const AuthenticatedApp: React.FC = () => {
       Tab.DICE,
       Tab.NOTES,
       Tab.TERRAIN,
+      Tab.MAP,
       Tab.ABOUT
     ]
 
@@ -811,6 +814,7 @@ const AuthenticatedApp: React.FC = () => {
               { id: Tab.DICE, label: '骰子', icon: '🎲' },
               { id: Tab.NOTES, label: '筆記', icon: '📝' },
               { id: Tab.TERRAIN, label: '地形', icon: '🗺️' },
+              { id: Tab.MAP, label: '地圖', icon: '📍' },
               { id: Tab.ABOUT, label: '關於', icon: 'ℹ️' }
             ].map((tab) => (
               <button
@@ -944,6 +948,12 @@ const AuthenticatedApp: React.FC = () => {
                 onCharacterDataChanged={refetchCharacterStats}
                 onSaveExtraData={saveExtraData}
               />
+            </Suspense>
+          )}
+
+          {activeTab === Tab.MAP && (
+            <Suspense fallback={<PageLoadingFallback message="載入地圖頁面..." />}>
+              <MapPage />
             </Suspense>
           )}
 
