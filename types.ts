@@ -147,6 +147,11 @@ export interface CharacterStats {
     saveAdvantageDisadvantage?: Record<string, 'advantage' | 'normal' | 'disadvantage'>;
     /** 依能力／物品聚合結算後的技能優劣勢 */
     skillAdvantageDisadvantage?: Record<string, 'advantage' | 'normal' | 'disadvantage'>;
+    /**
+     * 預言學派法師的預言骰（見 utils/portentDice.ts）
+     * value 為 null 代表尚未擲骰（如剛升級但還沒經過長休）；長休後整組換新、皆重置為未使用
+     */
+    portentDice?: { value: number | null; used: boolean }[];
   };
 }
 

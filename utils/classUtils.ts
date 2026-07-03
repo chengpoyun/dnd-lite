@@ -16,15 +16,40 @@ export const getSubclassesForClass = (className: string): string[] => {
 }
 
 /**
- * 子職業可選的最低職業等級（D&D 5E：3 等後才取得子職業）
+ * 各職業可選子職業的最低等級（D&D 5E 2014 PHB／Xanathar's：各職業不同，並非統一 3 等）
+ * 1 等：牧師、術士、咒術師；2 等：德魯伊、法師；3 等：其餘職業
  */
-export const SUBCLASS_MIN_LEVEL = 3
+export const SUBCLASS_MIN_LEVEL_BY_CLASS: Record<DndClassName, number> = {
+  '牧師': 1,
+  '術士': 1,
+  '咒術師': 1,
+  '德魯伊': 2,
+  '法師': 2,
+  '野蠻人': 3,
+  '吟遊詩人': 3,
+  '戰士': 3,
+  '武僧': 3,
+  '聖騎士': 3,
+  '遊俠': 3,
+  '遊蕩者': 3,
+  '奇械師': 3,
+}
+
+/** 未知職業名稱時的預設子職業最低等級 */
+export const DEFAULT_SUBCLASS_MIN_LEVEL = 3
 
 /**
- * 該職業等級是否已可選擇子職業（3 等以上）
+ * 取得某職業可選子職業的最低等級
  */
-export const canSelectSubclass = (level: number): boolean => {
-  return (Number(level) || 0) >= SUBCLASS_MIN_LEVEL
+export const getSubclassMinLevel = (className: string): number => {
+  return SUBCLASS_MIN_LEVEL_BY_CLASS[className as DndClassName] ?? DEFAULT_SUBCLASS_MIN_LEVEL
+}
+
+/**
+ * 該職業在此等級是否已可選擇子職業
+ */
+export const canSelectSubclass = (className: string, level: number): boolean => {
+  return (Number(level) || 0) >= getSubclassMinLevel(className)
 }
 
 /**

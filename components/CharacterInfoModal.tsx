@@ -59,8 +59,8 @@ export default function CharacterInfoModal({
             <div className="space-y-2">
               {editClasses.map((classInfo, index) => {
                 const subclasses = getSubclassesForClass(classInfo.name);
-                // 子職業 3 等後才可選（1–2 等不顯示下拉）
-                const showSubclass = subclasses.length > 0 && canSelectSubclass(parseInt(String(classInfo.level)) || 0);
+                // 子職業可選等級依職業而異（見 getSubclassMinLevel）
+                const showSubclass = subclasses.length > 0 && canSelectSubclass(classInfo.name, parseInt(String(classInfo.level)) || 0);
                 return (
                   <div key={classInfo.id || index} className="space-y-1">
                     <div className="flex items-center gap-2">

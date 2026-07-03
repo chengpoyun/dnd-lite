@@ -19,7 +19,9 @@ import {
   getTotalMaxHitDice,
   getSubclassesForClass,
   canSelectSubclass,
-  SUBCLASS_MIN_LEVEL
+  getSubclassMinLevel,
+  SUBCLASS_MIN_LEVEL_BY_CLASS,
+  DEFAULT_SUBCLASS_MIN_LEVEL
 } from '../../utils/classUtils'
 import { migrateLegacyCharacterStats, needsMulticlassMigration, validateMulticlassData, ensureDisplayClass } from '../../utils/migrationHelpers'
 import { DND_CLASSES, SUBCLASSES_BY_CLASS } from '../../types'
@@ -193,24 +195,43 @@ describe('classUtils - D&D 5E 職業工具函數', () => {
     })
   })
 
-  describe('canSelectSubclass', () => {
-    it('最低等級為 3', () => {
-      expect(SUBCLASS_MIN_LEVEL).toBe(3)
+  describe('getSubclassMinLevel / canSelectSubclass（依職業而異）', () => {
+    it('牧師、術士、咒術師最低 1 等可選子職業', () => {
+      expect(getSubclassMinLevel('牧師')).toBe(1)
+      expect(getSubclassMinLevel('術士')).toBe(1)
+      expect(getSubclassMinLevel('咒術師')).toBe(1)
+      expect(canSelectSubclass('牧師', 1)).toBe(true)
     })
 
-    it('1、2 等不可選子職業', () => {
-      expect(canSelectSubclass(1)).toBe(false)
-      expect(canSelectSubclass(2)).toBe(false)
+    it('德魯伊、法師最低 2 等可選子職業', () => {
+      expect(getSubclassMinLevel('德魯伊')).toBe(2)
+      expect(getSubclassMinLevel('法師')).toBe(2)
+      expect(canSelectSubclass('法師', 1)).toBe(false)
+      expect(canSelectSubclass('法師', 2)).toBe(true)
     })
 
-    it('3 等（含）以上可選子職業', () => {
-      expect(canSelectSubclass(3)).toBe(true)
-      expect(canSelectSubclass(20)).toBe(true)
+    it('其餘職業最低 3 等可選子職業', () => {
+      expect(getSubclassMinLevel('戰士')).toBe(3)
+      expect(canSelectSubclass('戰士', 2)).toBe(false)
+      expect(canSelectSubclass('戰士', 3)).toBe(true)
+      expect(canSelectSubclass('戰士', 20)).toBe(true)
+    })
+
+    it('未知職業名稱時，回退為預設最低等級 3', () => {
+      expect(getSubclassMinLevel('不存在的職業')).toBe(DEFAULT_SUBCLASS_MIN_LEVEL)
+      expect(canSelectSubclass('不存在的職業', 3)).toBe(true)
+      expect(canSelectSubclass('不存在的職業', 2)).toBe(false)
     })
 
     it('非數字或 0 視為不可選', () => {
-      expect(canSelectSubclass(0)).toBe(false)
-      expect(canSelectSubclass(NaN as any)).toBe(false)
+      expect(canSelectSubclass('戰士', 0)).toBe(false)
+      expect(canSelectSubclass('戰士', NaN as any)).toBe(false)
+    })
+
+    it('SUBCLASS_MIN_LEVEL_BY_CLASS 涵蓋所有職業', () => {
+      Object.keys(SUBCLASSES_BY_CLASS).forEach((className) => {
+        expect(SUBCLASS_MIN_LEVEL_BY_CLASS[className as keyof typeof SUBCLASS_MIN_LEVEL_BY_CLASS]).toBeDefined()
+      })
     })
   })
 

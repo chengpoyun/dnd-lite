@@ -194,6 +194,8 @@ export function buildCharacterStats(characterData: any, previousStats: Character
           skillAdvantageDisadvantage: (ed as any)?.skillAdvantageDisadvantage && typeof (ed as any).skillAdvantageDisadvantage === 'object'
             ? (ed as any).skillAdvantageDisadvantage
             : undefined,
+          // 預言學派法師的預言骰（見 utils/portentDice.ts）
+          portentDice: Array.isArray((ed as any)?.portentDice) ? (ed as any).portentDice : undefined,
         },
         attacks
       };

@@ -144,4 +144,43 @@ describe('buildCharacterStats - basic+bonus 結構', () => {
     expect((result as any).ac?.basic ?? (result as any).ac).toBe(12);
     expect((result as any).ac?.bonus ?? 0).toBe(0);
   });
+
+  it('extra_data.portentDice 應正確組裝進 stats.extraData（回歸測試：曾因白名單漏掉此欄位而遺失）', () => {
+    const characterData = {
+      character: { name: 'Test', character_class: '法師', level: 5 },
+      abilityScores: { strength: 8, dexterity: 14, constitution: 12, intelligence: 16, wisdom: 10, charisma: 10 },
+      currentStats: {
+        current_hp: 20,
+        max_hp_basic: 20,
+        max_hp_bonus: 0,
+        temporary_hp: 0,
+        ac_basic: 10,
+        ac_bonus: 0,
+        initiative_basic: 0,
+        initiative_bonus: 0,
+        speed_basic: 30,
+        speed_bonus: 0,
+        attack_hit_basic: 0,
+        attack_hit_bonus: 0,
+        attack_damage_basic: 0,
+        attack_damage_bonus: 0,
+        spell_hit_basic: 5,
+        spell_hit_bonus: 0,
+        spell_dc_basic: 13,
+        spell_dc_bonus: 0,
+        extra_data: {
+          portentDice: [{ value: 18, used: true }, { value: 11, used: false }],
+        },
+      },
+      skillProficiencies: [],
+      savingThrows: [],
+      currency: { copper: 0, silver: 0, electrum: 0, gp: 0, platinum: 0 },
+    };
+
+    const result = buildCharacterStats(characterData, PREV_STATS);
+    expect(result.extraData?.portentDice).toEqual([
+      { value: 18, used: true },
+      { value: 11, used: false },
+    ]);
+  });
 });

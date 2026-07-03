@@ -103,7 +103,7 @@ flowchart TD
 - [utils/characterConstants.ts](../utils/characterConstants.ts)：`STAT_LABELS`、`SKILLS_MAP`、`ABILITY_KEYS`（與 CharacterSheet、CombatView 共用）。
 - `types.ts`：`CharacterStats`、`CustomRecord`、`ClassInfo` 等。
 - `lib/supabase.ts`：DB 對應型別（`CharacterCurrentStats` 含 `combat_notes` 等）。
-- **職業／子職業**：`ClassInfo`（`types.ts`）含 `name`、`level`、`hitDie`、`isPrimary`、`subclassName?`（子職業，選填）；`SUBCLASSES_BY_CLASS` 定義各職業可選子職業。子職業於該職業 **3 等後**才可選（`canSelectSubclass` / `SUBCLASS_MIN_LEVEL`，見 [utils/classUtils.ts](../utils/classUtils.ts)），儲存時會清除低於 3 等的殘留子職業；DB 存於 `character_classes.subclass_name`（可空）。顯示用 `formatClassDisplay`：有子職業時以括號附加（如「牧師（生命領域）」、多職「戰士（冠軍） Lv5 / 法師 Lv3」）。
+- **職業／子職業**：`ClassInfo`（`types.ts`）含 `name`、`level`、`hitDie`、`isPrimary`、`subclassName?`（子職業，選填）；`SUBCLASSES_BY_CLASS` 定義各職業可選子職業。子職業可選最低等級依職業而異（`canSelectSubclass(className, level)` / `SUBCLASS_MIN_LEVEL_BY_CLASS`，見 [utils/classUtils.ts](../utils/classUtils.ts)：牧師/術士/咒術師 1 等、德魯伊/法師 2 等、其餘 3 等），儲存時會清除未達門檻的殘留子職業；DB 存於 `character_classes.subclass_name`（可空）。顯示用 `formatClassDisplay`：有子職業時以括號附加（如「牧師（生命領域）」、多職「戰士（冠軍） Lv5 / 法師 Lv3」）。
 
 ### 5.1 屬性 basic + bonus 規則
 

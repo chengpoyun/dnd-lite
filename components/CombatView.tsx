@@ -5,6 +5,7 @@ import { STAT_LABELS, SKILLS_MAP, ABILITY_KEYS } from '../utils/characterConstan
 import { getFinalCombatStat, getBasicCombatStat, getFinalAbilityModifier, getFinalSavingThrow, getFinalSkillBonus, getDefaultMaxHpBasic, getBonusValue, getStatBonusSourcesBreakdown, type CombatStatKey } from '../utils/characterAttributes';
 import { formatHitDicePools, getTotalCurrentHitDice, useHitDie, recoverHitDiceOnLongRest } from '../utils/classUtils';
 import { calculateCasterLevelForSpellSlots } from '../utils/spellSlots';
+import { getDivinationWizardClass, getPortentDiceCount, getPortentDiceForDisplay, createRerolledPortentDice, type PortentDieState } from '../utils/portentDice';
 import { HybridDataManager } from '../services/hybridDataManager';
 import { MulticlassService } from '../services/multiclassService';
 import { resetAbilityUses } from '../services/abilityService';
@@ -24,6 +25,8 @@ import CombatHPModal from './CombatHPModal';
 import CombatItemEditModal from './CombatItemEditModal';
 import type { ItemEditValues } from './CombatItemEditModal';
 import CombatStatEditModal from './CombatStatEditModal';
+import PortentUseConfirmModal from './PortentUseConfirmModal';
+import PortentRerollModal from './PortentRerollModal';
 import { Modal, ModalButton } from './ui/Modal';
 import { MODAL_CONTAINER_CLASS, MODAL_BUTTON_CANCEL_CLASS, MODAL_FOOTER_BUTTONS_CLASS, MODAL_BUTTON_APPLY_INDIGO_CLASS } from '../styles/modalStyles';
 
@@ -98,6 +101,14 @@ export const CombatView: React.FC<CombatViewProps> = ({
     : (stats.class ? [{ name: stats.class, level: stats.level, hitDie: 'd8', isPrimary: true }] : []);
   const spellSlotCasterLevel = calculateCasterLevelForSpellSlots(casterLevelClasses);
 
+  // 預言學派法師的預言骰（見 utils/portentDice.ts）
+  const divinationWizardClass = getDivinationWizardClass(stats);
+  const portentDiceCount = divinationWizardClass ? getPortentDiceCount(divinationWizardClass.level) : 0;
+  const portentDice = getPortentDiceForDisplay(
+    stats.extraData?.portentDice as PortentDieState[] | undefined,
+    portentDiceCount
+  );
+
   // 角色 ID 管理 - 優先使用從 props 傳入的 ID，否則從 localStorage 獲取
   const [characterId] = useState(() => {
     if (propCharacterId) {
@@ -171,6 +182,9 @@ export const CombatView: React.FC<CombatViewProps> = ({
   const [isShortRestDetailOpen, setIsShortRestDetailOpen] = useState(false);
   const [isLongRestConfirmOpen, setIsLongRestConfirmOpen] = useState(false);
   const [lastRestRoll, setLastRestRoll] = useState<{ die: number, mod: number, total: number } | null>(null);
+
+  const [pendingPortentUseIndex, setPendingPortentUseIndex] = useState<number | null>(null);
+  const [isPortentRerollOpen, setIsPortentRerollOpen] = useState(false);
 
   const [activeCategory, setActiveCategory] = useState<ItemCategory>('action');
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
@@ -611,6 +625,34 @@ export const CombatView: React.FC<CombatViewProps> = ({
     resetAbilityUses(characterId, '長休').catch(error => {
       console.error('長休後重設特殊能力失敗:', error);
     });
+
+    // 預言學派法師：長休後提示重新擲出預言骰
+    if (portentDiceCount > 0) {
+      setIsPortentRerollOpen(true);
+    }
+  };
+
+  const handleUsePortentDie = (index: number) => {
+    const die = portentDice[index];
+    if (!die || die.used || die.value === null) return;
+    setPendingPortentUseIndex(index);
+  };
+
+  const handleConfirmPortentUse = () => {
+    if (pendingPortentUseIndex === null) return;
+    const updatedDice = portentDice.map((die, i) =>
+      i === pendingPortentUseIndex ? { ...die, used: true } : die
+    );
+    setStats(prev => ({ ...prev, extraData: { ...prev.extraData, portentDice: updatedDice } }));
+    onSaveExtraData?.({ ...stats.extraData, portentDice: updatedDice })?.catch(e => console.error('❌ 預言骰使用保存錯誤:', e));
+    setPendingPortentUseIndex(null);
+  };
+
+  const handlePortentReroll = (values: number[]) => {
+    const newDice = createRerolledPortentDice(values);
+    setStats(prev => ({ ...prev, extraData: { ...prev.extraData, portentDice: newDice } }));
+    onSaveExtraData?.({ ...stats.extraData, portentDice: newDice })?.catch(e => console.error('❌ 預言骰長休重骰保存錯誤:', e));
+    setIsPortentRerollOpen(false);
   };
 
   const rollHitDie = () => {
@@ -1045,8 +1087,43 @@ export const CombatView: React.FC<CombatViewProps> = ({
         })()}
       </div>
 
-      <ActionList 
-        title="職業資源" 
+      {portentDiceCount > 0 && (
+        <div className="bg-slate-900/60 p-2 rounded-2xl border border-slate-800/80 space-y-1.5 shadow-inner">
+          <div className="flex items-center gap-2 border-b border-slate-800 pb-1.5 px-1">
+            <span className="text-[16px]">🎲</span>
+            <h3 className="text-[16px] font-black uppercase tracking-widest text-purple-400">預言骰</h3>
+          </div>
+          <div className={`grid gap-1 ${portentDiceCount === 3 ? 'grid-cols-3' : 'grid-cols-2'}`}>
+            {portentDice.map((die, index) => {
+              const isUsable = !die.used && die.value !== null;
+              return (
+                <button
+                  key={index}
+                  onClick={() => handleUsePortentDie(index)}
+                  disabled={!isUsable}
+                  className={`flex flex-col items-center justify-center h-[70px] rounded-xl border transition-all
+                    ${isUsable
+                      ? 'bg-purple-500/10 border-purple-500/40 active:scale-95 active:bg-purple-500/20 shadow-sm'
+                      : 'bg-slate-950 border-slate-900/50 opacity-45'
+                    }`}
+                >
+                  <span className={`text-2xl font-mono font-black leading-none ${isUsable ? 'text-white' : 'text-slate-600 line-through'}`}>
+                    {die.value ?? '－'}
+                  </span>
+                  {!isUsable && (
+                    <span className="text-[16px] text-slate-600 mt-1">
+                      {die.value === null ? '尚未擲骰' : '已使用'}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      <ActionList
+        title="職業資源"
         category="resource"
         items={resources} 
         colorClass="text-cyan-500" 
@@ -1176,6 +1253,21 @@ export const CombatView: React.FC<CombatViewProps> = ({
         isOpen={isRestOptionsOpen && isLongRestConfirmOpen}
         onClose={() => setIsLongRestConfirmOpen(false)}
         onConfirm={handleLongRest}
+      />
+
+      {/* 使用預言骰確認彈窗 */}
+      <PortentUseConfirmModal
+        isOpen={pendingPortentUseIndex !== null}
+        dieValue={pendingPortentUseIndex !== null ? portentDice[pendingPortentUseIndex]?.value ?? null : null}
+        onClose={() => setPendingPortentUseIndex(null)}
+        onConfirm={handleConfirmPortentUse}
+      />
+
+      {/* 長休後重新擲出預言骰彈窗 */}
+      <PortentRerollModal
+        isOpen={isPortentRerollOpen}
+        diceCount={portentDiceCount}
+        onSubmit={handlePortentReroll}
       />
 
       {/* 短休詳情彈窗 */}

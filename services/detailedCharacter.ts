@@ -821,6 +821,10 @@ export class DetailedCharacterService {
       if (extraData?.classes && Array.isArray(extraData.classes)) payload.classes = extraData.classes
       else if (Array.isArray((existingEd as any)?.classes)) payload.classes = (existingEd as any).classes
 
+      // 預言學派法師的預言骰（見 utils/portentDice.ts）
+      if (Array.isArray(extraData?.portentDice)) payload.portentDice = extraData.portentDice
+      else if (Array.isArray((existingEd as any)?.portentDice)) payload.portentDice = (existingEd as any).portentDice
+
       if (existingRow) {
         // 記錄存在，只更新 extra_data，並用 select 確認有寫入
         const { data: updated, error } = await supabase

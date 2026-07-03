@@ -306,13 +306,13 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
     }
     
     setIsSavingInfo(true);
-    // 驗證所有等級為有效數字；子職業需 3 等以上，低於 3 等一律清除
+    // 驗證所有等級為有效數字；子職業可選等級依職業而異，未達門檻一律清除
     const validClasses = editClasses.map(c => {
       const level = Math.max(1, parseInt(String(c.level)) || 1); // 確保等級至少為1
       return {
         ...c,
         level,
-        subclassName: canSelectSubclass(level) ? c.subclassName : undefined
+        subclassName: canSelectSubclass(c.name, level) ? c.subclassName : undefined
       };
     });
     

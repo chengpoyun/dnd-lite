@@ -4,6 +4,12 @@
 
 ---
 
+## 1.8.0
+
+- 新增：預言學派法師的**預言骰**（Portent）。戰鬥頁「職業資源」上方顯示目前的預言骰（2 等取得 2 顆，14 等起變為 3 顆，依法師職業等級判斷，多職時不含其他職業等級），一顆骰一個按鈕；點擊未使用的骰子會跳出確認視窗，確認後該骰反灰、不可再互動；長休完成後強制跳出視窗，要求輸入本次長休重新擲出的 d20 數值（1～20），送出後整組換新並重置為未使用。資料存於 `characters.extra_data.portentDice`，未新增資料表。
+- 修正：子職業可選最低等級原本全域寫死 3 等，實際上依 D&D 5E 規則因職業而異（牧師/術士/咒術師 1 等、德魯伊/法師 2 等，其餘 3 等）。`canSelectSubclass` 改為依職業判斷（`SUBCLASS_MIN_LEVEL_BY_CLASS`），法師 2 等起即可選擇「預言學派」等子職業。
+- 修正：`extra_data` 的讀寫路徑（`DetailedCharacterService.updateExtraData` 寫入、`buildCharacterStats` 讀出）原本都用「已知欄位白名單」組裝資料，新增欄位（此次為 `portentDice`）若忘記加入白名單會被靜默丟棄、無法跨裝置同步或存活過重新整理。開發預言骰功能時實際在瀏覽器測試（含頁面重新整理）才發現此問題，已修正並補上回歸測試。
+
 ## 1.7.2
 
 - 修正：架構健檢發現 `CharacterSheet.tsx` 儲存兼職職業時（新增職業的 `addNewClass`、以及實際被 `CharacterInfoModal` 使用的 `saveInfoWithClasses`），`character_classes` 是「先刪除全部、再逐筆 insert」且完全不檢查錯誤，若中途失敗會讓角色卡在職業被刪光、只補回部分的半殘狀態。新增 `MulticlassService.replaceCharacterClasses` 統一處理：單次批次 insert 並檢查刪除/寫入的錯誤，失敗時不繼續、不更新本地狀態。
