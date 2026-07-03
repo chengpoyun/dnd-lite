@@ -705,7 +705,7 @@ export class DetailedCharacterService {
         .single()
 
       if (queryError && queryError.code !== 'PGRST116') { // PGRST116 = 記錄不存在
-        console.error('查詢現有記錄失敗:', queryError)
+        console.error('查詢現有記錄失敗:', queryError.message, queryError.code, queryError.details, queryError.hint)
         return false
       }
 
@@ -717,24 +717,24 @@ export class DetailedCharacterService {
           .eq('character_id', characterId)
 
         if (error) {
-          console.error('更新當前狀態失敗:', error)
+          console.error('更新當前狀態失敗:', error.message, error.code, error.details, error.hint)
           return false
         }
       } else {
         // 記錄不存在，創建新記錄（使用默認值）
-        const defaultStats = this.getDefaultCurrentStats()
+        // id/character_id/updated_at 只是滿足型別的佔位值，不可寫入 DB，故排除後再展開
+        const { id: _id, character_id: _characterId, updated_at: _updatedAt, ...defaultStats } = this.getDefaultCurrentStats()
         const { error } = await supabase
           .from('character_current_stats')
           .insert([{
-            character_id: characterId,
             ...defaultStats,
             ...stats, // 覆蓋默認值
-            created_at: new Date().toISOString(),
+            character_id: characterId,
             updated_at: new Date().toISOString()
           }])
 
         if (error) {
-          console.error('創建當前狀態記錄失敗:', error)
+          console.error('創建當前狀態記錄失敗:', error.message, error.code, error.details, error.hint)
           return false
         }
       }
