@@ -2,7 +2,6 @@ import React from 'react';
 import { SKILLS_MAP } from '../utils/characterConstants';
 
 export type StatBonusKey =
-  | 'abilityScores'
   | 'abilityModifiers'
   | 'savingThrows'
   | 'skills'
@@ -16,8 +15,10 @@ export type StatBonusKey =
   | 'combat_spellDc';
 
 export interface StatBonusEditorValue {
-  /** 六個屬性值加成（力量、敏捷、體質、智力、感知、魅力） */
+  /** 六個屬性值加成（力量、敏捷、體質、智力、感知、魅力），相對加值（如 +2） */
   abilityScores?: Record<string, number>;
+  /** 六個屬性值「設為 X」下限（如食人魔力量手套設力量為 19），輸入 =19 語法時寫入此欄 */
+  abilityScoreFloors?: Record<string, number>;
   abilityModifiers?: Record<string, number>;
   savingThrows?: Record<string, number>;
   skills?: Record<string, number>;
@@ -55,6 +56,7 @@ const rowClass = 'flex items-center gap-1 py-1 min-h-9';
 export const StatBonusEditor: React.FC<StatBonusEditorProps> = ({ value, onChange }) => {
   const nextBase = (): StatBonusEditorValue => ({
     abilityScores: { ...(value.abilityScores ?? {}) },
+    abilityScoreFloors: { ...(value.abilityScoreFloors ?? {}) },
     abilityModifiers: { ...(value.abilityModifiers ?? {}) },
     savingThrows: { ...(value.savingThrows ?? {}) },
     skills: { ...(value.skills ?? {}) },
@@ -75,9 +77,6 @@ export const StatBonusEditor: React.FC<StatBonusEditorProps> = ({ value, onChang
     const next = nextBase();
 
     switch (path) {
-      case 'abilityScores':
-        next.abilityScores![key] = num;
-        break;
       case 'abilityModifiers':
         next.abilityModifiers![key] = num;
         break;
@@ -101,6 +100,30 @@ export const StatBonusEditor: React.FC<StatBonusEditorProps> = ({ value, onChang
         next.combatStats![field] = num;
         break;
       }
+    }
+
+    onChange(next);
+  };
+
+  /**
+   * 六個屬性值欄位的輸入支援兩種語法：
+   * - 相對加值（如 "+2"、"-1"，或純數字）：寫入 abilityScores，跟其他來源加總
+   * - 絕對值「設為 X」（如 "=19"，如食人魔力量手套）：寫入 abilityScoreFloors，
+   *   套用時取「基礎值 + 其他所有加值」與此下限的較大值，不會疊加、也不會往下拉低數值
+   * 兩者互斥：同一屬性同一來源只會有一種語法生效，切換語法會清除另一欄的舊值。
+   */
+  const handleAbilityScoreChange = (key: string, raw: string) => {
+    const trimmed = raw.trim();
+    const next = nextBase();
+
+    if (trimmed.startsWith('=')) {
+      const parsed = parseInt(trimmed.slice(1), 10);
+      next.abilityScoreFloors![key] = Number.isFinite(parsed) ? parsed : 0;
+      delete next.abilityScores![key];
+    } else {
+      const parsed = parseInt(trimmed, 10);
+      next.abilityScores![key] = Number.isFinite(parsed) ? parsed : 0;
+      delete next.abilityScoreFloors![key];
     }
 
     onChange(next);
@@ -169,6 +192,30 @@ export const StatBonusEditor: React.FC<StatBonusEditorProps> = ({ value, onChang
             defaultValue={v === 0 ? '' : String(v)}
             onBlur={(e) => handleNumberChange(path, key, e.target.value)}
             inputMode="numeric"
+          />
+          <button type="button" disabled className={hiddenSlotClass} aria-hidden>優勢</button>
+        </div>
+      </div>
+    );
+  };
+
+  /** 六個屬性值列：同時支援相對加值（+2）與絕對值下限（=19，如食人魔力量手套） */
+  const renderAbilityScoreRow = (label: string, key: string, rowKey: string) => {
+    const floor = value.abilityScoreFloors?.[key];
+    const rel = value.abilityScores?.[key] ?? 0;
+    const displayValue = typeof floor === 'number' ? `=${floor}` : (rel === 0 ? '' : String(rel));
+    return (
+      <div key={rowKey} className={rowClass}>
+        <div className={leftColClass}>
+          <span className="text-sm text-slate-300 truncate">{label}</span>
+        </div>
+        <div className={rightColClass}>
+          <button type="button" disabled className={hiddenSlotClass} aria-hidden>劣勢</button>
+          <input
+            className={numberInputClass}
+            defaultValue={displayValue}
+            onBlur={(e) => handleAbilityScoreChange(key, e.target.value)}
+            placeholder="+2/=19"
           />
           <button type="button" disabled className={hiddenSlotClass} aria-hidden>優勢</button>
         </div>
@@ -276,9 +323,7 @@ export const StatBonusEditor: React.FC<StatBonusEditorProps> = ({ value, onChang
 
   return (
     <div className="space-y-0 max-h-[60vh] overflow-y-auto pr-1">
-      {abilityScoreLabels.map(({ key, label }) =>
-        renderNumberRow('abilityScores', label, key, value.abilityScores?.[key], `score-${key}`),
-      )}
+      {abilityScoreLabels.map(({ key, label }) => renderAbilityScoreRow(label, key, `score-${key}`))}
       {abilityScoreLabels.map(({ key, label }) =>
         renderNumberRow(
           'abilityModifiers',

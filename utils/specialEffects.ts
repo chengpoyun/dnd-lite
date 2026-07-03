@@ -35,15 +35,16 @@ export type SpecialEffectBonus = CombatStatBonus & {
   abilityScoreFloors?: Partial<Record<AbilityKey, number>>;
 };
 
-/** 已註冊的特殊效果 id（與 stat_bonuses.specialEffectId 對應；皆以小寫比對） */
-const REGISTERED_EFFECT_IDS = ['tough', 'ogrepower'] as const;
+/**
+ * 已註冊的特殊效果 id（與 stat_bonuses.specialEffectId 對應；皆以小寫比對）
+ * 僅保留「數值會隨等級等 context 動態變化」的效果（如健壯）。
+ * 「屬性值設為固定值」類效果（如食人魔力量手套）已改為透過 stat_bonuses.abilityScoreFloors
+ * 直接由 StatBonusEditor 輸入（見 collectSourceBonusesForCharacter），不再需要特殊註冊。
+ */
+const REGISTERED_EFFECT_IDS = ['tough'] as const;
 
 const registry: Record<string, (ctx: SpecialEffectContext) => SpecialEffectBonus> = {
   tough: (ctx) => ({ maxHp: ctx.level * 2 }),
-  // 食人魔力量手套：力量值「設為 19」。
-  // 以「下限 19」表示：在所有其他加值算完後，若最終力量低於 19 才補到 19，否則無作用。
-  // 不影響力量調整值／豁免等其他來源的加值（它們在 final 屬性值之外另行疊加）。
-  ogrepower: () => ({ abilityScoreFloors: { str: 19 } }),
 };
 
 /**

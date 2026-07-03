@@ -67,29 +67,15 @@ describe('specialEffects', () => {
       const result = getSpecialEffectCombatBonus('Tough', baseContext);
       expect(result).toEqual({ maxHp: 10 });
     });
-
-    it('strips abilityScoreFloors (combat-only view) for ogrePower', () => {
-      const result = getSpecialEffectCombatBonus('ogrePower', { level: 1, abilityScores: { str: 10 } });
-      expect(result).toEqual({});
-    });
   });
 
-  // 食人魔力量手套：力量「設為 19」= 屬性值下限 19（在所有加值算完後才套用）
-  describe('ogrePower (食人魔力量手套)', () => {
-    it('is a registered effect id', () => {
-      expect(isRegisteredEffectId('ogrePower')).toBe(true);
-      expect(getSpecialEffectId({ specialEffectId: 'ogrePower' })).toBe('ogrepower');
+  describe('ogrePower（食人魔力量手套）已改為通用機制，不再是註冊的特殊效果', () => {
+    it('ogrePower 不再是已註冊的特殊效果 id', () => {
+      expect(isRegisteredEffectId('ogrePower')).toBe(false);
+      expect(getSpecialEffectId({ specialEffectId: 'ogrePower' })).toBe(null);
     });
 
-    it('declares a STR floor of 19 (conditional logic applied at aggregation, not here)', () => {
-      expect(getSpecialEffectBonus('ogrePower', { level: 1, abilityScores: { str: 10 } }))
-        .toEqual({ abilityScoreFloors: { str: 19 } });
-      // 與基礎力量無關：只宣告下限，實際補足差額在彙總階段依「最終屬性值」計算
-      expect(getSpecialEffectBonus('ogrePower', { level: 5, abilityScores: { str: 20 } }))
-        .toEqual({ abilityScoreFloors: { str: 19 } });
-    });
-
-    it('tough via getSpecialEffectBonus still returns maxHp only', () => {
+    it('tough via getSpecialEffectBonus 仍正常運作', () => {
       expect(getSpecialEffectBonus('tough', { level: 5 })).toEqual({ maxHp: 10 });
     });
   });

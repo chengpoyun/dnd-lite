@@ -1,6 +1,8 @@
 /**
- * 整合測試：食人魔力量手套（裝備中）經由 collectSourceBonusesForCharacter
- * 應產生 abilityScores.str 的差額，使力量設為 19。
+ * 整合測試：食人魔力量手套（裝備中，stat_bonuses.abilityScoreFloors 通用機制）
+ * 經由 collectSourceBonusesForCharacter 應產生 abilityScores.str 的差額，使力量設為 19。
+ * 原本透過 specialEffectId:'ogrePower' 特殊註冊實作，已改為通用的 abilityScoreFloors
+ * （StatBonusEditor 輸入 =19 語法即可），這裡驗證改版後行為與原本完全一致。
  * 仿 advantageDisadvantage.integration 的做法：vi.unmock 取真實服務、僅 mock supabase、動態 import。
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
@@ -21,7 +23,7 @@ const gauntletRow = (isEquipped: boolean) => ({
     id: 'gi-gauntlet',
     name: '食人魔力量手套',
     affects_stats: true,
-    stat_bonuses: { specialEffectId: 'ogrePower' },
+    stat_bonuses: { abilityScoreFloors: { str: 19 } },
   },
 });
 

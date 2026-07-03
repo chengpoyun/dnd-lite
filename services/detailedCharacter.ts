@@ -1533,6 +1533,7 @@ export class DetailedCharacterService {
 
           const abilityScores = hasBonuses ? bonuses.abilityScores : undefined
           const abilityModifiers = hasBonuses ? bonuses.abilityModifiers : undefined
+          const abilityScoreFloors = hasBonuses ? bonuses.abilityScoreFloors : undefined
           const savingThrows = hasBonuses ? bonuses.savingThrows : undefined
           const skills = hasBonuses ? bonuses.skills : undefined
           const combatStats = hasBonuses ? bonuses.combatStats : undefined
@@ -1605,6 +1606,14 @@ export class DetailedCharacterService {
             }
           }
 
+          // 屬性值「設為 X」效果（如食人魔力量手套），直接來自一般 stat_bonuses.abilityScoreFloors
+          // （UI 於 StatBonusEditor 輸入 =19 語法），延後到所有加值彙總後再套用（見下方 pendingFloors 迴圈）
+          if (abilityScoreFloors && typeof abilityScoreFloors === 'object') {
+            for (const [ab, floor] of Object.entries(abilityScoreFloors)) {
+              if (typeof floor === 'number') pendingFloors.push({ perSource, ability: ab, floor })
+            }
+          }
+
           if (isSpecial && context && effectId) {
             const special = getSpecialEffectBonus(effectId, context)
             if (special.abilityScores && Object.keys(special.abilityScores).length) {
@@ -1672,6 +1681,7 @@ export class DetailedCharacterService {
 
           const abilityScores = bonuses.abilityScores
           const abilityModifiers = bonuses.abilityModifiers
+          const abilityScoreFloors = bonuses.abilityScoreFloors
           const savingThrows = bonuses.savingThrows
           const skills = bonuses.skills
           const combatStats = bonuses.combatStats
@@ -1744,7 +1754,15 @@ export class DetailedCharacterService {
             }
           }
 
-          // 特殊效果（如食人魔力量手套：依基礎力量計算「設為 19」的差額）
+          // 屬性值「設為 X」效果（如食人魔力量手套），直接來自一般 stat_bonuses.abilityScoreFloors
+          // （UI 於 StatBonusEditor 輸入 =19 語法），延後到所有加值彙總後再套用（見下方 pendingFloors 迴圈）
+          if (abilityScoreFloors && typeof abilityScoreFloors === 'object') {
+            for (const [ab, floor] of Object.entries(abilityScoreFloors)) {
+              if (typeof floor === 'number') pendingFloors.push({ perSource, ability: ab, floor })
+            }
+          }
+
+          // 特殊效果（如健壯：依等級動態計算的公式型效果）
           const itemEffectId = getSpecialEffectId(bonuses)
           if (itemEffectId && context) {
             const special = getSpecialEffectBonus(itemEffectId, context)
