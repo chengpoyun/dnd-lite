@@ -5,6 +5,7 @@ import { STAT_LABELS, SKILLS_MAP, ABILITY_KEYS } from '../utils/characterConstan
 import { getFinalCombatStat, getBasicCombatStat, getFinalAbilityModifier, getFinalSavingThrow, getFinalSkillBonus, getDefaultMaxHpBasic, getBonusValue, getStatBonusSourcesBreakdown, type CombatStatKey } from '../utils/characterAttributes';
 import { formatHitDicePools, getTotalCurrentHitDice, useHitDie, recoverHitDiceOnLongRest } from '../utils/classUtils';
 import { calculateCasterLevelForSpellSlots } from '../utils/spellSlots';
+import { getRogueLevel } from '../utils/sneakAttack';
 import { getDivinationWizardClass, getPortentDiceCount, getPortentDiceForDisplay, createRerolledPortentDice, type PortentDieState } from '../utils/portentDice';
 import { HybridDataManager } from '../services/hybridDataManager';
 import { MulticlassService } from '../services/multiclassService';
@@ -100,6 +101,9 @@ export const CombatView: React.FC<CombatViewProps> = ({
     ? stats.classes
     : (stats.class ? [{ name: stats.class, level: stats.level, hitDie: 'd8', isPrimary: true }] : []);
   const spellSlotCasterLevel = calculateCasterLevelForSpellSlots(casterLevelClasses);
+
+  // 遊蕩者偷襲傷害：依遊蕩者等級查表（見 utils/sneakAttack.ts）
+  const rogueLevel = getRogueLevel(stats);
 
   // 預言學派法師的預言骰（見 utils/portentDice.ts）
   const divinationWizardClass = getDivinationWizardClass(stats);
@@ -217,6 +221,9 @@ export const CombatView: React.FC<CombatViewProps> = ({
         // 依目前的合併施法者等級同步「N環法術位」職業資源（見 utils/spellSlots.ts）
         await HybridDataManager.syncSpellSlotResources(characterId, spellSlotCasterLevel);
 
+        // 依目前的遊蕩者等級同步「偷襲傷害」職業資源（見 utils/sneakAttack.ts）
+        await HybridDataManager.syncSneakAttackResource(characterId, rogueLevel);
+
         const combatItems = await HybridDataManager.getCombatItems(characterId);
         const filteredCombatItems = isCaster
           ? combatItems
@@ -262,7 +269,7 @@ export const CombatView: React.FC<CombatViewProps> = ({
     };
 
     loadData();
-  }, [characterId, isCaster, spellSlotCasterLevel]);
+  }, [characterId, isCaster, spellSlotCasterLevel, rogueLevel]);
 
   // 分類映射 - 前端到資料庫
   const mapCategoryToDb = (category: ItemCategory): DatabaseCombatItem['category'] => {

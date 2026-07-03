@@ -1,6 +1,9 @@
 import { supabase, type Character, type CharacterCombatAction as CombatItem, type DefaultCombatAction } from '../lib/supabase'
 import type { CharacterStats } from '../types'
 import { getSpellSlotsForCasterLevel } from '../utils/spellSlots'
+import { getSneakAttackDice } from '../utils/sneakAttack'
+
+const SNEAK_ATTACK_TEMPLATE_NAME = '偷襲傷害'
 
 // 廢棄的 CharacterService 已移除，請使用 DetailedCharacterService
 
@@ -213,6 +216,74 @@ export class CombatItemService {
       }
     } catch (error) {
       console.error('同步法術位資源失敗:', error)
+    }
+  }
+
+  /**
+   * 依角色的遊蕩者等級，同步「偷襲傷害」職業資源項目：
+   * - 每回合限用一次（max_uses 固定為範本值，不隨等級變動），骰數依等級查表後寫入項目名稱（如「偷襲傷害 3d6」）。
+   * - 尚未取得偷襲傷害（等級0，骰數0）時不建立項目。
+   * - 名稱與範本相同時不寫入資料庫。
+   */
+  static async syncSneakAttackResource(characterId: string, rogueLevel: number): Promise<void> {
+    try {
+      const dice = getSneakAttackDice(rogueLevel)
+
+      const { data: template, error: templateError } = await supabase
+        .from('default_combat_actions')
+        .select('*')
+        .eq('name', SNEAK_ATTACK_TEMPLATE_NAME)
+        .eq('category', 'resource')
+        .maybeSingle()
+
+      if (templateError) {
+        console.error('讀取偷襲傷害範本失敗:', templateError)
+        return
+      }
+      if (!template) return
+
+      const { data: existing, error: existingError } = await supabase
+        .from('character_combat_actions')
+        .select('*')
+        .eq('character_id', characterId)
+        .eq('default_item_id', template.id)
+        .maybeSingle()
+
+      if (existingError) {
+        console.error('讀取角色偷襲傷害資料失敗:', existingError)
+        return
+      }
+
+      const displayName = `${template.name} ${dice}d6`
+
+      if (!existing) {
+        if (dice > 0) {
+          const { error } = await supabase.from('character_combat_actions').insert([{
+            character_id: characterId,
+            category: 'resource',
+            name: displayName,
+            icon: template.icon,
+            max_uses: template.max_uses,
+            current_uses: template.max_uses,
+            recovery_type: template.recovery_type,
+            is_default: false,
+            is_custom: false,
+            default_item_id: template.id,
+          }])
+          if (error) console.error('建立偷襲傷害失敗:', error)
+        }
+        return
+      }
+
+      if (existing.name === displayName) return
+
+      const { error } = await supabase
+        .from('character_combat_actions')
+        .update({ name: displayName })
+        .eq('id', existing.id)
+      if (error) console.error('更新偷襲傷害失敗:', error)
+    } catch (error) {
+      console.error('同步偷襲傷害資源失敗:', error)
     }
   }
 

@@ -450,6 +450,13 @@ export class HybridDataManager {
   }
 
   /**
+   * 依角色目前的遊蕩者等級，同步「偷襲傷害」職業資源項目
+   */
+  static async syncSneakAttackResource(characterId: string, rogueLevel: number): Promise<void> {
+    await CombatItemService.syncSneakAttackResource(characterId, rogueLevel)
+  }
+
+  /**
    * 更新屬性額外調整值（直接寫入 DB）
    */
   static async updateAbilityBonuses(
