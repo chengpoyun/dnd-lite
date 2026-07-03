@@ -9,6 +9,7 @@
 - 改進：能力/物品的「屬性值」加成欄位（力量、敏捷、體質、智力、感知、魅力）現支援 `=19` 這種絕對值語法（如食人魔力量手套「力量設為19」），跟既有的相對加值（`+2`、`-1`）共用同一個輸入框。絕對值採「下限」語意：套用時取「基礎值＋其他所有加值」與輸入值的較大者，不會疊加、也不會把已經更高的數值往下拉。僅限六個屬性值欄位支援此語法，調整值／豁免／技能／戰鬥屬性等其餘欄位維持純相對加值輸入。
 - 移除：`utils/specialEffects.ts` 的 `ogrepower`（食人魔力量手套）改用上述通用機制實作，從特殊效果白名單移除；`tough`（健壯專長，每級 +2 生命上限的動態公式效果）維持不變。
 - 資料庫：遷移「食人魔力量手套」範本（`global_items`）的 `stat_bonuses` 從 `specialEffectId` 格式改為 `abilityScoreFloors` 格式。角色 AAA 目前裝備此物品且無角色端覆寫，效果完全繼承自範本資料；已用 Supabase 直接查詢確認遷移前後 AAA 的力量計算結果一致（基礎力量已是 19，手套下限同為 19，皆無額外加值產生）。
+- 整理：專案結構檢視後的清理（無功能變更）。`types.ts` 併入 `types/index.ts`，消除跟既有 `types/terrainReward.ts` 的命名混淆；`TEST-README.md` 移至 `docs/testing.md`，跟其餘延伸文件放一起；移除已完成的一次性文件 `docs/test-review.md`、未被引用的 `metadata.json`、以及寫死他人機器路徑而無法執行的除錯腳本 `scripts/check-multiclass.sh`、`scripts/verify-spells.js`。
 
 ## 1.8.0
 

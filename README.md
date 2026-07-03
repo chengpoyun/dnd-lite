@@ -131,7 +131,7 @@ VITE_SUPABASE_ANON_KEY=your-anon-key-here
   本專案已設定 `base: '/dnd-lite/'`，需部署至 `https://<username>.github.io/dnd-lite/`；若部署至其他路徑，請調整 `vite.config.ts` 的 `base`。
 
 - **測試失敗**  
-  執行 `npm test` 或 `npm run test:watch`，依錯誤訊息檢查；詳見 [測試說明](TEST-README.md)。
+  執行 `npm test` 或 `npm run test:watch`，依錯誤訊息檢查；詳見 [測試說明](docs/testing.md)。
 
 ---
 
@@ -144,7 +144,7 @@ VITE_SUPABASE_ANON_KEY=your-anon-key-here
 | [docs/database-migration.md](docs/database-migration.md) | 資料庫遷移：建立、執行、注意事項 |
 | [docs/ai-workflow.md](docs/ai-workflow.md) | AI 協作工作流：需求確認、先寫測試再實作、回報 |
 | [docs/MARKDOWN-SUPPORT.md](docs/MARKDOWN-SUPPORT.md) | 法術/物品描述欄位的 Markdown 與 HTML 支援 |
-| [TEST-README.md](TEST-README.md) | 測試：如何執行、覆蓋範圍、撰寫新測試 |
+| [docs/testing.md](docs/testing.md) | 測試：如何執行、覆蓋範圍、撰寫新測試 |
 | [CHANGELOG.md](CHANGELOG.md) | 版本紀錄與關鍵變更 |
 
 ---

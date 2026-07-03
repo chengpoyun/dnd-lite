@@ -15,7 +15,7 @@
 | 深入 UI 分層、資料流、Modal 慣例、basic/bonus 計算 | [docs/code-architecture.md](docs/code-architecture.md) |
 | 新增或執行資料庫遷移 | [docs/database-migration.md](docs/database-migration.md) |
 | 用 AI 協作開發（先寫測試再實作） | [docs/ai-workflow.md](docs/ai-workflow.md) |
-| 寫或跑測試 | [TEST-README.md](TEST-README.md) |
+| 寫或跑測試 | [docs/testing.md](docs/testing.md) |
 | 法術/物品描述的 Markdown、HTML | [docs/MARKDOWN-SUPPORT.md](docs/MARKDOWN-SUPPORT.md) |
 | 查看版本紀錄與變更 | [CHANGELOG.md](CHANGELOG.md) |
 
@@ -58,7 +58,7 @@
 | `scripts/` | 匯入／遷移腳本（法術、物品、DB 更新等） |
 | `supabase/migrations/` | 資料庫遷移（SQL） |
 | `src/test/` | Vitest 單元／元件測試 |
-| `types.ts` | 前端用型別（`CharacterStats`、`CustomRecord`、`ClassInfo` 等） |
+| `types/index.ts` | 前端用型別（`CharacterStats`、`CustomRecord`、`ClassInfo` 等） |
 
 ### 關鍵服務與模組
 
@@ -109,7 +109,7 @@ npm run dev    # 開發伺服器 http://localhost:3000
 
 - **執行測試**：`npm test` 或 `npm run test:watch`、`npm run test:ui`。
 - **覆蓋範圍**：專案以 Vitest 為主，測試集中在 `src/test/`；新功能建議一併補上單元或元件測試。
-- 撰寫方式與命名慣例見 [TEST-README.md](TEST-README.md)。
+- 撰寫方式與命名慣例見 [docs/testing.md](docs/testing.md)。
 
 ---
 
@@ -128,6 +128,6 @@ npm run dev    # 開發伺服器 http://localhost:3000
 - **新功能或行為變更**：若影響「如何跑起來」或「常用指令」，請更新 [README.md](README.md)。
 - **架構或目錄、服務職責、DB 對應**：更新 [docs/code-architecture.md](docs/code-architecture.md)。
 - **遷移流程或 Supabase 設定**：更新 [docs/database-migration.md](docs/database-migration.md)。
-- **測試方式或慣例**：更新 [TEST-README.md](TEST-README.md)。
+- **測試方式或慣例**：更新 [docs/testing.md](docs/testing.md)。
 - **版本紀錄**：發版或重大變更時更新 [CHANGELOG.md](CHANGELOG.md)。
 - 在 PR 或 Issue 中可提醒：是否需同步更新上述文件。

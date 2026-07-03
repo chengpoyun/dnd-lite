@@ -29,7 +29,7 @@ D&D 冒險者助手 — Vite + React 19 + TypeScript 的手機優先角色管理
 - **單一狀態來源**：`App.tsx` 持有 `stats`（`CharacterStats`），透過 `setStats` 更新；Tab 路由與 `onSaveXxx` 回調也在此。
 - **資料流**：Page 元件收 `onSaveXxx` → 呼叫 `services/`（`hybridDataManager` / `detailedCharacter`）寫入 Supabase → 以 `utils/appInit.ts` 的 `buildCharacterStats` 重新組裝 → `setStats`。
 - **戰鬥屬性 = basic + bonus = final**：取 final 值一律用 `utils/characterAttributes.ts`（`getFinalCombatStat`、`getFinalAbilityScore`、`getFinalSavingThrow`、`getFinalSkillBonus` 等），勿自行加總。
-- **目錄**：`components/`（含 `ui/` 共用元件與各 `XxxModal.tsx`）、`services/`（資料存取）、`utils/`（常數與計算）、`styles/`（`modalStyles.ts`、`common.ts`）、`hooks/`、`contexts/`（`AuthContext`）、`lib/supabase.ts`、`types.ts`、`src/test/`。
+- **目錄**：`components/`（含 `ui/` 共用元件與各 `XxxModal.tsx`）、`services/`（資料存取）、`utils/`（常數與計算）、`styles/`（`modalStyles.ts`、`common.ts`）、`hooks/`、`contexts/`（`AuthContext`）、`lib/supabase.ts`、`types/`（`index.ts` 為主要共用型別，`terrainReward.ts` 為地形獎勵專用型別）、`src/test/`。
 
 ## 慣例
 
@@ -44,4 +44,5 @@ D&D 冒險者助手 — Vite + React 19 + TypeScript 的手機優先角色管理
 - `docs/database-migration.md` — migration 建立與推送流程
 - `docs/ai-workflow.md` — 開發工作流（測試先行）
 - `docs/MARKDOWN-SUPPORT.md` — Markdown 渲染支援
+- `docs/testing.md` — 測試：如何執行、覆蓋範圍、撰寫新測試
 - `README-project.md` — 目錄總覽與「如何在專案裡工作」

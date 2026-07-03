@@ -140,5 +140,5 @@
 ## 相關文件
 
 - [README-project.md](../README-project.md)：開發流程與「新增功能建議步驟」
-- [TEST-README.md](../TEST-README.md)：測試撰寫與執行
+- [testing.md](testing.md)：測試撰寫與執行
 - [code-architecture.md](code-architecture.md)：程式風格與測試慣例

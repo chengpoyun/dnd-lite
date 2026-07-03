@@ -1,7 +1,7 @@
 # D&D Lite 測試說明
 
 > 本文件說明如何**執行測試**、測試覆蓋範圍，以及**撰寫新測試**時的目錄與命名慣例。專案使用 Vitest 與 Testing Library。  
-> 開發流程與「先寫測試再實作」原則見 [README-project.md](README-project.md) 與 [docs/ai-workflow.md](docs/ai-workflow.md)。
+> 開發流程與「先寫測試再實作」原則見 [README-project.md](../README-project.md) 與 [ai-workflow.md](ai-workflow.md)。
 
 ---
 
@@ -112,7 +112,7 @@ describe('模組或功能名稱', () => {
 
 - 需隔離後端時可使用 `vi.mock('...')`，例如：`vi.mock('../../services/hybridDataManager')`。
 - 全域或共用設定（如 Testing Library、JSDOM）見 `src/test/setup.ts`。
-- 撰寫前可參考 [docs/ai-workflow.md](docs/ai-workflow.md)：先寫測試、再實作，並跑完整 `npm test` 確保無回歸。
+- 撰寫前可參考 [ai-workflow.md](ai-workflow.md)：先寫測試、再實作，並跑完整 `npm test` 確保無回歸。
 
 ### 新增功能時建議
 
@@ -148,6 +148,6 @@ npx vitest --inspect-brk
 
 ## 相關文件
 
-- [README.md](README.md)：專案簡介與 `npm test` 指令
-- [README-project.md](README-project.md)：開發流程與測試策略
-- [docs/ai-workflow.md](docs/ai-workflow.md)：先寫測試再實作的 AI 工作流
+- [README.md](../README.md)：專案簡介與 `npm test` 指令
+- [README-project.md](../README-project.md)：開發流程與測試策略
+- [ai-workflow.md](ai-workflow.md)：先寫測試再實作的 AI 工作流
