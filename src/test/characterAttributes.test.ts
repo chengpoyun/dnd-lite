@@ -8,6 +8,8 @@ import {
   getFinalSavingThrow,
   getFinalSkillBonus,
   getDefaultMaxHpBasic,
+  getBonusValue,
+  getStatBonusSourcesBreakdown,
 } from '../../utils/characterAttributes';
 import type { CharacterStats } from '../../types';
 import { SKILLS_MAP, ABILITY_KEYS } from '../../utils/characterConstants';
@@ -372,5 +374,42 @@ describe('characterAttributes - 食人魔力量手套(力量設為19)與其他�
     expect(getFinalAbilityModifier(stats, 'str')).toBe(5);
     // 力量豁免 = mod(5) + 熟練(5級=+3) + DB misc(+2) + 來源 savingThrows(+3) = 13
     expect(getFinalSavingThrow(stats, 'str')).toBe(13);
+  });
+});
+
+describe('characterAttributes - getBonusValue', () => {
+  it('舊格式 flat 數值時回傳 0（沒有獨立的 bonus 欄位）', () => {
+    expect(getBonusValue(16)).toBe(0);
+  });
+
+  it('新格式 basic+bonus 時回傳 bonus', () => {
+    expect(getBonusValue({ basic: 10, bonus: 3 } as any)).toBe(3);
+  });
+
+  it('undefined 時回傳 0', () => {
+    expect(getBonusValue(undefined)).toBe(0);
+  });
+});
+
+describe('characterAttributes - getStatBonusSourcesBreakdown', () => {
+  it('回傳各來源對該屬性的非零加值明細（label 取 statBonusSources 的 name）', () => {
+    const stats = createMockStats({
+      extraData: {
+        statBonusSources: [
+          { id: 'a', type: 'item', name: '護盾', combatStats: { ac: 2, initiative: 0 } },
+          { id: 'b', type: 'ability', name: '警覺特性', combatStats: { initiative: 5 } },
+          { id: 'c', type: 'item', name: '無關物品', combatStats: { speed: 10 } },
+        ],
+      } as any,
+    });
+
+    expect(getStatBonusSourcesBreakdown(stats, 'ac')).toEqual([{ label: '護盾', value: 2 }]);
+    expect(getStatBonusSourcesBreakdown(stats, 'initiative')).toEqual([{ label: '警覺特性', value: 5 }]);
+    expect(getStatBonusSourcesBreakdown(stats, 'attackHit')).toEqual([]);
+  });
+
+  it('沒有 statBonusSources 時回傳空陣列', () => {
+    const stats = createMockStats();
+    expect(getStatBonusSourcesBreakdown(stats, 'ac')).toEqual([]);
   });
 });

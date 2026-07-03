@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { CharacterStats, ClassInfo } from '../types';
 import { evaluateValue, getProfBonus, handleValueInput } from '../utils/helpers';
 import { STAT_LABELS, SKILLS_MAP, ABILITY_KEYS } from '../utils/characterConstants';
-import { getFinalCombatStat, getBasicCombatStat, getFinalAbilityModifier, getFinalSavingThrow, getFinalSkillBonus, getDefaultMaxHpBasic, type CombatStatKey } from '../utils/characterAttributes';
+import { getFinalCombatStat, getBasicCombatStat, getFinalAbilityModifier, getFinalSavingThrow, getFinalSkillBonus, getDefaultMaxHpBasic, getBonusValue, getStatBonusSourcesBreakdown, type CombatStatKey } from '../utils/characterAttributes';
 import { formatHitDicePools, getTotalCurrentHitDice, useHitDie, recoverHitDiceOnLongRest } from '../utils/classUtils';
 import { calculateCasterLevelForSpellSlots } from '../utils/spellSlots';
 import { HybridDataManager } from '../services/hybridDataManager';
@@ -1211,20 +1211,14 @@ export const CombatView: React.FC<CombatViewProps> = ({
         temporaryHP={stats.hp.temp ?? 0}
         maxHpBasic={getBasicCombatStat(stats, 'maxHp')}
         maxHpBonus={(() => {
-          const storedBonus = typeof (stats as any).maxHp === 'object' && (stats as any).maxHp ? ((stats as any).maxHp.bonus ?? 0) : 0;
-          const fromSources = (stats.extraData?.statBonusSources ?? []).flatMap((src: any) => {
-            const v = (src.combatStats as any)?.maxHp ?? 0;
-            return v !== 0 ? [{ label: src.name, value: v }] : [];
-          });
-          const sumFromSources = fromSources.reduce((s: number, b: { value: number }) => s + b.value, 0);
+          const storedBonus = getBonusValue((stats as any).maxHp);
+          const fromSources = getStatBonusSourcesBreakdown(stats, 'maxHp');
+          const sumFromSources = fromSources.reduce((s, b) => s + b.value, 0);
           return sumFromSources + storedBonus;
         })()}
         bonusSources={(() => {
-          const storedBonus = typeof (stats as any).maxHp === 'object' && (stats as any).maxHp ? ((stats as any).maxHp.bonus ?? 0) : 0;
-          const fromSources = (stats.extraData?.statBonusSources ?? []).flatMap((src: any) => {
-            const v = (src.combatStats as any)?.maxHp ?? 0;
-            return v !== 0 ? [{ label: src.name, value: v }] : [];
-          });
+          const storedBonus = getBonusValue((stats as any).maxHp);
+          const fromSources = getStatBonusSourcesBreakdown(stats, 'maxHp');
           return [
             ...fromSources,
             ...(storedBonus !== 0 ? [{ label: '其他加值', value: storedBonus }] : []),
@@ -1233,7 +1227,7 @@ export const CombatView: React.FC<CombatViewProps> = ({
         defaultMaxHpBasic={getDefaultMaxHpBasic(stats)}
         onSave={(current, temp, maxBasic) => {
           setStats(prev => {
-            const bonus = typeof (prev as any).maxHp === 'object' && (prev as any).maxHp ? ((prev as any).maxHp.bonus ?? 0) : 0;
+            const bonus = getBonusValue((prev as any).maxHp);
             const newMax =
               maxBasic !== undefined
                 ? (maxBasic === 0 ? getDefaultMaxHpBasic(prev) + bonus : maxBasic + bonus)
@@ -1261,20 +1255,14 @@ export const CombatView: React.FC<CombatViewProps> = ({
         segmentValue={stats.extraData?.attackHitAbility ?? 'str'}
         onSegmentChange={setAttackHitModalAbility}
         bonusValue={(() => {
-          const hitBonus = typeof (stats as any).attackHit === 'object' && (stats as any).attackHit && typeof (stats as any).attackHit.bonus === 'number' ? (stats as any).attackHit.bonus : 0;
-          const fromSources = (stats.extraData?.statBonusSources ?? []).flatMap((src: any) => {
-            const v = (src.combatStats as any)?.attackHit ?? 0;
-            return v !== 0 ? [{ label: src.name, value: v }] : [];
-          });
-          const sumFromSources = fromSources.reduce((s: number, b: { value: number }) => s + b.value, 0);
+          const hitBonus = getBonusValue((stats as any).attackHit);
+          const fromSources = getStatBonusSourcesBreakdown(stats, 'attackHit');
+          const sumFromSources = fromSources.reduce((s, b) => s + b.value, 0);
           return getFinalAbilityModifier(stats, attackHitModalAbility) + getProfBonus(stats.level ?? 1) + sumFromSources + hitBonus;
         })()}
         bonusSources={(() => {
-          const hitBonus = typeof (stats as any).attackHit === 'object' && (stats as any).attackHit && typeof (stats as any).attackHit.bonus === 'number' ? (stats as any).attackHit.bonus : 0;
-          const fromSources = (stats.extraData?.statBonusSources ?? []).flatMap((src: any) => {
-            const v = (src.combatStats as any)?.attackHit ?? 0;
-            return v !== 0 ? [{ label: src.name, value: v }] : [];
-          });
+          const hitBonus = getBonusValue((stats as any).attackHit);
+          const fromSources = getStatBonusSourcesBreakdown(stats, 'attackHit');
           return [
             { label: attackHitModalAbility === 'str' ? '力量調整值' : '敏捷調整值', value: getFinalAbilityModifier(stats, attackHitModalAbility) },
             { label: '熟練加值', value: getProfBonus(stats.level ?? 1) },
@@ -1286,7 +1274,7 @@ export const CombatView: React.FC<CombatViewProps> = ({
         finalValue={getFinalCombatStat(stats, 'attackHit')}
         resetBasicValue={0}
         onSave={(basic, ability) => {
-          const prevBonus = typeof (stats as any).attackHit === 'object' && (stats as any).attackHit && typeof (stats as any).attackHit.bonus === 'number' ? (stats as any).attackHit.bonus : 0;
+          const prevBonus = getBonusValue((stats as any).attackHit);
           setStats(prev => ({
             ...prev,
             attackHit: { basic, bonus: prevBonus },
@@ -1314,20 +1302,14 @@ export const CombatView: React.FC<CombatViewProps> = ({
         segmentValue={stats.extraData?.attackHitAbility ?? 'str'}
         onSegmentChange={setAttackDamageModalAbility}
         bonusValue={(() => {
-          const dmgBonus = typeof (stats as any).attackDamage === 'object' && (stats as any).attackDamage && typeof (stats as any).attackDamage.bonus === 'number' ? (stats as any).attackDamage.bonus : 0;
-          const fromSources = (stats.extraData?.statBonusSources ?? []).flatMap((src: any) => {
-            const v = (src.combatStats as any)?.attackDamage ?? 0;
-            return v !== 0 ? [{ label: src.name, value: v }] : [];
-          });
-          const sumFromSources = fromSources.reduce((s: number, b: { value: number }) => s + b.value, 0);
+          const dmgBonus = getBonusValue((stats as any).attackDamage);
+          const fromSources = getStatBonusSourcesBreakdown(stats, 'attackDamage');
+          const sumFromSources = fromSources.reduce((s, b) => s + b.value, 0);
           return getFinalAbilityModifier(stats, attackDamageModalAbility) + sumFromSources + dmgBonus;
         })()}
         bonusSources={(() => {
-          const dmgBonus = typeof (stats as any).attackDamage === 'object' && (stats as any).attackDamage && typeof (stats as any).attackDamage.bonus === 'number' ? (stats as any).attackDamage.bonus : 0;
-          const fromSources = (stats.extraData?.statBonusSources ?? []).flatMap((src: any) => {
-            const v = (src.combatStats as any)?.attackDamage ?? 0;
-            return v !== 0 ? [{ label: src.name, value: v }] : [];
-          });
+          const dmgBonus = getBonusValue((stats as any).attackDamage);
+          const fromSources = getStatBonusSourcesBreakdown(stats, 'attackDamage');
           return [
             { label: attackDamageModalAbility === 'str' ? '力量修正值' : '敏捷修正值', value: getFinalAbilityModifier(stats, attackDamageModalAbility) },
             ...fromSources,
@@ -1338,7 +1320,7 @@ export const CombatView: React.FC<CombatViewProps> = ({
         finalValue={getFinalCombatStat(stats, 'attackDamage')}
         resetBasicValue={0}
         onSave={(basic, ability) => {
-          const prevBonus = typeof (stats as any).attackDamage === 'object' && (stats as any).attackDamage && typeof (stats as any).attackDamage.bonus === 'number' ? (stats as any).attackDamage.bonus : 0;
+          const prevBonus = getBonusValue((stats as any).attackDamage);
           setStats(prev => ({
             ...prev,
             attackDamage: { basic, bonus: prevBonus },
@@ -1367,20 +1349,14 @@ export const CombatView: React.FC<CombatViewProps> = ({
         segmentValue={stats.extraData?.spellHitAbility ?? 'int'}
         onSegmentChange={setSpellHitModalAbility}
         bonusValue={(() => {
-          const spellHitBonus = typeof (stats as any).spellHit === 'object' && (stats as any).spellHit && typeof (stats as any).spellHit.bonus === 'number' ? (stats as any).spellHit.bonus : 0;
-          const fromSources = (stats.extraData?.statBonusSources ?? []).flatMap((src: any) => {
-            const v = (src.combatStats as any)?.spellHit ?? 0;
-            return v !== 0 ? [{ label: src.name, value: v }] : [];
-          });
-          const sumFromSources = fromSources.reduce((s: number, b: { value: number }) => s + b.value, 0);
+          const spellHitBonus = getBonusValue((stats as any).spellHit);
+          const fromSources = getStatBonusSourcesBreakdown(stats, 'spellHit');
+          const sumFromSources = fromSources.reduce((s, b) => s + b.value, 0);
           return getFinalAbilityModifier(stats, spellHitModalAbility) + getProfBonus(stats.level ?? 1) + sumFromSources + spellHitBonus;
         })()}
         bonusSources={(() => {
-          const spellHitBonus = typeof (stats as any).spellHit === 'object' && (stats as any).spellHit && typeof (stats as any).spellHit.bonus === 'number' ? (stats as any).spellHit.bonus : 0;
-          const fromSources = (stats.extraData?.statBonusSources ?? []).flatMap((src: any) => {
-            const v = (src.combatStats as any)?.spellHit ?? 0;
-            return v !== 0 ? [{ label: src.name, value: v }] : [];
-          });
+          const spellHitBonus = getBonusValue((stats as any).spellHit);
+          const fromSources = getStatBonusSourcesBreakdown(stats, 'spellHit');
           return [
             { label: spellHitModalAbility === 'int' ? '智力修正值' : spellHitModalAbility === 'wis' ? '感知修正值' : '魅力修正值', value: getFinalAbilityModifier(stats, spellHitModalAbility) },
             { label: '熟練加值', value: getProfBonus(stats.level ?? 1) },
@@ -1392,7 +1368,7 @@ export const CombatView: React.FC<CombatViewProps> = ({
         finalValue={getFinalCombatStat(stats, 'spellHit')}
         resetBasicValue={0}
         onSave={(basic, ability) => {
-          const prevBonus = typeof (stats as any).spellHit === 'object' && (stats as any).spellHit && typeof (stats as any).spellHit.bonus === 'number' ? (stats as any).spellHit.bonus : 0;
+          const prevBonus = getBonusValue((stats as any).spellHit);
           setStats(prev => ({
             ...prev,
             spellHit: { basic, bonus: prevBonus },
@@ -1421,20 +1397,14 @@ export const CombatView: React.FC<CombatViewProps> = ({
         segmentValue={stats.extraData?.spellHitAbility ?? 'int'}
         onSegmentChange={setSpellDcModalAbility}
         bonusValue={(() => {
-          const spellDcBonus = typeof (stats as any).spellDc === 'object' && (stats as any).spellDc && typeof (stats as any).spellDc.bonus === 'number' ? (stats as any).spellDc.bonus : 0;
-          const fromSources = (stats.extraData?.statBonusSources ?? []).flatMap((src: any) => {
-            const v = (src.combatStats as any)?.spellDc ?? 0;
-            return v !== 0 ? [{ label: src.name, value: v }] : [];
-          });
-          const sumFromSources = fromSources.reduce((s: number, b: { value: number }) => s + b.value, 0);
+          const spellDcBonus = getBonusValue((stats as any).spellDc);
+          const fromSources = getStatBonusSourcesBreakdown(stats, 'spellDc');
+          const sumFromSources = fromSources.reduce((s, b) => s + b.value, 0);
           return getFinalAbilityModifier(stats, spellDcModalAbility) + getProfBonus(stats.level ?? 1) + sumFromSources + spellDcBonus;
         })()}
         bonusSources={(() => {
-          const spellDcBonus = typeof (stats as any).spellDc === 'object' && (stats as any).spellDc && typeof (stats as any).spellDc.bonus === 'number' ? (stats as any).spellDc.bonus : 0;
-          const fromSources = (stats.extraData?.statBonusSources ?? []).flatMap((src: any) => {
-            const v = (src.combatStats as any)?.spellDc ?? 0;
-            return v !== 0 ? [{ label: src.name, value: v }] : [];
-          });
+          const spellDcBonus = getBonusValue((stats as any).spellDc);
+          const fromSources = getStatBonusSourcesBreakdown(stats, 'spellDc');
           return [
             { label: spellDcModalAbility === 'int' ? '智力修正值' : spellDcModalAbility === 'wis' ? '感知修正值' : '魅力修正值', value: getFinalAbilityModifier(stats, spellDcModalAbility) },
             { label: '熟練加值', value: getProfBonus(stats.level ?? 1) },
@@ -1446,7 +1416,7 @@ export const CombatView: React.FC<CombatViewProps> = ({
         finalValue={getFinalCombatStat(stats, 'spellDc')}
         resetBasicValue={8}
         onSave={(basic, ability) => {
-          const prevBonus = typeof (stats as any).spellDc === 'object' && (stats as any).spellDc && typeof (stats as any).spellDc.bonus === 'number' ? (stats as any).spellDc.bonus : 0;
+          const prevBonus = getBonusValue((stats as any).spellDc);
           setStats(prev => ({
             ...prev,
             spellDc: { basic, bonus: prevBonus },
@@ -1483,12 +1453,9 @@ export const CombatView: React.FC<CombatViewProps> = ({
             numberEditState.key === 'speed' ? 'bg-cyan-600 hover:bg-cyan-500' : 'bg-slate-600'
           }
           {...(numberEditState.key === 'ac' && (() => {
-            const acBonus = typeof (stats as any).ac === 'object' && (stats as any).ac && typeof (stats as any).ac.bonus === 'number' ? (stats as any).ac.bonus : 0;
+            const acBonus = getBonusValue((stats as any).ac);
             const dexMod = getFinalAbilityModifier(stats, 'dex');
-            const fromSources = (stats.extraData?.statBonusSources ?? []).flatMap((src: any) => {
-              const v = (src.combatStats as any)?.ac ?? 0;
-              return v !== 0 ? [{ label: src.name, value: v }] : [];
-            });
+            const fromSources = getStatBonusSourcesBreakdown(stats, 'ac');
             const sumFromSources = fromSources.reduce((s, b) => s + b.value, 0);
             const bonusSources = [
               { label: '敏捷調整值', value: dexMod },
@@ -1502,12 +1469,9 @@ export const CombatView: React.FC<CombatViewProps> = ({
             };
           })())}
           {...(numberEditState.key === 'initiative' && (() => {
-            const initBonus = typeof (stats as any).initiative === 'object' && (stats as any).initiative && typeof (stats as any).initiative.bonus === 'number' ? (stats as any).initiative.bonus : 0;
+            const initBonus = getBonusValue((stats as any).initiative);
             const dexMod = getFinalAbilityModifier(stats, 'dex');
-            const fromSources = (stats.extraData?.statBonusSources ?? []).flatMap((src: any) => {
-              const v = (src.combatStats as any)?.initiative ?? 0;
-              return v !== 0 ? [{ label: src.name, value: v }] : [];
-            });
+            const fromSources = getStatBonusSourcesBreakdown(stats, 'initiative');
             const sumFromSources = fromSources.reduce((s, b) => s + b.value, 0);
             const bonusSources = [
               { label: '敏捷調整值', value: dexMod },
@@ -1521,11 +1485,8 @@ export const CombatView: React.FC<CombatViewProps> = ({
             };
           })())}
           {...(numberEditState.key === 'speed' && (() => {
-            const speedBonus = typeof (stats as any).speed === 'object' && (stats as any).speed && typeof (stats as any).speed.bonus === 'number' ? (stats as any).speed.bonus : 0;
-            const fromSources = (stats.extraData?.statBonusSources ?? []).flatMap((src: any) => {
-              const v = (src.combatStats as any)?.speed ?? 0;
-              return v !== 0 ? [{ label: src.name, value: v }] : [];
-            });
+            const speedBonus = getBonusValue((stats as any).speed);
+            const fromSources = getStatBonusSourcesBreakdown(stats, 'speed');
             const sumFromSources = fromSources.reduce((s, b) => s + b.value, 0);
             const bonusSources = [
               ...fromSources,
@@ -1542,11 +1503,7 @@ export const CombatView: React.FC<CombatViewProps> = ({
           onApply={(numericValue) => {
             const key = numberEditState.key;
             if (!key) return;
-            const getBonus = (s: CharacterStats, k: CombatStatKey) => {
-              const v = (s as any)[k];
-              return typeof v === 'object' && v && typeof (v as any).bonus === 'number' ? (v as any).bonus : 0;
-            };
-            const bonus = getBonus(stats, key);
+            const bonus = getBonusValue((stats as any)[key]);
             if (key === 'ac') {
               setStats(prev => ({ ...prev, ac: { basic: numericValue, bonus } }));
               onSaveAC?.(numericValue)?.catch(e => console.error('❌ AC保存錯誤:', e));

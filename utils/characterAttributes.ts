@@ -46,7 +46,7 @@ function getBasicValue(
   return value.basic ?? defaultVal;
 }
 
-function getBonusValue(value: number | BasicBonusValue | undefined): number {
+export function getBonusValue(value: number | BasicBonusValue | undefined): number {
   if (value === undefined || value === null || typeof value === 'number') return 0;
   return value.bonus ?? 0;
 }
@@ -62,6 +62,21 @@ function getStatBonusSourcesCombatSum(
 ): number {
   const sources = (stats.extraData?.statBonusSources as Array<{ combatStats?: Record<string, number> }>) ?? [];
   return sources.reduce((sum, s) => sum + ((s.combatStats?.[key] as number) ?? 0), 0);
+}
+
+/**
+ * 取得某戰鬥屬性來自能力／物品 statBonusSources 的加值明細（供 UI 顯示「加值來源」列表）
+ * 只列出非零項目，label 取 statBonusSources 各項的 name
+ */
+export function getStatBonusSourcesBreakdown(
+  stats: CharacterStats,
+  key: keyof AggregatedCombatStats
+): { label: string; value: number }[] {
+  const sources = (stats.extraData?.statBonusSources as Array<{ name: string; combatStats?: Record<string, number> }>) ?? [];
+  return sources.flatMap((src) => {
+    const v = src.combatStats?.[key] ?? 0;
+    return v !== 0 ? [{ label: src.name, value: v }] : [];
+  });
 }
 
 /**
