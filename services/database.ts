@@ -221,7 +221,10 @@ export class CombatItemService {
 
   /**
    * 依角色的遊蕩者等級，同步「偷襲傷害」職業資源項目：
-   * - 每回合限用一次（max_uses 固定為範本值，不隨等級變動），骰數依等級查表後寫入項目名稱（如「偷襲傷害 3d6」）。
+   * - 每回合限用一次（max_uses 固定為 1，不隨範本或等級變動），骰數依等級查表後寫入項目名稱（如「偷襲傷害 3d6」）。
+   * - 範本的 max_uses 固定為 0，僅作為「尚未同步過的角色不顯示這張卡」的哨兵值
+   *   （見 CombatView.tsx 的 resourceItems 過濾邏輯：has default_item_id 且 max_uses===0 時不顯示），
+   *   不可拿範本的 max_uses 直接當作角色列的值。
    * - 尚未取得偷襲傷害（等級0，骰數0）時不建立項目。
    * - 名稱與範本相同時不寫入資料庫。
    */
@@ -263,8 +266,8 @@ export class CombatItemService {
             category: 'resource',
             name: displayName,
             icon: template.icon,
-            max_uses: template.max_uses,
-            current_uses: template.max_uses,
+            max_uses: 1,
+            current_uses: 1,
             recovery_type: template.recovery_type,
             is_default: false,
             is_custom: false,

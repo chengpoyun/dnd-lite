@@ -11,12 +11,14 @@ vi.mock('../../lib/supabase', () => ({
   },
 }));
 
+// 範本的 max_uses 固定為 0，是「尚未同步過的角色不顯示」的哨兵值（見 CombatView.tsx
+// 的 resourceItems 過濾邏輯），角色列的實際 max_uses 應由程式碼寫死為 1，不可讀範本值。
 const template = {
   id: 'tmpl-sneak',
   category: 'resource',
   name: '偷襲傷害',
   icon: '🔪',
-  max_uses: 1,
+  max_uses: 0,
   recovery_type: 'turn',
   spell_level: null,
 };
