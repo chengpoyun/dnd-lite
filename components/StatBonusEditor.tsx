@@ -215,7 +215,6 @@ export const StatBonusEditor: React.FC<StatBonusEditorProps> = ({ value, onChang
             className={numberInputClass}
             defaultValue={displayValue}
             onBlur={(e) => handleAbilityScoreChange(key, e.target.value)}
-            placeholder="+2/=19"
           />
           <button type="button" disabled className={hiddenSlotClass} aria-hidden>優勢</button>
         </div>

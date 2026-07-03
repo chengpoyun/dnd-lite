@@ -6,13 +6,22 @@ import { StatBonusEditor, type StatBonusEditorValue } from '../../components/Sta
 // 討論結論：只有六個屬性值列支援 "=19" 這種絕對值語法（如食人魔力量手套），
 // 其餘欄位（調整值/豁免/技能/戰鬥屬性）維持純相對加值輸入不變。
 
+/** 依欄位標籤文字（如「力量」）找到該列的 input（欄位無 placeholder，需靠列結構定位） */
+const getAbilityScoreInput = (label: string): HTMLInputElement => {
+  const labelEl = screen.getByText(label);
+  const row = labelEl.closest('div')?.parentElement as HTMLElement;
+  const input = row.querySelector('input');
+  if (!input) throw new Error(`找不到「${label}」列的 input`);
+  return input as HTMLInputElement;
+};
+
 describe('StatBonusEditor - 屬性值列支援 =N 絕對值語法', () => {
   it('輸入 "=19" 時寫入 abilityScoreFloors，並清除同屬性的 abilityScores', () => {
     const onChange = vi.fn();
     const value: StatBonusEditorValue = { abilityScores: { str: 2 } };
     render(<StatBonusEditor value={value} onChange={onChange} />);
 
-    const strInput = screen.getAllByPlaceholderText('+2/=19')[0];
+    const strInput = getAbilityScoreInput('力量');
     fireEvent.blur(strInput, { target: { value: '=19' } });
 
     expect(onChange).toHaveBeenCalledWith(
@@ -29,7 +38,7 @@ describe('StatBonusEditor - 屬性值列支援 =N 絕對值語法', () => {
     const value: StatBonusEditorValue = { abilityScoreFloors: { str: 19 } };
     render(<StatBonusEditor value={value} onChange={onChange} />);
 
-    const strInput = screen.getAllByPlaceholderText('+2/=19')[0];
+    const strInput = getAbilityScoreInput('力量');
     fireEvent.blur(strInput, { target: { value: '2' } });
 
     expect(onChange).toHaveBeenCalledWith(
@@ -45,7 +54,7 @@ describe('StatBonusEditor - 屬性值列支援 =N 絕對值語法', () => {
     const value: StatBonusEditorValue = { abilityScoreFloors: { str: 19 } };
     render(<StatBonusEditor value={value} onChange={vi.fn()} />);
 
-    const strInput = screen.getAllByPlaceholderText('+2/=19')[0] as HTMLInputElement;
+    const strInput = getAbilityScoreInput('力量');
     expect(strInput.value).toBe('=19');
   });
 
@@ -53,7 +62,7 @@ describe('StatBonusEditor - 屬性值列支援 =N 絕對值語法', () => {
     const onChange = vi.fn();
     render(<StatBonusEditor value={{}} onChange={onChange} />);
 
-    const strInput = screen.getAllByPlaceholderText('+2/=19')[0];
+    const strInput = getAbilityScoreInput('力量');
     fireEvent.blur(strInput, { target: { value: '-1' } });
 
     expect(onChange).toHaveBeenCalledWith(
@@ -61,10 +70,10 @@ describe('StatBonusEditor - 屬性值列支援 =N 絕對值語法', () => {
     );
   });
 
-  it('調整值欄位不支援 =N 語法，仍是純數字輸入（沒有 +2/=19 提示文字）', () => {
+  it('調整值欄位不支援 =N 語法，仍是純數字輸入（沒有 placeholder 提示文字）', () => {
     render(<StatBonusEditor value={{}} onChange={vi.fn()} />);
     expect(screen.getByText('力量調整值')).toBeInTheDocument();
-    // 調整值行的 input 沒有 "+2/=19" placeholder，只有六個屬性值行才有
-    expect(screen.getAllByPlaceholderText('+2/=19')).toHaveLength(6);
+    // 六個屬性值列與其餘數字列都不應有 placeholder（本次改動移除了原本的 "+2/=19" 提示）
+    expect(screen.queryAllByPlaceholderText(/.+/)).toHaveLength(0);
   });
 });
