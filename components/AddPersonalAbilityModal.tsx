@@ -7,6 +7,7 @@ import React, { useEffect, useState } from 'react';
 import { Modal } from './ui/Modal';
 import { ModalSaveButton } from './ui/ModalSaveButton';
 import { LoadingOverlay } from './ui/LoadingOverlay';
+import { AutoResizeTextarea } from './ui/AutoResizeTextarea';
 import { ABILITY_SOURCE_ORDER, type CreateCharacterAbilityData } from '../services/abilityService';
 import { MODAL_CONTAINER_CLASS } from '../styles/modalStyles';
 
@@ -79,10 +80,6 @@ export const AddPersonalAbilityModal: React.FC<AddPersonalAbilityModalProps> = (
     <Modal isOpen={isOpen} onClose={onClose} size="2xl" disableBackdropClose={isSubmitting}>
       <div className={`${MODAL_CONTAINER_CLASS} relative`}>
         <LoadingOverlay visible={isSubmitting} />
-        <h2 className="text-xl font-bold mb-5">新增個人能力</h2>
-        <p className="text-slate-400 text-sm mb-4">
-          此能力僅屬於此角色。
-        </p>
         <form onSubmit={handleSubmit} className="space-y-3">
           <div>
             <label className="block text-[14px] text-slate-400 mb-2">名稱 *</label>
@@ -124,12 +121,12 @@ export const AddPersonalAbilityModal: React.FC<AddPersonalAbilityModalProps> = (
           </div>
           <div>
             <label className="block text-[14px] text-slate-400 mb-2">描述（選填）</label>
-            <textarea
+            <AutoResizeTextarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               className="w-full bg-slate-800 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500"
               placeholder="輸入能力描述"
-              rows={4}
+              minRows={4}
             />
           </div>
           {showMaxUses && (

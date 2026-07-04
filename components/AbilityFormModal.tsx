@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Modal } from './ui/Modal';
 import { ModalSaveButton } from './ui/ModalSaveButton';
 import { LoadingOverlay } from './ui/LoadingOverlay';
+import { AutoResizeTextarea } from './ui/AutoResizeTextarea';
 import { CreateAbilityData, getDisplayValues, ABILITY_SOURCE_ORDER } from '../services/abilityService';
 import type { CharacterAbilityWithDetails } from '../lib/supabase';
 import { MODAL_CONTAINER_CLASS } from '../styles/modalStyles';
@@ -102,34 +103,33 @@ export const AbilityFormModal: React.FC<AbilityFormModalProps> = ({
     >
       <div className={`${MODAL_CONTAINER_CLASS} relative`}>
         <LoadingOverlay visible={isSubmitting} />
-        <h2 className="text-xl font-bold mb-5">編輯特殊能力</h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* 中文名稱 */}
-          <div>
-            <label className="block text-[14px] text-slate-400 mb-2">名稱 *</label>
-            <input
-              type="text"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="w-full bg-slate-800 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500"
-              placeholder="例：靈巧動作"
-            />
+          {/* 中文名稱 + 英文名稱 */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-[14px] text-slate-400 mb-2">名稱 *</label>
+              <input
+                type="text"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                className="w-full bg-slate-800 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500"
+                placeholder="例：靈巧動作"
+              />
+            </div>
+            <div>
+              <label className="block text-[14px] text-slate-400 mb-2">
+                英文名稱
+              </label>
+              <input
+                type="text"
+                value={formData.name_en ?? ''}
+                onChange={(e) => setFormData({ ...formData, name_en: e.target.value })}
+                className="w-full bg-slate-800 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500"
+                placeholder="例：Cunning Action"
+              />
+            </div>
           </div>
-
-        {/* 英文名稱 */}
-        <div>
-          <label className="block text-[14px] text-slate-400 mb-2">
-            英文名稱
-          </label>
-          <input
-            type="text"
-            value={formData.name_en ?? ''}
-            onChange={(e) => setFormData({ ...formData, name_en: e.target.value })}
-            className="w-full bg-slate-800 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500"
-            placeholder="例：Cunning Action"
-          />
-        </div>
 
         {/* 來源和恢復規則 */}
         <div className="grid grid-cols-2 gap-3">
@@ -166,11 +166,11 @@ export const AbilityFormModal: React.FC<AbilityFormModalProps> = ({
             效果說明
             <span className="text-slate-500 ml-2 text-[12px]">（支援 Markdown 語法）</span>
           </label>
-          <textarea
+          <AutoResizeTextarea
             value={formData.description}
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-            rows={8}
-            className="w-full bg-slate-800 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500 resize-y"
+            minRows={5}
+            className="w-full bg-slate-800 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500"
             placeholder="描述特殊能力的效果和使用方式..."
           />
         </div>

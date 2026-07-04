@@ -9,6 +9,8 @@ interface ModalProps {
   className?: string;
   /** 為 true 時（例如儲存中）點擊 backdrop 不關閉，避免誤關 */
   disableBackdropClose?: boolean;
+  /** 覆寫內容外層 padding（預設依 title 是否存在決定）；內容自帶 padding（如 MODAL_CONTAINER_CLASS）時可傳入較窄的值，避免雙層 padding 疊加 */
+  bodyClassName?: string;
 }
 
 const sizeClasses = {
@@ -21,14 +23,15 @@ const sizeClasses = {
   '3xl': 'max-w-3xl'
 };
 
-export const Modal: React.FC<ModalProps> = ({ 
-  isOpen, 
-  onClose, 
-  title, 
-  children, 
+export const Modal: React.FC<ModalProps> = ({
+  isOpen,
+  onClose,
+  title,
+  children,
   size = 'md',
   className = '',
   disableBackdropClose = false,
+  bodyClassName,
 }) => {
   if (!isOpen) return null;
 
@@ -45,7 +48,7 @@ export const Modal: React.FC<ModalProps> = ({
             {title}
           </h2>
         )}
-        <div className={title ? "px-3 pb-6" : "p-6"}>
+        <div className={bodyClassName ?? (title ? "px-3 pb-6" : "p-6")}>
           {children}
         </div>
       </div>

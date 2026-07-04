@@ -82,11 +82,13 @@ export default function NumberEditModal({
   inputLabelClassName = `${MODAL_BODY_TEXT_CLASS} shrink-0`,
 }: NumberEditModalProps) {
   const baseValue = parseFloat(placeholder) || 0;
-  const displayTotal = finalValue ?? (baseValue + (bonusValue ?? 0));
   const inputResult = decimal
     ? handleDecimalInput(value, baseValue, { minValue, allowZero, allowNegative: true })
     : handleValueInput(value, baseValue, { minValue, allowZero });
   const previewValue = inputResult.isValid ? inputResult.numericValue : baseValue;
+  // bonusValue 有給時，代表呼叫端支援即時重算（隨輸入基礎值變動）；
+  // finalValue 是編輯前的靜態總計，只在沒有 bonusValue 時當備援
+  const displayTotal = bonusValue !== undefined ? previewValue + bonusValue : (finalValue ?? baseValue);
 
   const handleApply = () => {
     if (inputResult.isValid) {

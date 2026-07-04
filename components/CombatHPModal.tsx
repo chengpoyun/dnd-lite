@@ -43,7 +43,10 @@ export default function CombatHPModal({
   const [tempTemp, setTempTemp] = useState('');
   const [tempBasic, setTempBasic] = useState('');
 
-  const effectiveMax = maxHpBasic + maxHpBonus;
+  // 用即時輸入的基礎值重算總計，避免使用者調整基礎值時「總計」沒跟著變
+  const parsedBasic = parseInt(tempBasic, 10);
+  const liveMaxBasic = tempBasic.trim() && Number.isFinite(parsedBasic) ? parsedBasic : maxHpBasic;
+  const effectiveMax = liveMaxBasic + maxHpBonus;
 
   useEffect(() => {
     if (isOpen) {

@@ -4,6 +4,7 @@
 
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
+import remarkBreaks from 'remark-breaks';
 import { Modal } from './ui/Modal';
 import type { CharacterAbilityWithDetails } from '../lib/supabase';
 import { getDisplayValues } from '../services/abilityService';
@@ -64,58 +65,49 @@ export default function AbilityDetailModal({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose}>
+    <Modal isOpen={isOpen} onClose={onClose} bodyClassName="px-3 pb-6">
       <div className={MODAL_CONTAINER_CLASS}>
         <div className="space-y-3">
-          {/* 名稱和英文名稱 + 使用按鈕 */}
-          <div className="py-2 flex items-start justify-between gap-3">
-            <div className="flex-1">
-              <div className="text-lg font-bold text-white mb-1">{display.name}</div>
-              {display.name_en && <div className="text-sm text-slate-400">{display.name_en}</div>}
+          {/* 名稱＋英文名＋來源/恢復規則/使用次數 tag＋使用按鈕，合併成一列 */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-lg font-bold text-white flex-shrink-0">{display.name}</span>
+            {display.name_en && (
+              <span className="text-sm text-slate-400 min-w-0 truncate">{display.name_en}</span>
+            )}
+            <div className={`px-2 py-1 border rounded-md text-sm font-medium flex-shrink-0 ${sourceColors[source]}`}>
+              {source}
             </div>
+            <div className={`px-2 py-1 border rounded-md text-sm font-medium flex-shrink-0 ${recoveryColors[recoveryType]}`}>
+              {recoveryType}
+            </div>
+            {!isPassive && max_uses > 0 && (
+              <div className={`px-2 py-1 border rounded-md text-sm font-medium flex-shrink-0 ${
+                current_uses > 0
+                  ? 'bg-indigo-900/30 border-indigo-700 text-indigo-400'
+                  : 'bg-slate-700/50 border-slate-600 text-slate-400'
+              }`}>
+                剩餘：{current_uses}/{max_uses}
+              </div>
+            )}
             {canUse && (
               <button
                 onClick={() => {
                   onUse();
                   onClose();
                 }}
-                className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium text-sm flex-shrink-0"
+                className="ml-auto px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium text-sm flex-shrink-0"
               >
                 使用
               </button>
             )}
           </div>
 
-          {/* 標籤區：來源、恢復規則、使用次數 */}
-          <div className="flex items-center gap-2 flex-wrap">
-            {/* 來源標籤 */}
-            <div className={`px-3 py-1.5 border rounded-lg font-medium ${sourceColors[source]}`}>
-              {source}
-            </div>
-            
-            {/* 恢復規則標籤 */}
-            <div className={`px-3 py-1.5 border rounded-lg font-medium ${recoveryColors[recoveryType]}`}>
-              {recoveryType}
-            </div>
-
-            {/* 使用次數標籤 */}
-            {!isPassive && max_uses > 0 && (
-              <div className={`px-3 py-1.5 border rounded-lg font-medium ${
-                current_uses > 0 
-                  ? 'bg-indigo-900/30 border-indigo-700 text-indigo-400' 
-                  : 'bg-slate-700/50 border-slate-600 text-slate-400'
-              }`}>
-                剩餘：{current_uses}/{max_uses}
-              </div>
-            )}
-          </div>
-
-          {/* 效果說明 */}
+          {/* 效果說明：省下的空間全部留給敘述 */}
           {display.description && (
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-slate-300 mb-2">效果</label>
+            <div>
               <div className="bg-slate-700/50 border border-slate-600 p-3 rounded-lg text-slate-300">
                 <ReactMarkdown
+                  remarkPlugins={[remarkBreaks]}
                   components={{
                     p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
                     strong: ({ children }) => <strong className="font-bold text-slate-50">{children}</strong>,

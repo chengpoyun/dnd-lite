@@ -60,7 +60,11 @@ export default function CombatStatEditModal<T extends string = string>({
 }: CombatStatEditModalProps<T>) {
   const [value, setValue] = useState(basicValue.toString());
   const [segment, setSegment] = useState<T | undefined>(segmentValue);
-  const displayTotal = finalValue ?? (basicValue + (bonusValue ?? 0));
+  // bonusValue 有給時，代表呼叫端支援即時重算（隨切換 segment／輸入基礎值變動）；
+  // finalValue 是切換前的靜態總計，只在沒有 bonusValue 時當備援
+  const parsedBasic = parseInt(value, 10);
+  const liveBasic = Number.isFinite(parsedBasic) ? parsedBasic : basicValue;
+  const displayTotal = bonusValue !== undefined ? liveBasic + bonusValue : (finalValue ?? liveBasic);
 
   useEffect(() => {
     if (isOpen) {

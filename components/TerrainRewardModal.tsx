@@ -359,7 +359,7 @@ export function TerrainRewardModal({
             <div className={combineStyles(STYLES.text.muted, 'space-y-1 mb-4 max-h-64 overflow-y-auto')}>
               {rollResults.rollDetails.map((r, i) => (
                 <div key={i}>
-                  第{i + 1}次 d20={r.d20} +{r.bonus} = {r.total}{' '}
+                  第{i + 1}次 d20={r.d20} {r.bonus >= 0 ? '+' : ''}{r.bonus} = {r.total}{' '}
                   <span className={r.success ? STYLES.text.outcomeSuccess : STYLES.text.outcomeFailure}>
                     {r.success ? (r.critical ? '大成功' : '成功') : '失敗'}
                   </span>
@@ -409,7 +409,7 @@ export function TerrainRewardModal({
                         <SegmentBar<string> options={backupSkillOptions} value={failureBackupSkill || backupSkills[0]} onChange={(s) => setFailureBackupSkill(s)} />
                       </>
                     )}
-                    <p className={combineStyles(STYLES.text.subtitle, 'mt-1')}>技能加值：{getFinalSkillBonus(stats, failureBackupSkill || backupSkills[0])}　DC：{failureCategory.backupDc}</p>
+                    <p className={combineStyles(STYLES.text.subtitle, 'mt-1')}>技能加值：{(() => { const v = getFinalSkillBonus(stats, failureBackupSkill || backupSkills[0]); return `${v >= 0 ? '+' : ''}${v}`; })()}　DC：{failureCategory.backupDc}</p>
                   </>
                 )}
                 <button type="button" className={combineStyles(BUTTON_PRIMARY_CLASS, 'w-full mt-4')} onClick={doFailureRoll}>
