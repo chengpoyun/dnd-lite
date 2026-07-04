@@ -918,7 +918,7 @@ export const CombatView: React.FC<CombatViewProps> = ({
             labelClass: `${labelBase} text-indigo-400/80`,
             valueClass: valueBase,
             label: "先攻",
-            value: `+${getFinalCombatStat(stats, 'initiative')}`,
+            value: (() => { const v = getFinalCombatStat(stats, 'initiative'); return `${v >= 0 ? "+" : ""}${v}`; })(),
           },
           {
             key: "speed",
@@ -966,7 +966,7 @@ export const CombatView: React.FC<CombatViewProps> = ({
             key: "weapon-attack",
             onClick: () => setIsAttackHitModalOpen(true),
             label: "攻擊命中",
-            value: `+${getFinalCombatStat(stats, 'attackHit')}`,
+            value: (() => { const v = getFinalCombatStat(stats, 'attackHit'); return `${v >= 0 ? "+" : ""}${v}`; })(),
           },
           {
             key: "weapon-damage",
@@ -981,7 +981,7 @@ export const CombatView: React.FC<CombatViewProps> = ({
                 key: "spell-attack",
                 onClick: () => setIsSpellHitModalOpen(true),
                 label: "法術命中",
-                value: `+${getFinalCombatStat(stats, 'spellHit')}`,
+                value: (() => { const v = getFinalCombatStat(stats, 'spellHit'); return `${v >= 0 ? "+" : ""}${v}`; })(),
               },
               {
                 key: "spell-dc",
