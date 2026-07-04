@@ -7,6 +7,7 @@ import React, { useEffect, useState } from 'react';
 import { Modal } from './ui/Modal';
 import { ModalSaveButton } from './ui/ModalSaveButton';
 import { LoadingOverlay } from './ui/LoadingOverlay';
+import { AutoResizeTextarea } from './ui/AutoResizeTextarea';
 import type { CreateCharacterSpellData } from '../services/spellService';
 import { SPELL_SCHOOLS } from '../utils/spellUtils';
 import { MODAL_CONTAINER_CLASS } from '../styles/modalStyles';
@@ -101,10 +102,6 @@ export const AddPersonalSpellModal: React.FC<AddPersonalSpellModalProps> = ({
     <Modal isOpen={isOpen} onClose={onClose} size="2xl" disableBackdropClose={isSubmitting}>
       <div className={`${MODAL_CONTAINER_CLASS} relative`}>
         <LoadingOverlay visible={isSubmitting} />
-        <h2 className="text-xl font-bold mb-5">新增個人法術</h2>
-        <p className="text-slate-400 text-sm mb-4">
-          此法術僅屬於此角色。
-        </p>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-3">
             <div>
@@ -131,13 +128,14 @@ export const AddPersonalSpellModal: React.FC<AddPersonalSpellModalProps> = ({
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-[14px] text-slate-400 mb-2">環位 *</label>
+          {/* 環位和學派：label 與值同一行 */}
+          <div className="flex gap-3">
+            <div className="flex items-center gap-2 flex-1 min-w-0">
+              <label className="text-[13px] text-slate-400 flex-shrink-0">環位</label>
               <select
                 value={formData.level}
                 onChange={(e) => setFormData({ ...formData, level: parseInt(e.target.value, 10) })}
-                className="w-full bg-slate-800 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500"
+                className="flex-1 min-w-0 bg-slate-800 rounded-lg border border-slate-700 px-2 py-2 text-slate-200 text-sm focus:outline-none focus:border-amber-500"
               >
                 {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map(level => (
                   <option key={level} value={level}>
@@ -146,18 +144,18 @@ export const AddPersonalSpellModal: React.FC<AddPersonalSpellModalProps> = ({
                 ))}
               </select>
             </div>
-            <div>
-              <label className="block text-[14px] text-slate-400 mb-2">法術學派 *</label>
+            <div className="flex items-center gap-2 flex-1 min-w-0">
+              <label className="text-[13px] text-slate-400 flex-shrink-0">學派</label>
               <select
                 value={formData.school}
                 onChange={(e) => setFormData({ ...formData, school: e.target.value as any })}
-                className={`w-full bg-slate-800 rounded-lg border border-slate-700 p-3 font-bold focus:outline-none focus:border-amber-500 ${
+                className={`flex-1 min-w-0 bg-slate-800 rounded-lg border border-slate-700 px-2 py-2 text-sm font-bold focus:outline-none focus:border-amber-500 ${
                   SPELL_SCHOOLS[formData.school as keyof typeof SPELL_SCHOOLS]?.text || 'text-slate-200'
                 }`}
               >
                 {Object.entries(SPELL_SCHOOLS).map(([school, colors]) => (
-                  <option 
-                    key={school} 
+                  <option
+                    key={school}
                     value={school}
                     className="bg-slate-800 text-slate-200 font-bold"
                   >
@@ -168,13 +166,14 @@ export const AddPersonalSpellModal: React.FC<AddPersonalSpellModalProps> = ({
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-3">
-            <div>
-              <label className="block text-[14px] text-slate-400 mb-2">施法時間 *</label>
+          {/* 施法時間／持續時間／射程：label 與值同一行 */}
+          <div className="flex gap-2">
+            <div className="flex items-center gap-1.5 flex-1 min-w-0">
+              <label className="text-[13px] text-slate-400 flex-shrink-0">施法</label>
               <select
                 value={formData.casting_time}
                 onChange={(e) => setFormData({ ...formData, casting_time: e.target.value })}
-                className="w-full bg-slate-800 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500"
+                className="flex-1 min-w-0 bg-slate-800 rounded-lg border border-slate-700 px-2 py-2 text-slate-200 text-sm focus:outline-none focus:border-amber-500"
               >
                 <option value="動作">動作</option>
                 <option value="附贈動作">附贈動作</option>
@@ -187,12 +186,12 @@ export const AddPersonalSpellModal: React.FC<AddPersonalSpellModalProps> = ({
                 <option value="24小時">24小時</option>
               </select>
             </div>
-            <div>
-              <label className="block text-[14px] text-slate-400 mb-2">持續時間 *</label>
+            <div className="flex items-center gap-1.5 flex-1 min-w-0">
+              <label className="text-[13px] text-slate-400 flex-shrink-0">持續</label>
               <select
                 value={formData.duration}
                 onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
-                className="w-full bg-slate-800 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500"
+                className="flex-1 min-w-0 bg-slate-800 rounded-lg border border-slate-700 px-2 py-2 text-slate-200 text-sm focus:outline-none focus:border-amber-500"
               >
                 <option value="即效">即效</option>
                 <option value="一回合">一回合</option>
@@ -205,12 +204,12 @@ export const AddPersonalSpellModal: React.FC<AddPersonalSpellModalProps> = ({
                 <option value="其他">其他</option>
               </select>
             </div>
-            <div>
-              <label className="block text-[14px] text-slate-400 mb-2">射程 *</label>
+            <div className="flex items-center gap-1.5 flex-1 min-w-0">
+              <label className="text-[13px] text-slate-400 flex-shrink-0">射程</label>
               <select
                 value={formData.range}
                 onChange={(e) => setFormData({ ...formData, range: e.target.value })}
-                className="w-full bg-slate-800 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500"
+                className="flex-1 min-w-0 bg-slate-800 rounded-lg border border-slate-700 px-2 py-2 text-slate-200 text-sm focus:outline-none focus:border-amber-500"
               >
                 <option value="自身">自身</option>
                 <option value="觸碰">觸碰</option>
@@ -225,29 +224,6 @@ export const AddPersonalSpellModal: React.FC<AddPersonalSpellModalProps> = ({
                 <option value="其他">其他</option>
               </select>
             </div>
-          </div>
-
-          <div>
-            <label className="block text-[14px] text-slate-400 mb-2">來源 *</label>
-            <select
-              value={formData.source}
-              onChange={(e) => setFormData({ ...formData, source: e.target.value })}
-              className="w-full bg-slate-800 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500"
-            >
-              <option value="PHB">PHB</option>
-              <option value="PHB'24">PHB'24</option>
-              <option value="AI">AI</option>
-              <option value="IDRotF">IDRotF</option>
-              <option value="TCE">TCE</option>
-              <option value="XGE">XGE</option>
-              <option value="AAG">AAG</option>
-              <option value="BMT">BMT</option>
-              <option value="EFA">EFA</option>
-              <option value="FRHoF">FRHoF</option>
-              <option value="FTD">FTD</option>
-              <option value="SatO">SatO</option>
-              <option value="SCC">SCC</option>
-            </select>
           </div>
 
           <div className="flex gap-6">
@@ -276,7 +252,7 @@ export const AddPersonalSpellModal: React.FC<AddPersonalSpellModalProps> = ({
 
           <div>
             <label className="block text-[14px] text-slate-400 mb-2">成分 *</label>
-            <div className="flex gap-4">
+            <div className="flex gap-4 items-center">
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
@@ -286,7 +262,7 @@ export const AddPersonalSpellModal: React.FC<AddPersonalSpellModalProps> = ({
                 />
                 <span className="text-[14px] text-slate-300">聲音 (V)</span>
               </label>
-              
+
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
@@ -296,30 +272,50 @@ export const AddPersonalSpellModal: React.FC<AddPersonalSpellModalProps> = ({
                 />
                 <span className="text-[14px] text-slate-300">姿勢 (S)</span>
               </label>
+
+              <input
+                type="text"
+                value={formData.material}
+                onChange={(e) => setFormData({ ...formData, material: e.target.value })}
+                className="flex-1 min-w-[6rem] bg-slate-800 rounded-lg border border-slate-700 px-3 py-2 text-slate-200 text-sm focus:outline-none focus:border-amber-500"
+                placeholder="材料 (M)，若無請填『無』"
+                required
+              />
             </div>
           </div>
 
           <div>
-            <label className="block text-[14px] text-slate-400 mb-2">材料 (M) *</label>
-            <input
-              type="text"
-              value={formData.material}
-              onChange={(e) => setFormData({ ...formData, material: e.target.value })}
+            <label className="block text-[14px] text-slate-400 mb-2">法術效果 *</label>
+            <AutoResizeTextarea
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              minRows={6}
               className="w-full bg-slate-800 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500"
-              placeholder="請填寫材料，若無請填『無』"
-              required
+              placeholder="詳細描述法術的效果..."
             />
           </div>
 
           <div>
-            <label className="block text-[14px] text-slate-400 mb-2">法術效果 *</label>
-            <textarea
-              value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              rows={6}
-              className="w-full bg-slate-800 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500 resize-none"
-              placeholder="詳細描述法術的效果..."
-            />
+            <label className="block text-[14px] text-slate-400 mb-2">來源 *</label>
+            <select
+              value={formData.source}
+              onChange={(e) => setFormData({ ...formData, source: e.target.value })}
+              className="w-full bg-slate-800 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500"
+            >
+              <option value="PHB">PHB</option>
+              <option value="PHB'24">PHB'24</option>
+              <option value="AI">AI</option>
+              <option value="IDRotF">IDRotF</option>
+              <option value="TCE">TCE</option>
+              <option value="XGE">XGE</option>
+              <option value="AAG">AAG</option>
+              <option value="BMT">BMT</option>
+              <option value="EFA">EFA</option>
+              <option value="FRHoF">FRHoF</option>
+              <option value="FTD">FTD</option>
+              <option value="SatO">SatO</option>
+              <option value="SCC">SCC</option>
+            </select>
           </div>
 
           <div className="flex gap-3 pt-2">

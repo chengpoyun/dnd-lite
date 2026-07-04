@@ -1,5 +1,6 @@
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
+import remarkBreaks from 'remark-breaks';
 import { Modal } from './ui/Modal';
 import { CharacterSpell, getDisplayValues } from '../services/spellService';
 import { getSpellLevelText, getSchoolColor } from '../utils/spellUtils';
@@ -26,72 +27,41 @@ export const SpellDetailModal: React.FC<SpellDetailModalProps> = ({
   const schoolColor = getSchoolColor(display.displaySchool);
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="2xl">
+    <Modal isOpen={isOpen} onClose={onClose} size="2xl" bodyClassName="px-3 pb-6">
       <div className={`${MODAL_CONTAINER_CLASS} relative`}>
-        <h2 className="text-xl font-bold mb-5">{display.displayName}</h2>
-        
-        {/* 法術等級和學派 */}
-      <div className="mb-6">
-          <div className="flex items-center gap-3 flex-wrap">
-            <span className="text-[16px] text-slate-400">{getSpellLevelText(display.displayLevel)}</span>
-            <div className={`px-3 py-1 rounded-lg ${schoolColor.bgLight} ${schoolColor.text} text-[16px] font-bold`}>
-              {display.displaySchool}
-            </div>
-            {display.displayConcentration && (
-              <span className="text-[14px] px-2 py-1 rounded bg-blue-500/20 text-blue-400 font-bold">專注</span>
-            )}
-            {display.displayRitual && (
-              <span className="text-[14px] px-2 py-1 rounded bg-purple-500/20 text-purple-400 font-bold">儀式</span>
-            )}
+        {/* 名稱、等級、學派、專注/儀式 tag 合併成一列 */}
+        <div className="flex items-baseline gap-2 flex-wrap mb-2">
+          <span className="text-lg font-bold text-white">{display.displayName}</span>
+          <span className="text-[13px] text-slate-400">{getSpellLevelText(display.displayLevel)}</span>
+          <div className={`px-2 py-0.5 rounded-md ${schoolColor.bgLight} ${schoolColor.text} text-[13px] font-bold`}>
+            {display.displaySchool}
           </div>
+          {display.displayConcentration && (
+            <span className="text-[12px] px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400 font-bold">專注</span>
+          )}
+          {display.displayRitual && (
+            <span className="text-[12px] px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-400 font-bold">儀式</span>
+          )}
         </div>
 
-        {/* 基本資訊 - 緊湊佈局 */}
-        <div className="mb-4">
-          <div className="grid grid-cols-4 gap-3 text-center">
-            <div>
-              <div className="text-[12px] text-slate-500 mb-0.5">施法時間</div>
-              <div className="text-[14px] text-slate-200 font-medium">{display.displayCastingTime}</div>
-            </div>
-            <div>
-              <div className="text-[12px] text-slate-500 mb-0.5">持續時間</div>
-              <div className="text-[14px] text-slate-200 font-medium">{display.displayDuration}</div>
-            </div>
-            <div>
-              <div className="text-[12px] text-slate-500 mb-0.5">射程</div>
-              <div className="text-[14px] text-slate-200 font-medium">{display.displayRange}</div>
-            </div>
-            <div>
-              <div className="text-[12px] text-slate-500 mb-0.5">來源</div>
-              <div className="text-[14px] text-slate-200 font-medium">{display.displaySource}</div>
-            </div>
-          </div>
-        </div>
+        {/* 施法時間／持續時間／射程／來源／成分 - 全部縮成單行 */}
+        <p className="text-[12px] text-slate-400 mb-4 leading-relaxed">
+          施法 {display.displayCastingTime} · 持續 {display.displayDuration} · 射程 {display.displayRange} · {display.displaySource}
+          {(display.displayVerbal || display.displaySomatic || display.displayMaterial) && (
+            <>
+              {' · '}
+              {display.displayVerbal && 'V'}
+              {display.displaySomatic && 'S'}
+              {display.displayMaterial && `M(${display.displayMaterial})`}
+            </>
+          )}
+        </p>
 
-        {/* 成分 - 緊湊顯示 */}
-        <div className="mb-4">
-          <div className="flex gap-2 flex-wrap items-center">
-            <span className="text-[12px] text-slate-500">成分:</span>
-            {display.displayVerbal && (
-              <span className="text-[13px] text-slate-300 bg-slate-800 px-2 py-0.5 rounded">V</span>
-            )}
-            {display.displaySomatic && (
-              <span className="text-[13px] text-slate-300 bg-slate-800 px-2 py-0.5 rounded">S</span>
-            )}
-            {display.displayMaterial && (
-              <>
-                <span className="text-[13px] text-slate-300 bg-slate-800 px-2 py-0.5 rounded">M</span>
-                <span className="text-[13px] text-slate-400">({display.displayMaterial})</span>
-              </>
-            )}
-          </div>
-        </div>
-
-        {/* 法術效果 - 放大字體 */}
+        {/* 法術效果 - 跟道具/能力一樣用有邊框的區塊，放大字體並盡量利用剩餘空間 */}
         <div className="mb-6">
-          <div className="text-[14px] text-slate-500 mb-2 font-semibold">法術效果</div>
-          <div className="text-[20px] text-slate-100 leading-relaxed">
-            <ReactMarkdown 
+          <div className="bg-slate-700/50 border border-slate-600 p-3 rounded-lg text-[18px] text-slate-100 leading-relaxed">
+            <ReactMarkdown
+              remarkPlugins={[remarkBreaks]}
               components={{
                 p: ({ children }) => <p className="mb-3 last:mb-0">{children}</p>,
                 strong: ({ children }) => <strong className="font-bold text-slate-50">{children}</strong>,

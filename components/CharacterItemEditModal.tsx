@@ -7,6 +7,7 @@ import React, { useState, useEffect } from 'react';
 import { Modal } from './ui/Modal';
 import { ModalSaveButton } from './ui/ModalSaveButton';
 import { LoadingOverlay } from './ui/LoadingOverlay';
+import { AutoResizeTextarea } from './ui/AutoResizeTextarea';
 import type { CharacterItem, ItemCategory, UpdateCharacterItemData } from '../services/itemService';
 import { getDisplayEquipmentKind } from '../services/itemService';
 import { EQUIPMENT_KINDS, EQUIPMENT_KIND_LABELS } from '../utils/equipmentConstants';
@@ -128,11 +129,6 @@ export const CharacterItemEditModal: React.FC<CharacterItemEditModalProps> = ({
     <Modal isOpen={isOpen} onClose={onClose} size="2xl" disableBackdropClose={isSubmitting}>
       <div className={`${MODAL_CONTAINER_CLASS} relative`}>
         <LoadingOverlay visible={isSubmitting} />
-        <h2 className="text-xl font-bold mb-5">編輯物品</h2>
-        
-        <p className="text-slate-400 text-sm mb-4">
-          💡 修改欄位將只影響您的角色，不會影響其他玩家。
-        </p>
 
         <form onSubmit={handleSubmit} className="space-y-3">
           {/* 名稱 */}
@@ -147,24 +143,35 @@ export const CharacterItemEditModal: React.FC<CharacterItemEditModalProps> = ({
             />
           </div>
 
-          {/* 類別 */}
-          <div>
-            <label className="block text-[14px] text-slate-400 mb-2">類別</label>
-            <select
-              value={formData.category_override || ''}
-              onChange={(e) => setFormData({ 
-                ...formData, 
-                category_override: e.target.value ? e.target.value as ItemCategory : null 
-              })}
-              className="w-full bg-slate-800 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500"
-            >
-              <option value="">{characterItem.item?.category || '選擇類別'}</option>
-              {CATEGORIES.map((cat) => (
-                <option key={cat} value={cat}>
-                  {cat}
-                </option>
-              ))}
-            </select>
+          {/* 類別 + 魔法物品 */}
+          <div className="flex items-end gap-3">
+            <div className="flex-1 min-w-0">
+              <label className="block text-[14px] text-slate-400 mb-2">類別</label>
+              <select
+                value={formData.category_override || ''}
+                onChange={(e) => setFormData({
+                  ...formData,
+                  category_override: e.target.value ? e.target.value as ItemCategory : null
+                })}
+                className="w-full bg-slate-800 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500"
+              >
+                <option value="">{characterItem.item?.category || '選擇類別'}</option>
+                {CATEGORIES.map((cat) => (
+                  <option key={cat} value={cat}>
+                    {cat}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <label className="flex items-center gap-2 text-[14px] text-slate-300 flex-shrink-0 pb-3">
+              <input
+                type="checkbox"
+                checked={!!formData.is_magic}
+                onChange={(e) => setFormData({ ...formData, is_magic: e.target.checked })}
+                className="h-4 w-4 rounded border-slate-600 bg-slate-800 text-amber-500 focus:ring-amber-500"
+              />
+              魔法物品
+            </label>
           </div>
 
           {/* 裝備類：僅顯示裝備類型（槽位與穿戴中在裝備頁管理，此處不顯示、不更新） */}
@@ -185,25 +192,15 @@ export const CharacterItemEditModal: React.FC<CharacterItemEditModalProps> = ({
             </div>
           )}
 
-          <label className="flex items-center gap-2 text-[14px] text-slate-300">
-            <input
-              type="checkbox"
-              checked={!!formData.is_magic}
-              onChange={(e) => setFormData({ ...formData, is_magic: e.target.checked })}
-              className="h-4 w-4 rounded border-slate-600 bg-slate-800 text-amber-500 focus:ring-amber-500"
-            />
-            魔法物品
-          </label>
-
           {/* 描述 */}
           <div>
             <label className="block text-[14px] text-slate-400 mb-2">描述</label>
-            <textarea
+            <AutoResizeTextarea
               value={formData.description_override || ''}
               onChange={(e) => setFormData({ ...formData, description_override: e.target.value })}
               className="w-full bg-slate-800 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500"
               placeholder={characterItem.item?.description || '輸入描述'}
-              rows={6}
+              minRows={6}
             />
           </div>
 

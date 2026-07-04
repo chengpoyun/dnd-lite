@@ -7,6 +7,7 @@ import React, { useState, useEffect } from 'react';
 import { Modal } from './ui/Modal';
 import { ModalSaveButton } from './ui/ModalSaveButton';
 import { LoadingOverlay } from './ui/LoadingOverlay';
+import { AutoResizeTextarea } from './ui/AutoResizeTextarea';
 import { CharacterSpell, updateCharacterSpell, getDisplayValues } from '../services/spellService';
 import { SPELL_SCHOOLS } from '../utils/spellUtils';
 import { MODAL_CONTAINER_CLASS } from '../styles/modalStyles';
@@ -113,10 +114,6 @@ export const CharacterSpellEditModal: React.FC<CharacterSpellEditModalProps> = (
     <Modal isOpen={isOpen} onClose={onClose} size="2xl" disableBackdropClose={isSubmitting}>
       <div className={`${MODAL_CONTAINER_CLASS} relative`}>
         <LoadingOverlay visible={isSubmitting} />
-        <h2 className="text-xl font-bold mb-5">編輯法術</h2>
-        <p className="text-sm text-slate-400 mb-4">
-          💡 修改欄位將只影響您的角色，不會影響其他玩家。
-        </p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* 法術名稱 */}
@@ -141,14 +138,14 @@ export const CharacterSpellEditModal: React.FC<CharacterSpellEditModalProps> = (
             </div>
           </div>
 
-          {/* 環位和學派 */}
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-[14px] text-slate-400 mb-2">環位</label>
+          {/* 環位和學派：label 與值同一行 */}
+          <div className="flex gap-3">
+            <div className="flex items-center gap-2 flex-1 min-w-0">
+              <label className="text-[13px] text-slate-400 flex-shrink-0">環位</label>
               <select
                 value={formData.level_override}
                 onChange={(e) => setFormData({ ...formData, level_override: parseInt(e.target.value) })}
-                className="w-full bg-slate-900 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500"
+                className="flex-1 min-w-0 bg-slate-900 rounded-lg border border-slate-700 px-2 py-2 text-slate-200 text-sm focus:outline-none focus:border-amber-500"
               >
                 {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map(level => (
                   <option key={level} value={level}>
@@ -158,12 +155,12 @@ export const CharacterSpellEditModal: React.FC<CharacterSpellEditModalProps> = (
               </select>
             </div>
 
-            <div>
-              <label className="block text-[14px] text-slate-400 mb-2">學派</label>
+            <div className="flex items-center gap-2 flex-1 min-w-0">
+              <label className="text-[13px] text-slate-400 flex-shrink-0">學派</label>
               <select
                 value={formData.school_override}
                 onChange={(e) => setFormData({ ...formData, school_override: e.target.value as any })}
-                className="w-full bg-slate-900 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500"
+                className="flex-1 min-w-0 bg-slate-900 rounded-lg border border-slate-700 px-2 py-2 text-slate-200 text-sm focus:outline-none focus:border-amber-500"
               >
                 {Object.keys(SPELL_SCHOOLS).map(school => (
                   <option key={school} value={school}>
@@ -174,50 +171,39 @@ export const CharacterSpellEditModal: React.FC<CharacterSpellEditModalProps> = (
             </div>
           </div>
 
-          {/* 施法資訊 */}
-          <div className="grid grid-cols-3 gap-3">
-            <div>
-              <label className="block text-[14px] text-slate-400 mb-2">施法時間</label>
+          {/* 施法時間／持續時間／射程：label 與值同一行 */}
+          <div className="flex gap-2">
+            <div className="flex items-center gap-1.5 flex-1 min-w-0">
+              <label className="text-[13px] text-slate-400 flex-shrink-0">施法</label>
               <input
                 type="text"
                 value={formData.casting_time_override}
                 onChange={(e) => setFormData({ ...formData, casting_time_override: e.target.value })}
-                className="w-full bg-slate-900 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500"
+                className="flex-1 min-w-0 bg-slate-900 rounded-lg border border-slate-700 px-2 py-2 text-slate-200 text-sm focus:outline-none focus:border-amber-500"
               />
             </div>
-            <div>
-              <label className="block text-[14px] text-slate-400 mb-2">持續時間</label>
+            <div className="flex items-center gap-1.5 flex-1 min-w-0">
+              <label className="text-[13px] text-slate-400 flex-shrink-0">持續</label>
               <input
                 type="text"
                 value={formData.duration_override}
                 onChange={(e) => setFormData({ ...formData, duration_override: e.target.value })}
-                className="w-full bg-slate-900 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500"
+                className="flex-1 min-w-0 bg-slate-900 rounded-lg border border-slate-700 px-2 py-2 text-slate-200 text-sm focus:outline-none focus:border-amber-500"
               />
             </div>
-            <div>
-              <label className="block text-[14px] text-slate-400 mb-2">射程</label>
+            <div className="flex items-center gap-1.5 flex-1 min-w-0">
+              <label className="text-[13px] text-slate-400 flex-shrink-0">射程</label>
               <input
                 type="text"
                 value={formData.range_override}
                 onChange={(e) => setFormData({ ...formData, range_override: e.target.value })}
-                className="w-full bg-slate-900 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500"
+                className="flex-1 min-w-0 bg-slate-900 rounded-lg border border-slate-700 px-2 py-2 text-slate-200 text-sm focus:outline-none focus:border-amber-500"
               />
             </div>
           </div>
 
-          {/* 來源和成分 */}
-          <div>
-            <label className="block text-[14px] text-slate-400 mb-2">來源</label>
-            <input
-              type="text"
-              value={formData.source_override}
-              onChange={(e) => setFormData({ ...formData, source_override: e.target.value })}
-              className="w-full bg-slate-900 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500"
-            />
-          </div>
-
-          {/* 勾選框 */}
-          <div className="flex gap-4 flex-wrap">
+          {/* 勾選框 + 材料（材料塞在姿勢右側，不再獨立佔一列） */}
+          <div className="flex gap-4 flex-wrap items-center">
             <label className="flex items-center gap-2">
               <input
                 type="checkbox"
@@ -254,29 +240,35 @@ export const CharacterSpellEditModal: React.FC<CharacterSpellEditModalProps> = (
               />
               <span className="text-[14px] text-slate-300">姿勢 (S)</span>
             </label>
-          </div>
-
-          {/* 材料 */}
-          <div>
-            <label className="block text-[14px] text-slate-400 mb-2">材料 (M)</label>
             <input
               type="text"
               value={formData.material_override}
               onChange={(e) => setFormData({ ...formData, material_override: e.target.value })}
-              className="w-full bg-slate-900 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500"
-              placeholder={display.displayMaterial || '無'}
+              className="flex-1 min-w-[6rem] bg-slate-900 rounded-lg border border-slate-700 px-3 py-2 text-slate-200 text-sm focus:outline-none focus:border-amber-500"
+              placeholder={display.displayMaterial || '材料 (M)'}
             />
           </div>
 
           {/* 法術效果 */}
           <div>
             <label className="block text-[14px] text-slate-400 mb-2">法術效果</label>
-            <textarea
+            <AutoResizeTextarea
               value={formData.description_override}
               onChange={(e) => setFormData({ ...formData, description_override: e.target.value })}
-              rows={6}
-              className="w-full bg-slate-900 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500 resize-none"
+              minRows={6}
+              className="w-full bg-slate-900 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500"
               placeholder={display.displayDescription}
+            />
+          </div>
+
+          {/* 來源（移到底部，優先度較低） */}
+          <div>
+            <label className="block text-[14px] text-slate-400 mb-2">來源</label>
+            <input
+              type="text"
+              value={formData.source_override}
+              onChange={(e) => setFormData({ ...formData, source_override: e.target.value })}
+              className="w-full bg-slate-900 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500"
             />
           </div>
 

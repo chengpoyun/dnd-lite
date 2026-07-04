@@ -1,10 +1,11 @@
 /**
  * ItemDetailModal - 道具詳細資訊彈窗
- * 第一列：名稱 + tags；第二列：數量調整 [-1] n [+1]；第三列：詳細訊息
+ * 第一列：名稱 + tags + 數量調整；其餘空間全部留給詳細訊息
  */
 
 import React, { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
+import remarkBreaks from 'remark-breaks';
 import { Modal } from './ui/Modal';
 import { CharacterItem, getDisplayValues } from '../services/itemService';
 import { MODAL_CONTAINER_CLASS } from '../styles/modalStyles';
@@ -47,55 +48,53 @@ export default function ItemDetailModal({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose}>
+    <Modal isOpen={isOpen} onClose={onClose} bodyClassName="px-3 pb-6">
       <div className={MODAL_CONTAINER_CLASS}>
-        <h2 className="text-xl font-bold mb-5">道具詳情</h2>
-        
         <div className="space-y-3">
-          {/* 第一列：僅名稱與 tags */}
-          <div className="flex items-center justify-between gap-3 py-2 flex-wrap">
-            <span className="text-lg font-bold text-white">{display.displayName}</span>
-            <div className="flex items-center gap-2">
-              <div className="px-3 py-1.5 bg-amber-900/30 border border-amber-700 text-amber-400 rounded-lg font-medium">
-                {display.displayCategory}
+          {/* 第一列：名稱 */}
+          <div className="text-lg font-bold text-white">{display.displayName}</div>
+
+          {/* 第二列：tags + 數量調整 */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="px-2 py-1 bg-amber-900/30 border border-amber-700 text-amber-400 rounded-md text-sm font-medium flex-shrink-0">
+              {display.displayCategory}
+            </div>
+            {display.displayIsMagic && (
+              <div className="px-2 py-1 bg-amber-900/40 border border-amber-700/60 text-amber-300 rounded-md text-sm font-medium flex-shrink-0">
+                魔法
               </div>
-              {display.displayIsMagic && (
-                <div className="px-3 py-1.5 bg-amber-900/40 border border-amber-700/60 text-amber-300 rounded-lg font-medium">
-                  魔法
-                </div>
-              )}
+            )}
+            <div className="flex items-center gap-1 flex-shrink-0 ml-auto">
+              <button
+                type="button"
+                onClick={() => handleQuantityDelta(-1)}
+                disabled={quantityUpdating || qty <= 0}
+                aria-label="數量減少"
+                className="w-7 h-7 bg-slate-700 text-white rounded-md font-bold active:bg-slate-600 flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                −
+              </button>
+              <span className="min-w-[1.5rem] text-center text-slate-200 font-medium">
+                {qty}
+              </span>
+              <button
+                type="button"
+                onClick={() => handleQuantityDelta(1)}
+                disabled={quantityUpdating}
+                aria-label="數量增加"
+                className="w-7 h-7 bg-slate-700 text-white rounded-md font-bold active:bg-slate-600 flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                +
+              </button>
             </div>
           </div>
 
-          {/* 第二列：數量調整 [-1] n [+1] */}
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => handleQuantityDelta(-1)}
-              disabled={quantityUpdating || qty <= 0}
-              className="w-12 py-2 bg-slate-700 text-white rounded-lg font-bold active:bg-slate-600 flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              -1
-            </button>
-            <span className="flex-1 min-w-0 bg-slate-800 border border-slate-700 py-2 px-3 rounded-lg text-slate-200 text-center font-medium">
-              {qty}
-            </span>
-            <button
-              type="button"
-              onClick={() => handleQuantityDelta(1)}
-              disabled={quantityUpdating}
-              className="w-12 py-2 bg-slate-700 text-white rounded-lg font-bold active:bg-slate-600 flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              +1
-            </button>
-          </div>
-
-          {/* 第三列：詳細訊息 */}
+          {/* 詳細訊息：省下的空間全部留給敘述 */}
           {display.displayDescription && (
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-slate-300 mb-2">詳細訊息</label>
+            <div>
               <div className="bg-slate-700/50 border border-slate-600 p-3 rounded-lg text-slate-300">
-                <ReactMarkdown 
+                <ReactMarkdown
+                  remarkPlugins={[remarkBreaks]}
                   components={{
                     p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
                     strong: ({ children }) => <strong className="font-bold text-slate-50">{children}</strong>,

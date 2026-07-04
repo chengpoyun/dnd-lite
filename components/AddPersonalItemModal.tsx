@@ -7,6 +7,7 @@ import React, { useState, useEffect } from 'react';
 import { Modal } from './ui/Modal';
 import { ModalSaveButton } from './ui/ModalSaveButton';
 import { LoadingOverlay } from './ui/LoadingOverlay';
+import { AutoResizeTextarea } from './ui/AutoResizeTextarea';
 import type { ItemCategory, CreateCharacterItemData } from '../services/itemService';
 import { EQUIPMENT_KINDS, EQUIPMENT_KIND_LABELS } from '../utils/equipmentConstants';
 import { MODAL_CONTAINER_CLASS, SELECT_CLASS } from '../styles/modalStyles';
@@ -95,10 +96,6 @@ export const AddPersonalItemModal: React.FC<AddPersonalItemModalProps> = ({
     <Modal isOpen={isOpen} onClose={onClose} size="2xl" disableBackdropClose={isSubmitting}>
       <div className={`${MODAL_CONTAINER_CLASS} relative`}>
         <LoadingOverlay visible={isSubmitting} />
-        <h2 className="text-xl font-bold mb-5">新增個人物品</h2>
-        <p className="text-slate-400 text-sm mb-4">
-          此物品僅屬於此角色。
-        </p>
         <form onSubmit={handleSubmit} className="space-y-3">
           <div>
             <label className="block text-[14px] text-slate-400 mb-2">名稱 *</label>
@@ -112,25 +109,36 @@ export const AddPersonalItemModal: React.FC<AddPersonalItemModalProps> = ({
               maxLength={100}
             />
           </div>
-          <div>
-            <label className="block text-[14px] text-slate-400 mb-2">類別 *</label>
-            <select
-              value={category}
-              onChange={(e) => {
-                const c = e.target.value as ItemCategory;
-                setCategory(c);
-                if (c !== '裝備') {
-                  setEquipmentKind('');
-                } else if (!equipmentKind) {
-                  setEquipmentKind(EQUIPMENT_KINDS[0]);
-                }
-              }}
-              className="w-full bg-slate-800 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500"
-            >
-              {CATEGORIES.map((c) => (
-                <option key={c} value={c}>{c}</option>
-              ))}
-            </select>
+          <div className="flex items-end gap-3">
+            <div className="flex-1 min-w-0">
+              <label className="block text-[14px] text-slate-400 mb-2">類別 *</label>
+              <select
+                value={category}
+                onChange={(e) => {
+                  const c = e.target.value as ItemCategory;
+                  setCategory(c);
+                  if (c !== '裝備') {
+                    setEquipmentKind('');
+                  } else if (!equipmentKind) {
+                    setEquipmentKind(EQUIPMENT_KINDS[0]);
+                  }
+                }}
+                className="w-full bg-slate-800 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500"
+              >
+                {CATEGORIES.map((c) => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+            </div>
+            <label className="flex items-center gap-2 text-[14px] text-slate-300 flex-shrink-0 pb-3">
+              <input
+                type="checkbox"
+                checked={isMagic}
+                onChange={(e) => setIsMagic(e.target.checked)}
+                className="h-4 w-4 rounded border-slate-600 bg-slate-800 text-amber-500 focus:ring-amber-500"
+              />
+              魔法物品
+            </label>
           </div>
           {category === '裝備' && (
             <>
@@ -151,23 +159,14 @@ export const AddPersonalItemModal: React.FC<AddPersonalItemModalProps> = ({
               </div>
             </>
           )}
-          <label className="flex items-center gap-2 text-[14px] text-slate-300">
-            <input
-              type="checkbox"
-              checked={isMagic}
-              onChange={(e) => setIsMagic(e.target.checked)}
-              className="h-4 w-4 rounded border-slate-600 bg-slate-800 text-amber-500 focus:ring-amber-500"
-            />
-            魔法物品
-          </label>
           <div>
             <label className="block text-[14px] text-slate-400 mb-2">描述（選填）</label>
-            <textarea
+            <AutoResizeTextarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               className="w-full bg-slate-800 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500"
               placeholder="輸入描述"
-              rows={3}
+              minRows={3}
             />
           </div>
           {/* 影響角色數值設定（放在 modal 尾端） */}
