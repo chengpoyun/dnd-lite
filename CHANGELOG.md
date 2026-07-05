@@ -4,6 +4,10 @@
 
 ---
 
+## 1.11.3
+
+- 整理：同步更新 `data/field-selection-bonus.md`（地形採集資料的來源文件），內容改為依上一版更新過的 `terrain-rewards.json` 反向生成，避免之後重新執行 `scripts/parse-terrain-rewards.mjs` 時把修正蓋掉。過程中發現並修正該 parser 腳本的既有 bug：類別中文標籤對應英文 id（如 bonepiles/fish）原本用精確字典比對，各地形實際用詞不完全一致（骨堆/骸骨/骸骨堆皆為同一類別）會比對失敗、退回用中文當 id；改為關鍵字比對後已用「markdown → parser → JSON」全流程比對驗證，輸出與目前資料完全一致。另外「叢林」地形的英文名維持 `Giant Jungle`（不跟著中文名簡化為 `Jungle`），因為 parser 會用英文名自動推導 `id`（`giant-jungle`），改了英文名會連帶改變 id。
+
 ## 1.11.2
 
 - 修正：地形頁面（`data/terrain-rewards.json`）的資源採集表內容，依「地區資源採集表(玩家).html」重新校對更新，包含：9 個地形中 8 個的中文譯名（英文名一致，僅中文用詞不同，如「祖靈草原」改為「先祖平原」）、6 處類別 DC 數值、約 200 筆品項用詞、以及原本因劇情尚未公開而空白的高階/特階（Lv11 以上）約 345 格內容，現已依參考文件全數填入。`the-dunes`／`ocean`／`volcano`／`the-wetlands` 這 4 個僅有 5 種資源類別的地形，維持原本「1d10 兩兩一組」決定類別的機制不變（HTML 未提及此機制，且改成 1d6 會產生 1/6 機率抽到不存在類別的問題），只更新其資源內容與 DC。**注意**：`data/field-selection-bonus.md`（原本用來產生此 JSON 的來源文件）尚未同步更新，若之後重新執行 `scripts/parse-terrain-rewards.mjs` 會覆蓋掉這次的修正。

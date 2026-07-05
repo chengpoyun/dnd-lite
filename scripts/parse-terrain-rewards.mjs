@@ -24,15 +24,24 @@ const TABLE_ROW = /\|\s*([^|]+)\s*\|\s*([^|]+)\s*\|\s*([^|]+)\s*\|\s*([^|]+)\s*\
 const CATEGORY_CELL = /(\d+(?:~|～|\\~)\d+|\d+)[／/]\s*([^\s]+)\s+DC\s*(\d+)/;
 
 const tierKeyMap = { '初階': 'initial', '進階': 'advanced', '高階': 'high', '特階': 'special' };
-/** 表頭中文類別 → 英文 id（避免中文判讀錯誤） */
-const categoryIdMap = {
-  '骨堆': 'bonepiles',
-  '魚類': 'fish',
-  '昆蟲': 'insects',
-  '礦物': 'minerals',
-  '菇類': 'mushrooms',
-  '植物': 'plants',
-};
+/**
+ * 表頭中文類別 → 英文 id（避免中文判讀錯誤）。用關鍵字比對而非精確字典比對，
+ * 因為各地形的類別用詞不完全一致（如「骨堆」/「骸骨」/「骸骨堆」都是 bonepiles）。
+ */
+const CATEGORY_KEYWORD_TO_ID = [
+  [/骸骨|骨堆|骨/, 'bonepiles'],
+  [/魚/, 'fish'],
+  [/昆蟲/, 'insects'],
+  [/礦/, 'minerals'],
+  [/蘑菇|菇/, 'mushrooms'],
+  [/植物/, 'plants'],
+];
+function categoryIdFromLabel(label) {
+  for (const [re, id] of CATEGORY_KEYWORD_TO_ID) {
+    if (re.test(label)) return id;
+  }
+  return label;
+}
 
 function parseLandscapes(line) {
   const m = line.match(LANDSCAPES);
@@ -55,7 +64,7 @@ function parseCategoryHeaderCell(cell) {
   if (!m) return null;
   const xKey = m[1].replace(/\\~|～/g, '~');
   const label = m[2].trim();
-  const id = categoryIdMap[label] || label;
+  const id = categoryIdFromLabel(label);
   const dc = parseInt(m[3], 10);
   return { xKey, id, label, backupDc: dc };
 }
@@ -178,5 +187,5 @@ for (const section of terrainSections) {
   });
 }
 
-fs.writeFileSync(outPath, JSON.stringify(result, null, 2), 'utf-8');
+fs.writeFileSync(outPath, JSON.stringify(result, null, 2) + '\n', 'utf-8');
 console.log('Wrote', outPath, '-', result.length, 'terrains');
