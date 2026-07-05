@@ -1,16 +1,36 @@
 /**
  * InfoPage - 資訊連結清單：載入、新增、編輯、刪除，連結以新分頁開啟
  */
-import { vi, describe, it, expect, beforeEach } from 'vitest';
+import { vi, describe, it, expect, beforeEach, beforeAll } from 'vitest';
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import InfoPage from '../../components/InfoPage';
 import * as InfoLinkService from '../../services/infoLinks';
-import type { InfoLink } from '../../lib/supabase';
+import * as InfoDocumentService from '../../services/infoDocuments';
+import type { InfoLink, InfoDocument } from '../../lib/supabase';
 
 vi.mock('../../services/infoLinks');
+vi.mock('../../services/infoDocuments');
+
+// jsdom 沒有實作 URL.createObjectURL/revokeObjectURL
+beforeAll(() => {
+  vi.stubGlobal('URL', {
+    ...URL,
+    createObjectURL: vi.fn(() => 'blob:mock-url'),
+    revokeObjectURL: vi.fn(),
+  });
+});
 
 const mockInfoLinkService = vi.mocked(InfoLinkService);
+const mockInfoDocumentService = vi.mocked(InfoDocumentService);
+
+const makeDocument = (overrides: Partial<InfoDocument>): InfoDocument => ({
+  id: 'doc-1',
+  title: '創角種族工具',
+  content: '<html><body>race tool</body></html>',
+  owner_user_id: 'user-1',
+  ...overrides,
+});
 
 const makeLink = (overrides: Partial<InfoLink>): InfoLink => ({
   id: 'link-1',
@@ -120,5 +140,51 @@ describe('InfoPage - 資訊連結清單', () => {
       expect(mockInfoLinkService.deleteInfoLink).toHaveBeenCalledWith(link.id);
     });
     await waitFor(() => expect(screen.queryByText('異常狀態說明')).not.toBeInTheDocument());
+  });
+
+  it('匿名模式不會查詢本機文件', async () => {
+    mockInfoLinkService.getInfoLinks.mockResolvedValue({ success: true, links: [] });
+
+    render(<InfoPage userContext={userContext} />);
+    await waitFor(() => expect(mockInfoLinkService.getInfoLinks).toHaveBeenCalled());
+
+    expect(mockInfoDocumentService.getInfoDocuments).not.toHaveBeenCalled();
+  });
+});
+
+describe('InfoPage - 本機文件（僅登入帳號）', () => {
+  const authedUserContext = { isAuthenticated: true, userId: 'user-1' };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('登入帳號會一併查詢本機文件，用 📄 圖示與 blob 網址開新分頁', async () => {
+    mockInfoLinkService.getInfoLinks.mockResolvedValue({ success: true, links: [] });
+    const doc = makeDocument({});
+    mockInfoDocumentService.getInfoDocuments.mockResolvedValue({ success: true, documents: [doc] });
+
+    render(<InfoPage userContext={authedUserContext} />);
+
+    await waitFor(() => {
+      expect(screen.getByText('創角種族工具')).toBeInTheDocument();
+    });
+
+    const anchor = screen.getByText('創角種族工具').closest('a')!;
+    expect(anchor.textContent).toContain('📄');
+    expect(anchor).toHaveAttribute('href', 'blob:mock-url');
+    expect(anchor).toHaveAttribute('target', '_blank');
+    expect(anchor).toHaveAttribute('rel', expect.stringContaining('noopener'));
+    expect(URL.createObjectURL).toHaveBeenCalled();
+  });
+
+  it('本機文件載入失敗時顯示錯誤但不影響外部連結清單顯示', async () => {
+    const link = makeLink({});
+    mockInfoLinkService.getInfoLinks.mockResolvedValue({ success: true, links: [link] });
+    mockInfoDocumentService.getInfoDocuments.mockResolvedValue({ success: false, error: 'DB error' });
+
+    render(<InfoPage userContext={authedUserContext} />);
+
+    await waitFor(() => expect(screen.getByText('異常狀態說明')).toBeInTheDocument());
   });
 });

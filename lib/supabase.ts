@@ -33,6 +33,15 @@ export interface InfoLink {
   updated_at?: string
 }
 
+export interface InfoDocument {
+  id: string
+  title: string
+  content: string
+  owner_user_id: string
+  created_at?: string
+  updated_at?: string
+}
+
 export interface CharacterAbilityScores {
   id: string
   character_id: string

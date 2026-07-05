@@ -1,11 +1,12 @@
 /**
  * InfoPage - 「資訊」分頁：帳號層級的參考連結清單（同一登入/匿名身分下所有角色共用）
  */
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useToast } from '../hooks/useToast';
 import * as InfoLinkService from '../services/infoLinks';
 import type { InfoLinkUserContext } from '../services/infoLinks';
-import type { InfoLink } from '../lib/supabase';
+import * as InfoDocumentService from '../services/infoDocuments';
+import type { InfoLink, InfoDocument } from '../lib/supabase';
 import { PageContainer, Title, Loading, ListCard, ListCardTitleRow } from './ui';
 import InfoLinkFormModal from './InfoLinkFormModal';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
@@ -22,6 +23,7 @@ function formatUrlForDisplay(url: string): string {
 export default function InfoPage({ userContext }: InfoPageProps) {
   const { showSuccess, showError } = useToast();
   const [links, setLinks] = useState<InfoLink[]>([]);
+  const [documents, setDocuments] = useState<InfoDocument[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [editingLink, setEditingLink] = useState<InfoLink | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -35,12 +37,41 @@ export default function InfoPage({ userContext }: InfoPageProps) {
     } else {
       showError(result.error || '載入資訊連結失敗');
     }
+
+    // 本機文件僅登入帳號可讀，匿名模式不查詢
+    if (userContext.isAuthenticated) {
+      const docResult = await InfoDocumentService.getInfoDocuments();
+      if (docResult.success) {
+        setDocuments(docResult.documents ?? []);
+      } else {
+        showError(docResult.error || '載入本機文件失敗');
+      }
+    } else {
+      setDocuments([]);
+    }
+
     setIsLoading(false);
   }, [userContext, showError]);
 
   useEffect(() => {
     loadLinks();
   }, [loadLinks]);
+
+  // 本機文件的內容用 blob 網址開啟，卸載或文件清單變動時釋放
+  const documentBlobUrls = useMemo(() => {
+    const map = new Map<string, string>();
+    documents.forEach((doc) => {
+      const blob = new Blob([doc.content], { type: 'text/html' });
+      map.set(doc.id, URL.createObjectURL(blob));
+    });
+    return map;
+  }, [documents]);
+
+  useEffect(() => {
+    return () => {
+      documentBlobUrls.forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, [documentBlobUrls]);
 
   const openAddForm = () => {
     setEditingLink(null);
@@ -139,9 +170,26 @@ export default function InfoPage({ userContext }: InfoPageProps) {
             </div>
           </ListCard>
         ))}
+
+        {documents.map((doc) => (
+          <ListCard key={doc.id} className="!p-0 overflow-hidden">
+            <a
+              href={documentBlobUrls.get(doc.id)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-3 p-4 active:bg-slate-700/30"
+            >
+              <span className="text-xl shrink-0">📄</span>
+              <div className="flex-1 min-w-0">
+                <ListCardTitleRow title={doc.title} tags={null} />
+                <p className="text-xs text-slate-500 truncate">本機文件</p>
+              </div>
+            </a>
+          </ListCard>
+        ))}
       </div>
 
-      <p className="text-center text-xs text-slate-500 mt-3">點卡片開啟連結（新分頁）．點 ✏️ 編輯</p>
+      <p className="text-center text-xs text-slate-500 mt-3">點卡片開啟連結／文件（新分頁）．點 ✏️ 編輯</p>
 
       <InfoLinkFormModal
         isOpen={isFormOpen}
