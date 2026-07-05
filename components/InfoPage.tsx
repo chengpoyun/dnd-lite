@@ -110,17 +110,18 @@ export default function InfoPage({ userContext }: InfoPageProps) {
         {links.map((link) => (
           <ListCard key={link.id} className="!p-0 overflow-hidden">
             <div className="flex items-center">
-              <div
-                className="flex-1 min-w-0 flex items-center gap-3 p-4 cursor-pointer active:bg-slate-700/30"
-                onClick={() => window.open(link.url, '_blank', 'noopener,noreferrer')}
-                role="link"
+              <a
+                href={link.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-1 min-w-0 flex items-center gap-3 p-4 active:bg-slate-700/30"
               >
                 <span className="text-xl shrink-0">🔗</span>
                 <div className="flex-1 min-w-0">
                   <ListCardTitleRow title={link.title} tags={null} />
                   <p className="text-xs text-slate-500 truncate">{formatUrlForDisplay(link.url)}</p>
                 </div>
-              </div>
+              </a>
               <button
                 onClick={() => openEditForm(link)}
                 className="shrink-0 p-4 text-slate-500 hover:text-amber-400 transition-colors"
