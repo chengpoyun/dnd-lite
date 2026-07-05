@@ -29,9 +29,10 @@ describe('InfoPage - 資訊連結清單', () => {
     vi.clearAllMocks();
   });
 
-  it('載入後顯示連結標題、網址（去掉協定），並以 target=_blank 開新分頁', async () => {
+  it('載入後顯示連結標題、網址（去掉協定），點卡片會用 window.open 開新分頁', async () => {
     const link = makeLink({});
     mockInfoLinkService.getInfoLinks.mockResolvedValue({ success: true, links: [link] });
+    const openSpy = vi.spyOn(window, 'open').mockImplementation(() => null);
 
     render(<InfoPage userContext={userContext} />);
 
@@ -40,10 +41,10 @@ describe('InfoPage - 資訊連結清單', () => {
     });
     expect(screen.getByText('5etools.vercel.app/conditionsdiseases.html')).toBeInTheDocument();
 
-    const anchor = screen.getByText('異常狀態說明').closest('a');
-    expect(anchor).toHaveAttribute('href', link.url);
-    expect(anchor).toHaveAttribute('target', '_blank');
-    expect(anchor).toHaveAttribute('rel', expect.stringContaining('noopener'));
+    fireEvent.click(screen.getByText('異常狀態說明'));
+
+    expect(openSpy).toHaveBeenCalledWith(link.url, '_blank', 'noopener,noreferrer');
+    openSpy.mockRestore();
   });
 
   it('點「+」新增連結，填標題網址後儲存會呼叫 createInfoLink', async () => {
