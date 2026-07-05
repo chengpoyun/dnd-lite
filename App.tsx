@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
+import React, { useState, useEffect, useRef, useMemo, lazy, Suspense } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { WelcomePage } from './components/WelcomePage';
 import { CharacterSheet } from './components/CharacterSheet';
@@ -87,6 +87,18 @@ const AuthenticatedApp: React.FC = () => {
   const [isSwiping, setIsSwiping] = useState(false)
   const navContainerRef = useRef<HTMLDivElement>(null)
   const activeTabRef = useRef<HTMLButtonElement>(null)
+
+  // 資訊連結為帳號層級（同一登入/匿名身分下所有角色共用），比照 CharacterSelectPage 的 userContext 寫法
+  // 用 useMemo 固定物件參考：避免每次 render（例如滑動切換 tab 的 touch 事件觸發 setIsSwiping）
+  // 都產生新物件，導致 InfoPage 的 useEffect 誤判 userContext 變了而重新載入
+  const infoLinksUserContext = useMemo(
+    () => (
+      user
+        ? { isAuthenticated: true, userId: user.id }
+        : { isAuthenticated: false, anonymousId: AnonymousService.getAnonymousId() }
+    ),
+    [user]
+  )
   
   // 角色數據
   const [isSaving, setIsSaving] = useState(false) // 添加保存狀態
@@ -737,11 +749,6 @@ const AuthenticatedApp: React.FC = () => {
       Tab.INFO,
       Tab.ABOUT
     ]
-
-    // 資訊連結為帳號層級（同一登入/匿名身分下所有角色共用），比照 CharacterSelectPage 的 userContext 寫法
-    const infoLinksUserContext = user
-      ? { isAuthenticated: true, userId: user.id }
-      : { isAuthenticated: false, anonymousId: AnonymousService.getAnonymousId() }
 
     // 滑動處理函數
     const handleTouchStart = (e: React.TouchEvent) => {
