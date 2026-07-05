@@ -19,6 +19,7 @@ const AbilitiesPage = lazy(() => import('./components/AbilitiesPage'));
 const NotesPage = lazy(() => import('./components/NotesPage').then(m => ({ default: m.default })));
 const TerrainPage = lazy(() => import('./components/TerrainPage').then(m => ({ default: m.default })));
 const MapPage = lazy(() => import('./components/MapPage'));
+const InfoPage = lazy(() => import('./components/InfoPage'));
 const AboutPage = lazy(() => import('./components/AboutPage'));
 
 import { CharacterStats } from './types';
@@ -45,6 +46,7 @@ enum Tab {
   NOTES = 'notes',
   TERRAIN = 'terrain',
   MAP = 'map',
+  INFO = 'info',
   ABOUT = 'about'
 }
 
@@ -732,8 +734,14 @@ const AuthenticatedApp: React.FC = () => {
       Tab.NOTES,
       Tab.TERRAIN,
       Tab.MAP,
+      Tab.INFO,
       Tab.ABOUT
     ]
+
+    // 資訊連結為帳號層級（同一登入/匿名身分下所有角色共用），比照 CharacterSelectPage 的 userContext 寫法
+    const infoLinksUserContext = user
+      ? { isAuthenticated: true, userId: user.id }
+      : { isAuthenticated: false, anonymousId: AnonymousService.getAnonymousId() }
 
     // 滑動處理函數
     const handleTouchStart = (e: React.TouchEvent) => {
@@ -815,6 +823,7 @@ const AuthenticatedApp: React.FC = () => {
               { id: Tab.NOTES, label: '筆記', icon: '📝' },
               { id: Tab.TERRAIN, label: '地形', icon: '🗺️' },
               { id: Tab.MAP, label: '地圖', icon: '📍' },
+              { id: Tab.INFO, label: '資訊', icon: '🔗' },
               { id: Tab.ABOUT, label: '關於', icon: 'ℹ️' }
             ].map((tab) => (
               <button
@@ -954,6 +963,12 @@ const AuthenticatedApp: React.FC = () => {
           {activeTab === Tab.MAP && (
             <Suspense fallback={<PageLoadingFallback message="載入地圖頁面..." />}>
               <MapPage />
+            </Suspense>
+          )}
+
+          {activeTab === Tab.INFO && (
+            <Suspense fallback={<PageLoadingFallback message="載入資訊頁面..." />}>
+              <InfoPage userContext={infoLinksUserContext} />
             </Suspense>
           )}
 

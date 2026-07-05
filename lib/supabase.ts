@@ -22,6 +22,17 @@ export interface Character {
   updated_at?: string
 }
 
+export interface InfoLink {
+  id: string
+  user_id: string | null
+  anonymous_id: string | null
+  is_anonymous: boolean
+  title: string
+  url: string
+  created_at?: string
+  updated_at?: string
+}
+
 export interface CharacterAbilityScores {
   id: string
   character_id: string
