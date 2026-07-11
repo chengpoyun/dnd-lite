@@ -145,6 +145,46 @@ describe('buildCharacterStats - basic+bonus 結構', () => {
     expect((result as any).ac?.bonus ?? 0).toBe(0);
   });
 
+  it('character_class 缺少但舊版 class 欄位有值時，應退回使用 class（fallback 鏈中段分支）', () => {
+    const characterData = {
+      character: { name: 'Test', class: '遊俠', level: 5 },
+      abilityScores: { strength: 14, dexterity: 14, constitution: 12, intelligence: 10, wisdom: 10, charisma: 8 },
+      currentStats: {
+        current_hp: 25, max_hp_basic: 30, max_hp_bonus: 0, temporary_hp: 0,
+        ac_basic: 14, ac_bonus: 0, initiative_basic: 2, initiative_bonus: 0,
+        speed_basic: 30, speed_bonus: 0,
+        attack_hit_basic: 0, attack_hit_bonus: 0, attack_damage_basic: 0, attack_damage_bonus: 0,
+        spell_hit_basic: 0, spell_hit_bonus: 0, spell_dc_basic: 10, spell_dc_bonus: 0,
+      },
+      skillProficiencies: [],
+      savingThrows: [],
+      currency: { copper: 0, silver: 0, electrum: 0, gp: 0, platinum: 0 },
+    };
+
+    const result = buildCharacterStats(characterData, PREV_STATS);
+    expect(result.class).toBe('遊俠');
+  });
+
+  it('character_class 與舊版 class 皆缺少時，退回預設值「戰士」', () => {
+    const characterData = {
+      character: { name: 'Test', level: 5 },
+      abilityScores: { strength: 14, dexterity: 14, constitution: 12, intelligence: 10, wisdom: 10, charisma: 8 },
+      currentStats: {
+        current_hp: 25, max_hp_basic: 30, max_hp_bonus: 0, temporary_hp: 0,
+        ac_basic: 14, ac_bonus: 0, initiative_basic: 2, initiative_bonus: 0,
+        speed_basic: 30, speed_bonus: 0,
+        attack_hit_basic: 0, attack_hit_bonus: 0, attack_damage_basic: 0, attack_damage_bonus: 0,
+        spell_hit_basic: 0, spell_hit_bonus: 0, spell_dc_basic: 10, spell_dc_bonus: 0,
+      },
+      skillProficiencies: [],
+      savingThrows: [],
+      currency: { copper: 0, silver: 0, electrum: 0, gp: 0, platinum: 0 },
+    };
+
+    const result = buildCharacterStats(characterData, PREV_STATS);
+    expect(result.class).toBe('戰士');
+  });
+
   it('extra_data.portentDice 應正確組裝進 stats.extraData（回歸測試：曾因白名單漏掉此欄位而遺失）', () => {
     const characterData = {
       character: { name: 'Test', character_class: '法師', level: 5 },

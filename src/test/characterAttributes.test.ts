@@ -144,6 +144,19 @@ describe('characterAttributes - getFinalCombatStat', () => {
     expect(getFinalCombatStat(stats, 'ac')).toBe(10);
   });
 
+  it('欄位為 null（而非 undefined）時應視同缺省，回傳合理預設', () => {
+    // DB 實際可能回傳明確的 null（不只是欄位缺失的 undefined），
+    // getBasicValue/getBonusValue 對兩者要一視同仁。
+    const stats = createMockStats({
+      ac: null as any,
+      abilityScores: { str: 10, dex: 14, con: 10, int: 10, wis: 10, cha: 10 },
+    });
+    // AC 預設 basic=10 + dex mod(14 => +2) + bonus 0 = 12
+    expect(getFinalCombatStat(stats, 'ac')).toBe(12);
+    expect(getBasicCombatStat(stats, 'ac')).toBe(10);
+    expect(getCombatStatBonus(stats, 'ac')).toBe(0);
+  });
+
   it('missing 欄位時應回傳合理預設', () => {
     const stats = createMockStats();
     // attackHit = 0 + str mod + prof + 0 = 3 + 3 = 6（level 5, str 16）
@@ -388,6 +401,10 @@ describe('characterAttributes - getBonusValue', () => {
 
   it('undefined 時回傳 0', () => {
     expect(getBonusValue(undefined)).toBe(0);
+  });
+
+  it('null 時回傳 0（跟 undefined 一視同仁）', () => {
+    expect(getBonusValue(null as any)).toBe(0);
   });
 });
 

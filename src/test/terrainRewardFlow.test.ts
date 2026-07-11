@@ -54,6 +54,26 @@ describe('terrainRewardFlow - computeRollResults', () => {
     expect(results.failureCount).toBe(0);
   });
 
+  it('總和剛好等於 DC 時算成功（邊界：非嚴格大於）', () => {
+    const dc = 15;
+    const bonus = 3;
+    const results = computeRollResults(1, dc, bonus, [12]); // total = 12+3 = 15，剛好等於 DC
+    expect(results.rollDetails[0].total).toBe(15);
+    expect(results.rollDetails[0].success).toBe(true);
+    expect(results.successCount).toBe(1);
+    expect(results.failureCount).toBe(0);
+  });
+
+  it('總和只差 DC 一點（未達 DC）時算失敗（邊界：緊鄰失敗側）', () => {
+    const dc = 15;
+    const bonus = 3;
+    const results = computeRollResults(1, dc, bonus, [11]); // total = 11+3 = 14，差 1 未達 DC
+    expect(results.rollDetails[0].total).toBe(14);
+    expect(results.rollDetails[0].success).toBe(false);
+    expect(results.successCount).toBe(0);
+    expect(results.failureCount).toBe(1);
+  });
+
   it('擲出 1 一律視為失敗，即使加總高於 DC 也算失敗', () => {
     const dc = 10;
     const bonus = 20;
