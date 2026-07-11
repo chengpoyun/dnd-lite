@@ -5,7 +5,6 @@ import { describe, it, expect } from 'vitest';
 import {
   computeRollResults,
   getNextDowngradeTier,
-  type RollResult,
 } from '../../utils/terrainRewardFlow';
 import type { TierKey } from '../../types/terrainReward';
 
