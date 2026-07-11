@@ -228,30 +228,54 @@ describe('CombatView - 預設項目保護功能測試', () => {
     expect(attackDeleteButton).toBeNull();
   });
 
-  it('isDefaultItem 邏輯應該正確識別各種預設項目', async () => {
-    // 測試不同情況下的預設項目識別
-    
-    const testCases = [
-      // 通過 is_default 標記識別
-      { item: { id: 'any-id', name: '任意名稱', is_default: true }, expected: true, reason: 'has is_default flag' },
-      
-      // 通過名稱識別（完全匹配）
-      { item: { id: 'any-id', name: '攻擊', is_default: false }, expected: true, reason: 'name matches DEFAULT_ITEM_NAMES' },
-      { item: { id: 'any-id', name: '疾跑', is_default: false }, expected: true, reason: 'name matches DEFAULT_ITEM_NAMES' },
-      { item: { id: 'any-id', name: '藥水', is_default: false }, expected: true, reason: 'name matches DEFAULT_ITEM_NAMES' },
-      
-      // 通過ID識別（原始預設ID）
-      { item: { id: 'attack', name: '任意名稱', is_default: false }, expected: true, reason: 'id matches DEFAULT_ITEM_IDS' },
-      { item: { id: 'dash', name: '任意名稱', is_default: false }, expected: true, reason: 'id matches DEFAULT_ITEM_IDS' },
-      
-      // 非預設項目
-      { item: { id: 'custom-123', name: '自訂技能', is_default: false }, expected: false, reason: 'custom item' },
-      { item: { id: 'spell-slot', name: '法術位', is_default: false }, expected: false, reason: 'custom resource' }
+  it('是否隱藏刪除按鈕應該完全反映 is_default 與 default_item_id 的布林邏輯（真值表）', async () => {
+    // 真正的判斷邏輯在 CombatView.convertDbItemToLocal：
+    //   finalIsDefault = dbItem.is_default || !!dbItem.default_item_id
+    // 這裡不重新實作/猜測該函數，而是直接餵入涵蓋四種組合的項目，
+    // 透過實際渲染出的刪除按鈕有無來驗證真正的邏輯（包含兩者皆為真的邊界情況）。
+    const truthTableItems: import('../../lib/supabase').CharacterCombatAction[] = [
+      {
+        id: 'db-both-true', character_id: 'test-character-123', category: 'action',
+        name: '兩者皆真', icon: '🔥', current_uses: 1, max_uses: 1, recovery_type: 'turn',
+        is_default: true, is_custom: false, default_item_id: 'some-default-id'
+      },
+      {
+        id: 'db-only-is-default', character_id: 'test-character-123', category: 'action',
+        name: '僅is_default', icon: '🔥', current_uses: 1, max_uses: 1, recovery_type: 'turn',
+        is_default: true, is_custom: false, default_item_id: undefined
+      },
+      {
+        id: 'db-only-default-id', character_id: 'test-character-123', category: 'bonus_action',
+        name: '僅default_item_id', icon: '🔥', current_uses: 1, max_uses: 1, recovery_type: 'turn',
+        is_default: false, is_custom: false, default_item_id: 'some-default-id'
+      },
+      {
+        id: 'db-neither', character_id: 'test-character-123', category: 'resource',
+        name: '兩者皆無', icon: '🔥', current_uses: 1, max_uses: 1, recovery_type: 'turn',
+        is_default: false, is_custom: true, default_item_id: undefined
+      }
     ];
 
-    // 我們無法直接測試 isDefaultItem 函數，但可以通過 UI 行為來驗證邏輯
-    // 這裡我們主要驗證邏輯的完整性
-    expect(testCases).toBeDefined();
+    mockHybridDataManager.getCombatItems.mockResolvedValue(truthTableItems);
+
+    render(<CombatView {...defaultProps} />);
+
+    await waitFor(() => {
+      expect(screen.queryByText('正在載入戰鬥資料...')).not.toBeInTheDocument();
+    });
+
+    const editButton = screen.getByText('⚙️');
+    fireEvent.click(editButton);
+
+    const hasDeleteButton = (name: string) => {
+      const container = screen.getByText(name).closest('button')?.parentElement;
+      return container?.querySelector('button[class*="bg-rose-600"]') != null;
+    };
+
+    expect(hasDeleteButton('兩者皆真')).toBe(false);
+    expect(hasDeleteButton('僅is_default')).toBe(false);
+    expect(hasDeleteButton('僅default_item_id')).toBe(false);
+    expect(hasDeleteButton('兩者皆無')).toBe(true);
   });
 
   it('應該優先檢查 default_item_id 而非 is_default 標記', async () => {

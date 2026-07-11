@@ -1,216 +1,92 @@
-import { describe, it, expect } from 'vitest';
-import type { Spell, CreateCharacterSpellData } from '../../services/spellService';
+import { describe, it, expect, vi } from 'vitest';
+import React from 'react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { AddPersonalSpellModal } from '../../components/AddPersonalSpellModal';
 
 /**
- * 法術系統單元測試
- * 
- * 測試範圍：
- * 1. Spell 介面的 ritual 欄位
- * 2. 法術表單資料驗證
+ * 個人法術新增表單（AddPersonalSpellModal）的必填欄位驗證。
+ * 真正的驗證邏輯在 handleSubmit 裡：只要 name/name_en/casting_time/duration/
+ * range/source/material/description 任一 trim 後為空，就直接 return（不呼叫 onSubmit）。
  */
+describe('AddPersonalSpellModal - 必填欄位驗證', () => {
+  it('所有必填欄位都填寫時，送出應以 trim 後的資料呼叫 onSubmit 並關閉 Modal', async () => {
+    const onSubmit = vi.fn().mockResolvedValue(undefined);
+    const onClose = vi.fn();
 
-describe('法術系統 - 資料結構測試', () => {
-  describe('Spell 介面', () => {
-    it('應該包含所有必需欄位', () => {
-      const spell: Spell = {
-        id: 'test-id',
-        name: '火球術',
-        name_en: 'Fireball',
-        level: 3,
-        casting_time: '動作',
-        school: '塑能',
-        concentration: false,
-        ritual: false,
-        duration: '即效',
-        range: '150尺',
-        source: 'PHB',
-        verbal: true,
-        somatic: true,
-        material: '一小團蝙蝠糞便和硫磺',
-        description: '一道光芒從你指尖射出...',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      };
-
-      expect(spell.ritual).toBeDefined();
-      expect(typeof spell.ritual).toBe('boolean');
-    });
-
-    it('應該正確處理儀式法術', () => {
-      const ritualSpell: Partial<Spell> = {
-        name: '偵測魔法',
-        ritual: true,
-        concentration: true
-      };
-
-      expect(ritualSpell.ritual).toBe(true);
-      expect(ritualSpell.concentration).toBe(true);
-    });
-  });
-
-  describe('法術欄位驗證', () => {
-    it('施法時間應該是預定義值之一', () => {
-      const validCastingTimes = [
-        '動作', '附贈動作', '反應', '1分鐘', '10分鐘', 
-        '1小時', '8小時', '12小時', '24小時'
-      ];
-
-      validCastingTimes.forEach(time => {
-        const spell: Partial<CreateCharacterSpellData> = {
-          casting_time: time
-        };
-        expect(validCastingTimes).toContain(spell.casting_time);
-      });
-    });
-
-    it('持續時間應該是預定義值之一', () => {
-      const validDurations = [
-        '即效', '一回合', '1分鐘', '10分鐘', '1小時', 
-        '8小時', '24小時', '直到取消', '其他'
-      ];
-
-      validDurations.forEach(duration => {
-        const spell: Partial<CreateCharacterSpellData> = {
-          duration: duration
-        };
-        expect(validDurations).toContain(spell.duration);
-      });
-    });
-
-    it('射程應該是預定義值之一', () => {
-      const validRanges = [
-        '自身', '觸碰', '5尺', '10尺', '30尺', 
-        '60尺', '90尺', '120尺', '150尺', '300尺', '其他'
-      ];
-
-      validRanges.forEach(range => {
-        const spell: Partial<CreateCharacterSpellData> = {
-          range: range
-        };
-        expect(validRanges).toContain(spell.range);
-      });
-    });
-
-    it('來源應該是預定義值之一', () => {
-      const validSources = [
-        'PHB', "PHB'24", 'AI', 'IDRotF', 'TCE', 'XGE', 
-        'AAG', 'BMT', 'EFA', 'FRHoF', 'FTD', 'SatO', 'SCC'
-      ];
-
-      validSources.forEach(source => {
-        const spell: Partial<CreateCharacterSpellData> = {
-          source: source
-        };
-        expect(validSources).toContain(spell.source);
-      });
-    });
-
-    it('學派應該是8個預定義學派之一', () => {
-      const validSchools: Array<Spell['school']> = [
-        '塑能', '惑控', '預言', '咒法', '變化', '防護', '死靈', '幻術'
-      ];
-
-      validSchools.forEach(school => {
-        const spell: Partial<CreateCharacterSpellData> = {
-          school: school
-        };
-        expect(validSchools).toContain(spell.school);
-      });
-    });
-  });
-
-  describe('法術特性組合', () => {
-    it('法術可以同時是儀式和專注', () => {
-      const spell: Partial<Spell> = {
-        name: '偵測魔法',
-        ritual: true,
-        concentration: true
-      };
-
-      expect(spell.ritual).toBe(true);
-      expect(spell.concentration).toBe(true);
-    });
-
-    it('戲法不應該標記為儀式', () => {
-      const cantrip: Partial<Spell> = {
-        name: '魔法伎倆',
-        level: 0,
-        ritual: false
-      };
-
-      expect(cantrip.level).toBe(0);
-      expect(cantrip.ritual).toBe(false);
-    });
-
-    it('儀式法術必須是1環或以上', () => {
-      const ritualSpell: Partial<Spell> = {
-        name: '尋找魔寵',
-        level: 1,
-        ritual: true
-      };
-
-      expect(ritualSpell.level).toBeGreaterThanOrEqual(1);
-      expect(ritualSpell.ritual).toBe(true);
-    });
-  });
-});
-
-describe('法術系統 - 表單資料完整性', () => {
-  it('表單驗證應該通過有效資料', () => {
-    const validSpell: CreateCharacterSpellData = {
-      name: '火球術',
-      name_en: 'Fireball',
-      level: 3,
-      casting_time: '動作',
-      school: '塑能',
-      concentration: false,
-      ritual: false,
-      duration: '即效',
-      range: '150尺',
-      source: 'PHB',
-      verbal: true,
-      somatic: true,
-      material: '一小團蝙蝠糞便和硫磺',
-      description: '一道光芒從你指尖射出，於射程內一點爆炸成火球。'
-    };
-
-    // 模擬表單驗證邏輯
-    const isValid = !!(
-      validSpell.name &&
-      validSpell.name_en &&
-      validSpell.casting_time && 
-      validSpell.duration && 
-      validSpell.range && 
-      validSpell.source && 
-      validSpell.material &&
-      validSpell.description
+    render(
+      React.createElement(AddPersonalSpellModal, { isOpen: true, onClose, onSubmit })
     );
 
-    expect(isValid).toBe(true);
+    fireEvent.change(screen.getByPlaceholderText('例：火球術'), { target: { value: '  火球術  ' } });
+    fireEvent.change(screen.getByPlaceholderText('例：Fireball'), { target: { value: '  Fireball  ' } });
+    fireEvent.change(screen.getByPlaceholderText('材料 (M)，若無請填『無』'), { target: { value: '  一小團蝙蝠糞便  ' } });
+    fireEvent.change(screen.getByPlaceholderText('詳細描述法術的效果...'), { target: { value: '  一道光芒射出  ' } });
+
+    fireEvent.click(screen.getByText('新增'));
+
+    await waitFor(() => {
+      expect(onSubmit).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: '火球術',
+          name_en: 'Fireball',
+          material: '一小團蝙蝠糞便',
+          description: '一道光芒射出',
+        })
+      );
+    });
+    await waitFor(() => expect(onClose).toHaveBeenCalled());
   });
 
-  it('表單驗證應該拒絕缺少必填欄位的資料', () => {
-    const invalidSpells: Partial<CreateCharacterSpellData>[] = [
-      { name: '', description: '測試' }, // 缺少名稱
-      { name: '測試', description: '' }, // 缺少描述
-      { name: '測試', description: '測試', name_en: '' }, // name_en 空字串
-      { name: '測試', description: '測試', casting_time: '' }, // casting_time 空字串
-      { name: '測試', description: '測試', material: '' }, // material 空字串
-    ];
+  it.each([
+    ['中文名稱', '例：火球術'],
+    ['英文名稱', '例：Fireball'],
+    ['材料', '材料 (M)，若無請填『無』'],
+    ['法術效果', '詳細描述法術的效果...'],
+  ])('缺少必填欄位「%s」時，送出不應呼叫 onSubmit', async (_label, placeholderToLeaveEmpty) => {
+    const onSubmit = vi.fn().mockResolvedValue(undefined);
+    const onClose = vi.fn();
 
-    invalidSpells.forEach(spell => {
-      const isValid = !!(
-        spell.name &&
-        spell.name_en &&
-        spell.casting_time && 
-        spell.duration && 
-        spell.range && 
-        spell.source && 
-        spell.material &&
-        spell.description
-      );
+    render(
+      React.createElement(AddPersonalSpellModal, { isOpen: true, onClose, onSubmit })
+    );
 
-      expect(isValid).toBe(false);
-    });
+    const fieldsToFill: Record<string, string> = {
+      '例：火球術': '火球術',
+      '例：Fireball': 'Fireball',
+      '材料 (M)，若無請填『無』': '無',
+      '詳細描述法術的效果...': '一道光芒射出',
+    };
+
+    for (const [placeholder, value] of Object.entries(fieldsToFill)) {
+      if (placeholder === placeholderToLeaveEmpty) continue;
+      fireEvent.change(screen.getByPlaceholderText(placeholder), { target: { value } });
+    }
+
+    fireEvent.click(screen.getByText('新增'));
+
+    // 給 React 一輪機會處理（若驗證有漏洞而真的呼叫了 onSubmit，這裡才觀察得到）
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(onSubmit).not.toHaveBeenCalled();
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it('只填空白字元的欄位視同未填寫，不應呼叫 onSubmit', async () => {
+    const onSubmit = vi.fn().mockResolvedValue(undefined);
+    const onClose = vi.fn();
+
+    render(
+      React.createElement(AddPersonalSpellModal, { isOpen: true, onClose, onSubmit })
+    );
+
+    fireEvent.change(screen.getByPlaceholderText('例：火球術'), { target: { value: '   ' } });
+    fireEvent.change(screen.getByPlaceholderText('例：Fireball'), { target: { value: 'Fireball' } });
+    fireEvent.change(screen.getByPlaceholderText('材料 (M)，若無請填『無』'), { target: { value: '無' } });
+    fireEvent.change(screen.getByPlaceholderText('詳細描述法術的效果...'), { target: { value: '效果' } });
+
+    fireEvent.click(screen.getByText('新增'));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(onSubmit).not.toHaveBeenCalled();
   });
 });

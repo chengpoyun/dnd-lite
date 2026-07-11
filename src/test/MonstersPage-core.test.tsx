@@ -459,6 +459,11 @@ session: {
         isActive: true
       });
 
+      vi.mocked(CombatService.addMonsters).mockResolvedValue({
+        success: true,
+        monsters: []
+      });
+
       render(<MonstersPage />);
 
       // 開始戰鬥
@@ -469,8 +474,66 @@ session: {
         expect(screen.getByText('ABC123')).toBeInTheDocument();
       });
 
-      // 驗證 checkVersionConflict 存在於代碼中（此處簡化測試）
-      expect(CombatService.checkVersionConflict).toBeDefined();
+      // 觸發會呼叫 checkConflict() 的動作：開啟新增怪物 Modal 並送出
+      fireEvent.click(screen.getByText('➕'));
+      fireEvent.change(screen.getByPlaceholderText('食人魔、地精...'), {
+        target: { value: '地精' }
+      });
+      fireEvent.click(screen.getByText('確認新增'));
+
+      // 偵測到版本衝突時，應該重新整理戰鬥資料、而不是真的送出新增怪物的請求
+      await waitFor(() => {
+        expect(CombatService.getCombatData).toHaveBeenCalledTimes(2);
+      });
+      expect(CombatService.addMonsters).not.toHaveBeenCalled();
+    });
+
+    it('若版本衝突檢測發現戰鬥已被結束（isActive: false），應顯示戰鬥已結束 Modal', async () => {
+      vi.mocked(CombatService.createSession).mockResolvedValue({
+        success: true,
+        sessionCode: 'ABC123'
+      });
+
+      vi.mocked(CombatService.getCombatData).mockResolvedValue({
+        success: true,
+        session: {
+          id: '1',
+          session_code: 'ABC123',
+          is_active: true,
+          last_updated: '2026-02-01T10:00:00Z',
+          created_at: '2026-02-01T10:00:00Z',
+          ended_at: null,
+          user_id: null,
+          anonymous_id: null
+        },
+        monsters: []
+      });
+
+      vi.mocked(CombatService.checkVersionConflict).mockResolvedValue({
+        hasConflict: false,
+        latestTimestamp: '2026-02-01T10:00:00Z',
+        isActive: false
+      });
+
+      render(<MonstersPage />);
+
+      const startButton = screen.getByRole('button', { name: /開始新戰鬥/ });
+      fireEvent.click(startButton);
+
+      await waitFor(() => {
+        expect(screen.getByText('ABC123')).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByText('➕'));
+      fireEvent.change(screen.getByPlaceholderText('食人魔、地精...'), {
+        target: { value: '地精' }
+      });
+      fireEvent.click(screen.getByText('確認新增'));
+
+      await waitFor(() => {
+        expect(screen.getByText(/戰鬥已結束/)).toBeInTheDocument();
+      });
+      expect(CombatService.addMonsters).not.toHaveBeenCalled();
     });
   });
 });
