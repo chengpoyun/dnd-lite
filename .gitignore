@@ -1,6 +1,10 @@
 # Logs
 logs
 *.log
+
+# Stryker mutation testing output (config kept, generated reports/sandbox are not)
+reports/
+.stryker-tmp/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
