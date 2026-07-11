@@ -4,6 +4,11 @@
 
 ---
 
+## 1.11.4
+
+- 修正：本機文件「魔物獵人道具圖鑑」與「地區資源採集表(玩家)」已被使用者合併為「道具列表+地區採集」，刪除前兩者於 DB 的重複資料（`info_documents`／`info_document_access`，級聯刪除確認無孤兒列）。
+- 修正：依合併後檔案內嵌的最新 `terrainData` 重新比對並更新 `data/terrain-rewards.json`（同步 `data/field-selection-bonus.md`，並以 `scripts/parse-terrain-rewards.mjs` 全流程驗證輸出一致）：7 個地形中文譯名更新（如「叢林」改為「巨人密林」）、沙丘初階植物類別備用技能 DC（14→10）、濕地進階獎勵表原本誤用單一 X 座標（1d6，僅涵蓋 5 類中的其中一類），修正為與其他分級一致的「1d10 兩兩一組」機制（同時涵蓋全部 5 類資源）。
+
 ## 1.11.3
 
 - 整理：同步更新 `data/field-selection-bonus.md`（地形採集資料的來源文件），內容改為依上一版更新過的 `terrain-rewards.json` 反向生成，避免之後重新執行 `scripts/parse-terrain-rewards.mjs` 時把修正蓋掉。過程中發現並修正該 parser 腳本的既有 bug：類別中文標籤對應英文 id（如 bonepiles/fish）原本用精確字典比對，各地形實際用詞不完全一致（骨堆/骸骨/骸骨堆皆為同一類別）會比對失敗、退回用中文當 id；改為關鍵字比對後已用「markdown → parser → JSON」全流程比對驗證，輸出與目前資料完全一致。另外「叢林」地形的英文名維持 `Giant Jungle`（不跟著中文名簡化為 `Jungle`），因為 parser 會用英文名自動推導 `id`（`giant-jungle`），改了英文名會連帶改變 id。

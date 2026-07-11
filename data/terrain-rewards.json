@@ -421,7 +421,7 @@
           {
             "id": "plants",
             "label": "植物",
-            "backupDc": 14
+            "backupDc": 10
           }
         ],
         "columns": {
@@ -693,7 +693,7 @@
   },
   {
     "id": "giant-jungle",
-    "name": "叢林",
+    "name": "巨人密林",
     "nameEn": "Giant Jungle",
     "landscapes": [
       "海岸",
@@ -1065,7 +1065,7 @@
   },
   {
     "id": "ocean",
-    "name": "海洋",
+    "name": "開闊海域",
     "nameEn": "Ocean",
     "landscapes": [
       "海岸",
@@ -1310,7 +1310,7 @@
   },
   {
     "id": "rotten-vale",
-    "name": "腐朽之谷",
+    "name": "腐朽山谷",
     "nameEn": "Rotten Vale",
     "landscapes": [
       "幽暗地域",
@@ -1681,7 +1681,7 @@
   },
   {
     "id": "snowy-mountains",
-    "name": "雪山",
+    "name": "雪峰山群",
     "nameEn": "Snowy Mountains",
     "landscapes": [
       "冰原",
@@ -2053,7 +2053,7 @@
   },
   {
     "id": "verdant-hills",
-    "name": "翠綠丘陵",
+    "name": "青翠丘陵",
     "nameEn": "Verdant Hills",
     "landscapes": [
       "森林",
@@ -2424,7 +2424,7 @@
   },
   {
     "id": "volcano",
-    "name": "火山",
+    "name": "烈焰火山",
     "nameEn": "Volcano",
     "landscapes": [
       "荒野",
@@ -2749,7 +2749,7 @@
   },
   {
     "id": "the-wetlands",
-    "name": "濕地",
+    "name": "潮濕沼地",
     "nameEn": "The Wetlands",
     "landscapes": [
       "幽暗地域",
@@ -2844,7 +2844,7 @@
       "advanced": {
         "levelMin": 5,
         "levelMax": 10,
-        "xDie": 6,
+        "xDie": 10,
         "categories": [
           {
             "id": "bonepiles",
@@ -2873,7 +2873,7 @@
           }
         ],
         "columns": {
-          "1": [
+          "1~2": [
             "小骨殼",
             "骨頭",
             "巨大骨",
@@ -2881,7 +2881,7 @@
             "中魔物骨",
             "魔物骨+"
           ],
-          "2": [
+          "3~4": [
             "蠕蟲",
             "蜘蛛網",
             "不死蟲",
@@ -2889,7 +2889,7 @@
             "閃光蟲",
             "不死蟲"
           ],
-          "3": [
+          "5~6": [
             "大地結晶",
             "燕雀石",
             "燕雀石",
@@ -2897,7 +2897,7 @@
             "上鎧玉",
             "輝龍石"
           ],
-          "4": [
+          "7~8": [
             "毒菇",
             "硝化蘑菇",
             "毒菇",
@@ -2905,7 +2905,7 @@
             "麻痺蘑菇",
             "麻痺蘑菇"
           ],
-          "5": [
+          "9~10": [
             "藥草",
             "空心果",
             "解毒草",
