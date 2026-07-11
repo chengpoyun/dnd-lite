@@ -4,6 +4,10 @@
 
 ---
 
+## 1.11.5
+
+- 修正：`npx tsc --noEmit` 的既有型別檢查錯誤（`saveGuard.test.ts` 缺少 `beforeEach` import、`terrainRewardFlow.test.ts` 引入拼錯且未使用的型別名稱）。無使用者可見變更。
+
 ## 1.11.4
 
 - 修正：本機文件「魔物獵人道具圖鑑」與「地區資源採集表(玩家)」已被使用者合併為「道具列表+地區採集」，刪除前兩者於 DB 的重複資料（`info_documents`／`info_document_access`，級聯刪除確認無孤兒列）。
