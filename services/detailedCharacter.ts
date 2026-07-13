@@ -1644,7 +1644,128 @@ export class DetailedCharacterService {
         }
       }
 
+      // 共用：套用單一來源（裝備本身、或裝備插槽中鑲嵌的素材）的 stat_bonuses 到 totals / bySource
+      // 插槽素材與裝備本身的 affects_stats 無關，只要有鑲嵌就會呼叫本函式套用效果
+      const applyItemBonusSource = (id: string, name: string, bonuses: any) => {
+        if (!bonuses || typeof bonuses !== 'object') return
+
+        const abilityScores = bonuses.abilityScores
+        const abilityModifiers = bonuses.abilityModifiers
+        const abilityScoreFloors = bonuses.abilityScoreFloors
+        const savingThrows = bonuses.savingThrows
+        const skills = bonuses.skills
+        const combatStats = bonuses.combatStats
+        const savingThrowAdvantage = Array.isArray(bonuses.savingThrowAdvantage) ? bonuses.savingThrowAdvantage : undefined
+        const savingThrowDisadvantage = Array.isArray(bonuses.savingThrowDisadvantage) ? bonuses.savingThrowDisadvantage : undefined
+        const skillAdvantage = Array.isArray(bonuses.skillAdvantage) ? bonuses.skillAdvantage : undefined
+        const skillDisadvantage = Array.isArray(bonuses.skillDisadvantage) ? bonuses.skillDisadvantage : undefined
+
+        const perSource: {
+          id: string
+          type: 'item'
+          name: string
+          abilityScores?: Record<string, number>
+          abilityModifiers?: Record<string, number>
+          savingThrows?: Record<string, number>
+          skills?: Record<string, number>
+          savingThrowAdvantage?: string[]
+          savingThrowDisadvantage?: string[]
+          skillAdvantage?: string[]
+          skillDisadvantage?: string[]
+          combatStats?: AggregatedStatBonuses['combatStats']
+        } = {
+          id,
+          type: 'item',
+          name
+        }
+
+        if (abilityScores && typeof abilityScores === 'object') {
+          const map: Record<string, number> = {}
+          mergeNumberMap(map, abilityScores)
+          if (Object.keys(map).length) {
+            perSource.abilityScores = map
+            mergeNumberMap(totals.abilityScores, map)
+          }
+        }
+
+        if (abilityModifiers && typeof abilityModifiers === 'object') {
+          const map: Record<string, number> = {}
+          mergeNumberMap(map, abilityModifiers)
+          if (Object.keys(map).length) {
+            perSource.abilityModifiers = map
+            mergeNumberMap(totals.abilityModifiers, map)
+          }
+        }
+
+        if (savingThrows && typeof savingThrows === 'object') {
+          const map: Record<string, number> = {}
+          mergeNumberMap(map, savingThrows)
+          if (Object.keys(map).length) {
+            perSource.savingThrows = map
+            mergeNumberMap(totals.savingThrows, map)
+          }
+        }
+
+        if (skills && typeof skills === 'object') {
+          const map: Record<string, number> = {}
+          mergeNumberMap(map, skills)
+          if (Object.keys(map).length) {
+            perSource.skills = map
+            mergeNumberMap(totals.skills, map)
+          }
+        }
+
+        if (combatStats && typeof combatStats === 'object') {
+          const cs: AggregatedStatBonuses['combatStats'] = {}
+          mergeCombatStats(cs, combatStats)
+          if (Object.keys(cs).length) {
+            perSource.combatStats = cs
+            mergeCombatStats(totals.combatStats, cs)
+          }
+        }
+
+        // 屬性值「設為 X」效果（如食人魔力量手套），直接來自一般 stat_bonuses.abilityScoreFloors
+        // （UI 於 StatBonusEditor 輸入 =19 語法），延後到所有加值彙總後再套用（見下方 pendingFloors 迴圈）
+        if (abilityScoreFloors && typeof abilityScoreFloors === 'object') {
+          for (const [ab, floor] of Object.entries(abilityScoreFloors)) {
+            if (typeof floor === 'number') pendingFloors.push({ perSource, ability: ab, floor })
+          }
+        }
+
+        // 特殊效果（如健壯：依等級動態計算的公式型效果）
+        const itemEffectId = getSpecialEffectId(bonuses)
+        if (itemEffectId && context) {
+          const special = getSpecialEffectBonus(itemEffectId, context)
+          if (special.abilityScores && Object.keys(special.abilityScores).length) {
+            if (!perSource.abilityScores) perSource.abilityScores = {}
+            mergeNumberMap(perSource.abilityScores, special.abilityScores)
+            mergeNumberMap(totals.abilityScores, special.abilityScores)
+          }
+          // 屬性值下限（如食人魔力量手套）延後到所有加值彙總後再套用
+          for (const [ab, floor] of Object.entries(special.abilityScoreFloors ?? {})) {
+            if (typeof floor === 'number') pendingFloors.push({ perSource, ability: ab, floor })
+          }
+          const { abilityScores: _specialAbilityScores, abilityScoreFloors: _specialFloors, ...specialCombat } = special
+          if (Object.keys(specialCombat).length) {
+            if (!perSource.combatStats) perSource.combatStats = {}
+            mergeCombatStats(perSource.combatStats, specialCombat)
+            mergeCombatStats(totals.combatStats, specialCombat)
+          }
+        }
+
+        if (savingThrowAdvantage?.length) perSource.savingThrowAdvantage = savingThrowAdvantage
+        if (savingThrowDisadvantage?.length) perSource.savingThrowDisadvantage = savingThrowDisadvantage
+        if (skillAdvantage?.length) perSource.skillAdvantage = skillAdvantage
+        if (skillDisadvantage?.length) perSource.skillDisadvantage = skillDisadvantage
+
+        if (perSource.abilityScores || perSource.abilityModifiers || perSource.savingThrows || perSource.skills || perSource.combatStats ||
+            perSource.savingThrowAdvantage || perSource.savingThrowDisadvantage || perSource.skillAdvantage || perSource.skillDisadvantage) {
+          totals.bySource.push(perSource)
+        }
+      }
+
       // 2. 角色物品 -> global_items（僅「穿戴中」is_equipped 的裝備計入數值；優先使用 character_items 的 affects_stats / stat_bonuses 覆寫）
+      //    插槽鑲嵌素材的效果獨立於裝備本身是否有 affects_stats，只要裝備穿戴中且插槽有鑲嵌就套用
       const { data: characterItems, error: ciError } = await supabase
         .from('character_items')
         .select(`
@@ -1655,6 +1776,7 @@ export class DetailedCharacterService {
           affects_stats,
           stat_bonuses,
           is_equipped,
+          sockets,
           item:global_items(
             id,
             name,
@@ -1674,124 +1796,19 @@ export class DetailedCharacterService {
             (typeof row.affects_stats === 'boolean' && row.affects_stats) ||
             (row.stat_bonuses && typeof row.stat_bonuses === 'object' && Object.keys(row.stat_bonuses).length > 0)
           const effectiveAffectsStats = hasOverride ? !!row.affects_stats : !!itemRaw?.affects_stats
-          if (!effectiveAffectsStats) continue
+          const itemName = (row.name_override || itemRaw.name || '').toString()
 
-          const bonuses = (hasOverride ? row.stat_bonuses : itemRaw?.stat_bonuses) as any
-          if (!bonuses || typeof bonuses !== 'object') continue
-
-          const abilityScores = bonuses.abilityScores
-          const abilityModifiers = bonuses.abilityModifiers
-          const abilityScoreFloors = bonuses.abilityScoreFloors
-          const savingThrows = bonuses.savingThrows
-          const skills = bonuses.skills
-          const combatStats = bonuses.combatStats
-          const savingThrowAdvantage = Array.isArray(bonuses.savingThrowAdvantage) ? bonuses.savingThrowAdvantage : undefined
-          const savingThrowDisadvantage = Array.isArray(bonuses.savingThrowDisadvantage) ? bonuses.savingThrowDisadvantage : undefined
-          const skillAdvantage = Array.isArray(bonuses.skillAdvantage) ? bonuses.skillAdvantage : undefined
-          const skillDisadvantage = Array.isArray(bonuses.skillDisadvantage) ? bonuses.skillDisadvantage : undefined
-
-          const perSource: {
-            id: string
-            type: 'item'
-            name: string
-            abilityScores?: Record<string, number>
-            abilityModifiers?: Record<string, number>
-            savingThrows?: Record<string, number>
-            skills?: Record<string, number>
-            savingThrowAdvantage?: string[]
-            savingThrowDisadvantage?: string[]
-            skillAdvantage?: string[]
-            skillDisadvantage?: string[]
-            combatStats?: AggregatedStatBonuses['combatStats']
-          } = {
-            id: row.id,
-            type: 'item',
-            name: (row.name_override || itemRaw.name || '').toString()
+          if (effectiveAffectsStats) {
+            const bonuses = (hasOverride ? row.stat_bonuses : itemRaw?.stat_bonuses) as any
+            applyItemBonusSource(row.id, itemName, bonuses)
           }
 
-          if (abilityScores && typeof abilityScores === 'object') {
-            const map: Record<string, number> = {}
-            mergeNumberMap(map, abilityScores)
-            if (Object.keys(map).length) {
-              perSource.abilityScores = map
-              mergeNumberMap(totals.abilityScores, map)
-            }
-          }
-
-          if (abilityModifiers && typeof abilityModifiers === 'object') {
-            const map: Record<string, number> = {}
-            mergeNumberMap(map, abilityModifiers)
-            if (Object.keys(map).length) {
-              perSource.abilityModifiers = map
-              mergeNumberMap(totals.abilityModifiers, map)
-            }
-          }
-
-          if (savingThrows && typeof savingThrows === 'object') {
-            const map: Record<string, number> = {}
-            mergeNumberMap(map, savingThrows)
-            if (Object.keys(map).length) {
-              perSource.savingThrows = map
-              mergeNumberMap(totals.savingThrows, map)
-            }
-          }
-
-          if (skills && typeof skills === 'object') {
-            const map: Record<string, number> = {}
-            mergeNumberMap(map, skills)
-            if (Object.keys(map).length) {
-              perSource.skills = map
-              mergeNumberMap(totals.skills, map)
-            }
-          }
-
-          if (combatStats && typeof combatStats === 'object') {
-            const cs: AggregatedStatBonuses['combatStats'] = {}
-            mergeCombatStats(cs, combatStats)
-            if (Object.keys(cs).length) {
-              perSource.combatStats = cs
-              mergeCombatStats(totals.combatStats, cs)
-            }
-          }
-
-          // 屬性值「設為 X」效果（如食人魔力量手套），直接來自一般 stat_bonuses.abilityScoreFloors
-          // （UI 於 StatBonusEditor 輸入 =19 語法），延後到所有加值彙總後再套用（見下方 pendingFloors 迴圈）
-          if (abilityScoreFloors && typeof abilityScoreFloors === 'object') {
-            for (const [ab, floor] of Object.entries(abilityScoreFloors)) {
-              if (typeof floor === 'number') pendingFloors.push({ perSource, ability: ab, floor })
-            }
-          }
-
-          // 特殊效果（如健壯：依等級動態計算的公式型效果）
-          const itemEffectId = getSpecialEffectId(bonuses)
-          if (itemEffectId && context) {
-            const special = getSpecialEffectBonus(itemEffectId, context)
-            if (special.abilityScores && Object.keys(special.abilityScores).length) {
-              if (!perSource.abilityScores) perSource.abilityScores = {}
-              mergeNumberMap(perSource.abilityScores, special.abilityScores)
-              mergeNumberMap(totals.abilityScores, special.abilityScores)
-            }
-            // 屬性值下限（如食人魔力量手套）延後到所有加值彙總後再套用
-            for (const [ab, floor] of Object.entries(special.abilityScoreFloors ?? {})) {
-              if (typeof floor === 'number') pendingFloors.push({ perSource, ability: ab, floor })
-            }
-            const { abilityScores: _specialAbilityScores, abilityScoreFloors: _specialFloors, ...specialCombat } = special
-            if (Object.keys(specialCombat).length) {
-              if (!perSource.combatStats) perSource.combatStats = {}
-              mergeCombatStats(perSource.combatStats, specialCombat)
-              mergeCombatStats(totals.combatStats, specialCombat)
-            }
-          }
-
-          if (savingThrowAdvantage?.length) perSource.savingThrowAdvantage = savingThrowAdvantage
-          if (savingThrowDisadvantage?.length) perSource.savingThrowDisadvantage = savingThrowDisadvantage
-          if (skillAdvantage?.length) perSource.skillAdvantage = skillAdvantage
-          if (skillDisadvantage?.length) perSource.skillDisadvantage = skillDisadvantage
-
-          if (perSource.abilityScores || perSource.abilityModifiers || perSource.savingThrows || perSource.skills || perSource.combatStats ||
-              perSource.savingThrowAdvantage || perSource.savingThrowDisadvantage || perSource.skillAdvantage || perSource.skillDisadvantage) {
-            totals.bySource.push(perSource)
-          }
+          const sockets = Array.isArray(row.sockets) ? row.sockets : []
+          sockets.forEach((socket: any, idx: number) => {
+            if (!socket || typeof socket !== 'object') return
+            const decoName = typeof socket.decoration_name === 'string' ? socket.decoration_name : '素材'
+            applyItemBonusSource(`${row.id}-socket-${idx}`, `${itemName}［${decoName}］`, socket.stat_bonuses)
+          })
         }
       }
 

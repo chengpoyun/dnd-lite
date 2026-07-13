@@ -37,6 +37,9 @@ export const AddPersonalItemModal: React.FC<AddPersonalItemModalProps> = ({
   const [description, setDescription] = useState('');
   const [isMagic, setIsMagic] = useState(false);
   const [equipmentKind, setEquipmentKind] = useState<string>('');
+  const [decorationSlots, setDecorationSlots] = useState(0);
+  const [weaponDecoration, setWeaponDecoration] = useState(false);
+  const [armorDecoration, setArmorDecoration] = useState(false);
   const [affectsStats, setAffectsStats] = useState(false);
   const [statBonuses, setStatBonuses] = useState<StatBonusEditorValue>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -52,6 +55,9 @@ export const AddPersonalItemModal: React.FC<AddPersonalItemModalProps> = ({
       }
       setAffectsStats(false);
       setStatBonuses({});
+      setDecorationSlots(0);
+      setWeaponDecoration(false);
+      setArmorDecoration(false);
     }
   }, [isOpen, initialName, initialCategory]);
 
@@ -71,6 +77,11 @@ export const AddPersonalItemModal: React.FC<AddPersonalItemModalProps> = ({
       };
       if (category === '裝備') {
         data.equipment_kind_override = equipmentKind || null;
+        data.decoration_slots = decorationSlots;
+      }
+      if (category === 'MH素材') {
+        data.weapon_decoration = weaponDecoration;
+        data.armor_decoration = armorDecoration;
       }
       if (affectsStats) {
         data.affects_stats = true;
@@ -82,6 +93,9 @@ export const AddPersonalItemModal: React.FC<AddPersonalItemModalProps> = ({
       setCategory('裝備');
       setIsMagic(false);
       setEquipmentKind('');
+      setDecorationSlots(0);
+      setWeaponDecoration(false);
+      setArmorDecoration(false);
       setAffectsStats(false);
       setStatBonuses({});
       onClose();
@@ -141,8 +155,8 @@ export const AddPersonalItemModal: React.FC<AddPersonalItemModalProps> = ({
             </label>
           </div>
           {category === '裝備' && (
-            <>
-              <div>
+            <div className="flex items-end gap-3">
+              <div className="flex-1 min-w-0">
                 <label className="block text-[14px] text-slate-400 mb-2">裝備類型 *</label>
                 <select
                   value={equipmentKind}
@@ -157,7 +171,49 @@ export const AddPersonalItemModal: React.FC<AddPersonalItemModalProps> = ({
                   ))}
                 </select>
               </div>
-            </>
+              <div className="flex-shrink-0">
+                <label className="block text-[14px] text-slate-400 mb-2">插槽數</label>
+                <div className="flex items-center gap-1.5 bg-slate-800 rounded-lg border border-slate-700 px-1.5 py-2">
+                  <button
+                    type="button"
+                    onClick={() => setDecorationSlots((v) => Math.max(0, v - 1))}
+                    className="w-7 h-7 bg-slate-700 text-white rounded-md font-bold active:bg-slate-600 flex-shrink-0"
+                  >
+                    −
+                  </button>
+                  <span className="w-5 text-center text-slate-200 font-medium">{decorationSlots}</span>
+                  <button
+                    type="button"
+                    onClick={() => setDecorationSlots((v) => Math.min(5, v + 1))}
+                    className="w-7 h-7 bg-slate-700 text-white rounded-md font-bold active:bg-slate-600 flex-shrink-0"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+          {category === 'MH素材' && (
+            <div className="flex items-center gap-4">
+              <label className="flex items-center gap-2 text-[14px] text-slate-300">
+                <input
+                  type="checkbox"
+                  checked={weaponDecoration}
+                  onChange={(e) => setWeaponDecoration(e.target.checked)}
+                  className="h-4 w-4 rounded border-slate-600 bg-slate-800 text-amber-500 focus:ring-amber-500"
+                />
+                可鑲入武器插槽
+              </label>
+              <label className="flex items-center gap-2 text-[14px] text-slate-300">
+                <input
+                  type="checkbox"
+                  checked={armorDecoration}
+                  onChange={(e) => setArmorDecoration(e.target.checked)}
+                  className="h-4 w-4 rounded border-slate-600 bg-slate-800 text-amber-500 focus:ring-amber-500"
+                />
+                可鑲入護甲插槽
+              </label>
+            </div>
           )}
           <div>
             <label className="block text-[14px] text-slate-400 mb-2">描述（選填）</label>

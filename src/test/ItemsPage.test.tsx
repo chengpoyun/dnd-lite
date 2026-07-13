@@ -23,11 +23,13 @@ vi.mock('../../services/itemService', async (importOriginal) => {
     ...actual,
     getCharacterItems: vi.fn(),
     searchGlobalItems: vi.fn(),
+    socketDecoration: vi.fn(),
   };
 });
 
 const mockGetCharacterItems = vi.mocked(ItemService.getCharacterItems);
 const mockSearchGlobalItems = vi.mocked(ItemService.searchGlobalItems);
+const mockSocketDecoration = vi.mocked(ItemService.socketDecoration);
 
 function buildGlobalItem(overrides: Partial<GlobalItem> = {}): GlobalItem {
   return {
@@ -121,6 +123,58 @@ describe('ItemsPage', () => {
     await waitFor(() => {
       expect(screen.getByText('編輯')).toBeInTheDocument();
       expect(screen.getByText('刪除')).toBeInTheDocument();
+    });
+  });
+
+  it('點有插槽裝備的空插槽 → 選素材 → 填效果 → 確認鑲嵌，會呼叫 ItemService.socketDecoration 帶正確參數', async () => {
+    const weapon = buildCharacterItem({
+      id: 'ci-weapon',
+      name_override: '大劍',
+      item_id: null,
+      item: undefined,
+      category_override: '裝備',
+      equipment_kind_override: 'melee_weapon',
+      decoration_slots: 1,
+      sockets: [null],
+    });
+    const material = buildCharacterItem({
+      id: 'ci-material',
+      name_override: '火龍逆鱗',
+      item_id: null,
+      item: undefined,
+      category_override: 'MH素材',
+      weapon_decoration: true,
+      quantity: 1,
+    });
+    mockGetCharacterItems.mockResolvedValue({ success: true, items: [weapon, material] });
+    mockSocketDecoration.mockResolvedValue({ success: true });
+
+    render(<ItemsPage characterId="char-1" />);
+
+    await waitFor(() => {
+      expect(screen.getByText('大劍')).toBeInTheDocument();
+    });
+    fireEvent.click(screen.getByText('大劍'));
+
+    const emptySlotButton = await screen.findByRole('button', { name: '（空）' });
+    fireEvent.click(emptySlotButton);
+
+    await waitFor(() => {
+      expect(screen.getByText('火龍逆鱗', { selector: 'div' })).toBeInTheDocument();
+    });
+    fireEvent.click(screen.getByText('火龍逆鱗', { selector: 'div' }));
+
+    const noteInput = await screen.findByPlaceholderText('描述鑲嵌後的效果');
+    fireEvent.change(noteInput, { target: { value: '劍身覆上熾焰' } });
+    fireEvent.click(screen.getByText('下一步'));
+
+    await waitFor(() => {
+      expect(screen.getByText('確認鑲嵌', { selector: 'p' })).toBeInTheDocument();
+    });
+    fireEvent.click(screen.getByText('確認鑲嵌', { selector: 'button' }));
+
+    await waitFor(() => {
+      expect(mockSocketDecoration).toHaveBeenCalledWith('ci-weapon', 0, 'ci-material', '劍身覆上熾焰', undefined);
     });
   });
 });

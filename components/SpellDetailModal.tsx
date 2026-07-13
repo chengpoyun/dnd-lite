@@ -27,7 +27,7 @@ export const SpellDetailModal: React.FC<SpellDetailModalProps> = ({
   const schoolColor = getSchoolColor(display.displaySchool);
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="2xl" bodyClassName="px-3 pb-6">
+    <Modal isOpen={isOpen} onClose={onClose} size="2xl" bodyClassName="px-3 pt-3 pb-6">
       <div className={`${MODAL_CONTAINER_CLASS} relative`}>
         {/* 名稱、等級、學派、專注/儀式 tag 合併成一列 */}
         <div className="flex items-baseline gap-2 flex-wrap mb-2">

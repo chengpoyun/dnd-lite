@@ -20,6 +20,13 @@ import { supabase } from '../lib/supabase';
 
 export type ItemCategory = '裝備' | '藥水' | 'MH素材' | '雜項';
 
+/** 鑲嵌插槽中的素材快照（存於 character_items.sockets，鑲嵌時複製、素材本身會被消耗） */
+export interface DecorationSocket {
+  decoration_name: string;
+  note: string;
+  stat_bonuses?: GlobalItem['stat_bonuses'];
+}
+
 // 全域物品（global_items 表）
 export interface GlobalItem {
   id: string;
@@ -52,6 +59,12 @@ export interface GlobalItem {
   };
   /** 裝備類型（僅裝備類有值）：face, head, neck, shoulders, body, torso, arms, hands, waist, feet, ring, melee_weapon, ranged_weapon, shield */
   equipment_kind?: string | null;
+  /** 鑲嵌插槽數（0~5，比照武器稀有度規則；0 或未設定＝一般裝備、無插槽） */
+  decoration_slots?: number | null;
+  /** MH素材：是否可鑲入武器插槽（與 armor_decoration 互不排斥） */
+  weapon_decoration?: boolean;
+  /** MH素材：是否可鑲入護甲插槽（與 weapon_decoration 互不排斥） */
+  armor_decoration?: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -80,6 +93,14 @@ export interface CharacterItem {
   equipment_slot?: string | null;
   /** 是否穿戴中，僅 true 時計入角色數值 */
   is_equipped?: boolean;
+  /** 覆寫：鑲嵌插槽數 */
+  decoration_slots?: number | null;
+  /** 覆寫：是否可鑲入武器插槽 */
+  weapon_decoration?: boolean;
+  /** 覆寫：是否可鑲入護甲插槽 */
+  armor_decoration?: boolean;
+  /** 插槽鑲嵌狀態快照，長度應等於 displayDecorationSlots，null 表示空插槽 */
+  sockets?: (DecorationSocket | null)[] | null;
   created_at: string;
   updated_at: string;
   // JOIN 的物品資料
@@ -92,6 +113,12 @@ export interface CharacterItemWithDetails extends CharacterItem {
   displayDescription: string;
   displayCategory: ItemCategory;
   displayIsMagic: boolean;
+  /** 顯示用鑲嵌插槽數（override 優先於 global_items） */
+  displayDecorationSlots: number;
+  /** 顯示用：是否可鑲入武器插槽 */
+  displayWeaponDecoration: boolean;
+  /** 顯示用：是否可鑲入護甲插槽 */
+  displayArmorDecoration: boolean;
 }
 
 export interface UpdateCharacterItemData {
@@ -108,6 +135,14 @@ export interface UpdateCharacterItemData {
   equipment_kind_override?: string | null;
   equipment_slot?: string | null;
   is_equipped?: boolean;
+  /** 覆寫：鑲嵌插槽數 */
+  decoration_slots?: number | null;
+  /** 覆寫：是否可鑲入武器插槽 */
+  weapon_decoration?: boolean;
+  /** 覆寫：是否可鑲入護甲插槽 */
+  armor_decoration?: boolean;
+  /** 覆寫：插槽鑲嵌狀態快照 */
+  sockets?: (DecorationSocket | null)[] | null;
 }
 
 /** 新增個人物品（直接寫入 character_items，不經 global_items） */
@@ -123,6 +158,12 @@ export interface CreateCharacterItemData {
   stat_bonuses?: any;
   /** 裝備類可選：裝備類型（由裝備頁決定實際槽位與穿戴狀態） */
   equipment_kind_override?: string | null;
+  /** 鑲嵌插槽數（0~5） */
+  decoration_slots?: number | null;
+  /** 是否可鑲入武器插槽 */
+  weapon_decoration?: boolean;
+  /** 是否可鑲入護甲插槽 */
+  armor_decoration?: boolean;
 }
 
 /**
@@ -320,6 +361,9 @@ export async function createCharacterItem(
     if (data.affects_stats !== undefined) payload.affects_stats = data.affects_stats;
     if (data.stat_bonuses !== undefined) payload.stat_bonuses = data.stat_bonuses;
     if (data.equipment_kind_override !== undefined) payload.equipment_kind_override = data.equipment_kind_override;
+    if (data.decoration_slots !== undefined) payload.decoration_slots = data.decoration_slots;
+    if (data.weapon_decoration !== undefined) payload.weapon_decoration = data.weapon_decoration;
+    if (data.armor_decoration !== undefined) payload.armor_decoration = data.armor_decoration;
 
     const { data: row, error } = await supabase
       .from('character_items')
@@ -412,7 +456,10 @@ export function getDisplayValues(characterItem: CharacterItem): CharacterItemWit
     displayName: characterItem.name_override ?? characterItem.item?.name ?? '',
     displayDescription: characterItem.description_override ?? characterItem.item?.description ?? '',
     displayCategory: (characterItem.category_override ?? characterItem.item?.category ?? '雜項') as ItemCategory,
-    displayIsMagic
+    displayIsMagic,
+    displayDecorationSlots: characterItem.decoration_slots ?? characterItem.item?.decoration_slots ?? 0,
+    displayWeaponDecoration: characterItem.weapon_decoration ?? characterItem.item?.weapon_decoration ?? false,
+    displayArmorDecoration: characterItem.armor_decoration ?? characterItem.item?.armor_decoration ?? false,
   };
 }
 
@@ -422,4 +469,249 @@ export function getDisplayEquipmentKind(characterItem: CharacterItem): string | 
     return characterItem.equipment_kind_override;
   }
   return characterItem.item?.equipment_kind ?? null;
+}
+
+/**
+ * 同步「同一素材」在角色物品欄中其他尚未鑲嵌的庫存（依顯示名稱 + MH素材類別比對）。
+ * 鑲嵌／編輯鑲嵌效果時呼叫，讓庫存中同名素材的效果與剛設定的一致（它們是同一樣道具）。
+ */
+async function syncMaterialInventoryByName(
+  characterId: string,
+  materialName: string,
+  note: string,
+  statBonuses: GlobalItem['stat_bonuses'] | undefined,
+  excludeId?: string
+): Promise<void> {
+  const { data: rows, error } = await supabase
+    .from('character_items')
+    .select('id, name_override, category_override, item:global_items(name, category)')
+    .eq('character_id', characterId);
+  if (error || !Array.isArray(rows)) return;
+
+  const hasBonus = !!statBonuses && Object.keys(statBonuses).length > 0;
+  const matchingIds = rows
+    .filter((row: any) => {
+      if (excludeId && row.id === excludeId) return false;
+      const itemRaw = Array.isArray(row.item) ? row.item[0] : row.item;
+      const displayCategory = row.category_override ?? itemRaw?.category ?? '雜項';
+      const displayName = row.name_override ?? itemRaw?.name ?? '';
+      return displayCategory === 'MH素材' && displayName === materialName;
+    })
+    .map((row: any) => row.id);
+
+  if (matchingIds.length === 0) return;
+
+  const { error: syncError } = await supabase
+    .from('character_items')
+    .update({
+      description_override: note,
+      stat_bonuses: hasBonus ? statBonuses : {},
+      affects_stats: hasBonus,
+    })
+    .in('id', matchingIds);
+  if (syncError) {
+    console.error('❌ 同步同名素材效果失敗:', syncError);
+  }
+}
+
+/**
+ * 鑲嵌素材至裝備插槽
+ * 1. 效果（note + statBonuses）先寫回素材本身這筆 character_items（若還有剩餘庫存，之後同一疊素材會直接帶入此效果）
+ * 2. 將素材快照寫入目標裝備的 sockets[slotIndex]
+ * 3. 消耗素材：quantity -1，歸零則刪除該筆
+ * 寫入順序刻意讓「消耗素材」放最後，避免中途失敗導致素材憑空消失
+ */
+export async function socketDecoration(
+  targetItemId: string,
+  slotIndex: number,
+  materialItemId: string,
+  note: string,
+  statBonuses?: GlobalItem['stat_bonuses']
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    if (!targetItemId || !materialItemId) {
+      return { success: false, error: '裝備或素材 ID 無效' };
+    }
+    if (slotIndex < 0) {
+      return { success: false, error: '插槽索引無效' };
+    }
+    if (!note?.trim()) {
+      return { success: false, error: '效果說明為必填' };
+    }
+
+    const [{ data: material, error: materialError }, { data: target, error: targetError }] = await Promise.all([
+      supabase.from('character_items').select('*, item:global_items(*)').eq('id', materialItemId).single(),
+      supabase.from('character_items').select('*').eq('id', targetItemId).single(),
+    ]);
+
+    if (materialError || !material) {
+      return { success: false, error: materialError?.message ?? '找不到素材' };
+    }
+    if (targetError || !target) {
+      return { success: false, error: targetError?.message ?? '找不到裝備' };
+    }
+
+    const materialItem = Array.isArray(material.item) ? material.item[0] : material.item;
+    const materialName = material.name_override ?? materialItem?.name ?? '素材';
+    const trimmedNote = note.trim();
+    const hasBonus = !!statBonuses && Object.keys(statBonuses).length > 0;
+
+    const { error: writebackError } = await supabase
+      .from('character_items')
+      .update({
+        description_override: trimmedNote,
+        stat_bonuses: hasBonus ? statBonuses : {},
+        affects_stats: hasBonus,
+      })
+      .eq('id', materialItemId);
+    if (writebackError) {
+      console.error('❌ 寫回素材效果失敗:', writebackError);
+      return { success: false, error: writebackError.message };
+    }
+
+    await syncMaterialInventoryByName(target.character_id, materialName, trimmedNote, hasBonus ? statBonuses : undefined, materialItemId);
+
+    const sockets: (DecorationSocket | null)[] = Array.isArray(target.sockets) ? [...target.sockets] : [];
+    while (sockets.length <= slotIndex) sockets.push(null);
+    sockets[slotIndex] = {
+      decoration_name: materialName,
+      note: trimmedNote,
+      stat_bonuses: hasBonus ? statBonuses : undefined,
+    };
+
+    const { error: socketError } = await supabase
+      .from('character_items')
+      .update({ sockets })
+      .eq('id', targetItemId);
+    if (socketError) {
+      console.error('❌ 寫入插槽失敗:', socketError);
+      return { success: false, error: socketError.message };
+    }
+
+    const remaining = (material.quantity ?? 1) - 1;
+    if (remaining > 0) {
+      const { error: qtyError } = await supabase
+        .from('character_items')
+        .update({ quantity: remaining })
+        .eq('id', materialItemId);
+      if (qtyError) {
+        console.error('❌ 扣減素材數量失敗:', qtyError);
+        return { success: false, error: qtyError.message };
+      }
+    } else {
+      const { error: deleteError } = await supabase
+        .from('character_items')
+        .delete()
+        .eq('id', materialItemId);
+      if (deleteError) {
+        console.error('❌ 刪除已耗盡素材失敗:', deleteError);
+        return { success: false, error: deleteError.message };
+      }
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error('❌ 鑲嵌素材異常:', error);
+    return { success: false, error: '鑲嵌素材時發生錯誤' };
+  }
+}
+
+/**
+ * 編輯已鑲嵌插槽的效果（僅修改快照的說明／數值加成，不影響庫存、不消耗素材，故不需二次確認）
+ */
+export async function updateSocketedDecoration(
+  targetItemId: string,
+  slotIndex: number,
+  note: string,
+  statBonuses?: GlobalItem['stat_bonuses']
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    if (!targetItemId) {
+      return { success: false, error: '裝備 ID 無效' };
+    }
+    if (!note?.trim()) {
+      return { success: false, error: '效果說明為必填' };
+    }
+
+    const { data: target, error: targetError } = await supabase
+      .from('character_items')
+      .select('character_id, sockets')
+      .eq('id', targetItemId)
+      .single();
+    if (targetError || !target) {
+      return { success: false, error: targetError?.message ?? '找不到裝備' };
+    }
+
+    const sockets: (DecorationSocket | null)[] = Array.isArray(target.sockets) ? [...target.sockets] : [];
+    const existing = sockets[slotIndex];
+    if (!existing) {
+      return { success: false, error: '此插槽尚未鑲嵌' };
+    }
+
+    const trimmedNote = note.trim();
+    const hasBonus = !!statBonuses && Object.keys(statBonuses).length > 0;
+    sockets[slotIndex] = {
+      ...existing,
+      note: trimmedNote,
+      stat_bonuses: hasBonus ? statBonuses : undefined,
+    };
+
+    const { error } = await supabase
+      .from('character_items')
+      .update({ sockets })
+      .eq('id', targetItemId);
+    if (error) {
+      console.error('❌ 編輯鑲嵌效果失敗:', error);
+      return { success: false, error: error.message };
+    }
+
+    await syncMaterialInventoryByName(target.character_id, existing.decoration_name, trimmedNote, hasBonus ? statBonuses : undefined);
+
+    return { success: true };
+  } catch (error) {
+    console.error('❌ 編輯鑲嵌效果異常:', error);
+    return { success: false, error: '編輯鑲嵌效果時發生錯誤' };
+  }
+}
+
+/**
+ * 移除已鑲嵌的素材（永久消失，不會退還素材本身；呼叫前應由 UI 先跳確認對話框）
+ */
+export async function removeSocketedDecoration(
+  targetItemId: string,
+  slotIndex: number
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    if (!targetItemId) {
+      return { success: false, error: '裝備 ID 無效' };
+    }
+
+    const { data: target, error: targetError } = await supabase
+      .from('character_items')
+      .select('sockets')
+      .eq('id', targetItemId)
+      .single();
+    if (targetError || !target) {
+      return { success: false, error: targetError?.message ?? '找不到裝備' };
+    }
+
+    const sockets: (DecorationSocket | null)[] = Array.isArray(target.sockets) ? [...target.sockets] : [];
+    if (slotIndex < 0 || slotIndex >= sockets.length) {
+      return { success: false, error: '插槽索引無效' };
+    }
+    sockets[slotIndex] = null;
+
+    const { error } = await supabase
+      .from('character_items')
+      .update({ sockets })
+      .eq('id', targetItemId);
+    if (error) {
+      console.error('❌ 移除鑲嵌素材失敗:', error);
+      return { success: false, error: error.message };
+    }
+    return { success: true };
+  } catch (error) {
+    console.error('❌ 移除鑲嵌素材異常:', error);
+    return { success: false, error: '移除鑲嵌素材時發生錯誤' };
+  }
 }

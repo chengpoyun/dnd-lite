@@ -7,6 +7,7 @@ import React, { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkBreaks from 'remark-breaks';
 import { Modal } from './ui/Modal';
+import { DecorationSlots } from './ui/DecorationSlots';
 import { CharacterItem, getDisplayValues } from '../services/itemService';
 import { MODAL_CONTAINER_CLASS } from '../styles/modalStyles';
 
@@ -18,6 +19,8 @@ interface ItemDetailModalProps {
   onDelete: () => void;
   /** 數量變更時呼叫（會寫入 DB，呼叫端需負責 refetch 並更新 characterItem） */
   onQuantityChange?: (characterItemId: string, quantity: number) => Promise<void>;
+  /** 點擊鑲嵌插槽時呼叫（開啟鑲嵌/檢視 modal） */
+  onSlotClick?: (slotIndex: number) => void;
 }
 
 export default function ItemDetailModal({
@@ -27,6 +30,7 @@ export default function ItemDetailModal({
   onEdit,
   onDelete,
   onQuantityChange,
+  onSlotClick,
 }: ItemDetailModalProps) {
   const [quantityUpdating, setQuantityUpdating] = useState(false);
 
@@ -48,7 +52,7 @@ export default function ItemDetailModal({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} bodyClassName="px-3 pb-6">
+    <Modal isOpen={isOpen} onClose={onClose} bodyClassName="px-3 pt-3 pb-6">
       <div className={MODAL_CONTAINER_CLASS}>
         <div className="space-y-3">
           {/* 第一列：名稱 */}
@@ -88,6 +92,16 @@ export default function ItemDetailModal({
               </button>
             </div>
           </div>
+
+          {/* 鑲嵌插槽（僅裝備有插槽時顯示） */}
+          {display.displayDecorationSlots > 0 && onSlotClick && (
+            <DecorationSlots
+              totalSlots={display.displayDecorationSlots}
+              sockets={characterItem.sockets}
+              onSlotClick={onSlotClick}
+              layout="list"
+            />
+          )}
 
           {/* 詳細訊息：省下的空間全部留給敘述 */}
           {display.displayDescription && (

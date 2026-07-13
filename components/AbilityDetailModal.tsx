@@ -65,7 +65,7 @@ export default function AbilityDetailModal({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} bodyClassName="px-3 pb-6">
+    <Modal isOpen={isOpen} onClose={onClose} bodyClassName="px-3 pt-3 pb-6">
       <div className={MODAL_CONTAINER_CLASS}>
         <div className="space-y-3">
           {/* 名稱＋英文名＋來源/恢復規則/使用次數 tag＋使用按鈕，合併成一列 */}

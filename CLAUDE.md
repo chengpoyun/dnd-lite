@@ -22,6 +22,7 @@ D&D 冒險者助手 — Vite + React 19 + TypeScript 的手機優先角色管理
 - **DB migration 一建立就要立刻推送**：新增 migration 後必須馬上 `npm run db:push` 推到遠端，勿累積。
 - **`scripts/` 多為 `.sh`**：`db:create` 走 shell script，在 Windows 上要用 Git Bash 執行，不能用 PowerShell/cmd 直接跑。**例外**：`db:push` 是 Node 腳本（`scripts/db-push.mjs`），跨平台可直接 `npm run db:push`。
 - **環境變數**：`.env` 需要 `VITE_SUPABASE_URL`、`VITE_SUPABASE_ANON_KEY`；DB 遷移另需 `SUPABASE_ACCESS_TOKEN`、`SUPABASE_DB_PASSWORD`（皆在 gitignored 的 `.env`）。
+- **先寫測試再實作，不是建議是規則**：動手寫功能碼前，先寫會失敗的對應測試（單元/元件測試）。使用者說「開始實作」只代表設計討論結束，**不代表可以跳過先寫測試這一步**；完整流程見 `docs/ai-workflow.md`。
 - **等級/職業變更後必須 refetch**：依等級或職業計算的數值來自 `extra_data.statBonusSources`；改動等級或職業並寫入 DB 後，要呼叫 `refetchCharacterStats`，否則 max HP、加值列表等會沿用舊值（細節見 `docs/code-architecture.md` §2.1）。
 - **路徑別名**：`@` → 專案根目錄（vite 與 vitest 皆設定）。
 
@@ -37,7 +38,7 @@ D&D 冒險者助手 — Vite + React 19 + TypeScript 的手機優先角色管理
 - **共用優先**：能複用既有元件/樣式就複用；新元件設計時考慮通用性。Modal 用 `components/ui/Modal.tsx`，命名 `XxxModal.tsx`。
 - **手機優先**：字體、點擊區域、間距以手機閱讀為準；Tailwind 深色主題（slate-900/950）、amber 強調色。
 - **命名**：camelCase（變數/函式）、PascalCase（元件/型別）。**UI 文案用繁體中文。**
-- **測試**：檔案置於 `src/test/`，命名 `Xxx.test.ts` / `Xxx.feature.test.tsx`；`ai-workflow.md` 建議先寫測試再實作。
+- **測試**：檔案置於 `src/test/`，命名 `Xxx.test.ts` / `Xxx.feature.test.tsx`（先寫測試的規則見上方「陷阱與注意事項」）。
 
 ## 延伸文件
 

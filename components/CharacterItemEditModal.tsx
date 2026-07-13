@@ -39,6 +39,9 @@ export const CharacterItemEditModal: React.FC<CharacterItemEditModalProps> = ({
     stat_bonuses: {},
     equipment_slot: null,
     is_equipped: false,
+    decoration_slots: 0,
+    weapon_decoration: false,
+    armor_decoration: false,
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -69,6 +72,9 @@ export const CharacterItemEditModal: React.FC<CharacterItemEditModalProps> = ({
         equipment_kind_override: characterItem.equipment_kind_override ?? characterItem.item?.equipment_kind ?? null,
         equipment_slot: characterItem.equipment_slot ?? null,
         is_equipped: characterItem.is_equipped ?? false,
+        decoration_slots: characterItem.decoration_slots ?? characterItem.item?.decoration_slots ?? 0,
+        weapon_decoration: characterItem.weapon_decoration ?? characterItem.item?.weapon_decoration ?? false,
+        armor_decoration: characterItem.armor_decoration ?? characterItem.item?.armor_decoration ?? false,
       });
     }
   }, [characterItem, isOpen]);
@@ -111,6 +117,13 @@ export const CharacterItemEditModal: React.FC<CharacterItemEditModalProps> = ({
       }
       if (formData.equipment_kind_override !== undefined) {
         updates.equipment_kind_override = formData.equipment_kind_override;
+      }
+      if (effectiveCategory === '裝備') {
+        updates.decoration_slots = formData.decoration_slots ?? 0;
+      }
+      if (effectiveCategory === 'MH素材') {
+        updates.weapon_decoration = !!formData.weapon_decoration;
+        updates.armor_decoration = !!formData.armor_decoration;
       }
       // 裝備槽位與穿戴中僅在裝備頁管理，此處不更新
 
@@ -174,21 +187,67 @@ export const CharacterItemEditModal: React.FC<CharacterItemEditModalProps> = ({
             </label>
           </div>
 
-          {/* 裝備類：僅顯示裝備類型（槽位與穿戴中在裝備頁管理，此處不顯示、不更新） */}
+          {/* 裝備類：裝備類型 + 鑲嵌插槽數（槽位與穿戴中在裝備頁管理，此處不顯示、不更新） */}
           {(formData.category_override ?? characterItem.item?.category) === '裝備' && (
-            <div>
-              <label className="block text-[14px] text-slate-400 mb-2">裝備類型 *</label>
-              <select
-                value={formData.equipment_kind_override ?? getDisplayEquipmentKind(characterItem) ?? ''}
-                onChange={(e) => setFormData({ ...formData, equipment_kind_override: e.target.value || null })}
-                className={`${SELECT_CLASS} w-full`}
-                required
-              >
-                <option value="">請選擇類型</option>
-                {EQUIPMENT_KINDS.map((k) => (
-                  <option key={k} value={k}>{EQUIPMENT_KIND_LABELS[k]}</option>
-                ))}
-              </select>
+            <div className="flex items-end gap-3">
+              <div className="flex-1 min-w-0">
+                <label className="block text-[14px] text-slate-400 mb-2">裝備類型 *</label>
+                <select
+                  value={formData.equipment_kind_override ?? getDisplayEquipmentKind(characterItem) ?? ''}
+                  onChange={(e) => setFormData({ ...formData, equipment_kind_override: e.target.value || null })}
+                  className={`${SELECT_CLASS} w-full`}
+                  required
+                >
+                  <option value="">請選擇類型</option>
+                  {EQUIPMENT_KINDS.map((k) => (
+                    <option key={k} value={k}>{EQUIPMENT_KIND_LABELS[k]}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex-shrink-0">
+                <label className="block text-[14px] text-slate-400 mb-2">插槽數</label>
+                <div className="flex items-center gap-1.5 bg-slate-800 rounded-lg border border-slate-700 px-1.5 py-2">
+                  <button
+                    type="button"
+                    onClick={() => setFormData((prev) => ({ ...prev, decoration_slots: Math.max(0, (prev.decoration_slots ?? 0) - 1) }))}
+                    className="w-7 h-7 bg-slate-700 text-white rounded-md font-bold active:bg-slate-600 flex-shrink-0"
+                  >
+                    −
+                  </button>
+                  <span className="w-5 text-center text-slate-200 font-medium">{formData.decoration_slots ?? 0}</span>
+                  <button
+                    type="button"
+                    onClick={() => setFormData((prev) => ({ ...prev, decoration_slots: Math.min(5, (prev.decoration_slots ?? 0) + 1) }))}
+                    className="w-7 h-7 bg-slate-700 text-white rounded-md font-bold active:bg-slate-600 flex-shrink-0"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* MH素材類：可鑲入武器／護甲插槽（兩者可同時勾選，都不勾＝純一般素材） */}
+          {(formData.category_override ?? characterItem.item?.category) === 'MH素材' && (
+            <div className="flex items-center gap-4">
+              <label className="flex items-center gap-2 text-[14px] text-slate-300">
+                <input
+                  type="checkbox"
+                  checked={!!formData.weapon_decoration}
+                  onChange={(e) => setFormData({ ...formData, weapon_decoration: e.target.checked })}
+                  className="h-4 w-4 rounded border-slate-600 bg-slate-800 text-amber-500 focus:ring-amber-500"
+                />
+                可鑲入武器插槽
+              </label>
+              <label className="flex items-center gap-2 text-[14px] text-slate-300">
+                <input
+                  type="checkbox"
+                  checked={!!formData.armor_decoration}
+                  onChange={(e) => setFormData({ ...formData, armor_decoration: e.target.checked })}
+                  className="h-4 w-4 rounded border-slate-600 bg-slate-800 text-amber-500 focus:ring-amber-500"
+                />
+                可鑲入護甲插槽
+              </label>
             </div>
           )}
 

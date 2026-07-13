@@ -36,7 +36,7 @@ export const Modal: React.FC<ModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[120] flex items-center justify-center px-6">
+    <div className="fixed inset-0 z-[120] flex items-center justify-center px-6 py-6 overflow-y-auto">
       <div
         className="absolute inset-0 bg-slate-950/90 backdrop-blur-sm"
         onClick={disableBackdropClose ? undefined : onClose}

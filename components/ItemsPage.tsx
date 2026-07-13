@@ -22,6 +22,8 @@ import { CharacterItemEditModal } from './CharacterItemEditModal';
 import ItemDetailModal from './ItemDetailModal';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 import { InfoModal } from './ui/InfoModal';
+import { DecorationSocketModal } from './DecorationSocketModal';
+import type { StatBonusEditorValue } from './StatBonusEditor';
 
 const CATEGORIES: { label: string; value: ItemCategory | 'all' | 'magic' }[] = [
   { label: '全部', value: 'all' },
@@ -56,6 +58,8 @@ export default function ItemsPage({ characterId, onCharacterDataChanged }: Items
   const [infoMessage, setInfoMessage] = useState<string | null>(null);
   const [selectedItem, setSelectedItem] = useState<CharacterItem | null>(null);
   const [editingItem, setEditingItem] = useState<CharacterItem | null>(null);
+  const [isSocketModalOpen, setIsSocketModalOpen] = useState(false);
+  const [socketSlotIndex, setSocketSlotIndex] = useState<number | null>(null);
 
   const loadItems = useCallback(async () => {
     setIsLoading(true);
@@ -101,6 +105,10 @@ export default function ItemsPage({ characterId, onCharacterDataChanged }: Items
     setSelectedItem(null);
   }, []);
   const closeDeleteModal = useCallback(() => setIsDeleteModalOpen(false), []);
+  const closeSocketModal = useCallback(() => {
+    setIsSocketModalOpen(false);
+    setSocketSlotIndex(null);
+  }, []);
 
   // 獲得物品（從全域庫）：直接獲得，不在此指定槽位或穿戴狀態
   const handleLearnItem = async (itemId: string) => {
@@ -193,6 +201,71 @@ export default function ItemsPage({ characterId, onCharacterDataChanged }: Items
       const updated = list.items.find((i) => i.id === characterItemId);
       if (updated) setSelectedItem(updated);
     }
+  };
+
+  // 點擊鑲嵌插槽
+  const handleSlotClick = (slotIndex: number) => {
+    setSocketSlotIndex(slotIndex);
+    setIsSocketModalOpen(true);
+  };
+
+  // 重新載入物品列表並同步 selectedItem（鑲嵌/移除鑲嵌後插槽狀態需即時反映在已開啟的詳情 modal）
+  const reloadItemsAndSelected = async (characterItemId: string) => {
+    const list = await ItemService.getCharacterItems(characterId);
+    if (list.success && list.items) {
+      setItems(list.items);
+      const updated = list.items.find((i) => i.id === characterItemId);
+      if (updated) setSelectedItem(updated);
+    }
+  };
+
+  // 鑲嵌素材至插槽
+  const handleSocketDecoration = async (
+    materialItemId: string,
+    note: string,
+    statBonuses: StatBonusEditorValue | undefined
+  ): Promise<boolean> => {
+    if (!selectedItem || socketSlotIndex == null) return false;
+    const result = await ItemService.socketDecoration(selectedItem.id, socketSlotIndex, materialItemId, note, statBonuses);
+    if (!result.success) {
+      showError(result.error || '鑲嵌失敗');
+      return false;
+    }
+    showSuccess('已鑲嵌');
+    await reloadItemsAndSelected(selectedItem.id);
+    onCharacterDataChanged?.();
+    return true;
+  };
+
+  // 編輯已鑲嵌插槽的效果（不消耗素材）
+  const handleUpdateSocketEffect = async (
+    note: string,
+    statBonuses: StatBonusEditorValue | undefined
+  ): Promise<boolean> => {
+    if (!selectedItem || socketSlotIndex == null) return false;
+    const result = await ItemService.updateSocketedDecoration(selectedItem.id, socketSlotIndex, note, statBonuses);
+    if (!result.success) {
+      showError(result.error || '更新失敗');
+      return false;
+    }
+    showSuccess('已更新效果');
+    await reloadItemsAndSelected(selectedItem.id);
+    onCharacterDataChanged?.();
+    return true;
+  };
+
+  // 移除已鑲嵌的素材
+  const handleRemoveSocketDecoration = async (): Promise<boolean> => {
+    if (!selectedItem || socketSlotIndex == null) return false;
+    const result = await ItemService.removeSocketedDecoration(selectedItem.id, socketSlotIndex);
+    if (!result.success) {
+      showError(result.error || '移除失敗');
+      return false;
+    }
+    showSuccess('已移除鑲嵌');
+    await reloadItemsAndSelected(selectedItem.id);
+    onCharacterDataChanged?.();
+    return true;
   };
 
   // 開啟詳情
@@ -304,6 +377,18 @@ export default function ItemsPage({ characterId, onCharacterDataChanged }: Items
         onEdit={handleEditClick}
         onDelete={handleDeleteClick}
         onQuantityChange={handleQuantityChange}
+        onSlotClick={handleSlotClick}
+      />
+
+      <DecorationSocketModal
+        isOpen={isSocketModalOpen}
+        onClose={closeSocketModal}
+        targetItem={selectedItem}
+        slotIndex={socketSlotIndex}
+        allItems={items}
+        onSocket={handleSocketDecoration}
+        onRemove={handleRemoveSocketDecoration}
+        onUpdateEffect={handleUpdateSocketEffect}
       />
 
       <ConfirmDeleteModal

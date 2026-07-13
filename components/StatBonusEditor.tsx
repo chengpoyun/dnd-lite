@@ -45,6 +45,75 @@ interface StatBonusEditorProps {
   onChange: (next: StatBonusEditorValue) => void;
 }
 
+const ABILITY_SCORE_LABELS: { key: string; label: string }[] = [
+  { key: 'str', label: '力量' },
+  { key: 'dex', label: '敏捷' },
+  { key: 'con', label: '體質' },
+  { key: 'int', label: '智力' },
+  { key: 'wis', label: '感知' },
+  { key: 'cha', label: '魅力' },
+];
+const SAVE_LABELS: { key: string; label: string }[] = [
+  { key: 'str', label: '力量豁免' },
+  { key: 'dex', label: '敏捷豁免' },
+  { key: 'con', label: '體質豁免' },
+  { key: 'int', label: '智力豁免' },
+  { key: 'wis', label: '感知豁免' },
+  { key: 'cha', label: '魅力豁免' },
+];
+const COMBAT_STAT_LABELS: { key: string; label: string }[] = [
+  { key: 'ac', label: '護甲值 (AC)' },
+  { key: 'initiative', label: '先攻' },
+  { key: 'maxHp', label: '最大生命' },
+  { key: 'speed', label: '速度' },
+  { key: 'attackHit', label: '攻擊命中' },
+  { key: 'attackDamage', label: '攻擊傷害' },
+  { key: 'spellHit', label: '法術命中' },
+  { key: 'spellDc', label: '法術 DC' },
+];
+
+/** 將 StatBonusEditorValue 攤平成可讀的「標籤：數值」清單，供唯讀檢視（如鑲嵌素材效果）使用 */
+export function summarizeStatBonusEditorValue(value: StatBonusEditorValue | undefined | null): { label: string; text: string }[] {
+  if (!value) return [];
+  const out: { label: string; text: string }[] = [];
+  const fmt = (n: number) => (n >= 0 ? `+${n}` : `${n}`);
+
+  ABILITY_SCORE_LABELS.forEach(({ key, label }) => {
+    const floor = value.abilityScoreFloors?.[key];
+    if (typeof floor === 'number') out.push({ label, text: `設為 ${floor}` });
+    else if (typeof value.abilityScores?.[key] === 'number' && value.abilityScores[key] !== 0) {
+      out.push({ label, text: fmt(value.abilityScores[key]) });
+    }
+  });
+  ABILITY_SCORE_LABELS.forEach(({ key, label }) => {
+    const v = value.abilityModifiers?.[key];
+    if (typeof v === 'number' && v !== 0) out.push({ label: `${label}調整值`, text: fmt(v) });
+  });
+  SAVE_LABELS.forEach(({ key, label }) => {
+    const v = value.savingThrows?.[key];
+    if (typeof v === 'number' && v !== 0) out.push({ label, text: fmt(v) });
+  });
+  Object.entries(value.skills ?? {}).forEach(([skill, v]) => {
+    if (typeof v === 'number' && v !== 0) out.push({ label: skill, text: fmt(v) });
+  });
+  COMBAT_STAT_LABELS.forEach(({ key, label }) => {
+    const v = (value.combatStats as Record<string, number> | undefined)?.[key];
+    if (typeof v === 'number' && v !== 0) out.push({ label, text: fmt(v) });
+  });
+  (value.savingThrowAdvantage ?? []).forEach((key) => {
+    const label = SAVE_LABELS.find((s) => s.key === key)?.label ?? key;
+    out.push({ label, text: '優勢' });
+  });
+  (value.savingThrowDisadvantage ?? []).forEach((key) => {
+    const label = SAVE_LABELS.find((s) => s.key === key)?.label ?? key;
+    out.push({ label, text: '劣勢' });
+  });
+  (value.skillAdvantage ?? []).forEach((skill) => out.push({ label: skill, text: '優勢' }));
+  (value.skillDisadvantage ?? []).forEach((skill) => out.push({ label: skill, text: '劣勢' }));
+
+  return out;
+}
+
 /** 左欄固定寬度（名稱）、右欄固定寬度（劣勢+input+優勢），左欄縮窄避免右側超出 modal */
 const leftColClass = 'w-20 min-w-0 shrink-0 text-left min-h-8 flex items-center';
 const rightColClass = 'w-[9.5rem] shrink-0 flex gap-1 items-center justify-center min-h-8';
@@ -293,37 +362,14 @@ export const StatBonusEditor: React.FC<StatBonusEditorProps> = ({ value, onChang
   };
 
   const cs = value.combatStats ?? {};
-  const abilityScoreLabels: { key: string; label: string }[] = [
-    { key: 'str', label: '力量' },
-    { key: 'dex', label: '敏捷' },
-    { key: 'con', label: '體質' },
-    { key: 'int', label: '智力' },
-    { key: 'wis', label: '感知' },
-    { key: 'cha', label: '魅力' },
-  ];
-  const saveLabels: { key: string; label: string }[] = [
-    { key: 'str', label: '力量豁免' },
-    { key: 'dex', label: '敏捷豁免' },
-    { key: 'con', label: '體質豁免' },
-    { key: 'int', label: '智力豁免' },
-    { key: 'wis', label: '感知豁免' },
-    { key: 'cha', label: '魅力豁免' },
-  ];
-  const combatRows: { path: StatBonusKey; key: string; label: string }[] = [
-    { path: 'combat_ac', key: 'ac', label: '護甲值 (AC)' },
-    { path: 'combat_initiative', key: 'initiative', label: '先攻' },
-    { path: 'combat_maxHp', key: 'maxHp', label: '最大生命' },
-    { path: 'combat_speed', key: 'speed', label: '速度' },
-    { path: 'combat_attackHit', key: 'attackHit', label: '攻擊命中' },
-    { path: 'combat_attackDamage', key: 'attackDamage', label: '攻擊傷害' },
-    { path: 'combat_spellHit', key: 'spellHit', label: '法術命中' },
-    { path: 'combat_spellDc', key: 'spellDc', label: '法術 DC' },
-  ];
+  const combatRows: { path: StatBonusKey; key: string; label: string }[] = COMBAT_STAT_LABELS.map(
+    ({ key, label }) => ({ path: `combat_${key}` as StatBonusKey, key, label }),
+  );
 
   return (
     <div className="space-y-0 max-h-[60vh] overflow-y-auto pr-1">
-      {abilityScoreLabels.map(({ key, label }) => renderAbilityScoreRow(label, key, `score-${key}`))}
-      {abilityScoreLabels.map(({ key, label }) =>
+      {ABILITY_SCORE_LABELS.map(({ key, label }) => renderAbilityScoreRow(label, key, `score-${key}`))}
+      {ABILITY_SCORE_LABELS.map(({ key, label }) =>
         renderNumberRow(
           'abilityModifiers',
           `${label}調整值`,
@@ -332,7 +378,7 @@ export const StatBonusEditor: React.FC<StatBonusEditorProps> = ({ value, onChang
           `mod-${key}`,
         ),
       )}
-      {saveLabels.map(({ key, label }) => renderSaveRow(label, key, `save-${key}`))}
+      {SAVE_LABELS.map(({ key, label }) => renderSaveRow(label, key, `save-${key}`))}
       {SKILLS_MAP.map((s) => renderSkillRow(s.name, `skill-${s.name}`))}
       {combatRows.map(({ path, key, label }) =>
         renderNumberRow(path, label, key, (cs as Record<string, number>)[key], `combat-${key}`),
