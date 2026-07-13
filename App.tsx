@@ -826,10 +826,10 @@ const AuthenticatedApp: React.FC = () => {
               { id: Tab.MONSTERS, label: '怪物', icon: '👹' },
               { id: Tab.ITEMS, label: '道具', icon: '📦' },
               { id: Tab.EQUIPMENT, label: '裝備', icon: '🛡️' },
-              { id: Tab.DICE, label: '骰子', icon: '🎲' },
               { id: Tab.NOTES, label: '筆記', icon: '📝' },
-              { id: Tab.TERRAIN, label: '地形', icon: '🗺️' },
               { id: Tab.MAP, label: '地圖', icon: '📍' },
+              { id: Tab.DICE, label: '骰子', icon: '🎲' },
+              { id: Tab.TERRAIN, label: '採集', icon: '🗺️' },
               { id: Tab.INFO, label: '資訊', icon: '🔗' },
               { id: Tab.ABOUT, label: '關於', icon: 'ℹ️' }
             ].map((tab) => (
