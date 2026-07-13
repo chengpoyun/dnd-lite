@@ -35,6 +35,8 @@ export default function NotesPage({ characterId }: NotesPageProps) {
   const [searchText, setSearchText] = useState('');
   const localContent = useRef('');
   const localTitle = useRef('');
+  const detailWrapperRef = useRef<HTMLDivElement>(null);
+  const [detailHeight, setDetailHeight] = useState<number | null>(null);
 
   const loadNotes = useCallback(async () => {
     if (!characterId) return;
@@ -144,6 +146,25 @@ export default function NotesPage({ characterId }: NotesPageProps) {
     }
   }, [selectedNote?.id]);
 
+  // 詳情頁固定高度：改用實測（而非猜測 nav 高度換算的 dvh 常數），
+  // 確保整頁精準貼合可視高度，內容輸入框以外不會有多餘可捲動空間
+  useEffect(() => {
+    if (!selectedNoteId) return;
+    const updateHeight = () => {
+      const el = detailWrapperRef.current;
+      if (!el) return;
+      const top = el.getBoundingClientRect().top;
+      // PageContainer 結構：padded outer div > maxWidth div > 這個 wrapper，
+      // 要拿的是最外層 padded div 的 padding-bottom（往上兩層）
+      const paddedAncestor = el.parentElement?.parentElement;
+      const bottomPadding = paddedAncestor ? parseFloat(getComputedStyle(paddedAncestor).paddingBottom) || 0 : 0;
+      setDetailHeight(Math.max(200, window.innerHeight - top - bottomPadding));
+    };
+    updateHeight();
+    window.addEventListener('resize', updateHeight);
+    return () => window.removeEventListener('resize', updateHeight);
+  }, [selectedNoteId]);
+
   if (!characterId) {
     return (
       <PageContainer>
@@ -154,10 +175,19 @@ export default function NotesPage({ characterId }: NotesPageProps) {
 
   if (selectedNoteId && selectedNote) {
     return (
-      <PageContainer>
-        {/* 扣除頂部分頁列與頁面上下留白的高度，讓下方內容欄位能撐滿剩餘畫面 */}
-        <div className="flex flex-col" style={{ minHeight: 'calc(100dvh - 6rem)' }}>
-          <div className="flex items-center justify-between gap-3 mb-4 shrink-0">
+      // 不用 PageContainer：它自己的外層有 min-h-screen（至少一整個視窗高），
+      // 跟這裡「固定高度、不讓整頁捲動」的需求互斥，改用同樣的內距／寬度但不設 min-h-screen
+      <div className={combineStyles('bg-slate-950', STYLES.spacing.pageX, STYLES.spacing.pageY)}>
+        <div className={STYLES.layout.maxWidth}>
+        {/* 固定高度（實測可視高度，非 minHeight）讓整頁不會被撐高捲動；
+            只有內容輸入框內部會超出捲動，輸入框外側往下滑不會拖動整頁。
+            detailHeight 量測完成前先用 dvh 估計值墊著，避免第一次渲染閃一下 */}
+        <div
+          ref={detailWrapperRef}
+          className="flex flex-col overflow-hidden"
+          style={{ height: detailHeight != null ? `${detailHeight}px` : 'calc(100dvh - 6rem)' }}
+        >
+          <div className="mb-4 shrink-0 flex items-center justify-between gap-3">
             <BackButton onClick={handleBack} />
             <span className={STYLES.text.bodySmall + ' flex items-center gap-2'}>
               {isSaving && (
@@ -209,7 +239,8 @@ export default function NotesPage({ characterId }: NotesPageProps) {
           confirmText="確認刪除"
           onConfirm={handleDeleteConfirm}
         />
-      </PageContainer>
+        </div>
+      </div>
     );
   }
 
