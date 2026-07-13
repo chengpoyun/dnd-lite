@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import packageJson from '../package.json';
+import { AttributionsModal } from './ui/AttributionsModal';
 
 interface AboutPageProps {
   userMode: 'authenticated' | 'anonymous';
@@ -14,7 +15,8 @@ export const AboutPage: React.FC<AboutPageProps> = ({
   onLogout
 }) => {
   const { user } = useAuth();
-  
+  const [isAttributionsOpen, setIsAttributionsOpen] = useState(false);
+
   return (
     <div className="max-w-2xl mx-auto space-y-6 px-4 py-4">
       {/* App 資訊 */}
@@ -82,8 +84,18 @@ export const AboutPage: React.FC<AboutPageProps> = ({
       {/* 版權資訊 */}
       <div className="text-center text-sm text-slate-500 py-4">
         <p>© 2026 D&D Lite. All rights reserved.</p>
-        <p className="mt-1">Dungeons & Dragons 是 Wizards of the Coast 的註冊商標</p>
+        <button
+          onClick={() => setIsAttributionsOpen(true)}
+          className="mt-1 hover:text-slate-300 underline"
+        >
+          素材來源與授權
+        </button>
       </div>
+
+      <AttributionsModal
+        isOpen={isAttributionsOpen}
+        onClose={() => setIsAttributionsOpen(false)}
+      />
     </div>
   );
 };

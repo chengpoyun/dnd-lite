@@ -288,3 +288,4 @@ export { Modal, ModalButton, ModalInput } from './Modal';
 export { ModalSaveButton } from './ModalSaveButton';
 export { LoadingOverlay } from './LoadingOverlay';
 export { InfoModal } from './InfoModal';
+export { AttributionsModal } from './AttributionsModal';
