@@ -15,7 +15,7 @@ import {
   MODAL_LABEL_BLOCK_CLASS,
 } from '../styles/modalStyles';
 import { StatBonusEditor, summarizeStatBonusEditorValue, type StatBonusEditorValue } from './StatBonusEditor';
-import { getDisplayValues, type CharacterItem } from '../services/itemService';
+import { getDisplayValues, type CharacterItem, type DecorationKind } from '../services/itemService';
 
 interface DecorationSocketModalProps {
   isOpen: boolean;
@@ -67,8 +67,9 @@ export const DecorationSocketModal: React.FC<DecorationSocketModalProps> = ({
 
   if (!targetItem || slotIndex == null) return null;
 
-  const targetKind = targetItem.equipment_kind_override ?? targetItem.item?.equipment_kind ?? null;
-  const isWeapon = targetKind === 'melee_weapon' || targetKind === 'ranged_weapon';
+  const rawKind = targetItem.equipment_kind_override ?? targetItem.item?.equipment_kind ?? null;
+  const isWeapon = rawKind === 'melee_weapon' || rawKind === 'ranged_weapon';
+  const decorationKind: DecorationKind = isWeapon ? 'weapon' : 'armor';
 
   const candidates = allItems.filter((ci) => {
     const d = getDisplayValues(ci);
@@ -78,11 +79,13 @@ export const DecorationSocketModal: React.FC<DecorationSocketModalProps> = ({
   });
 
   const pickMaterial = (m: CharacterItem) => {
+    // 依「目標裝備實際類型」自動帶入素材對應那份效果（武器／護甲各自獨立，不會互相影響）
     const d = getDisplayValues(m);
-    const existingBonus = m.stat_bonuses as StatBonusEditorValue | undefined;
+    const existingEffect = d.displayDecorationEffects[decorationKind];
+    const existingBonus = existingEffect?.stat_bonuses as StatBonusEditorValue | undefined;
     const existingHasBonus = !!existingBonus && Object.keys(existingBonus).length > 0;
     setSelectedMaterial(m);
-    setNote(d.displayDescription || '');
+    setNote(existingEffect?.note ?? '');
     setHasBonus(existingHasBonus);
     setBonus(existingHasBonus ? (existingBonus as StatBonusEditorValue) : {});
     setStep('effect');
@@ -146,6 +149,7 @@ export const DecorationSocketModal: React.FC<DecorationSocketModalProps> = ({
               <div className="space-y-1 max-h-[55vh] overflow-y-auto -mx-1 px-1">
                 {candidates.map((m) => {
                   const d = getDisplayValues(m);
+                  const effectNote = d.displayDecorationEffects[decorationKind]?.note;
                   return (
                     <button
                       key={m.id}
@@ -158,7 +162,7 @@ export const DecorationSocketModal: React.FC<DecorationSocketModalProps> = ({
                           {d.displayName} <span className="text-slate-500">×{m.quantity}</span>
                         </div>
                         <div className="text-xs text-slate-500 truncate">
-                          {d.displayDescription || '（尚未填寫效果說明）'}
+                          {effectNote || `（尚未設定${isWeapon ? '武器' : '護甲'}插槽效果）`}
                         </div>
                       </div>
                     </button>
@@ -177,16 +181,18 @@ export const DecorationSocketModal: React.FC<DecorationSocketModalProps> = ({
         {step === 'effect' && selectedMaterial && (
           <>
             <p className="text-sm text-slate-400 mb-3">
-              設定「{getDisplayValues(selectedMaterial).displayName}」的效果（會存回此素材，之後同一疊素材會直接帶入）
+              設定「{getDisplayValues(selectedMaterial).displayName}」鑲入{isWeapon ? '武器' : '護甲'}插槽的效果
+              （會存回此素材的{isWeapon ? '武器' : '護甲'}插槽效果，之後同一疊素材會直接帶入；不影響
+              {isWeapon ? '護甲' : '武器'}插槽的效果）
             </p>
             <div className="space-y-1 mb-3">
-              <label className={MODAL_LABEL_BLOCK_CLASS}>效果說明 *</label>
+              <label className={MODAL_LABEL_BLOCK_CLASS}>效果說明（選填）</label>
               <AutoResizeTextarea
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
                 minRows={2}
                 className="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-sm text-slate-200 focus:outline-none focus:border-amber-500"
-                placeholder="描述鑲嵌後的效果"
+                placeholder="描述鑲嵌後的效果，留空表示沒有效果"
               />
             </div>
             <label className="flex items-center gap-2 text-sm text-slate-300 mb-2">
@@ -210,7 +216,6 @@ export const DecorationSocketModal: React.FC<DecorationSocketModalProps> = ({
               <ModalButton
                 variant="primary"
                 className={MODAL_BUTTON_APPLY_AMBER_CLASS}
-                disabled={!note.trim()}
                 onClick={() => setStep('confirmSocket')}
               >
                 下一步
@@ -290,16 +295,16 @@ export const DecorationSocketModal: React.FC<DecorationSocketModalProps> = ({
         {step === 'editEffect' && socket && (
           <>
             <p className="text-sm text-slate-400 mb-3">
-              編輯「{socket.decoration_name}」的效果
+              編輯「{socket.decoration_name}」鑲入{isWeapon ? '武器' : '護甲'}插槽的效果（同時更新素材本身）
             </p>
             <div className="space-y-1 mb-3">
-              <label className={MODAL_LABEL_BLOCK_CLASS}>效果說明 *</label>
+              <label className={MODAL_LABEL_BLOCK_CLASS}>效果說明（選填）</label>
               <AutoResizeTextarea
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
                 minRows={2}
                 className="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-sm text-slate-200 focus:outline-none focus:border-amber-500"
-                placeholder="描述鑲嵌後的效果"
+                placeholder="描述鑲嵌後的效果，留空表示沒有效果"
               />
             </div>
             <label className="flex items-center gap-2 text-sm text-slate-300 mb-2">
@@ -328,7 +333,7 @@ export const DecorationSocketModal: React.FC<DecorationSocketModalProps> = ({
               <ModalButton
                 variant="primary"
                 className={MODAL_BUTTON_APPLY_AMBER_CLASS}
-                disabled={!note.trim() || isSubmitting}
+                disabled={isSubmitting}
                 onClick={handleSaveEffect}
               >
                 {isSubmitting ? '儲存中...' : '儲存'}

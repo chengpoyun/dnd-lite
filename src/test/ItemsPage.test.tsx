@@ -181,7 +181,7 @@ describe('ItemsPage', () => {
     });
     fireEvent.click(screen.getByText('火龍逆鱗', { selector: 'div' }));
 
-    const noteInput = await screen.findByPlaceholderText('描述鑲嵌後的效果');
+    const noteInput = await screen.findByPlaceholderText('描述鑲嵌後的效果，留空表示沒有效果');
     fireEvent.change(noteInput, { target: { value: '劍身覆上熾焰' } });
     fireEvent.click(screen.getByText('下一步'));
 
@@ -193,6 +193,57 @@ describe('ItemsPage', () => {
     await waitFor(() => {
       expect(mockSocketDecoration).toHaveBeenCalledWith('ci-weapon', 0, 'ci-material', '劍身覆上熾焰', undefined);
     });
+  });
+
+  it('同一素材武器/護甲效果各自獨立設定時，鑲嵌畫面只會依裝備實際類型帶入對應那一份（不會混用）', async () => {
+    const weapon = buildCharacterItem({
+      id: 'ci-weapon3',
+      name_override: '雙劍',
+      item_id: null,
+      item: undefined,
+      category_override: '裝備',
+      equipment_kind_override: 'melee_weapon',
+      decoration_slots: 1,
+      sockets: [null],
+      is_favorite: true,
+    });
+    const material = buildCharacterItem({
+      id: 'ci-material3',
+      name_override: '雷狼素材',
+      item_id: null,
+      item: undefined,
+      category_override: 'MH素材',
+      weapon_decoration: true,
+      armor_decoration: true,
+      quantity: 1,
+      decoration_effects: {
+        weapon: { note: '雷電附加傷害', stat_bonuses: {} },
+        armor: { note: '雷屬性抗性', stat_bonuses: {} },
+      },
+    });
+    mockGetCharacterItems.mockResolvedValue({ success: true, items: [weapon, material] });
+
+    render(<ItemsPage characterId="char-1" />);
+
+    await waitFor(() => {
+      expect(screen.getByText('雙劍')).toBeInTheDocument();
+    });
+    fireEvent.click(screen.getByText('雙劍'));
+
+    const emptySlotButton = await screen.findByRole('button', { name: '（空）' });
+    fireEvent.click(emptySlotButton);
+
+    await waitFor(() => {
+      expect(screen.getByText('雷狼素材', { selector: 'div' })).toBeInTheDocument();
+    });
+    // 選材列表預覽也應顯示武器插槽效果，而非護甲插槽效果
+    expect(screen.getByText('雷電附加傷害')).toBeInTheDocument();
+    expect(screen.queryByText('雷屬性抗性')).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByText('雷狼素材', { selector: 'div' }));
+
+    const noteInput = await screen.findByPlaceholderText('描述鑲嵌後的效果，留空表示沒有效果');
+    expect((noteInput as HTMLTextAreaElement).value).toBe('雷電附加傷害');
   });
 
   it('類別篩選按鈕：★排最前面、全部排最後面', async () => {
