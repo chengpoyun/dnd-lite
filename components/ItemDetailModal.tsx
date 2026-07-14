@@ -21,6 +21,8 @@ interface ItemDetailModalProps {
   onQuantityChange?: (characterItemId: string, quantity: number) => Promise<void>;
   /** 點擊鑲嵌插槽時呼叫（開啟鑲嵌/檢視 modal） */
   onSlotClick?: (slotIndex: number) => void;
+  /** 切換★列表收藏狀態時呼叫（會寫入 DB，呼叫端需負責 refetch 並更新 characterItem） */
+  onToggleFavorite?: (characterItemId: string, next: boolean) => void;
 }
 
 export default function ItemDetailModal({
@@ -31,6 +33,7 @@ export default function ItemDetailModal({
   onDelete,
   onQuantityChange,
   onSlotClick,
+  onToggleFavorite,
 }: ItemDetailModalProps) {
   const [quantityUpdating, setQuantityUpdating] = useState(false);
 
@@ -55,8 +58,22 @@ export default function ItemDetailModal({
     <Modal isOpen={isOpen} onClose={onClose} bodyClassName="px-3 pt-3 pb-6">
       <div className={MODAL_CONTAINER_CLASS}>
         <div className="space-y-3">
-          {/* 第一列：名稱 */}
-          <div className="text-lg font-bold text-white">{display.displayName}</div>
+          {/* 第一列：名稱 + ★收藏切換 */}
+          <div className="flex items-start justify-between gap-2">
+            <div className="text-lg font-bold text-white">{display.displayName}</div>
+            {onToggleFavorite && (
+              <button
+                type="button"
+                onClick={() => onToggleFavorite(characterItem.id, !display.displayIsFavorite)}
+                aria-label={display.displayIsFavorite ? '移除★列表' : '加入★列表'}
+                className={`text-2xl leading-none flex-shrink-0 active:scale-90 transition-transform ${
+                  display.displayIsFavorite ? 'text-amber-400' : 'text-slate-500'
+                }`}
+              >
+                {display.displayIsFavorite ? '★' : '☆'}
+              </button>
+            )}
+          </div>
 
           {/* 第二列：tags + 數量調整 */}
           <div className="flex items-center gap-2 flex-wrap">

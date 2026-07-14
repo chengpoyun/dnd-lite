@@ -500,27 +500,38 @@ export async function updateCharacterAbility(
 }
 
 /**
- * 更新角色能力卡的顯示順序（依 character_ability 的 id 陣列順序寫入 sort_order）
+ * 依拖曳排序計算結果（見 utils/fractionalOrder.ts 的 planReorder），
+ * 將 { id: 新sort_order } 對照表逐筆寫回 DB（限定 character_id，避免誤改其他角色資料）
  */
 export async function updateCharacterAbilityOrder(
   characterId: string,
-  orderedCharacterAbilityIds: string[]
-): Promise<void> {
-  if (!characterId || !orderedCharacterAbilityIds.length) return;
+  updates: Record<string, number>
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const entries = Object.entries(updates);
+    if (!characterId || entries.length === 0) {
+      return { success: false, error: '角色 ID 或排序資料無效' };
+    }
 
-  const updates = orderedCharacterAbilityIds.map((id, index) =>
-    supabase
-      .from('character_abilities')
-      .update({ sort_order: index })
-      .eq('id', id)
-      .eq('character_id', characterId)
-  );
+    const results = await Promise.all(
+      entries.map(([id, sortOrder]) =>
+        supabase
+          .from('character_abilities')
+          .update({ sort_order: sortOrder })
+          .eq('id', id)
+          .eq('character_id', characterId)
+      )
+    );
+    const failed = results.find((r) => r.error);
+    if (failed?.error) {
+      console.error('更新能力順序失敗:', failed.error);
+      return { success: false, error: failed.error.message };
+    }
 
-  const results = await Promise.all(updates);
-  const failed = results.find(r => r.error);
-  if (failed?.error) {
-    console.error('更新能力順序失敗:', failed.error);
-    throw failed.error;
+    return { success: true };
+  } catch (error) {
+    console.error('更新能力順序異常:', error);
+    return { success: false, error: '更新能力順序時發生錯誤' };
   }
 }
 

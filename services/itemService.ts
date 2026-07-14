@@ -101,6 +101,10 @@ export interface CharacterItem {
   armor_decoration?: boolean;
   /** 插槽鑲嵌狀態快照，長度應等於 displayDecorationSlots，null 表示空插槽 */
   sockets?: (DecorationSocket | null)[] | null;
+  /** 是否已加入★列表（收藏） */
+  is_favorite?: boolean;
+  /** 跨所有分類篩選畫面共用的拖曳排序值（見 utils/fractionalOrder.ts），null 表示尚未排序過 */
+  sort_order?: number | null;
   created_at: string;
   updated_at: string;
   // JOIN 的物品資料
@@ -119,6 +123,8 @@ export interface CharacterItemWithDetails extends CharacterItem {
   displayWeaponDecoration: boolean;
   /** 顯示用：是否可鑲入護甲插槽 */
   displayArmorDecoration: boolean;
+  /** 顯示用：是否已加入★列表 */
+  displayIsFavorite: boolean;
 }
 
 export interface UpdateCharacterItemData {
@@ -254,6 +260,7 @@ export async function getCharacterItems(characterId: string): Promise<{
         item:global_items(*)
       `)
       .eq('character_id', characterId)
+      .order('sort_order', { ascending: true, nullsFirst: false })
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -415,6 +422,71 @@ export async function updateCharacterItem(
 }
 
 /**
+ * 切換角色物品的★列表收藏狀態
+ */
+export async function updateCharacterItemFavorite(
+  characterItemId: string,
+  isFavorite: boolean
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    if (!characterItemId) {
+      return { success: false, error: '物品 ID 無效' };
+    }
+
+    const { error } = await supabase
+      .from('character_items')
+      .update({ is_favorite: isFavorite })
+      .eq('id', characterItemId);
+
+    if (error) {
+      console.error('❌ 更新收藏狀態失敗:', error);
+      return { success: false, error: error.message };
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error('❌ 更新收藏狀態異常:', error);
+    return { success: false, error: '更新收藏狀態時發生錯誤' };
+  }
+}
+
+/**
+ * 依拖曳排序計算結果（見 utils/fractionalOrder.ts 的 planReorder），
+ * 將 { id: 新sort_order } 對照表逐筆寫回 DB（限定 character_id，避免誤改其他角色資料）
+ */
+export async function updateCharacterItemsOrder(
+  characterId: string,
+  updates: Record<string, number>
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const entries = Object.entries(updates);
+    if (!characterId || entries.length === 0) {
+      return { success: false, error: '角色 ID 或排序資料無效' };
+    }
+
+    const results = await Promise.all(
+      entries.map(([id, sortOrder]) =>
+        supabase
+          .from('character_items')
+          .update({ sort_order: sortOrder })
+          .eq('id', id)
+          .eq('character_id', characterId)
+      )
+    );
+    const failed = results.find((r) => r.error);
+    if (failed?.error) {
+      console.error('❌ 更新道具排序失敗:', failed.error);
+      return { success: false, error: failed.error.message };
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error('❌ 更新道具排序異常:', error);
+    return { success: false, error: '更新道具排序時發生錯誤' };
+  }
+}
+
+/**
  * 刪除角色物品
  */
 export async function deleteCharacterItem(characterItemId: string): Promise<{
@@ -460,6 +532,7 @@ export function getDisplayValues(characterItem: CharacterItem): CharacterItemWit
     displayDecorationSlots: characterItem.decoration_slots ?? characterItem.item?.decoration_slots ?? 0,
     displayWeaponDecoration: characterItem.weapon_decoration ?? characterItem.item?.weapon_decoration ?? false,
     displayArmorDecoration: characterItem.armor_decoration ?? characterItem.item?.armor_decoration ?? false,
+    displayIsFavorite: characterItem.is_favorite ?? false,
   };
 }
 

@@ -76,6 +76,12 @@ describe('ItemsPage - 魔法物品篩選', () => {
 
     render(<ItemsPage characterId="char-1" />);
 
+    // 預設分類為★，兩筆測試資料皆未收藏，需先切到「全部」才看得到
+    await waitFor(() => {
+      expect(screen.getByText('全部')).toBeInTheDocument();
+    });
+    fireEvent.click(screen.getByText('全部'));
+
     await waitFor(() => {
       expect(screen.getByText('普通劍')).toBeInTheDocument();
       expect(screen.getByText('魔法劍')).toBeInTheDocument();

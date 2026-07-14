@@ -132,54 +132,54 @@ describe('AbilityService - 個人能力', () => {
     expect(insertArg.ability_id).toBeNull();
   });
 
-  describe('updateCharacterAbilityOrder', () => {
-    it('應依陣列順序對每個 character_ability 寫入 sort_order', async () => {
+  describe('updateCharacterAbilityOrder（共用 utils/fractionalOrder 的排序對照表寫入）', () => {
+    it('依 updates 對照表，逐筆寫入 sort_order 並限定 character_id', async () => {
       const characterId = 'char-1';
-      const orderedIds = ['ca-a', 'ca-b', 'ca-c'];
-
-      const updateBuilder: SupabaseBuilder = {
-        update: vi.fn().mockReturnValue({
-          eq: vi.fn().mockReturnValue({
-            eq: vi.fn().mockResolvedValue({ error: null })
-          })
-        })
-      };
+      const builders: SupabaseBuilder[] = [];
 
       mockedSupabase.from.mockImplementation((table: string) => {
-        if (table === 'character_abilities') return updateBuilder as any;
-        throw new Error(`Unexpected table: ${table}`);
+        if (table !== 'character_abilities') throw new Error(`Unexpected table: ${table}`);
+        const eqSpy2 = vi.fn().mockResolvedValue({ error: null });
+        const eqSpy1 = vi.fn().mockReturnValue({ eq: eqSpy2 });
+        const updateSpy = vi.fn().mockReturnValue({ eq: eqSpy1 });
+        const builder: any = { update: updateSpy, eq: eqSpy1 };
+        builders.push(builder);
+        return builder;
       });
 
-      await AbilityService.updateCharacterAbilityOrder(characterId, orderedIds);
+      await AbilityService.updateCharacterAbilityOrder(characterId, { 'ca-a': 500, 'ca-b': 1500 });
 
-      expect((updateBuilder.update as Mock)).toHaveBeenCalledTimes(3);
-      expect((updateBuilder.update as Mock)).toHaveBeenNthCalledWith(1, { sort_order: 0 });
-      expect((updateBuilder.update as Mock)).toHaveBeenNthCalledWith(2, { sort_order: 1 });
-      expect((updateBuilder.update as Mock)).toHaveBeenNthCalledWith(3, { sort_order: 2 });
+      expect(builders).toHaveLength(2);
+      expect((builders[0].update as Mock)).toHaveBeenCalledWith({ sort_order: 500 });
+      expect((builders[1].update as Mock)).toHaveBeenCalledWith({ sort_order: 1500 });
     });
 
-    it('orderedIds 為空時應不發送請求', async () => {
+    it('updates 為空物件時應不發送請求，直接失敗', async () => {
       mockedSupabase.from.mockReset();
-      await AbilityService.updateCharacterAbilityOrder('char-1', []);
+      const result = await AbilityService.updateCharacterAbilityOrder('char-1', {});
+      expect(result).toEqual({ success: false, error: '角色 ID 或排序資料無效' });
       expect(mockedSupabase.from).not.toHaveBeenCalled();
     });
 
-    it('當後端回傳錯誤時應 throw', async () => {
-      const updateBuilder: SupabaseBuilder = {
-        update: vi.fn().mockReturnValue({
-          eq: vi.fn().mockReturnValue({
-            eq: vi.fn().mockResolvedValue({ error: new Error('DB error') })
-          })
-        })
-      };
+    it('characterId 缺少時應不發送請求，直接失敗', async () => {
+      mockedSupabase.from.mockReset();
+      const result = await AbilityService.updateCharacterAbilityOrder('', { 'ca-a': 500 });
+      expect(result).toEqual({ success: false, error: '角色 ID 或排序資料無效' });
+      expect(mockedSupabase.from).not.toHaveBeenCalled();
+    });
+
+    it('當後端回傳錯誤時，回傳失敗與錯誤訊息', async () => {
       mockedSupabase.from.mockImplementation((table: string) => {
-        if (table === 'character_abilities') return updateBuilder as any;
-        throw new Error(`Unexpected table: ${table}`);
+        if (table !== 'character_abilities') throw new Error(`Unexpected table: ${table}`);
+        const eqSpy2 = vi.fn().mockResolvedValue({ error: { message: 'DB error' } });
+        const eqSpy1 = vi.fn().mockReturnValue({ eq: eqSpy2 });
+        const updateSpy = vi.fn().mockReturnValue({ eq: eqSpy1 });
+        return { update: updateSpy };
       });
 
-      await expect(
-        AbilityService.updateCharacterAbilityOrder('char-1', ['ca-1'])
-      ).rejects.toThrow();
+      const result = await AbilityService.updateCharacterAbilityOrder('char-1', { 'ca-1': 500 });
+
+      expect(result).toEqual({ success: false, error: 'DB error' });
     });
   });
 

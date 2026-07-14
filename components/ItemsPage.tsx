@@ -11,9 +11,24 @@
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
+import {
+  DndContext,
+  DragEndEvent,
+  PointerSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { useToast } from '../hooks/useToast';
 import * as ItemService from '../services/itemService';
 import type { CharacterItem, ItemCategory, CreateCharacterItemData, UpdateCharacterItemData } from '../services/itemService';
+import { planReorder } from '../utils/fractionalOrder';
 import { FilterBar } from './ui/FilterBar';
 import { ItemCard } from './ItemCard';
 import { LearnItemModal } from './LearnItemModal';
@@ -25,14 +40,59 @@ import { InfoModal } from './ui/InfoModal';
 import { DecorationSocketModal } from './DecorationSocketModal';
 import type { StatBonusEditorValue } from './StatBonusEditor';
 
-const CATEGORIES: { label: string; value: ItemCategory | 'all' | 'magic' }[] = [
-  { label: '全部', value: 'all' },
+type ItemFilterValue = ItemCategory | 'all' | 'magic' | 'favorite';
+
+const CATEGORIES: { label: string; value: ItemFilterValue }[] = [
+  { label: '★', value: 'favorite' },
   { label: '裝備', value: '裝備' },
   { label: '藥水', value: '藥水' },
   { label: 'MH素材', value: 'MH素材' },
   { label: '雜項', value: '雜項' },
-  { label: '魔法物品', value: 'magic' }
+  { label: '魔法物品', value: 'magic' },
+  { label: '全部', value: 'all' },
 ];
+
+/** 單一道具卡的可排序包裝（僅左側把手可拖曳） */
+function SortableItemCard({
+  item,
+  onClick,
+}: {
+  item: CharacterItem;
+  onClick: () => void;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    setActivatorNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: item.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  const dragHandle = (
+    <div
+      ref={setActivatorNodeRef}
+      {...listeners}
+      {...attributes}
+      className="flex items-center justify-center w-full h-full py-2"
+      aria-label="拖曳以調整順序"
+    >
+      <span className="text-slate-400 select-none" style={{ fontSize: '1rem' }}>⋮⋮</span>
+    </div>
+  );
+
+  return (
+    <div ref={setNodeRef} style={style}>
+      <ItemCard item={item} onClick={onClick} dragHandle={dragHandle} isDragging={isDragging} />
+    </div>
+  );
+}
 
 interface ItemsPageProps {
   characterId: string;
@@ -45,8 +105,9 @@ export default function ItemsPage({ characterId, onCharacterDataChanged }: Items
 
   const [items, setItems] = useState<CharacterItem[]>([]);
   const [filteredItems, setFilteredItems] = useState<CharacterItem[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<ItemCategory | 'all' | 'magic'>('all');
+  const [selectedCategory, setSelectedCategory] = useState<ItemFilterValue>('favorite');
   const [isLoading, setIsLoading] = useState(true);
+  const [isSavingOrder, setIsSavingOrder] = useState(false);
 
   // Modal 狀態
   const [isLearnModalOpen, setIsLearnModalOpen] = useState(false);
@@ -83,6 +144,8 @@ export default function ItemsPage({ characterId, onCharacterDataChanged }: Items
       setFilteredItems(items);
     } else if (selectedCategory === 'magic') {
       setFilteredItems(items.filter(item => ItemService.getDisplayValues(item).displayIsMagic));
+    } else if (selectedCategory === 'favorite') {
+      setFilteredItems(items.filter(item => ItemService.getDisplayValues(item).displayIsFavorite));
     } else {
       setFilteredItems(items.filter(item => {
         const display = ItemService.getDisplayValues(item);
@@ -90,6 +153,12 @@ export default function ItemsPage({ characterId, onCharacterDataChanged }: Items
       }));
     }
   }, [items, selectedCategory]);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: { distance: 8 },
+    })
+  );
 
   const closeLearnModal = useCallback(() => setIsLearnModalOpen(false), []);
   const closeAddPersonalModal = useCallback(() => {
@@ -268,6 +337,57 @@ export default function ItemsPage({ characterId, onCharacterDataChanged }: Items
     return true;
   };
 
+  // 切換★列表收藏狀態
+  const handleToggleFavorite = async (characterItemId: string, next: boolean) => {
+    const result = await ItemService.updateCharacterItemFavorite(characterItemId, next);
+    if (!result.success) {
+      showError(result.error || '更新收藏狀態失敗');
+      return;
+    }
+    setItems((prev) => prev.map((i) => (i.id === characterItemId ? { ...i, is_favorite: next } : i)));
+    setSelectedItem((prev) => (prev && prev.id === characterItemId ? { ...prev, is_favorite: next } : prev));
+  };
+
+  // 拖曳排序（任何篩選畫面皆可拖曳，全部分類共用同一份順序，見 utils/fractionalOrder.ts）
+  const handleDragEnd = useCallback(
+    async (event: DragEndEvent) => {
+      const { active, over } = event;
+      if (!over || active.id === over.id) return;
+
+      const visibleOldIndex = filteredItems.findIndex((i) => i.id === active.id);
+      const visibleNewIndex = filteredItems.findIndex((i) => i.id === over.id);
+      if (visibleOldIndex === -1 || visibleNewIndex === -1) return;
+
+      const visibleReordered = [...filteredItems];
+      const [removed] = visibleReordered.splice(visibleOldIndex, 1);
+      visibleReordered.splice(visibleNewIndex, 0, removed);
+
+      const updates = planReorder(items, visibleReordered, String(active.id));
+      if (!updates) return;
+
+      // 樂觀更新本地 sort_order 並依新值重新排序，讓畫面立即反映結果
+      const updated = items.map((i) => (updates[i.id] !== undefined ? { ...i, sort_order: updates[i.id] } : i));
+      updated.sort((a, b) => {
+        const av = a.sort_order ?? Number.POSITIVE_INFINITY;
+        const bv = b.sort_order ?? Number.POSITIVE_INFINITY;
+        return av - bv;
+      });
+      setItems(updated);
+
+      setIsSavingOrder(true);
+      try {
+        const result = await ItemService.updateCharacterItemsOrder(characterId, updates);
+        if (!result.success) {
+          showError(result.error || '儲存順序失敗，已還原');
+          loadItems();
+        }
+      } finally {
+        setIsSavingOrder(false);
+      }
+    },
+    [characterId, items, filteredItems, showError, loadItems]
+  );
+
   // 開啟詳情
   const handleItemClick = (item: CharacterItem) => {
     setSelectedItem(item);
@@ -308,7 +428,7 @@ export default function ItemsPage({ characterId, onCharacterDataChanged }: Items
         <FilterBar
           options={CATEGORIES.map((c) => ({ label: c.label, value: c.value }))}
           selectedValue={selectedCategory}
-          onSelect={(v) => setSelectedCategory(v as ItemCategory | 'all' | 'magic')}
+          onSelect={(v) => setSelectedCategory(v as ItemFilterValue)}
         />
 
         {/* 道具列表 */}
@@ -320,6 +440,8 @@ export default function ItemsPage({ characterId, onCharacterDataChanged }: Items
           <div className="text-slate-400">
               {selectedCategory === 'all'
                 ? '尚無道具'
+                : selectedCategory === 'favorite'
+                ? '尚無收藏的道具'
                 : `尚無「${selectedCategory === 'magic' ? '魔法物品' : selectedCategory}」類別的道具`}
             </div>
             <button
@@ -330,14 +452,30 @@ export default function ItemsPage({ characterId, onCharacterDataChanged }: Items
             </button>
           </div>
         ) : (
-          <div className="space-y-3">
-            {filteredItems.map((item) => (
-              <ItemCard
-                key={item.id}
-                item={item}
-                onClick={() => handleItemClick(item)}
-              />
-            ))}
+          <div className="space-y-3 relative">
+            {isSavingOrder && (
+              <>
+                <div className="flex items-center gap-2 text-sm text-slate-400 mb-1">
+                  <span className="animate-spin rounded-full h-4 w-4 border-2 border-amber-500 border-t-transparent flex-shrink-0" aria-hidden />
+                  <span>正在儲存順序…</span>
+                </div>
+                <div className="absolute inset-0 bg-slate-950/40 z-10 rounded-lg" aria-hidden />
+              </>
+            )}
+            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+              <SortableContext
+                items={filteredItems.map((i) => i.id)}
+                strategy={verticalListSortingStrategy}
+              >
+                {filteredItems.map((item) => (
+                  <SortableItemCard
+                    key={item.id}
+                    item={item}
+                    onClick={() => handleItemClick(item)}
+                  />
+                ))}
+              </SortableContext>
+            </DndContext>
           </div>
         )}
       </div>
@@ -360,7 +498,11 @@ export default function ItemsPage({ characterId, onCharacterDataChanged }: Items
         onClose={closeAddPersonalModal}
         onSubmit={handleAddPersonalItem}
         initialName={addPersonalInitialName}
-        initialCategory={selectedCategory !== 'all' && selectedCategory !== 'magic' ? selectedCategory : undefined}
+        initialCategory={
+          selectedCategory !== 'all' && selectedCategory !== 'magic' && selectedCategory !== 'favorite'
+            ? selectedCategory
+            : undefined
+        }
       />
 
       <CharacterItemEditModal
@@ -378,6 +520,7 @@ export default function ItemsPage({ characterId, onCharacterDataChanged }: Items
         onDelete={handleDeleteClick}
         onQuantityChange={handleQuantityChange}
         onSlotClick={handleSlotClick}
+        onToggleFavorite={handleToggleFavorite}
       />
 
       <DecorationSocketModal

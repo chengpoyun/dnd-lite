@@ -14,6 +14,7 @@ import {
   DndContext,
   DragEndEvent,
   PointerSensor,
+  closestCenter,
   useSensor,
   useSensors,
 } from '@dnd-kit/core';
@@ -26,6 +27,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { useToast } from '../hooks/useToast';
 import * as AbilityService from '../services/abilityService';
 import { ABILITY_SOURCE_ORDER } from '../services/abilityService';
+import { planReorder } from '../utils/fractionalOrder';
 import type { CharacterAbilityWithDetails } from '../lib/supabase';
 import { FilterBar } from './ui/FilterBar';
 import { AbilityCard } from './AbilityCard';
@@ -168,22 +170,36 @@ export default function AbilitiesPage({ characterId, onCharacterDataChanged }: A
       const { active, over } = event;
       if (!over || active.id === over.id) return;
 
-      const oldList = characterAbilities;
-      const oldIndex = oldList.findIndex((ca) => ca.id === active.id);
-      const newIndex = oldList.findIndex((ca) => ca.id === over.id);
-      if (oldIndex === -1 || newIndex === -1) return;
+      const visibleOldIndex = filteredAbilities.findIndex((ca) => ca.id === active.id);
+      const visibleNewIndex = filteredAbilities.findIndex((ca) => ca.id === over.id);
+      if (visibleOldIndex === -1 || visibleNewIndex === -1) return;
 
-      const next = [...oldList];
-      const [removed] = next.splice(oldIndex, 1);
-      next.splice(newIndex, 0, removed);
-      setCharacterAbilities(next);
+      const visibleReordered = [...filteredAbilities];
+      const [removed] = visibleReordered.splice(visibleOldIndex, 1);
+      visibleReordered.splice(visibleNewIndex, 0, removed);
+
+      const updates = planReorder(characterAbilities, visibleReordered, String(active.id));
+      if (!updates) return;
+
+      // 樂觀更新本地 sort_order 並依新值重新排序，讓畫面立即反映結果
+      const updated = characterAbilities.map((ca) =>
+        updates[ca.id] !== undefined ? { ...ca, sort_order: updates[ca.id] } : ca
+      );
+      updated.sort((a, b) => {
+        const av = a.sort_order ?? Number.POSITIVE_INFINITY;
+        const bv = b.sort_order ?? Number.POSITIVE_INFINITY;
+        return av - bv;
+      });
+      setCharacterAbilities(updated);
 
       setIsSavingOrder(true);
       try {
-        await AbilityService.updateCharacterAbilityOrder(
-          characterId,
-          next.map((ca) => ca.id)
-        );
+        const result = await AbilityService.updateCharacterAbilityOrder(characterId, updates);
+        if (!result.success) {
+          showError(result.error || '儲存順序失敗，已還原');
+          const restored = await AbilityService.getCharacterAbilities(characterId);
+          setCharacterAbilities(restored);
+        }
       } catch (error) {
         console.error('儲存能力順序失敗:', error);
         showError('儲存順序失敗，已還原');
@@ -193,7 +209,7 @@ export default function AbilitiesPage({ characterId, onCharacterDataChanged }: A
         setIsSavingOrder(false);
       }
     },
-    [characterId, characterAbilities, showError]
+    [characterId, characterAbilities, filteredAbilities, showError]
   );
 
   // 新增個人能力（不寫入 abilities）
@@ -389,7 +405,7 @@ export default function AbilitiesPage({ characterId, onCharacterDataChanged }: A
               {selectedSource === 'all' ? '新增第一個能力' : '獲得能力'}
             </button>
           </div>
-        ) : selectedSource === 'all' ? (
+        ) : (
           <div className="space-y-3 relative">
             {isSavingOrder && (
               <>
@@ -400,7 +416,7 @@ export default function AbilitiesPage({ characterId, onCharacterDataChanged }: A
                 <div className="absolute inset-0 bg-slate-950/40 z-10 rounded-lg" aria-hidden />
               </>
             )}
-            <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
+            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
               <SortableContext
                 items={filteredAbilities.map((ca) => ca.id)}
                 strategy={verticalListSortingStrategy}
@@ -414,16 +430,6 @@ export default function AbilitiesPage({ characterId, onCharacterDataChanged }: A
                 ))}
               </SortableContext>
             </DndContext>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {filteredAbilities.map((charAbility) => (
-              <AbilityCard
-                key={charAbility.id}
-                characterAbility={charAbility}
-                onClick={() => handleAbilityClick(charAbility)}
-              />
-            ))}
           </div>
         )}
       </div>
