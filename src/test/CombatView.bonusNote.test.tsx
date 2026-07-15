@@ -76,7 +76,7 @@ describe('CombatView - 戰鬥筆記功能測試', () => {
     });
 
     expect(screen.getByText('攻擊命中')).toBeInTheDocument();
-    expect(screen.getByText(/屬性豁免與技能加值/)).toBeInTheDocument();
+    expect(screen.getByText(/屬性豁免、/)).toBeInTheDocument();
     expect(screen.getByText('筆記')).toBeInTheDocument();
   });
 

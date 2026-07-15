@@ -60,22 +60,93 @@ function getStatBonusSourcesCombatSum(
   stats: CharacterStats,
   key: keyof AggregatedCombatStats
 ): number {
-  const sources = (stats.extraData?.statBonusSources as Array<{ combatStats?: Record<string, number> }>) ?? [];
-  return sources.reduce((sum, s) => sum + ((s.combatStats?.[key] as number) ?? 0), 0);
+  const sources = (stats.extraData?.statBonusSources as Array<{ combatStats?: Record<string, number | string> }>) ?? [];
+  return sources.reduce((sum, s) => {
+    const v = s.combatStats?.[key];
+    return sum + (typeof v === 'number' ? v : 0);
+  }, 0);
 }
 
 /**
  * 取得某戰鬥屬性來自能力／物品 statBonusSources 的加值明細（供 UI 顯示「加值來源」列表）
- * 只列出非零項目，label 取 statBonusSources 各項的 name
+ * 只列出非零的「數字」項目，label 取 statBonusSources 各項的 name；骰子記法字串（如 "1d8"）
+ * 不計入此清單，改由 getCombatStatDiceBreakdown 取得
  */
 export function getStatBonusSourcesBreakdown(
   stats: CharacterStats,
   key: keyof AggregatedCombatStats
 ): { label: string; value: number }[] {
-  const sources = (stats.extraData?.statBonusSources as Array<{ name: string; combatStats?: Record<string, number> }>) ?? [];
+  const sources = (stats.extraData?.statBonusSources as Array<{ name: string; combatStats?: Record<string, number | string> }>) ?? [];
   return sources.flatMap((src) => {
-    const v = src.combatStats?.[key] ?? 0;
-    return v !== 0 ? [{ label: src.name, value: v }] : [];
+    const v = src.combatStats?.[key];
+    return typeof v === 'number' && v !== 0 ? [{ label: src.name, value: v }] : [];
+  });
+}
+
+/** 解析單一骰子加成字串（如 "1d8"、"-2d4"），無法解析回傳 null */
+function parseDiceTerm(raw: string): { sign: 1 | -1; count: number; sides: number } | null {
+  const m = /^([+-]?)(\d+)d(\d+)$/i.exec(raw.trim());
+  if (!m) return null;
+  const count = parseInt(m[2], 10);
+  const sides = parseInt(m[3], 10);
+  if (!Number.isFinite(count) || !Number.isFinite(sides) || count <= 0 || sides <= 0) return null;
+  return { sign: m[1] === '-' ? -1 : 1, count, sides };
+}
+
+/** 是否為合法的骰子記法字串（單一項，如 "1d8"、"-2d4"；不支援混合運算式） */
+export function isDiceNotation(raw: string): boolean {
+  return parseDiceTerm(raw) !== null;
+}
+
+/**
+ * 依 statBonusSources 收集某戰鬥屬性各來源的骰子加成，合併相同（正負號＋點數）的項目後
+ * 格式化成顯示字尾（如 "+2d8+1d6"）；沒有骰子加成時回傳空字串。適用於所有 CombatStatKey。
+ */
+export function getCombatStatDiceSuffix(
+  stats: CharacterStats,
+  key: keyof AggregatedCombatStats
+): string {
+  const sources = (stats.extraData?.statBonusSources as Array<{ combatStats?: Record<string, number | string> }>) ?? [];
+  const groups = new Map<string, { sign: 1 | -1; sides: number; count: number }>();
+  for (const src of sources) {
+    const v = src.combatStats?.[key];
+    if (typeof v !== 'string') continue;
+    const parsed = parseDiceTerm(v);
+    if (!parsed) continue;
+    const groupKey = `${parsed.sign}-${parsed.sides}`;
+    const existing = groups.get(groupKey);
+    if (existing) existing.count += parsed.count;
+    else groups.set(groupKey, { ...parsed });
+  }
+  return Array.from(groups.values())
+    .sort((a, b) => b.sides - a.sides)
+    .map((g) => `${g.sign < 0 ? '-' : '+'}${g.count}d${g.sides}`)
+    .join('');
+}
+
+/**
+ * 某戰鬥屬性各來源的骰子加成明細（未合併，逐來源各自一行，供「加值來源」清單顯示）
+ */
+export function getCombatStatDiceBreakdown(
+  stats: CharacterStats,
+  key: keyof AggregatedCombatStats
+): { label: string; dice: string }[] {
+  const sources = (stats.extraData?.statBonusSources as Array<{ name: string; combatStats?: Record<string, number | string> }>) ?? [];
+  return sources.flatMap((src) => {
+    const v = src.combatStats?.[key];
+    return typeof v === 'string' && isDiceNotation(v) ? [{ label: src.name, dice: v }] : [];
+  });
+}
+
+/**
+ * 依 statBonusSources 收集各來源的「其他效果」自由文字，供戰鬥頁「其他效果」清單顯示
+ * （只列出非空白文字的來源，label 取來源 name）
+ */
+export function getOtherEffectNotes(stats: CharacterStats): { label: string; text: string }[] {
+  const sources = (stats.extraData?.statBonusSources as Array<{ name: string; other?: string }>) ?? [];
+  return sources.flatMap((src) => {
+    const text = (src.other ?? '').trim();
+    return text ? [{ label: src.name, text }] : [];
   });
 }
 

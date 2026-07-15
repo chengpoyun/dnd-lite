@@ -5,6 +5,8 @@ interface FinalTotalRowProps {
   value: number;
   className?: string;
   valueClassName?: string;
+  /** 接在數字後面顯示的字尾（例如骰子加成合併後的 "+2d4"） */
+  suffix?: string;
 }
 
 export const FinalTotalRow: React.FC<FinalTotalRowProps> = ({
@@ -12,6 +14,7 @@ export const FinalTotalRow: React.FC<FinalTotalRowProps> = ({
   value,
   className = '',
   valueClassName = '',
+  suffix = '',
 }) => {
   const safeValue = Number.isFinite(value) ? value : 0;
   const sign = safeValue >= 0 ? '+' : '';
@@ -26,6 +29,7 @@ export const FinalTotalRow: React.FC<FinalTotalRowProps> = ({
       >
         {sign}
         {safeValue}
+        {suffix}
       </span>
     </div>
   );

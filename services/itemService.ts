@@ -60,16 +60,19 @@ export interface GlobalItem {
     savingThrowDisadvantage?: string[];
     skillAdvantage?: string[];
     skillDisadvantage?: string[];
+    /** 純數字為一般加值；字串為骰子記法（如 "1d8"），供攻擊傷害等額外骰子加成使用 */
     combatStats?: {
-      ac?: number;
-      initiative?: number;
-      maxHp?: number;
-      speed?: number;
-      attackHit?: number;
-      attackDamage?: number;
-      spellHit?: number;
-      spellDc?: number;
+      ac?: number | string;
+      initiative?: number | string;
+      maxHp?: number | string;
+      speed?: number | string;
+      attackHit?: number | string;
+      attackDamage?: number | string;
+      spellHit?: number | string;
+      spellDc?: number | string;
     };
+    /** 「其他效果」自由文字說明（非數值加成） */
+    other?: string;
   };
   /** 裝備類型（僅裝備類有值）：face, head, neck, shoulders, body, torso, arms, hands, waist, feet, ring, melee_weapon, ranged_weapon, shield */
   equipment_kind?: string | null;

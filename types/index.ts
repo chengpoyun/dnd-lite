@@ -132,16 +132,22 @@ export interface CharacterStats {
       skillAdvantage?: string[];
       /** 此來源給予劣勢的技能 */
       skillDisadvantage?: string[];
+      /**
+       * 戰鬥屬性加成；純數字為一般加值，字串為骰子記法（如 "1d8"，供攻擊傷害等額外骰子加成使用，
+       * 不計入數字加總，顯示時另外合併呈現，見 utils/characterAttributes.ts 的 getCombatStatDiceSuffix）
+       */
       combatStats?: {
-        ac?: number;
-        initiative?: number;
-        maxHp?: number;
-        speed?: number;
-        attackHit?: number;
-        attackDamage?: number;
-        spellHit?: number;
-        spellDc?: number;
+        ac?: number | string;
+        initiative?: number | string;
+        maxHp?: number | string;
+        speed?: number | string;
+        attackHit?: number | string;
+        attackDamage?: number | string;
+        spellHit?: number | string;
+        spellDc?: number | string;
       };
+      /** 此來源的「其他效果」自由文字說明（非數值加成，供戰鬥頁「其他效果」清單顯示） */
+      other?: string;
     }[];
     /** 依能力／物品聚合結算後的豁免優劣勢（reload 後由後端寫入） */
     saveAdvantageDisadvantage?: Record<string, 'advantage' | 'normal' | 'disadvantage'>;

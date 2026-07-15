@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { CharacterStats, ClassInfo } from '../types';
 import { evaluateValue, getProfBonus, handleValueInput } from '../utils/helpers';
 import { STAT_LABELS, SKILLS_MAP, ABILITY_KEYS } from '../utils/characterConstants';
-import { getFinalCombatStat, getBasicCombatStat, getFinalAbilityModifier, getFinalSavingThrow, getFinalSkillBonus, getDefaultMaxHpBasic, getBonusValue, getStatBonusSourcesBreakdown, type CombatStatKey } from '../utils/characterAttributes';
+import { getFinalCombatStat, getBasicCombatStat, getFinalAbilityModifier, getFinalSavingThrow, getFinalSkillBonus, getDefaultMaxHpBasic, getBonusValue, getStatBonusSourcesBreakdown, getCombatStatDiceSuffix, getCombatStatDiceBreakdown, getOtherEffectNotes, type CombatStatKey } from '../utils/characterAttributes';
 import { formatHitDicePools, getTotalCurrentHitDice, useHitDie, recoverHitDiceOnLongRest } from '../utils/classUtils';
 import { calculateCasterLevelForSpellSlots } from '../utils/spellSlots';
 import { getRogueLevel } from '../utils/sneakAttack';
@@ -75,7 +75,37 @@ interface CombatViewProps {
   showSpellStats?: boolean;
 }
 
-export const CombatView: React.FC<CombatViewProps> = ({ 
+/**
+ * 摘要方塊數值渲染：骰子字尾只有一項時（如 +1d6）直接接在主數字後面、維持單行即可；
+ * 兩項以上時（如 +2d8+1d6）主數字維持大字獨立一行，骰子字尾另起一行、置中、較小字級；
+ * 每行最多兩項，第三項以上換到下一行，避免骰子加成疊多項時單行過長撐爆小方塊
+ */
+function renderStatValueWithDice(value: number | string, diceSuffix: string): React.ReactNode {
+  if (!diceSuffix) return value;
+  const diceTerms = diceSuffix.match(/[+-]\d+d\d+/g) ?? [];
+  if (diceTerms.length <= 1) {
+    return `${value}${diceSuffix}`;
+  }
+  const lines: string[] = [];
+  for (let i = 0; i < diceTerms.length; i += 2) {
+    lines.push(diceTerms.slice(i, i + 2).join(''));
+  }
+  return (
+    <>
+      {value}
+      {lines.map((line, idx) => (
+        <span
+          key={idx}
+          className="block text-[13px] font-mono font-bold leading-tight mt-0.5 text-center whitespace-normal break-words"
+        >
+          {line}
+        </span>
+      ))}
+    </>
+  );
+}
+
+export const CombatView: React.FC<CombatViewProps> = ({
   stats, 
   setStats, 
   characterId: propCharacterId,
@@ -869,7 +899,7 @@ export const CombatView: React.FC<CombatViewProps> = ({
         const labelBase =
           "text-[20px] font-black uppercase mb-1 tracking-tighter";
         const valueBase =
-          "text-[24px] font-fantasy text-white leading-none font-bold";
+          "text-[24px] font-fantasy text-white leading-none font-bold text-center";
 
         const cards = [
           {
@@ -885,13 +915,13 @@ export const CombatView: React.FC<CombatViewProps> = ({
                 <>
                   {stats.hp.current}
                   <span className="text-purple-400"> +{stats.hp.temp}</span>
-                  <span className="text-slate-400 text-[18px]"> / {effectiveMaxHp}</span>
+                  <span className="text-slate-400 text-[18px]"> / {effectiveMaxHp}{getCombatStatDiceSuffix(stats, 'maxHp')}</span>
                 </>
               )
               : (
                 <>
                   {stats.hp.current}
-                  <span className="text-slate-400 text-[18px]"> / {effectiveMaxHp}</span>
+                  <span className="text-slate-400 text-[18px]"> / {effectiveMaxHp}{getCombatStatDiceSuffix(stats, 'maxHp')}</span>
                 </>
               ),
             style: { paddingBottom: '3px' },
@@ -906,7 +936,7 @@ export const CombatView: React.FC<CombatViewProps> = ({
             labelClass: `${labelBase} text-amber-500/80`,
             valueClass: valueBase,
             label: "AC",
-            value: getFinalCombatStat(stats, 'ac'),
+            value: renderStatValueWithDice(getFinalCombatStat(stats, 'ac'), getCombatStatDiceSuffix(stats, 'ac')),
           },
           {
             key: "initiative",
@@ -918,7 +948,7 @@ export const CombatView: React.FC<CombatViewProps> = ({
             labelClass: `${labelBase} text-indigo-400/80`,
             valueClass: valueBase,
             label: "先攻",
-            value: (() => { const v = getFinalCombatStat(stats, 'initiative'); return `${v >= 0 ? "+" : ""}${v}`; })(),
+            value: (() => { const v = getFinalCombatStat(stats, 'initiative'); return renderStatValueWithDice(`${v >= 0 ? "+" : ""}${v}`, getCombatStatDiceSuffix(stats, 'initiative')); })(),
           },
           {
             key: "speed",
@@ -930,7 +960,7 @@ export const CombatView: React.FC<CombatViewProps> = ({
             labelClass: `${labelBase} text-cyan-400/80`,
             valueClass: valueBase,
             label: "速度",
-            value: getFinalCombatStat(stats, 'speed'),
+            value: renderStatValueWithDice(getFinalCombatStat(stats, 'speed'), getCombatStatDiceSuffix(stats, 'speed')),
           },
         ];
 
@@ -960,19 +990,19 @@ export const CombatView: React.FC<CombatViewProps> = ({
         const spellLabelClass =
           "text-[20px] font-black text-purple-400/80 uppercase mb-1 tracking-tighter";
         const valueClass =
-          "text-[24px] font-fantasy text-white leading-none font-bold";
+          "text-[24px] font-fantasy text-white leading-none font-bold text-center";
         const weaponCards = [
           {
             key: "weapon-attack",
             onClick: () => setIsAttackHitModalOpen(true),
             label: "攻擊命中",
-            value: (() => { const v = getFinalCombatStat(stats, 'attackHit'); return `${v >= 0 ? "+" : ""}${v}`; })(),
+            value: (() => { const v = getFinalCombatStat(stats, 'attackHit'); return renderStatValueWithDice(`${v >= 0 ? "+" : ""}${v}`, getCombatStatDiceSuffix(stats, 'attackHit')); })(),
           },
           {
             key: "weapon-damage",
             onClick: () => setIsAttackDamageModalOpen(true),
             label: "攻擊傷害",
-            value: (() => { const v = getFinalCombatStat(stats, 'attackDamage'); return `${v >= 0 ? "+" : ""}${v}`; })(),
+            value: (() => { const v = getFinalCombatStat(stats, 'attackDamage'); return renderStatValueWithDice(`${v >= 0 ? "+" : ""}${v}`, getCombatStatDiceSuffix(stats, 'attackDamage')); })(),
           },
         ];
         const spellCards = showSpellStats
@@ -981,13 +1011,13 @@ export const CombatView: React.FC<CombatViewProps> = ({
                 key: "spell-attack",
                 onClick: () => setIsSpellHitModalOpen(true),
                 label: "法術命中",
-                value: (() => { const v = getFinalCombatStat(stats, 'spellHit'); return `${v >= 0 ? "+" : ""}${v}`; })(),
+                value: (() => { const v = getFinalCombatStat(stats, 'spellHit'); return renderStatValueWithDice(`${v >= 0 ? "+" : ""}${v}`, getCombatStatDiceSuffix(stats, 'spellHit')); })(),
               },
               {
                 key: "spell-dc",
                 onClick: () => setIsSpellDcModalOpen(true),
                 label: "法術DC",
-                value: getFinalCombatStat(stats, 'spellDc'),
+                value: renderStatValueWithDice(getFinalCombatStat(stats, 'spellDc'), getCombatStatDiceSuffix(stats, 'spellDc')),
               },
             ]
           : [];
@@ -1034,7 +1064,7 @@ export const CombatView: React.FC<CombatViewProps> = ({
           onClick={() => setIsBonusTableExpanded(prev => !prev)}
           className="w-full flex items-center justify-between px-3 py-2.5 bg-slate-800/50 hover:bg-slate-800 transition-colors text-left"
         >
-          <span className="text-[16px] font-black text-slate-300 uppercase tracking-tighter">屬性豁免與技能加值</span>
+          <span className="text-[16px] font-black text-slate-300 uppercase tracking-tighter">屬性豁免、技能加值、其他效果</span>
           <span className={`text-slate-500 transition-transform ${isBonusTableExpanded ? 'rotate-180' : ''}`}>▼</span>
         </button>
         {isBonusTableExpanded && (() => {
@@ -1089,6 +1119,27 @@ export const CombatView: React.FC<CombatViewProps> = ({
                   })}
                 </div>
               </div>
+              {/* 其他效果：逐條列出各來源（能力/物品/素材）的「其他」自由文字說明 */}
+              {(() => {
+                const otherNotes = getOtherEffectNotes(stats);
+                if (otherNotes.length === 0) return null;
+                return (
+                  <div>
+                    <span className="text-xs font-black text-slate-500 uppercase tracking-wider block mb-1.5">其他效果</span>
+                    <div className="space-y-1.5">
+                      {otherNotes.map((note, idx) => (
+                        <div
+                          key={`${note.label}-${idx}`}
+                          className="px-2 py-1.5 rounded-lg border bg-slate-800/50 border-slate-700/50 text-sm"
+                        >
+                          <span className="font-bold text-slate-300">{note.label}：</span>
+                          <span className="text-slate-400">{note.text}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           );
         })()}
@@ -1318,11 +1369,14 @@ export const CombatView: React.FC<CombatViewProps> = ({
         bonusSources={(() => {
           const storedBonus = getBonusValue((stats as any).maxHp);
           const fromSources = getStatBonusSourcesBreakdown(stats, 'maxHp');
+          const diceSources = getCombatStatDiceBreakdown(stats, 'maxHp');
           return [
             ...fromSources,
+            ...diceSources.map((d) => ({ label: d.label, value: 0, displayText: d.dice })),
             ...(storedBonus !== 0 ? [{ label: '其他加值', value: storedBonus }] : []),
           ];
         })()}
+        finalValueSuffix={getCombatStatDiceSuffix(stats, 'maxHp')}
         defaultMaxHpBasic={getDefaultMaxHpBasic(stats)}
         onSave={(current, temp, maxBasic) => {
           setStats(prev => {
@@ -1362,15 +1416,18 @@ export const CombatView: React.FC<CombatViewProps> = ({
         bonusSources={(() => {
           const hitBonus = getBonusValue((stats as any).attackHit);
           const fromSources = getStatBonusSourcesBreakdown(stats, 'attackHit');
+          const diceSources = getCombatStatDiceBreakdown(stats, 'attackHit');
           return [
             { label: attackHitModalAbility === 'str' ? '力量調整值' : '敏捷調整值', value: getFinalAbilityModifier(stats, attackHitModalAbility) },
             { label: '熟練加值', value: getProfBonus(stats.level ?? 1) },
             ...fromSources,
+            ...diceSources.map((d) => ({ label: d.label, value: 0, displayText: d.dice })),
             ...(hitBonus !== 0 ? [{ label: '其他加值', value: hitBonus }] : []),
           ];
         })()}
         description="攻擊命中 = 基礎值 + 屬性調整值 + 熟練加值 + 其他加值"
         finalValue={getFinalCombatStat(stats, 'attackHit')}
+        finalValueSuffix={getCombatStatDiceSuffix(stats, 'attackHit')}
         resetBasicValue={0}
         onSave={(basic, ability) => {
           const prevBonus = getBonusValue((stats as any).attackHit);
@@ -1409,14 +1466,17 @@ export const CombatView: React.FC<CombatViewProps> = ({
         bonusSources={(() => {
           const dmgBonus = getBonusValue((stats as any).attackDamage);
           const fromSources = getStatBonusSourcesBreakdown(stats, 'attackDamage');
+          const diceSources = getCombatStatDiceBreakdown(stats, 'attackDamage');
           return [
             { label: attackDamageModalAbility === 'str' ? '力量修正值' : '敏捷修正值', value: getFinalAbilityModifier(stats, attackDamageModalAbility) },
             ...fromSources,
+            ...diceSources.map((d) => ({ label: d.label, value: 0, displayText: d.dice })),
             ...(dmgBonus !== 0 ? [{ label: '其他加值', value: dmgBonus }] : []),
           ];
         })()}
         description="攻擊傷害 = 基礎值 + 屬性修正值 + 其他加值"
         finalValue={getFinalCombatStat(stats, 'attackDamage')}
+        finalValueSuffix={getCombatStatDiceSuffix(stats, 'attackDamage')}
         resetBasicValue={0}
         onSave={(basic, ability) => {
           const prevBonus = getBonusValue((stats as any).attackDamage);
@@ -1456,15 +1516,18 @@ export const CombatView: React.FC<CombatViewProps> = ({
         bonusSources={(() => {
           const spellHitBonus = getBonusValue((stats as any).spellHit);
           const fromSources = getStatBonusSourcesBreakdown(stats, 'spellHit');
+          const diceSources = getCombatStatDiceBreakdown(stats, 'spellHit');
           return [
             { label: spellHitModalAbility === 'int' ? '智力修正值' : spellHitModalAbility === 'wis' ? '感知修正值' : '魅力修正值', value: getFinalAbilityModifier(stats, spellHitModalAbility) },
             { label: '熟練加值', value: getProfBonus(stats.level ?? 1) },
             ...fromSources,
+            ...diceSources.map((d) => ({ label: d.label, value: 0, displayText: d.dice })),
             ...(spellHitBonus !== 0 ? [{ label: '其他加值', value: spellHitBonus }] : []),
           ];
         })()}
         description="法術命中 = 基礎值 + 屬性修正值 + 熟練加值 + 其他加值"
         finalValue={getFinalCombatStat(stats, 'spellHit')}
+        finalValueSuffix={getCombatStatDiceSuffix(stats, 'spellHit')}
         resetBasicValue={0}
         onSave={(basic, ability) => {
           const prevBonus = getBonusValue((stats as any).spellHit);
@@ -1504,15 +1567,18 @@ export const CombatView: React.FC<CombatViewProps> = ({
         bonusSources={(() => {
           const spellDcBonus = getBonusValue((stats as any).spellDc);
           const fromSources = getStatBonusSourcesBreakdown(stats, 'spellDc');
+          const diceSources = getCombatStatDiceBreakdown(stats, 'spellDc');
           return [
             { label: spellDcModalAbility === 'int' ? '智力修正值' : spellDcModalAbility === 'wis' ? '感知修正值' : '魅力修正值', value: getFinalAbilityModifier(stats, spellDcModalAbility) },
             { label: '熟練加值', value: getProfBonus(stats.level ?? 1) },
             ...fromSources,
+            ...diceSources.map((d) => ({ label: d.label, value: 0, displayText: d.dice })),
             ...(spellDcBonus !== 0 ? [{ label: '其他加值', value: spellDcBonus }] : []),
           ];
         })()}
         description="法術DC = 基礎值(8) + 屬性修正值 + 熟練加值 + 其他加值"
         finalValue={getFinalCombatStat(stats, 'spellDc')}
+        finalValueSuffix={getCombatStatDiceSuffix(stats, 'spellDc')}
         resetBasicValue={8}
         onSave={(basic, ability) => {
           const prevBonus = getBonusValue((stats as any).spellDc);
@@ -1555,15 +1621,18 @@ export const CombatView: React.FC<CombatViewProps> = ({
             const acBonus = getBonusValue((stats as any).ac);
             const dexMod = getFinalAbilityModifier(stats, 'dex');
             const fromSources = getStatBonusSourcesBreakdown(stats, 'ac');
+            const diceSources = getCombatStatDiceBreakdown(stats, 'ac');
             const sumFromSources = fromSources.reduce((s, b) => s + b.value, 0);
             const bonusSources = [
               { label: '敏捷調整值', value: dexMod },
               ...fromSources,
+              ...diceSources.map((d) => ({ label: d.label, value: 0, displayText: d.dice })),
               ...(acBonus !== 0 ? [{ label: '其他加值', value: acBonus }] : []),
             ];
             return {
               bonusValue: dexMod + sumFromSources + acBonus,
               bonusSources,
+              finalValueSuffix: getCombatStatDiceSuffix(stats, 'ac'),
               description: 'AC = 基礎值 + 敏捷調整值 + 其他加值',
             };
           })())}
@@ -1571,29 +1640,35 @@ export const CombatView: React.FC<CombatViewProps> = ({
             const initBonus = getBonusValue((stats as any).initiative);
             const dexMod = getFinalAbilityModifier(stats, 'dex');
             const fromSources = getStatBonusSourcesBreakdown(stats, 'initiative');
+            const diceSources = getCombatStatDiceBreakdown(stats, 'initiative');
             const sumFromSources = fromSources.reduce((s, b) => s + b.value, 0);
             const bonusSources = [
               { label: '敏捷調整值', value: dexMod },
               ...fromSources,
+              ...diceSources.map((d) => ({ label: d.label, value: 0, displayText: d.dice })),
               ...(initBonus !== 0 ? [{ label: '其他加值', value: initBonus }] : []),
             ];
             return {
               bonusValue: dexMod + sumFromSources + initBonus,
               bonusSources,
+              finalValueSuffix: getCombatStatDiceSuffix(stats, 'initiative'),
               description: '先攻 = 基礎值 + 敏捷調整值 + 其他加值',
             };
           })())}
           {...(numberEditState.key === 'speed' && (() => {
             const speedBonus = getBonusValue((stats as any).speed);
             const fromSources = getStatBonusSourcesBreakdown(stats, 'speed');
+            const diceSources = getCombatStatDiceBreakdown(stats, 'speed');
             const sumFromSources = fromSources.reduce((s, b) => s + b.value, 0);
             const bonusSources = [
               ...fromSources,
+              ...diceSources.map((d) => ({ label: d.label, value: 0, displayText: d.dice })),
               ...(speedBonus !== 0 ? [{ label: '其他加值', value: speedBonus }] : []),
             ];
             return {
               bonusValue: sumFromSources + speedBonus,
               bonusSources,
+              finalValueSuffix: getCombatStatDiceSuffix(stats, 'speed'),
               description: '速度 = 基礎值 + 其他加值',
             };
           })())}

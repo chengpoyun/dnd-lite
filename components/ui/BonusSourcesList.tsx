@@ -16,6 +16,8 @@ export interface BonusSourceItem {
   value: number;
   /** 為 true 時僅顯示 label，數值欄顯示 —（用於優劣勢來源列） */
   hideValue?: boolean;
+  /** 有值時顯示這段文字取代 +N 格式化的數字（例如骰子加成 "1d8"）；hideValue 優先於此欄位 */
+  displayText?: string;
 }
 
 interface BonusSourcesListProps {
@@ -42,6 +44,8 @@ export const BonusSourcesList: React.FC<BonusSourcesListProps> = ({
             <span className={BONUS_SOURCES_LABEL_CLASS}>{s.label}</span>
             {s.hideValue ? (
               <span className={BONUS_SOURCES_LABEL_CLASS}>—</span>
+            ) : s.displayText ? (
+              <span className={BONUS_SOURCES_LABEL_CLASS}>{s.displayText}</span>
             ) : (
               <span
                 className={

@@ -1,5 +1,7 @@
 import React from 'react';
 import { SKILLS_MAP } from '../utils/characterConstants';
+import { isDiceNotation } from '../utils/characterAttributes';
+import { AutoResizeTextarea } from './ui/AutoResizeTextarea';
 
 export type StatBonusKey =
   | 'abilityModifiers'
@@ -28,16 +30,22 @@ export interface StatBonusEditorValue {
   /** 此來源給予優勢的技能（技能名稱） */
   skillAdvantage?: string[];
   skillDisadvantage?: string[];
+  /**
+   * 純數字為一般加值；字串為骰子記法（如 "1d8"、"-2d4"，單一項，不支援混合運算式），
+   * 供攻擊傷害等額外骰子加成使用，顯示時與其他來源的骰子加成合併呈現
+   */
   combatStats?: {
-    ac?: number;
-    initiative?: number;
-    maxHp?: number;
-    speed?: number;
-    attackHit?: number;
-    attackDamage?: number;
-    spellHit?: number;
-    spellDc?: number;
+    ac?: number | string;
+    initiative?: number | string;
+    maxHp?: number | string;
+    speed?: number | string;
+    attackHit?: number | string;
+    attackDamage?: number | string;
+    spellHit?: number | string;
+    spellDc?: number | string;
   };
+  /** 「其他效果」自由文字說明（非數值加成，如持續時間、特殊描述） */
+  other?: string;
 }
 
 interface StatBonusEditorProps {
@@ -97,8 +105,9 @@ export function summarizeStatBonusEditorValue(value: StatBonusEditorValue | unde
     if (typeof v === 'number' && v !== 0) out.push({ label: skill, text: fmt(v) });
   });
   COMBAT_STAT_LABELS.forEach(({ key, label }) => {
-    const v = (value.combatStats as Record<string, number> | undefined)?.[key];
+    const v = (value.combatStats as Record<string, number | string> | undefined)?.[key];
     if (typeof v === 'number' && v !== 0) out.push({ label, text: fmt(v) });
+    else if (typeof v === 'string' && v.trim()) out.push({ label, text: v.trim() });
   });
   (value.savingThrowAdvantage ?? []).forEach((key) => {
     const label = SAVE_LABELS.find((s) => s.key === key)?.label ?? key;
@@ -110,6 +119,8 @@ export function summarizeStatBonusEditorValue(value: StatBonusEditorValue | unde
   });
   (value.skillAdvantage ?? []).forEach((skill) => out.push({ label: skill, text: '優勢' }));
   (value.skillDisadvantage ?? []).forEach((skill) => out.push({ label: skill, text: '劣勢' }));
+
+  if (value.other?.trim()) out.push({ label: '其他', text: value.other.trim() });
 
   return out;
 }
@@ -123,6 +134,10 @@ const numberInputClass =
 const rowClass = 'flex items-center gap-1 py-1 min-h-9';
 
 export const StatBonusEditor: React.FC<StatBonusEditorProps> = ({ value, onChange }) => {
+  // 「其他」文字框需要即時反映輸入內容（AutoResizeTextarea 為受控元件），但仍沿用本元件
+  // 其餘欄位「失焦才提交給父層」的慣例，故用本地 state 暫存草稿，失焦時才呼叫 onChange
+  const [otherDraft, setOtherDraft] = React.useState(value.other ?? '');
+
   const nextBase = (): StatBonusEditorValue => ({
     abilityScores: { ...(value.abilityScores ?? {}) },
     abilityScoreFloors: { ...(value.abilityScoreFloors ?? {}) },
@@ -134,6 +149,7 @@ export const StatBonusEditor: React.FC<StatBonusEditorProps> = ({ value, onChang
     skillAdvantage: [...(value.skillAdvantage ?? [])],
     skillDisadvantage: [...(value.skillDisadvantage ?? [])],
     combatStats: { ...(value.combatStats ?? {}) },
+    other: value.other,
   });
 
   const handleNumberChange = (
@@ -166,7 +182,8 @@ export const StatBonusEditor: React.FC<StatBonusEditorProps> = ({ value, onChang
         const field = path.replace('combat_', '') as keyof NonNullable<
           StatBonusEditorValue['combatStats']
         >;
-        next.combatStats![field] = num;
+        const trimmed = raw.trim();
+        next.combatStats![field] = isDiceNotation(trimmed) ? trimmed : num;
         break;
       }
     }
@@ -242,8 +259,9 @@ export const StatBonusEditor: React.FC<StatBonusEditorProps> = ({ value, onChang
     path: StatBonusKey,
     label: string,
     key: string,
-    current: number | undefined,
+    current: number | string | undefined,
     rowKey?: string,
+    allowDice = false,
   ) => {
     const v = current ?? 0;
     return (
@@ -260,7 +278,7 @@ export const StatBonusEditor: React.FC<StatBonusEditorProps> = ({ value, onChang
             className={numberInputClass}
             defaultValue={v === 0 ? '' : String(v)}
             onBlur={(e) => handleNumberChange(path, key, e.target.value)}
-            inputMode="numeric"
+            inputMode={allowDice ? 'text' : 'numeric'}
           />
           <button type="button" disabled className={hiddenSlotClass} aria-hidden>優勢</button>
         </div>
@@ -381,8 +399,25 @@ export const StatBonusEditor: React.FC<StatBonusEditorProps> = ({ value, onChang
       {SAVE_LABELS.map(({ key, label }) => renderSaveRow(label, key, `save-${key}`))}
       {SKILLS_MAP.map((s) => renderSkillRow(s.name, `skill-${s.name}`))}
       {combatRows.map(({ path, key, label }) =>
-        renderNumberRow(path, label, key, (cs as Record<string, number>)[key], `combat-${key}`),
+        renderNumberRow(path, label, key, (cs as Record<string, number | string>)[key], `combat-${key}`, true),
       )}
+      <div className="pt-2">
+        <div className={leftColClass}>
+          <span className="text-sm text-slate-300">其他</span>
+        </div>
+        <AutoResizeTextarea
+          value={otherDraft}
+          onChange={(e) => setOtherDraft(e.target.value)}
+          onBlur={(e) => {
+            const next = nextBase();
+            next.other = e.target.value;
+            onChange(next);
+          }}
+          className="w-full mt-1 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-sm text-slate-200 focus:outline-none focus:ring-1 focus:ring-amber-500"
+          placeholder="其他效果的自由文字說明"
+          minRows={2}
+        />
+      </div>
     </div>
   );
 };
