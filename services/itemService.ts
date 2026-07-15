@@ -27,6 +27,20 @@ export interface DecorationSocket {
   stat_bonuses?: GlobalItem['stat_bonuses'];
 }
 
+/** 素材鑲入某一種裝備類型（武器／護甲）時的效果；note 與 stat_bonuses 皆可留空（純無效果） */
+export interface DecorationEffect {
+  note: string;
+  stat_bonuses?: GlobalItem['stat_bonuses'];
+}
+
+/** 素材依鑲入的裝備類型分別設定的效果；鑲嵌時只套用「目標裝備實際類型」對應的那一份，兩者互不影響 */
+export interface DecorationEffects {
+  weapon?: DecorationEffect;
+  armor?: DecorationEffect;
+}
+
+export type DecorationKind = 'weapon' | 'armor';
+
 // 全域物品（global_items 表）
 export interface GlobalItem {
   id: string;
@@ -46,16 +60,19 @@ export interface GlobalItem {
     savingThrowDisadvantage?: string[];
     skillAdvantage?: string[];
     skillDisadvantage?: string[];
+    /** 純數字為一般加值；字串為骰子記法（如 "1d8"），供攻擊傷害等額外骰子加成使用 */
     combatStats?: {
-      ac?: number;
-      initiative?: number;
-      maxHp?: number;
-      speed?: number;
-      attackHit?: number;
-      attackDamage?: number;
-      spellHit?: number;
-      spellDc?: number;
+      ac?: number | string;
+      initiative?: number | string;
+      maxHp?: number | string;
+      speed?: number | string;
+      attackHit?: number | string;
+      attackDamage?: number | string;
+      spellHit?: number | string;
+      spellDc?: number | string;
     };
+    /** 「其他效果」自由文字說明（非數值加成） */
+    other?: string;
   };
   /** 裝備類型（僅裝備類有值）：face, head, neck, shoulders, body, torso, arms, hands, waist, feet, ring, melee_weapon, ranged_weapon, shield */
   equipment_kind?: string | null;
@@ -65,6 +82,8 @@ export interface GlobalItem {
   weapon_decoration?: boolean;
   /** MH素材：是否可鑲入護甲插槽（與 weapon_decoration 互不排斥） */
   armor_decoration?: boolean;
+  /** MH素材：依鑲入武器／護甲分別設定的效果（見 DecorationEffects） */
+  decoration_effects?: DecorationEffects | null;
   created_at: string;
   updated_at: string;
 }
@@ -99,6 +118,8 @@ export interface CharacterItem {
   weapon_decoration?: boolean;
   /** 覆寫：是否可鑲入護甲插槽 */
   armor_decoration?: boolean;
+  /** 覆寫：依鑲入武器／護甲分別設定的效果 */
+  decoration_effects?: DecorationEffects | null;
   /** 插槽鑲嵌狀態快照，長度應等於 displayDecorationSlots，null 表示空插槽 */
   sockets?: (DecorationSocket | null)[] | null;
   /** 是否已加入★列表（收藏） */
@@ -125,6 +146,8 @@ export interface CharacterItemWithDetails extends CharacterItem {
   displayArmorDecoration: boolean;
   /** 顯示用：是否已加入★列表 */
   displayIsFavorite: boolean;
+  /** 顯示用：依鑲入武器／護甲分別設定的效果 */
+  displayDecorationEffects: DecorationEffects;
 }
 
 export interface UpdateCharacterItemData {
@@ -147,6 +170,8 @@ export interface UpdateCharacterItemData {
   weapon_decoration?: boolean;
   /** 覆寫：是否可鑲入護甲插槽 */
   armor_decoration?: boolean;
+  /** 覆寫：依鑲入武器／護甲分別設定的效果 */
+  decoration_effects?: DecorationEffects | null;
   /** 覆寫：插槽鑲嵌狀態快照 */
   sockets?: (DecorationSocket | null)[] | null;
 }
@@ -170,6 +195,8 @@ export interface CreateCharacterItemData {
   weapon_decoration?: boolean;
   /** 是否可鑲入護甲插槽 */
   armor_decoration?: boolean;
+  /** 依鑲入武器／護甲分別設定的效果 */
+  decoration_effects?: DecorationEffects | null;
 }
 
 /**
@@ -371,6 +398,7 @@ export async function createCharacterItem(
     if (data.decoration_slots !== undefined) payload.decoration_slots = data.decoration_slots;
     if (data.weapon_decoration !== undefined) payload.weapon_decoration = data.weapon_decoration;
     if (data.armor_decoration !== undefined) payload.armor_decoration = data.armor_decoration;
+    if (data.decoration_effects !== undefined) payload.decoration_effects = data.decoration_effects;
 
     const { data: row, error } = await supabase
       .from('character_items')
@@ -515,6 +543,50 @@ export async function deleteCharacterItem(characterItemId: string): Promise<{
   }
 }
 
+/** 格式化單一效果為摘要行；無文字說明也無數值加成時回傳 null（代表「沒有效果，不顯示」） */
+function formatEffectSummaryLine(
+  label: string,
+  effect: { note?: string; stat_bonuses?: GlobalItem['stat_bonuses'] } | null | undefined
+): string | null {
+  if (!effect) return null;
+  const note = (effect.note ?? '').trim();
+  if (note) return `${label}${note}`;
+  const hasBonus = !!effect.stat_bonuses && Object.keys(effect.stat_bonuses).length > 0;
+  if (hasBonus) return `${label}（含數值加成，無文字說明）`;
+  return null;
+}
+
+/** MH素材本身的武器/護甲插槽效果摘要（依有勾選的插槽類型各自一行） */
+function buildMaterialEffectSummary(
+  weaponDecoration: boolean,
+  armorDecoration: boolean,
+  effects: DecorationEffects
+): string {
+  const lines: string[] = [];
+  if (weaponDecoration) {
+    const line = formatEffectSummaryLine('武器插槽效果：', effects.weapon);
+    if (line) lines.push(line);
+  }
+  if (armorDecoration) {
+    const line = formatEffectSummaryLine('護甲插槽效果：', effects.armor);
+    if (line) lines.push(line);
+  }
+  return lines.join('\n');
+}
+
+/** 裝備已鑲嵌材料的效果摘要（僅列出有效果的插槽，完全沒效果的插槽省略） */
+function buildSocketedEffectSummary(sockets: (DecorationSocket | null)[] | null | undefined): string {
+  if (!Array.isArray(sockets)) return '';
+  const lines: string[] = [];
+  for (const socket of sockets) {
+    if (!socket) continue;
+    const line = formatEffectSummaryLine(`${socket.decoration_name}：`, socket);
+    if (line) lines.push(`- ${line}`);
+  }
+  if (lines.length === 0) return '';
+  return ['已鑲嵌效果：', ...lines].join('\n');
+}
+
 /**
  * 獲取物品的顯示值（優先使用 override 值，否則使用原始值）
  */
@@ -522,17 +594,31 @@ export function getDisplayValues(characterItem: CharacterItem): CharacterItemWit
   const displayIsMagic = characterItem.item_id
     ? (characterItem.is_magic_override ?? characterItem.item?.is_magic ?? false)
     : !!characterItem.is_magic;
+  const displayWeaponDecoration = characterItem.weapon_decoration ?? characterItem.item?.weapon_decoration ?? false;
+  const displayArmorDecoration = characterItem.armor_decoration ?? characterItem.item?.armor_decoration ?? false;
+  const displayDecorationEffects = characterItem.decoration_effects ?? characterItem.item?.decoration_effects ?? {};
+  const rawDescription = characterItem.description_override ?? characterItem.item?.description ?? '';
+
+  const effectSummary = [
+    buildMaterialEffectSummary(displayWeaponDecoration, displayArmorDecoration, displayDecorationEffects),
+    buildSocketedEffectSummary(characterItem.sockets),
+  ]
+    .filter(Boolean)
+    .join('\n\n');
 
   return {
     ...characterItem,
     displayName: characterItem.name_override ?? characterItem.item?.name ?? '',
-    displayDescription: characterItem.description_override ?? characterItem.item?.description ?? '',
+    displayDescription: effectSummary
+      ? (rawDescription ? `${effectSummary}\n\n${rawDescription}` : effectSummary)
+      : rawDescription,
     displayCategory: (characterItem.category_override ?? characterItem.item?.category ?? '雜項') as ItemCategory,
     displayIsMagic,
     displayDecorationSlots: characterItem.decoration_slots ?? characterItem.item?.decoration_slots ?? 0,
-    displayWeaponDecoration: characterItem.weapon_decoration ?? characterItem.item?.weapon_decoration ?? false,
-    displayArmorDecoration: characterItem.armor_decoration ?? characterItem.item?.armor_decoration ?? false,
+    displayWeaponDecoration,
+    displayArmorDecoration,
     displayIsFavorite: characterItem.is_favorite ?? false,
+    displayDecorationEffects,
   };
 }
 
@@ -544,52 +630,83 @@ export function getDisplayEquipmentKind(characterItem: CharacterItem): string | 
   return characterItem.item?.equipment_kind ?? null;
 }
 
+/** 依裝備類型覆寫／global_items.equipment_kind 判斷「鑲入武器」或「鑲入護甲」（非武器一律視為護甲，與插槽候選素材篩選邏輯一致） */
+function resolveDecorationKind(
+  equipmentKindOverride: string | null | undefined,
+  itemEquipmentKind: string | null | undefined
+): DecorationKind {
+  const kind = equipmentKindOverride ?? itemEquipmentKind ?? null;
+  return kind === 'melee_weapon' || kind === 'ranged_weapon' ? 'weapon' : 'armor';
+}
+
+/** 將一份效果合併進既有的 DecorationEffects（只更新指定 kind 那一份；effect 為 undefined 時移除該 kind） */
+function mergeDecorationEffect(
+  existing: DecorationEffects | null | undefined,
+  kind: DecorationKind,
+  effect: DecorationEffect | undefined
+): DecorationEffects {
+  const base: DecorationEffects = existing && typeof existing === 'object' ? { ...existing } : {};
+  if (effect) {
+    base[kind] = effect;
+  } else {
+    delete base[kind];
+  }
+  return base;
+}
+
+/** note/statBonuses 皆為空時視為「無效果」，回傳 undefined（該 kind 不寫入任何效果） */
+function toDecorationEffect(note: string, statBonuses: GlobalItem['stat_bonuses'] | undefined): DecorationEffect | undefined {
+  const trimmedNote = (note ?? '').trim();
+  const hasBonus = !!statBonuses && Object.keys(statBonuses).length > 0;
+  if (!trimmedNote && !hasBonus) return undefined;
+  return { note: trimmedNote, stat_bonuses: hasBonus ? statBonuses : undefined };
+}
+
 /**
- * 同步「同一素材」在角色物品欄中其他尚未鑲嵌的庫存（依顯示名稱 + MH素材類別比對）。
+ * 同步「同一素材」在角色物品欄中其他尚未鑲嵌的庫存（依顯示名稱 + MH素材類別比對），
+ * 只更新對應 kind（武器／護甲）那一份效果，保留每筆庫存另一個 kind 原本的設定。
  * 鑲嵌／編輯鑲嵌效果時呼叫，讓庫存中同名素材的效果與剛設定的一致（它們是同一樣道具）。
  */
 async function syncMaterialInventoryByName(
   characterId: string,
   materialName: string,
-  note: string,
-  statBonuses: GlobalItem['stat_bonuses'] | undefined,
+  kind: DecorationKind,
+  effect: DecorationEffect | undefined,
   excludeId?: string
 ): Promise<void> {
   const { data: rows, error } = await supabase
     .from('character_items')
-    .select('id, name_override, category_override, item:global_items(name, category)')
+    .select('id, name_override, category_override, decoration_effects, item:global_items(name, category)')
     .eq('character_id', characterId);
   if (error || !Array.isArray(rows)) return;
 
-  const hasBonus = !!statBonuses && Object.keys(statBonuses).length > 0;
-  const matchingIds = rows
-    .filter((row: any) => {
-      if (excludeId && row.id === excludeId) return false;
-      const itemRaw = Array.isArray(row.item) ? row.item[0] : row.item;
-      const displayCategory = row.category_override ?? itemRaw?.category ?? '雜項';
-      const displayName = row.name_override ?? itemRaw?.name ?? '';
-      return displayCategory === 'MH素材' && displayName === materialName;
-    })
-    .map((row: any) => row.id);
+  const matchingRows = rows.filter((row: any) => {
+    if (excludeId && row.id === excludeId) return false;
+    const itemRaw = Array.isArray(row.item) ? row.item[0] : row.item;
+    const displayCategory = row.category_override ?? itemRaw?.category ?? '雜項';
+    const displayName = row.name_override ?? itemRaw?.name ?? '';
+    return displayCategory === 'MH素材' && displayName === materialName;
+  });
+  if (matchingRows.length === 0) return;
 
-  if (matchingIds.length === 0) return;
-
-  const { error: syncError } = await supabase
-    .from('character_items')
-    .update({
-      description_override: note,
-      stat_bonuses: hasBonus ? statBonuses : {},
-      affects_stats: hasBonus,
-    })
-    .in('id', matchingIds);
-  if (syncError) {
-    console.error('❌ 同步同名素材效果失敗:', syncError);
+  const results = await Promise.all(
+    matchingRows.map((row: any) =>
+      supabase
+        .from('character_items')
+        .update({ decoration_effects: mergeDecorationEffect(row.decoration_effects, kind, effect) })
+        .eq('id', row.id)
+    )
+  );
+  const failed = results.find((r: any) => r.error);
+  if (failed?.error) {
+    console.error('❌ 同步同名素材效果失敗:', failed.error);
   }
 }
 
 /**
  * 鑲嵌素材至裝備插槽
- * 1. 效果（note + statBonuses）先寫回素材本身這筆 character_items（若還有剩餘庫存，之後同一疊素材會直接帶入此效果）
+ * 1. 效果（note + statBonuses）依「目標裝備實際類型」（武器／護甲）先寫回素材本身這筆 character_items
+ *    的 decoration_effects[kind]（若還有剩餘庫存，之後同一疊素材會直接帶入此效果；不影響另一個 kind 的設定）
  * 2. 將素材快照寫入目標裝備的 sockets[slotIndex]
  * 3. 消耗素材：quantity -1，歸零則刪除該筆
  * 寫入順序刻意讓「消耗素材」放最後，避免中途失敗導致素材憑空消失
@@ -608,13 +725,10 @@ export async function socketDecoration(
     if (slotIndex < 0) {
       return { success: false, error: '插槽索引無效' };
     }
-    if (!note?.trim()) {
-      return { success: false, error: '效果說明為必填' };
-    }
 
     const [{ data: material, error: materialError }, { data: target, error: targetError }] = await Promise.all([
       supabase.from('character_items').select('*, item:global_items(*)').eq('id', materialItemId).single(),
-      supabase.from('character_items').select('*').eq('id', targetItemId).single(),
+      supabase.from('character_items').select('*, item:global_items(*)').eq('id', targetItemId).single(),
     ]);
 
     if (materialError || !material) {
@@ -626,23 +740,22 @@ export async function socketDecoration(
 
     const materialItem = Array.isArray(material.item) ? material.item[0] : material.item;
     const materialName = material.name_override ?? materialItem?.name ?? '素材';
-    const trimmedNote = note.trim();
-    const hasBonus = !!statBonuses && Object.keys(statBonuses).length > 0;
+    const targetItemRaw = Array.isArray(target.item) ? target.item[0] : target.item;
+    const targetKind = resolveDecorationKind(target.equipment_kind_override, targetItemRaw?.equipment_kind);
+    const effect = toDecorationEffect(note, statBonuses);
+    const trimmedNote = (note ?? '').trim();
+    const hasBonus = !!effect?.stat_bonuses;
 
     const { error: writebackError } = await supabase
       .from('character_items')
-      .update({
-        description_override: trimmedNote,
-        stat_bonuses: hasBonus ? statBonuses : {},
-        affects_stats: hasBonus,
-      })
+      .update({ decoration_effects: mergeDecorationEffect(material.decoration_effects, targetKind, effect) })
       .eq('id', materialItemId);
     if (writebackError) {
       console.error('❌ 寫回素材效果失敗:', writebackError);
       return { success: false, error: writebackError.message };
     }
 
-    await syncMaterialInventoryByName(target.character_id, materialName, trimmedNote, hasBonus ? statBonuses : undefined, materialItemId);
+    await syncMaterialInventoryByName(target.character_id, materialName, targetKind, effect, materialItemId);
 
     const sockets: (DecorationSocket | null)[] = Array.isArray(target.sockets) ? [...target.sockets] : [];
     while (sockets.length <= slotIndex) sockets.push(null);
@@ -702,13 +815,10 @@ export async function updateSocketedDecoration(
     if (!targetItemId) {
       return { success: false, error: '裝備 ID 無效' };
     }
-    if (!note?.trim()) {
-      return { success: false, error: '效果說明為必填' };
-    }
 
     const { data: target, error: targetError } = await supabase
       .from('character_items')
-      .select('character_id, sockets')
+      .select('character_id, sockets, equipment_kind_override, item:global_items(equipment_kind)')
       .eq('id', targetItemId)
       .single();
     if (targetError || !target) {
@@ -721,8 +831,9 @@ export async function updateSocketedDecoration(
       return { success: false, error: '此插槽尚未鑲嵌' };
     }
 
-    const trimmedNote = note.trim();
-    const hasBonus = !!statBonuses && Object.keys(statBonuses).length > 0;
+    const effect = toDecorationEffect(note, statBonuses);
+    const trimmedNote = (note ?? '').trim();
+    const hasBonus = !!effect?.stat_bonuses;
     sockets[slotIndex] = {
       ...existing,
       note: trimmedNote,
@@ -738,7 +849,9 @@ export async function updateSocketedDecoration(
       return { success: false, error: error.message };
     }
 
-    await syncMaterialInventoryByName(target.character_id, existing.decoration_name, trimmedNote, hasBonus ? statBonuses : undefined);
+    const targetItemRaw = Array.isArray((target as any).item) ? (target as any).item[0] : (target as any).item;
+    const targetKind = resolveDecorationKind((target as any).equipment_kind_override, targetItemRaw?.equipment_kind);
+    await syncMaterialInventoryByName(target.character_id, existing.decoration_name, targetKind, effect);
 
     return { success: true };
   } catch (error) {

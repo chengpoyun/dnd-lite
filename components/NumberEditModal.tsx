@@ -12,6 +12,8 @@ import { MODAL_CONTAINER_CLASS, MODAL_BODY_TEXT_CLASS, MODAL_DESCRIPTION_CLASS, 
 export interface BonusSource {
   label: string;
   value: number;
+  /** 有值時顯示這段文字取代 +N 格式化的數字（例如骰子加成 "1d8"） */
+  displayText?: string;
 }
 
 interface NumberEditModalProps {
@@ -32,6 +34,8 @@ interface NumberEditModalProps {
   description?: string;
   /** 最終總計（basic + 加值）；有傳則顯示此值，否則由 placeholder + bonusValue 計算 */
   finalValue?: number;
+  /** 接在最終總計數字後面的字尾（例如骰子加成合併後的 "+2d4"） */
+  finalValueSuffix?: string;
   /** 重置按鈕還原的基礎值（如 AC=10、先攻=0、速度=30） */
   resetValue?: number;
   /** 是否允許小數與負數（供經驗值/金幣等場景使用，內部改走 handleDecimalInput） */
@@ -70,6 +74,7 @@ export default function NumberEditModal({
   bonusSources,
   description,
   finalValue,
+  finalValueSuffix,
   resetValue,
   decimal = false,
   inputLabel = '基礎值',
@@ -118,7 +123,7 @@ export default function NumberEditModal({
           <BonusSourcesList title="加值來源" sources={bonusSources} className="mb-3" />
         )}
         {(finalValue !== undefined || bonusValue !== undefined) && (
-          <FinalTotalRow label="最終總計" value={displayTotal} className="mb-3" />
+          <FinalTotalRow label="最終總計" value={displayTotal} suffix={finalValueSuffix} className="mb-3" />
         )}
         {showValuePreview && (
           <div className="text-center mb-3">

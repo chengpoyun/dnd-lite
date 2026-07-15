@@ -80,4 +80,21 @@ describe('CombatStatEditModal', () => {
     fireEvent.click(screen.getByText('重置'));
     expect(input).toHaveValue('8');
   });
+
+  it('bonusSources 帶 displayText 時顯示該文字（骰子加成），finalValueSuffix 接在最終總計後面', () => {
+    render(
+      <CombatStatEditModal
+        {...defaultProps}
+        basicValue={5}
+        finalValue={8}
+        finalValueSuffix="+2d4"
+        bonusSources={[
+          { label: '力量修正值', value: 3 },
+          { label: '雷狼結晶', value: 0, displayText: '1d8' },
+        ]}
+      />
+    );
+    expect(screen.getByText('1d8')).toBeInTheDocument();
+    expect(screen.getByText('+8+2d4')).toBeInTheDocument();
+  });
 });

@@ -81,6 +81,24 @@ describe('getDisplayValues - 鑲嵌插槽相關欄位', () => {
     expect(result.displayWeaponDecoration).toBe(false);
     expect(result.displayArmorDecoration).toBe(false);
   });
+
+  it('displayDecorationEffects：override 優先於 global_items，兩者皆無時退回空物件', () => {
+    const withOverride = getDisplayValues({
+      ...base,
+      item_id: 'g1',
+      decoration_effects: { weapon: { note: '燒灼', stat_bonuses: { combatStats: { attackDamage: 1 } } } },
+      item: {
+        id: 'g1', name: 'X', description: '', category: 'MH素材', is_magic: false, created_at: '', updated_at: '',
+        decoration_effects: { armor: { note: '應被覆蓋', stat_bonuses: {} } },
+      },
+    } as CharacterItem);
+    expect(withOverride.displayDecorationEffects).toEqual({
+      weapon: { note: '燒灼', stat_bonuses: { combatStats: { attackDamage: 1 } } },
+    });
+
+    const withNeither = getDisplayValues({ ...base, item_id: null } as CharacterItem);
+    expect(withNeither.displayDecorationEffects).toEqual({});
+  });
 });
 
 describe('socketDecoration', () => {
@@ -99,10 +117,20 @@ describe('socketDecoration', () => {
     expect(mockedSupabase.from).not.toHaveBeenCalled();
   });
 
-  it('效果說明為空白字元時失敗，不呼叫 DB', async () => {
+  it('效果說明留空也允許鑲嵌（純敘述或完全無效果的素材）', async () => {
+    const materialRow = { id: 'm1', character_id: 'c1', quantity: 1, name_override: '素材A', decoration_effects: {}, item: null };
+    const targetRow = { id: 't1', character_id: 'c1', sockets: [], equipment_kind_override: 'melee_weapon', item: null };
+
+    mockedSupabase.from
+      .mockReturnValueOnce(chainStub({ data: materialRow, error: null }))
+      .mockReturnValueOnce(chainStub({ data: targetRow, error: null }))
+      .mockReturnValueOnce(chainStub({ data: null, error: null }))
+      .mockReturnValueOnce(chainStub({ data: [], error: null }))
+      .mockReturnValueOnce(chainStub({ data: null, error: null }))
+      .mockReturnValueOnce(chainStub({ data: null, error: null }));
+
     const result = await socketDecoration('t1', 0, 'm1', '   ');
-    expect(result).toEqual({ success: false, error: '效果說明為必填' });
-    expect(mockedSupabase.from).not.toHaveBeenCalled();
+    expect(result).toEqual({ success: true });
   });
 
   it('找不到素材時回傳錯誤訊息', async () => {
@@ -123,9 +151,13 @@ describe('socketDecoration', () => {
     expect(result).toEqual({ success: false, error: '裝備不存在' });
   });
 
-  it('成功鑲嵌（無數值加成）：寫回素材 stat_bonuses 為 {}／affects_stats 為 false，插槽快照正確，素材數量遞減', async () => {
-    const materialRow = { id: 'm1', character_id: 'c1', quantity: 2, name_override: '素材A', item: null };
-    const targetRow = { id: 't1', character_id: 'c1', sockets: [] };
+  it('鑲入武器時，只寫回素材的 decoration_effects.weapon，不動 armor 那份', async () => {
+    const materialRow = {
+      id: 'm1', character_id: 'c1', quantity: 2, name_override: '素材A',
+      decoration_effects: { armor: { note: '護甲舊效果', stat_bonuses: { combatStats: { ac: 1 } } } },
+      item: null,
+    };
+    const targetRow = { id: 't1', character_id: 'c1', sockets: [], equipment_kind_override: 'melee_weapon', item: null };
     const writebackStub = chainStub({ data: null, error: null });
     const socketUpdateStub = chainStub({ data: null, error: null });
     const qtyUpdateStub = chainStub({ data: null, error: null });
@@ -138,26 +170,33 @@ describe('socketDecoration', () => {
       .mockReturnValueOnce(socketUpdateStub)
       .mockReturnValueOnce(qtyUpdateStub);
 
-    const result = await socketDecoration('t1', 1, 'm1', ' 效果說明 ');
+    const bonus = { combatStats: { attackDamage: 2 } };
+    const result = await socketDecoration('t1', 1, 'm1', ' 燒灼效果 ', bonus as any);
 
     expect(result).toEqual({ success: true });
     expect(writebackStub.update).toHaveBeenCalledWith({
-      description_override: '效果說明',
-      stat_bonuses: {},
-      affects_stats: false,
+      decoration_effects: {
+        armor: { note: '護甲舊效果', stat_bonuses: { combatStats: { ac: 1 } } },
+        weapon: { note: '燒灼效果', stat_bonuses: bonus },
+      },
     });
     expect(socketUpdateStub.update).toHaveBeenCalledWith({
-      sockets: [null, { decoration_name: '素材A', note: '效果說明', stat_bonuses: undefined }],
+      sockets: [null, { decoration_name: '素材A', note: '燒灼效果', stat_bonuses: bonus }],
     });
     expect(qtyUpdateStub.update).toHaveBeenCalledWith({ quantity: 1 });
   });
 
-  it('有數值加成時，寫回值與插槽快照都帶有該數值加成，affects_stats 為 true', async () => {
-    const materialRow = { id: 'm1', character_id: 'c1', quantity: 3, name_override: '素材B', item: null };
-    const targetRow = { id: 't1', character_id: 'c1', sockets: [null, null] };
+  it('鑲入護甲時（依 global_items 的 equipment_kind 判斷），只寫回 decoration_effects.armor，不動 weapon 那份', async () => {
+    const materialRow = {
+      id: 'm1', character_id: 'c1', quantity: 1, name_override: '素材B',
+      decoration_effects: { weapon: { note: '武器舊效果', stat_bonuses: { combatStats: { attackDamage: 3 } } } },
+      item: null,
+    };
+    // equipment_kind_override 未設定，改由 join 的 global_items.equipment_kind 判斷（'body' 非武器 → 視為護甲）
+    const targetRow = { id: 't1', character_id: 'c1', sockets: [null], equipment_kind_override: null, item: { equipment_kind: 'body' } };
     const writebackStub = chainStub({ data: null, error: null });
     const socketUpdateStub = chainStub({ data: null, error: null });
-    const bonus = { abilityScores: { str: 2 } };
+    const deleteStub = chainStub({ data: null, error: null });
 
     mockedSupabase.from
       .mockReturnValueOnce(chainStub({ data: materialRow, error: null }))
@@ -165,24 +204,27 @@ describe('socketDecoration', () => {
       .mockReturnValueOnce(writebackStub)
       .mockReturnValueOnce(chainStub({ data: [], error: null }))
       .mockReturnValueOnce(socketUpdateStub)
-      .mockReturnValueOnce(chainStub({ data: null, error: null }));
+      .mockReturnValueOnce(deleteStub);
 
-    const result = await socketDecoration('t1', 0, 'm1', '效果', bonus as any);
+    const bonus = { combatStats: { ac: 1 } };
+    const result = await socketDecoration('t1', 0, 'm1', '防禦效果', bonus as any);
 
     expect(result).toEqual({ success: true });
     expect(writebackStub.update).toHaveBeenCalledWith({
-      description_override: '效果',
-      stat_bonuses: bonus,
-      affects_stats: true,
+      decoration_effects: {
+        weapon: { note: '武器舊效果', stat_bonuses: { combatStats: { attackDamage: 3 } } },
+        armor: { note: '防禦效果', stat_bonuses: bonus },
+      },
     });
     expect(socketUpdateStub.update).toHaveBeenCalledWith({
-      sockets: [{ decoration_name: '素材B', note: '效果', stat_bonuses: bonus }, null],
+      sockets: [{ decoration_name: '素材B', note: '防禦效果', stat_bonuses: bonus }],
     });
+    expect(deleteStub.delete).toHaveBeenCalled();
   });
 
   it('素材消耗至 0 時改為刪除該筆，而非寫入 quantity', async () => {
-    const materialRow = { id: 'm1', character_id: 'c1', quantity: 1, name_override: '素材A', item: null };
-    const targetRow = { id: 't1', character_id: 'c1', sockets: [] };
+    const materialRow = { id: 'm1', character_id: 'c1', quantity: 1, name_override: '素材A', decoration_effects: {}, item: null };
+    const targetRow = { id: 't1', character_id: 'c1', sockets: [], equipment_kind_override: 'melee_weapon', item: null };
     const deleteStub = chainStub({ data: null, error: null });
 
     mockedSupabase.from
@@ -199,13 +241,17 @@ describe('socketDecoration', () => {
     expect(deleteStub.delete).toHaveBeenCalled();
   });
 
-  it('鑲嵌成功後，同步更新角色物品欄中其他同名 MH素材的效果，並排除正在消耗的那一筆', async () => {
-    const materialRow = { id: 'm1', character_id: 'c1', quantity: 5, name_override: '素材C', item: null };
-    const targetRow = { id: 't1', character_id: 'c1', sockets: [] };
+  it('鑲嵌成功後，同步更新同名 MH素材庫存的對應 kind 效果，並保留每筆原本另一個 kind 的效果不被覆蓋', async () => {
+    const materialRow = { id: 'm1', character_id: 'c1', quantity: 5, name_override: '素材C', decoration_effects: {}, item: null };
+    const targetRow = { id: 't1', character_id: 'c1', sockets: [], equipment_kind_override: 'melee_weapon', item: null };
     const siblingRows = [
-      { id: 'm1', name_override: '素材C', category_override: 'MH素材', item: null }, // 自己：應排除
-      { id: 'm2', name_override: '素材C', category_override: 'MH素材', item: null }, // 同名：應同步
-      { id: 'm3', name_override: '素材D', category_override: 'MH素材', item: null }, // 名稱不同：不應同步
+      { id: 'm1', name_override: '素材C', category_override: 'MH素材', decoration_effects: {}, item: null }, // 自己：應排除
+      {
+        id: 'm2', name_override: '素材C', category_override: 'MH素材',
+        decoration_effects: { armor: { note: '護甲既有效果', stat_bonuses: {} } }, // 同名：應同步 weapon，armor 應保留
+        item: null,
+      },
+      { id: 'm3', name_override: '素材D', category_override: 'MH素材', decoration_effects: {}, item: null }, // 名稱不同：不應同步
     ];
     const syncUpdateStub = chainStub({ data: null, error: null });
 
@@ -220,11 +266,13 @@ describe('socketDecoration', () => {
 
     await socketDecoration('t1', 0, 'm1', '同步測試');
 
-    expect(syncUpdateStub.in).toHaveBeenCalledWith('id', ['m2']);
+    expect(syncUpdateStub.eqCol).toBe('id');
+    expect(syncUpdateStub.eqVal).toBe('m2');
     expect(syncUpdateStub.update).toHaveBeenCalledWith({
-      description_override: '同步測試',
-      stat_bonuses: {},
-      affects_stats: false,
+      decoration_effects: {
+        armor: { note: '護甲既有效果', stat_bonuses: {} },
+        weapon: { note: '同步測試', stat_bonuses: undefined },
+      },
     });
   });
 });
@@ -238,11 +286,6 @@ describe('updateSocketedDecoration', () => {
     expect(mockedSupabase.from).not.toHaveBeenCalled();
   });
 
-  it('效果說明空白時失敗，不呼叫 DB', async () => {
-    expect(await updateSocketedDecoration('t1', 0, '   ')).toEqual({ success: false, error: '效果說明為必填' });
-    expect(mockedSupabase.from).not.toHaveBeenCalled();
-  });
-
   it('找不到裝備時回傳錯誤訊息', async () => {
     mockedSupabase.from.mockReturnValueOnce(chainStub({ data: null, error: { message: '找不到' } }));
     const result = await updateSocketedDecoration('t1', 0, '說明');
@@ -250,15 +293,35 @@ describe('updateSocketedDecoration', () => {
   });
 
   it('該插槽尚未鑲嵌時回傳錯誤，不寫入 DB', async () => {
-    mockedSupabase.from.mockReturnValueOnce(chainStub({ data: { character_id: 'c1', sockets: [null] }, error: null }));
+    mockedSupabase.from.mockReturnValueOnce(
+      chainStub({ data: { character_id: 'c1', sockets: [null], equipment_kind_override: 'melee_weapon', item: null }, error: null })
+    );
     const result = await updateSocketedDecoration('t1', 0, '說明');
     expect(result).toEqual({ success: false, error: '此插槽尚未鑲嵌' });
   });
 
-  it('成功編輯：更新該插槽的 note/stat_bonuses（保留 decoration_name），並同步同名素材庫存', async () => {
+  it('效果說明留空也允許儲存（改成純敘述或完全無效果）', async () => {
     const targetRow = {
       character_id: 'c1',
       sockets: [{ decoration_name: '素材E', note: '舊說明', stat_bonuses: { abilityScores: { str: 1 } } }],
+      equipment_kind_override: 'melee_weapon',
+      item: null,
+    };
+    mockedSupabase.from
+      .mockReturnValueOnce(chainStub({ data: targetRow, error: null }))
+      .mockReturnValueOnce(chainStub({ data: null, error: null }))
+      .mockReturnValueOnce(chainStub({ data: [], error: null }));
+
+    const result = await updateSocketedDecoration('t1', 0, '   ', undefined);
+    expect(result).toEqual({ success: true });
+  });
+
+  it('成功編輯：更新該插槽的 note/stat_bonuses（保留 decoration_name），並依裝備類型同步同名素材對應 kind 的效果', async () => {
+    const targetRow = {
+      character_id: 'c1',
+      sockets: [{ decoration_name: '素材E', note: '舊說明', stat_bonuses: { abilityScores: { str: 1 } } }],
+      equipment_kind_override: null,
+      item: { equipment_kind: 'body' },
     };
     const socketUpdateStub = chainStub({ data: null, error: null });
     const syncUpdateStub = chainStub({ data: null, error: null });
@@ -266,7 +329,10 @@ describe('updateSocketedDecoration', () => {
     mockedSupabase.from
       .mockReturnValueOnce(chainStub({ data: targetRow, error: null }))
       .mockReturnValueOnce(socketUpdateStub)
-      .mockReturnValueOnce(chainStub({ data: [{ id: 'm9', name_override: '素材E', category_override: 'MH素材', item: null }], error: null }))
+      .mockReturnValueOnce(chainStub({
+        data: [{ id: 'm9', name_override: '素材E', category_override: 'MH素材', decoration_effects: {}, item: null }],
+        error: null,
+      }))
       .mockReturnValueOnce(syncUpdateStub);
 
     const result = await updateSocketedDecoration('t1', 0, ' 新說明 ', undefined);
@@ -275,7 +341,9 @@ describe('updateSocketedDecoration', () => {
     expect(socketUpdateStub.update).toHaveBeenCalledWith({
       sockets: [{ decoration_name: '素材E', note: '新說明', stat_bonuses: undefined }],
     });
-    expect(syncUpdateStub.in).toHaveBeenCalledWith('id', ['m9']);
+    expect(syncUpdateStub.update).toHaveBeenCalledWith({
+      decoration_effects: { armor: { note: '新說明', stat_bonuses: undefined } },
+    });
   });
 });
 
@@ -313,5 +381,114 @@ describe('removeSocketedDecoration', () => {
     expect(updateStub.update).toHaveBeenCalledWith({
       sockets: [null, { decoration_name: 'B', note: '' }],
     });
+  });
+});
+
+describe('getDisplayValues - 效果摘要顯示在描述頂端', () => {
+  const base = { id: 'ci1', character_id: 'c1', quantity: 1, is_magic: false, created_at: '', updated_at: '' };
+
+  it('MH素材：武器插槽有文字說明，護甲插槽只有數值加成，摘要各自顯示在描述最前面', () => {
+    const result = getDisplayValues({
+      ...base,
+      item_id: null,
+      description_override: '原本的描述',
+      category_override: 'MH素材',
+      weapon_decoration: true,
+      armor_decoration: true,
+      decoration_effects: {
+        weapon: { note: '雷電附加傷害 +1d6' },
+        armor: { note: '', stat_bonuses: { combatStats: { ac: 1 } } },
+      },
+    } as CharacterItem);
+
+    expect(result.displayDescription).toBe(
+      '武器插槽效果：雷電附加傷害 +1d6\n護甲插槽效果：（含數值加成，無文字說明）\n\n原本的描述'
+    );
+  });
+
+  it('MH素材：只勾選武器插槽且未設定任何效果時，不顯示任何摘要行，描述維持原樣', () => {
+    const result = getDisplayValues({
+      ...base,
+      item_id: null,
+      description_override: '原本的描述',
+      category_override: 'MH素材',
+      weapon_decoration: true,
+      armor_decoration: false,
+      decoration_effects: {},
+    } as CharacterItem);
+
+    expect(result.displayDescription).toBe('原本的描述');
+  });
+
+  it('MH素材：未勾選武器/護甲插槽時，即使 decoration_effects 有殘留資料也不顯示摘要', () => {
+    const result = getDisplayValues({
+      ...base,
+      item_id: null,
+      description_override: '原本的描述',
+      category_override: 'MH素材',
+      weapon_decoration: false,
+      armor_decoration: false,
+      decoration_effects: { weapon: { note: '不該出現' } },
+    } as CharacterItem);
+
+    expect(result.displayDescription).toBe('原本的描述');
+  });
+
+  it('裝備：已鑲嵌兩個材料，一個有文字說明、一個只有數值加成，摘要列出兩者', () => {
+    const result = getDisplayValues({
+      ...base,
+      item_id: null,
+      description_override: '大劍的描述',
+      category_override: '裝備',
+      sockets: [
+        { decoration_name: '金獅子的毛', note: '攻擊傷害增加1d8' },
+        { decoration_name: '雷狼結晶', note: '', stat_bonuses: { combatStats: { attackDamage: 2 } } },
+      ],
+    } as CharacterItem);
+
+    expect(result.displayDescription).toBe(
+      '已鑲嵌效果：\n- 金獅子的毛：攻擊傷害增加1d8\n- 雷狼結晶：（含數值加成，無文字說明）\n\n大劍的描述'
+    );
+  });
+
+  it('裝備：插槽皆為空（null）時，不顯示已鑲嵌效果區塊', () => {
+    const result = getDisplayValues({
+      ...base,
+      item_id: null,
+      description_override: '大劍的描述',
+      category_override: '裝備',
+      sockets: [null, null],
+    } as CharacterItem);
+
+    expect(result.displayDescription).toBe('大劍的描述');
+  });
+
+  it('裝備：已鑲嵌材料完全沒有效果（無文字也無數值加成）時，該筆從摘要省略', () => {
+    const result = getDisplayValues({
+      ...base,
+      item_id: null,
+      description_override: '大劍的描述',
+      category_override: '裝備',
+      sockets: [
+        { decoration_name: '純裝飾材料', note: '' },
+        { decoration_name: '金獅子的毛', note: '攻擊傷害增加1d8' },
+      ],
+    } as CharacterItem);
+
+    expect(result.displayDescription).toBe(
+      '已鑲嵌效果：\n- 金獅子的毛：攻擊傷害增加1d8\n\n大劍的描述'
+    );
+  });
+
+  it('原本沒有描述文字時，摘要單獨顯示、不會多出空行或殘留分隔符', () => {
+    const result = getDisplayValues({
+      ...base,
+      item_id: null,
+      description_override: '',
+      category_override: '裝備',
+      sockets: [{ decoration_name: '金獅子的毛', note: '攻擊傷害增加1d8' }],
+    } as CharacterItem);
+
+    expect(result.displayDescription).toBe('已鑲嵌效果：\n- 金獅子的毛：攻擊傷害增加1d8');
   });
 });

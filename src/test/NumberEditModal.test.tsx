@@ -116,6 +116,19 @@ describe('NumberEditModal', () => {
     expect(screen.getByText('+1')).toBeInTheDocument();
   });
 
+  it('bonusSources 帶 displayText 時顯示該文字（骰子加成），finalValueSuffix 接在最終總計後面', () => {
+    render(
+      <NumberEditModal
+        {...defaultProps}
+        finalValue={8}
+        finalValueSuffix="+1d4"
+        bonusSources={[{ label: '護盾之戒', value: 0, displayText: '1d4' }]}
+      />
+    );
+    expect(screen.getByText('1d4')).toBeInTheDocument();
+    expect(screen.getByText('+8+1d4')).toBeInTheDocument();
+  });
+
   it('allowZero 時 0 為有效輸入', () => {
     const onApply = vi.fn();
     render(

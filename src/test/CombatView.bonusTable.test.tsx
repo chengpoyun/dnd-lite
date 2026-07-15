@@ -74,7 +74,7 @@ describe('CombatView - 加值表功能測試', () => {
       expect(screen.queryByText('正在載入戰鬥資料...')).not.toBeInTheDocument();
     });
 
-    expect(screen.getByText(/屬性豁免與技能加值/)).toBeInTheDocument();
+    expect(screen.getByText(/屬性豁免、/)).toBeInTheDocument();
   });
 
   it('預設應為收合狀態，點擊標題後展開', async () => {
@@ -106,7 +106,7 @@ describe('CombatView - 加值表功能測試', () => {
     });
 
     // 預設收合：力量豁免應不在畫面上（或不可見）
-    const titleButton = screen.getByText(/屬性豁免與技能加值/);
+    const titleButton = screen.getByText(/屬性豁免、/);
     expect(titleButton).toBeInTheDocument();
 
     fireEvent.click(titleButton);
@@ -144,7 +144,7 @@ describe('CombatView - 加值表功能測試', () => {
       expect(screen.queryByText('正在載入戰鬥資料...')).not.toBeInTheDocument();
     });
 
-    fireEvent.click(screen.getByText(/屬性豁免與技能加值/));
+    fireEvent.click(screen.getByText(/屬性豁免、/));
 
     await waitFor(() => {
       expect(screen.getByText('力量豁免')).toBeInTheDocument();
@@ -186,7 +186,7 @@ describe('CombatView - 加值表功能測試', () => {
       expect(screen.queryByText('正在載入戰鬥資料...')).not.toBeInTheDocument();
     });
 
-    fireEvent.click(screen.getByText(/屬性豁免與技能加值/));
+    fireEvent.click(screen.getByText(/屬性豁免、/));
 
     await waitFor(() => {
       skillNames.forEach(name => {
@@ -256,7 +256,7 @@ describe('CombatView - 加值表功能測試', () => {
       expect(screen.queryByText('正在載入戰鬥資料...')).not.toBeInTheDocument();
     });
 
-    fireEvent.click(screen.getByText(/屬性豁免與技能加值/));
+    fireEvent.click(screen.getByText(/屬性豁免、/));
 
     await waitFor(() => {
       expect(screen.getByText('力量豁免')).toBeInTheDocument();
@@ -294,7 +294,7 @@ describe('CombatView - 加值表功能測試', () => {
       expect(screen.queryByText('正在載入戰鬥資料...')).not.toBeInTheDocument();
     });
 
-    const titleButton = screen.getByText(/屬性豁免與技能加值/);
+    const titleButton = screen.getByText(/屬性豁免、/);
     fireEvent.click(titleButton);
 
     await waitFor(() => {
@@ -306,5 +306,117 @@ describe('CombatView - 加值表功能測試', () => {
     await waitFor(() => {
       expect(screen.queryByText('力量豁免')).not.toBeInTheDocument();
     });
+  });
+
+  it('標題改為「屬性豁免、技能加值、其他效果」', async () => {
+    const statsWithBonus: CharacterStats = {
+      name: 'Test',
+      class: '戰士',
+      level: 5,
+      exp: 0,
+      hp: { current: 30, max: 30, temp: 0 },
+      hitDice: { current: 5, total: 5, die: 'd10' },
+      ac: 16,
+      initiative: 3,
+      speed: 30,
+      abilityScores: { str: 16, dex: 14, con: 14, int: 10, wis: 12, cha: 8 },
+      proficiencies: {},
+      savingProficiencies: [],
+      downtime: 0,
+      renown: { used: 0, total: 0 },
+      prestige: { org: '', level: 0, rankName: '' },
+      attacks: [],
+      currency: { cp: 0, sp: 0, ep: 0, gp: 0, pp: 0 },
+      customRecords: []
+    };
+
+    render(<CombatView {...defaultProps} stats={statsWithBonus} />);
+
+    await waitFor(() => {
+      expect(screen.queryByText('正在載入戰鬥資料...')).not.toBeInTheDocument();
+    });
+
+    expect(screen.getByText('屬性豁免、技能加值、其他效果')).toBeInTheDocument();
+  });
+
+  it('展開後，技能加值格線下方顯示「其他效果」區塊，逐條列出各來源的其他文字', async () => {
+    const statsWithOther: CharacterStats = {
+      name: 'Test',
+      class: '戰士',
+      level: 5,
+      exp: 0,
+      hp: { current: 30, max: 30, temp: 0 },
+      hitDice: { current: 5, total: 5, die: 'd10' },
+      ac: 16,
+      initiative: 3,
+      speed: 30,
+      abilityScores: { str: 16, dex: 14, con: 14, int: 10, wis: 12, cha: 8 },
+      proficiencies: {},
+      savingProficiencies: [],
+      downtime: 0,
+      renown: { used: 0, total: 0 },
+      prestige: { org: '', level: 0, rankName: '' },
+      attacks: [],
+      currency: { cp: 0, sp: 0, ep: 0, gp: 0, pp: 0 },
+      customRecords: [],
+      extraData: {
+        statBonusSources: [
+          { id: 'a', type: 'item', name: '燃燒箭矢', other: '命中後燃燒，持續3輪' },
+          { id: 'b', type: 'ability', name: '狂戰士之怒', other: '無法施法' },
+        ],
+      } as any,
+    };
+
+    render(<CombatView {...defaultProps} stats={statsWithOther} />);
+
+    await waitFor(() => {
+      expect(screen.queryByText('正在載入戰鬥資料...')).not.toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByText(/屬性豁免、/));
+
+    await waitFor(() => {
+      expect(screen.getByText('其他效果')).toBeInTheDocument();
+      expect(screen.getByText(/燃燒箭矢/)).toBeInTheDocument();
+      expect(screen.getByText(/命中後燃燒，持續3輪/)).toBeInTheDocument();
+      expect(screen.getByText(/狂戰士之怒/)).toBeInTheDocument();
+      expect(screen.getByText(/無法施法/)).toBeInTheDocument();
+    });
+  });
+
+  it('沒有任何「其他」文字時，不顯示「其他效果」區塊', async () => {
+    const statsNoOther: CharacterStats = {
+      name: 'Test',
+      class: '戰士',
+      level: 5,
+      exp: 0,
+      hp: { current: 30, max: 30, temp: 0 },
+      hitDice: { current: 5, total: 5, die: 'd10' },
+      ac: 16,
+      initiative: 3,
+      speed: 30,
+      abilityScores: { str: 16, dex: 14, con: 14, int: 10, wis: 12, cha: 8 },
+      proficiencies: {},
+      savingProficiencies: [],
+      downtime: 0,
+      renown: { used: 0, total: 0 },
+      prestige: { org: '', level: 0, rankName: '' },
+      attacks: [],
+      currency: { cp: 0, sp: 0, ep: 0, gp: 0, pp: 0 },
+      customRecords: []
+    };
+
+    render(<CombatView {...defaultProps} stats={statsNoOther} />);
+
+    await waitFor(() => {
+      expect(screen.queryByText('正在載入戰鬥資料...')).not.toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByText(/屬性豁免、/));
+
+    await waitFor(() => {
+      expect(screen.getByText('力量豁免')).toBeInTheDocument();
+    });
+    expect(screen.queryByText('其他效果')).not.toBeInTheDocument();
   });
 });

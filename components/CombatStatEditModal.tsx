@@ -13,6 +13,8 @@ import { MODAL_CONTAINER_CLASS, MODAL_BODY_TEXT_CLASS, MODAL_DESCRIPTION_CLASS, 
 export interface BonusSourceItem {
   label: string;
   value: number;
+  /** 有值時顯示這段文字取代 +N 格式化的數字（例如骰子加成 "1d8"） */
+  displayText?: string;
 }
 
 interface CombatStatEditModalProps<T extends string = string> {
@@ -35,6 +37,8 @@ interface CombatStatEditModalProps<T extends string = string> {
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl';
   /** 最終總計（basic + 加值）；有傳則顯示此值，否則由 basicValue + bonusValue 計算 */
   finalValue?: number;
+  /** 接在最終總計數字後面的字尾（例如骰子加成合併後的 "+2d4"） */
+  finalValueSuffix?: string;
   /** 重置按鈕還原的基礎值（如攻擊命中/傷害/法術命中=0、法術DC=8） */
   resetBasicValue?: number;
 }
@@ -56,6 +60,7 @@ export default function CombatStatEditModal<T extends string = string>({
   applyButtonClassName = 'bg-amber-600 hover:bg-amber-500',
   size = 'xs',
   finalValue,
+  finalValueSuffix,
   resetBasicValue,
 }: CombatStatEditModalProps<T>) {
   const [value, setValue] = useState(basicValue.toString());
@@ -120,7 +125,7 @@ export default function CombatStatEditModal<T extends string = string>({
           <BonusSourcesList title="加值來源" sources={bonusSources} className="mb-3" />
         )}
         {(finalValue !== undefined || bonusValue !== undefined) && (
-          <FinalTotalRow label="最終總計" value={displayTotal} className="mb-3" />
+          <FinalTotalRow label="最終總計" value={displayTotal} suffix={finalValueSuffix} className="mb-3" />
         )}
         <div className={MODAL_FOOTER_BUTTONS_CLASS}>
           <ModalButton variant="secondary" className={MODAL_BUTTON_RESET_CLASS} onClick={handleReset}>

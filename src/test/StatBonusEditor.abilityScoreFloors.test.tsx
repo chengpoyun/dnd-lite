@@ -71,9 +71,13 @@ describe('StatBonusEditor - 屬性值列支援 =N 絕對值語法', () => {
   });
 
   it('調整值欄位不支援 =N 語法，仍是純數字輸入（沒有 placeholder 提示文字）', () => {
-    render(<StatBonusEditor value={{}} onChange={vi.fn()} />);
+    const { container } = render(<StatBonusEditor value={{}} onChange={vi.fn()} />);
     expect(screen.getByText('力量調整值')).toBeInTheDocument();
-    // 六個屬性值列與其餘數字列都不應有 placeholder（本次改動移除了原本的 "+2/=19" 提示）
-    expect(screen.queryAllByPlaceholderText(/.+/)).toHaveLength(0);
+    // 六個屬性值列與其餘數字列（input）都不應有 placeholder（本次改動移除了原本的 "+2/=19" 提示）；
+    // 「其他」自由文字欄位是獨立的 textarea，不受此限制
+    const inputsWithPlaceholder = Array.from(container.querySelectorAll('input')).filter(
+      (el) => el.getAttribute('placeholder')
+    );
+    expect(inputsWithPlaceholder).toHaveLength(0);
   });
 });

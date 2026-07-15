@@ -12,6 +12,8 @@ import { BonusSourcesList } from './ui/BonusSourcesList';
 export interface HpBonusSourceItem {
   label: string;
   value: number;
+  /** 有值時顯示這段文字取代 +N 格式化的數字（例如骰子加成 "1d8"） */
+  displayText?: string;
 }
 
 interface CombatHPModalProps {
@@ -24,6 +26,8 @@ interface CombatHPModalProps {
   maxHpBonus: number;
   /** 加值來源明細（有則顯示「加值來源」列表，與 AC/攻擊命中一致） */
   bonusSources?: HpBonusSourceItem[];
+  /** 接在總計數字後面的字尾（例如骰子加成合併後的 "+2d4"） */
+  finalValueSuffix?: string;
   defaultMaxHpBasic: number;
   onSave: (current: number, temp: number, maxBasic?: number) => void;
 }
@@ -36,6 +40,7 @@ export default function CombatHPModal({
   maxHpBasic,
   maxHpBonus,
   bonusSources,
+  finalValueSuffix,
   defaultMaxHpBasic,
   onSave,
 }: CombatHPModalProps) {
@@ -130,12 +135,12 @@ export default function CombatHPModal({
         {bonusSources && bonusSources.length > 0 ? (
           <div className="mb-3">
             <BonusSourcesList title="加值來源" sources={bonusSources} />
-            <FinalTotalRow label="總計" value={effectiveMax} className="mt-1.5" />
+            <FinalTotalRow label="總計" value={effectiveMax} suffix={finalValueSuffix} className="mt-1.5" />
           </div>
         ) : (
           <div className={`${MODAL_BODY_TEXT_CLASS} space-y-0.5 mb-2`}>
             <div>其他加值 {maxHpBonus >= 0 ? '+' : ''}{maxHpBonus}</div>
-            <FinalTotalRow label="總計" value={effectiveMax} />
+            <FinalTotalRow label="總計" value={effectiveMax} suffix={finalValueSuffix} />
           </div>
         )}
 

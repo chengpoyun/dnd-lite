@@ -10,6 +10,10 @@ import {
   getDefaultMaxHpBasic,
   getBonusValue,
   getStatBonusSourcesBreakdown,
+  isDiceNotation,
+  getCombatStatDiceSuffix,
+  getCombatStatDiceBreakdown,
+  getOtherEffectNotes,
 } from '../../utils/characterAttributes';
 import type { CharacterStats } from '../../types';
 import { SKILLS_MAP, ABILITY_KEYS } from '../../utils/characterConstants';
@@ -107,6 +111,21 @@ describe('characterAttributes - getFinalCombatStat', () => {
     });
     expect(getFinalCombatStat(statsNew, 'attackHit')).toBe(4 + 3 + 3 + 1); // basic + str mod + prof + bonus
     expect(getFinalCombatStat(statsNew, 'attackDamage')).toBe(2 + 3 + 1); // basic + str mod + bonus
+  });
+
+  it('骰子記法字串的 statBonusSources 加成不應被計入數字總計（不會字串相加造成 NaN 或串接）', () => {
+    const stats = createMockStats({
+      attackDamage: { basic: 2, bonus: 0 } as any,
+      extraData: {
+        statBonusSources: [
+          { id: 'a', type: 'item', name: '雷狼結晶', combatStats: { attackDamage: '1d8' } },
+          { id: 'b', type: 'item', name: '力量護符', combatStats: { attackDamage: 3 } },
+        ],
+      } as any,
+    });
+    // attackDamage = basic(2) + str mod(3) + 數字來源加總(3，忽略骰子字串) + bonus(0) = 8
+    expect(getFinalCombatStat(stats, 'attackDamage')).toBe(8);
+    expect(Number.isFinite(getFinalCombatStat(stats, 'attackDamage'))).toBe(true);
   });
 
   it('attackHit 可依 extraData.attackHitAbility 使用敏捷', () => {
@@ -428,5 +447,146 @@ describe('characterAttributes - getStatBonusSourcesBreakdown', () => {
   it('沒有 statBonusSources 時回傳空陣列', () => {
     const stats = createMockStats();
     expect(getStatBonusSourcesBreakdown(stats, 'ac')).toEqual([]);
+  });
+
+  it('骰子記法字串來源不應被當成數字加值列出（避免字串與數字相加造成錯誤總計）', () => {
+    const stats = createMockStats({
+      extraData: {
+        statBonusSources: [
+          { id: 'a', type: 'item', name: '雷狼結晶', combatStats: { attackDamage: '1d8' } },
+          { id: 'b', type: 'item', name: '力量護符', combatStats: { attackDamage: 2 } },
+        ],
+      } as any,
+    });
+    expect(getStatBonusSourcesBreakdown(stats, 'attackDamage')).toEqual([{ label: '力量護符', value: 2 }]);
+  });
+});
+
+describe('characterAttributes - isDiceNotation', () => {
+  it('接受單一骰子項（可選正負號），格式如 1d8、2d4、-1d4', () => {
+    expect(isDiceNotation('1d8')).toBe(true);
+    expect(isDiceNotation('2d4')).toBe(true);
+    expect(isDiceNotation('-1d4')).toBe(true);
+    expect(isDiceNotation('+2d6')).toBe(true);
+  });
+
+  it('拒絕純數字、混合運算式與其他非骰子格式', () => {
+    expect(isDiceNotation('3')).toBe(false);
+    expect(isDiceNotation('2+1d6')).toBe(false);
+    expect(isDiceNotation('1d8+1d6')).toBe(false);
+    expect(isDiceNotation('d8')).toBe(false);
+    expect(isDiceNotation('')).toBe(false);
+    expect(isDiceNotation('abc')).toBe(false);
+  });
+});
+
+describe('characterAttributes - getCombatStatDiceSuffix', () => {
+  it('單一來源的骰子加成，格式化為 +NdX 字尾', () => {
+    const stats = createMockStats({
+      extraData: {
+        statBonusSources: [
+          { id: 'a', type: 'item', name: '雷狼結晶', combatStats: { attackDamage: '1d8' } },
+        ],
+      } as any,
+    });
+    expect(getCombatStatDiceSuffix(stats, 'attackDamage')).toBe('+1d8');
+  });
+
+  it('多個來源相同點數的骰子合併計數（1d8+1d8+1d6 → +2d8+1d6，依點數由大到小排序）', () => {
+    const stats = createMockStats({
+      extraData: {
+        statBonusSources: [
+          { id: 'a', type: 'item', name: '來源A', combatStats: { attackDamage: '1d8' } },
+          { id: 'b', type: 'item', name: '來源B', combatStats: { attackDamage: '1d6' } },
+          { id: 'c', type: 'item', name: '來源C', combatStats: { attackDamage: '1d8' } },
+        ],
+      } as any,
+    });
+    expect(getCombatStatDiceSuffix(stats, 'attackDamage')).toBe('+2d8+1d6');
+  });
+
+  it('負數骰子項獨立於同點數的正數項，不會互相合併或抵銷', () => {
+    const stats = createMockStats({
+      extraData: {
+        statBonusSources: [
+          { id: 'a', type: 'item', name: '來源A', combatStats: { attackDamage: '1d6' } },
+          { id: 'b', type: 'item', name: '來源B', combatStats: { attackDamage: '-1d6' } },
+        ],
+      } as any,
+    });
+    expect(getCombatStatDiceSuffix(stats, 'attackDamage')).toBe('+1d6-1d6');
+  });
+
+  it('沒有任何骰子來源時回傳空字串', () => {
+    const stats = createMockStats({
+      extraData: {
+        statBonusSources: [
+          { id: 'a', type: 'item', name: '力量護符', combatStats: { attackDamage: 2 } },
+        ],
+      } as any,
+    });
+    expect(getCombatStatDiceSuffix(stats, 'attackDamage')).toBe('');
+    expect(getCombatStatDiceSuffix(createMockStats(), 'attackDamage')).toBe('');
+  });
+
+  it('適用於所有戰鬥屬性，不僅限 attackDamage（如 ac）', () => {
+    const stats = createMockStats({
+      extraData: {
+        statBonusSources: [
+          { id: 'a', type: 'item', name: '護盾', combatStats: { ac: '1d4' } },
+        ],
+      } as any,
+    });
+    expect(getCombatStatDiceSuffix(stats, 'ac')).toBe('+1d4');
+  });
+});
+
+describe('characterAttributes - getCombatStatDiceBreakdown', () => {
+  it('列出每個骰子來源各自一行（不合併），保留原始骰子文字', () => {
+    const stats = createMockStats({
+      extraData: {
+        statBonusSources: [
+          { id: 'a', type: 'item', name: '來源A', combatStats: { attackDamage: '1d8' } },
+          { id: 'b', type: 'item', name: '來源B', combatStats: { attackDamage: '1d8' } },
+          { id: 'c', type: 'item', name: '力量護符', combatStats: { attackDamage: 2 } },
+        ],
+      } as any,
+    });
+    expect(getCombatStatDiceBreakdown(stats, 'attackDamage')).toEqual([
+      { label: '來源A', dice: '1d8' },
+      { label: '來源B', dice: '1d8' },
+    ]);
+  });
+
+  it('沒有骰子來源時回傳空陣列', () => {
+    expect(getCombatStatDiceBreakdown(createMockStats(), 'attackDamage')).toEqual([]);
+  });
+});
+
+describe('characterAttributes - getOtherEffectNotes', () => {
+  it('列出每個有「其他」文字的來源，label 取來源 name', () => {
+    const stats = createMockStats({
+      extraData: {
+        statBonusSources: [
+          { id: 'a', type: 'item', name: '燃燒箭矢', other: '命中後燃燒，持續3輪' },
+          { id: 'b', type: 'ability', name: '狂戰士之怒', other: '無法施法' },
+          { id: 'c', type: 'item', name: '普通物品', combatStats: { ac: 1 } },
+        ],
+      } as any,
+    });
+    expect(getOtherEffectNotes(stats)).toEqual([
+      { label: '燃燒箭矢', text: '命中後燃燒，持續3輪' },
+      { label: '狂戰士之怒', text: '無法施法' },
+    ]);
+  });
+
+  it('沒有 statBonusSources 或都沒有 other 文字時回傳空陣列', () => {
+    expect(getOtherEffectNotes(createMockStats())).toEqual([]);
+    const stats = createMockStats({
+      extraData: {
+        statBonusSources: [{ id: 'a', type: 'item', name: 'X', combatStats: { ac: 1 } }],
+      } as any,
+    });
+    expect(getOtherEffectNotes(stats)).toEqual([]);
   });
 });

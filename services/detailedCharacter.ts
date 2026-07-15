@@ -18,6 +18,7 @@ import {
   type SpecialEffectContext,
 } from '../utils/specialEffects'
 import { computeSaveAndSkillAdvantageDisadvantage } from '../utils/advantageDisadvantage'
+import { isDiceNotation } from '../utils/characterAttributes'
 
 /** 能力／物品 stat_bonuses 聚合結果（供 buildCharacterStats / 前端顯示用） */
 export interface AggregatedStatBonuses {
@@ -26,15 +27,19 @@ export interface AggregatedStatBonuses {
   abilityModifiers: Record<string, number>;
   savingThrows: Record<string, number>;
   skills: Record<string, number>;
+  /**
+   * 純數字為一般加值總計；bySource 各筆的 combatStats 可為骰子記法字串（如 "1d8"），
+   * 但 totals 這邊的加總永遠只會是數字（骰子字串不計入數字加總，見 mergeCombatStats）
+   */
   combatStats: {
-    ac?: number;
-    initiative?: number;
-    maxHp?: number;
-    speed?: number;
-    attackHit?: number;
-    attackDamage?: number;
-    spellHit?: number;
-    spellDc?: number;
+    ac?: number | string;
+    initiative?: number | string;
+    maxHp?: number | string;
+    speed?: number | string;
+    attackHit?: number | string;
+    attackDamage?: number | string;
+    spellHit?: number | string;
+    spellDc?: number | string;
   };
   bySource: {
     id: string;
@@ -49,6 +54,8 @@ export interface AggregatedStatBonuses {
     skillAdvantage?: string[];
     skillDisadvantage?: string[];
     combatStats?: AggregatedStatBonuses['combatStats'];
+    /** 此來源的「其他效果」自由文字說明 */
+    other?: string;
   }[];
   /** 依 bySource 結算後的豁免優劣勢 */
   saveAdvantageDisadvantage?: Record<string, 'advantage' | 'normal' | 'disadvantage'>;
@@ -1476,7 +1483,29 @@ export class DetailedCharacterService {
         const v = (src as any)[key]
         const num = typeof v === 'number' && Number.isFinite(v) ? v : 0
         if (!num) continue
-        target[key] = (target[key] ?? 0) + num
+        const existing = target[key]
+        target[key] = (typeof existing === 'number' ? existing : 0) + num
+      }
+    }
+
+    // 骰子記法字串（如 "1d8"）原樣複製到 target，不計入數字加總；供攻擊傷害等額外骰子加成使用
+    const copyDiceCombatStats = (target: AggregatedStatBonuses['combatStats'], src: any) => {
+      if (!src || typeof src !== 'object') return
+      const keys: (keyof AggregatedStatBonuses['combatStats'])[] = [
+        'ac',
+        'initiative',
+        'maxHp',
+        'speed',
+        'attackHit',
+        'attackDamage',
+        'spellHit',
+        'spellDc'
+      ]
+      for (const key of keys) {
+        const v = (src as any)[key]
+        if (typeof v === 'string' && isDiceNotation(v)) {
+          target[key] = v
+        }
       }
     }
 
@@ -1541,6 +1570,7 @@ export class DetailedCharacterService {
           const savingThrowDisadvantage = hasBonuses && Array.isArray(bonuses.savingThrowDisadvantage) ? bonuses.savingThrowDisadvantage : undefined
           const skillAdvantage = hasBonuses && Array.isArray(bonuses.skillAdvantage) ? bonuses.skillAdvantage : undefined
           const skillDisadvantage = hasBonuses && Array.isArray(bonuses.skillDisadvantage) ? bonuses.skillDisadvantage : undefined
+          const otherNote = hasBonuses && typeof bonuses.other === 'string' ? bonuses.other.trim() : ''
 
           const perSource: {
             id: string
@@ -1555,6 +1585,7 @@ export class DetailedCharacterService {
             skillAdvantage?: string[]
             skillDisadvantage?: string[]
             combatStats?: AggregatedStatBonuses['combatStats']
+            other?: string
           } = {
             id: row.id,
             type: 'ability',
@@ -1600,11 +1631,14 @@ export class DetailedCharacterService {
           if (combatStats && typeof combatStats === 'object') {
             const cs: AggregatedStatBonuses['combatStats'] = {}
             mergeCombatStats(cs, combatStats)
+            copyDiceCombatStats(cs, combatStats)
             if (Object.keys(cs).length) {
               perSource.combatStats = cs
               mergeCombatStats(totals.combatStats, cs)
             }
           }
+
+          if (otherNote) perSource.other = otherNote
 
           // 屬性值「設為 X」效果（如食人魔力量手套），直接來自一般 stat_bonuses.abilityScoreFloors
           // （UI 於 StatBonusEditor 輸入 =19 語法），延後到所有加值彙總後再套用（見下方 pendingFloors 迴圈）
@@ -1638,7 +1672,8 @@ export class DetailedCharacterService {
           if (skillDisadvantage?.length) perSource.skillDisadvantage = skillDisadvantage
 
           if (perSource.abilityScores || perSource.abilityModifiers || perSource.savingThrows || perSource.skills || perSource.combatStats ||
-              perSource.savingThrowAdvantage || perSource.savingThrowDisadvantage || perSource.skillAdvantage || perSource.skillDisadvantage) {
+              perSource.savingThrowAdvantage || perSource.savingThrowDisadvantage || perSource.skillAdvantage || perSource.skillDisadvantage ||
+              perSource.other) {
             totals.bySource.push(perSource)
           }
         }
@@ -1659,6 +1694,7 @@ export class DetailedCharacterService {
         const savingThrowDisadvantage = Array.isArray(bonuses.savingThrowDisadvantage) ? bonuses.savingThrowDisadvantage : undefined
         const skillAdvantage = Array.isArray(bonuses.skillAdvantage) ? bonuses.skillAdvantage : undefined
         const skillDisadvantage = Array.isArray(bonuses.skillDisadvantage) ? bonuses.skillDisadvantage : undefined
+        const otherNote = typeof bonuses.other === 'string' ? bonuses.other.trim() : ''
 
         const perSource: {
           id: string
@@ -1673,6 +1709,7 @@ export class DetailedCharacterService {
           skillAdvantage?: string[]
           skillDisadvantage?: string[]
           combatStats?: AggregatedStatBonuses['combatStats']
+          other?: string
         } = {
           id,
           type: 'item',
@@ -1718,11 +1755,14 @@ export class DetailedCharacterService {
         if (combatStats && typeof combatStats === 'object') {
           const cs: AggregatedStatBonuses['combatStats'] = {}
           mergeCombatStats(cs, combatStats)
+          copyDiceCombatStats(cs, combatStats)
           if (Object.keys(cs).length) {
             perSource.combatStats = cs
             mergeCombatStats(totals.combatStats, cs)
           }
         }
+
+        if (otherNote) perSource.other = otherNote
 
         // 屬性值「設為 X」效果（如食人魔力量手套），直接來自一般 stat_bonuses.abilityScoreFloors
         // （UI 於 StatBonusEditor 輸入 =19 語法），延後到所有加值彙總後再套用（見下方 pendingFloors 迴圈）
@@ -1759,7 +1799,8 @@ export class DetailedCharacterService {
         if (skillDisadvantage?.length) perSource.skillDisadvantage = skillDisadvantage
 
         if (perSource.abilityScores || perSource.abilityModifiers || perSource.savingThrows || perSource.skills || perSource.combatStats ||
-            perSource.savingThrowAdvantage || perSource.savingThrowDisadvantage || perSource.skillAdvantage || perSource.skillDisadvantage) {
+            perSource.savingThrowAdvantage || perSource.savingThrowDisadvantage || perSource.skillAdvantage || perSource.skillDisadvantage ||
+            perSource.other) {
           totals.bySource.push(perSource)
         }
       }

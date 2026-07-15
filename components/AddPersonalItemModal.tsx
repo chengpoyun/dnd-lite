@@ -8,7 +8,7 @@ import { Modal } from './ui/Modal';
 import { ModalSaveButton } from './ui/ModalSaveButton';
 import { LoadingOverlay } from './ui/LoadingOverlay';
 import { AutoResizeTextarea } from './ui/AutoResizeTextarea';
-import type { ItemCategory, CreateCharacterItemData } from '../services/itemService';
+import type { ItemCategory, CreateCharacterItemData, DecorationEffects } from '../services/itemService';
 import { EQUIPMENT_KINDS, EQUIPMENT_KIND_LABELS } from '../utils/equipmentConstants';
 import { MODAL_CONTAINER_CLASS, SELECT_CLASS } from '../styles/modalStyles';
 import { StatBonusEditor, type StatBonusEditorValue } from './StatBonusEditor';
@@ -40,6 +40,12 @@ export const AddPersonalItemModal: React.FC<AddPersonalItemModalProps> = ({
   const [decorationSlots, setDecorationSlots] = useState(0);
   const [weaponDecoration, setWeaponDecoration] = useState(false);
   const [armorDecoration, setArmorDecoration] = useState(false);
+  const [weaponEffectNote, setWeaponEffectNote] = useState('');
+  const [weaponEffectHasBonus, setWeaponEffectHasBonus] = useState(false);
+  const [weaponEffectBonus, setWeaponEffectBonus] = useState<StatBonusEditorValue>({});
+  const [armorEffectNote, setArmorEffectNote] = useState('');
+  const [armorEffectHasBonus, setArmorEffectHasBonus] = useState(false);
+  const [armorEffectBonus, setArmorEffectBonus] = useState<StatBonusEditorValue>({});
   const [affectsStats, setAffectsStats] = useState(false);
   const [statBonuses, setStatBonuses] = useState<StatBonusEditorValue>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -58,8 +64,21 @@ export const AddPersonalItemModal: React.FC<AddPersonalItemModalProps> = ({
       setDecorationSlots(0);
       setWeaponDecoration(false);
       setArmorDecoration(false);
+      setWeaponEffectNote('');
+      setWeaponEffectHasBonus(false);
+      setWeaponEffectBonus({});
+      setArmorEffectNote('');
+      setArmorEffectHasBonus(false);
+      setArmorEffectBonus({});
     }
   }, [isOpen, initialName, initialCategory]);
+
+  const buildDecorationEffect = (note: string, hasBonus: boolean, bonus: StatBonusEditorValue) => {
+    const trimmedNote = note.trim();
+    const hasBonusValue = hasBonus && Object.keys(bonus).length > 0;
+    if (!trimmedNote && !hasBonusValue) return undefined;
+    return { note: trimmedNote, stat_bonuses: hasBonusValue ? bonus : undefined };
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -82,8 +101,17 @@ export const AddPersonalItemModal: React.FC<AddPersonalItemModalProps> = ({
       if (category === 'MH素材') {
         data.weapon_decoration = weaponDecoration;
         data.armor_decoration = armorDecoration;
-      }
-      if (affectsStats) {
+        const decorationEffects: DecorationEffects = {};
+        if (weaponDecoration) {
+          const effect = buildDecorationEffect(weaponEffectNote, weaponEffectHasBonus, weaponEffectBonus);
+          if (effect) decorationEffects.weapon = effect;
+        }
+        if (armorDecoration) {
+          const effect = buildDecorationEffect(armorEffectNote, armorEffectHasBonus, armorEffectBonus);
+          if (effect) decorationEffects.armor = effect;
+        }
+        data.decoration_effects = decorationEffects;
+      } else if (affectsStats) {
         data.affects_stats = true;
         data.stat_bonuses = statBonuses;
       }
@@ -96,6 +124,12 @@ export const AddPersonalItemModal: React.FC<AddPersonalItemModalProps> = ({
       setDecorationSlots(0);
       setWeaponDecoration(false);
       setArmorDecoration(false);
+      setWeaponEffectNote('');
+      setWeaponEffectHasBonus(false);
+      setWeaponEffectBonus({});
+      setArmorEffectNote('');
+      setArmorEffectHasBonus(false);
+      setArmorEffectBonus({});
       setAffectsStats(false);
       setStatBonuses({});
       onClose();
@@ -111,40 +145,38 @@ export const AddPersonalItemModal: React.FC<AddPersonalItemModalProps> = ({
       <div className={`${MODAL_CONTAINER_CLASS} relative`}>
         <LoadingOverlay visible={isSubmitting} />
         <form onSubmit={handleSubmit} className="space-y-3">
-          <div>
-            <label className="block text-[14px] text-slate-400 mb-2">名稱 *</label>
+          <div className="flex items-center gap-3">
+            <label className="text-[14px] text-slate-400 flex-shrink-0">名稱 *</label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full bg-slate-800 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500"
+              className="flex-1 min-w-0 bg-slate-800 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500"
               placeholder="輸入物品名稱"
               required
               maxLength={100}
             />
           </div>
-          <div className="flex items-end gap-3">
-            <div className="flex-1 min-w-0">
-              <label className="block text-[14px] text-slate-400 mb-2">類別 *</label>
-              <select
-                value={category}
-                onChange={(e) => {
-                  const c = e.target.value as ItemCategory;
-                  setCategory(c);
-                  if (c !== '裝備') {
-                    setEquipmentKind('');
-                  } else if (!equipmentKind) {
-                    setEquipmentKind(EQUIPMENT_KINDS[0]);
-                  }
-                }}
-                className="w-full bg-slate-800 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500"
-              >
-                {CATEGORIES.map((c) => (
-                  <option key={c} value={c}>{c}</option>
-                ))}
-              </select>
-            </div>
-            <label className="flex items-center gap-2 text-[14px] text-slate-300 flex-shrink-0 pb-3">
+          <div className="flex items-center gap-3">
+            <label className="text-[14px] text-slate-400 flex-shrink-0">類別 *</label>
+            <select
+              value={category}
+              onChange={(e) => {
+                const c = e.target.value as ItemCategory;
+                setCategory(c);
+                if (c !== '裝備') {
+                  setEquipmentKind('');
+                } else if (!equipmentKind) {
+                  setEquipmentKind(EQUIPMENT_KINDS[0]);
+                }
+              }}
+              className="flex-1 min-w-0 bg-slate-800 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500"
+            >
+              {CATEGORIES.map((c) => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
+            <label className="flex items-center gap-2 text-[14px] text-slate-300 flex-shrink-0">
               <input
                 type="checkbox"
                 checked={isMagic}
@@ -194,7 +226,7 @@ export const AddPersonalItemModal: React.FC<AddPersonalItemModalProps> = ({
             </div>
           )}
           {category === 'MH素材' && (
-            <div className="flex items-center gap-4">
+            <div className="space-y-3">
               <label className="flex items-center gap-2 text-[14px] text-slate-300">
                 <input
                   type="checkbox"
@@ -204,6 +236,30 @@ export const AddPersonalItemModal: React.FC<AddPersonalItemModalProps> = ({
                 />
                 可鑲入武器插槽
               </label>
+              {weaponDecoration && (
+                <div className="border border-slate-800 rounded-lg p-3 bg-slate-900/60 space-y-2">
+                  <label className="block text-[14px] text-slate-300">武器插槽效果</label>
+                  <AutoResizeTextarea
+                    value={weaponEffectNote}
+                    onChange={(e) => setWeaponEffectNote(e.target.value)}
+                    className="w-full bg-slate-800 rounded-lg border border-slate-700 p-2 text-sm text-slate-200 focus:outline-none focus:border-amber-500"
+                    placeholder="描述鑲入武器插槽後的效果，留空表示沒有效果"
+                    minRows={2}
+                  />
+                  <label className="flex items-center gap-2 text-[13px] text-slate-400">
+                    <input
+                      type="checkbox"
+                      checked={weaponEffectHasBonus}
+                      onChange={(e) => setWeaponEffectHasBonus(e.target.checked)}
+                      className="h-4 w-4 rounded border-slate-600 bg-slate-800 text-amber-500 focus:ring-amber-500"
+                    />
+                    此效果會影響角色數值
+                  </label>
+                  {weaponEffectHasBonus && (
+                    <StatBonusEditor value={weaponEffectBonus} onChange={setWeaponEffectBonus} />
+                  )}
+                </div>
+              )}
               <label className="flex items-center gap-2 text-[14px] text-slate-300">
                 <input
                   type="checkbox"
@@ -213,6 +269,30 @@ export const AddPersonalItemModal: React.FC<AddPersonalItemModalProps> = ({
                 />
                 可鑲入護甲插槽
               </label>
+              {armorDecoration && (
+                <div className="border border-slate-800 rounded-lg p-3 bg-slate-900/60 space-y-2">
+                  <label className="block text-[14px] text-slate-300">護甲插槽效果</label>
+                  <AutoResizeTextarea
+                    value={armorEffectNote}
+                    onChange={(e) => setArmorEffectNote(e.target.value)}
+                    className="w-full bg-slate-800 rounded-lg border border-slate-700 p-2 text-sm text-slate-200 focus:outline-none focus:border-amber-500"
+                    placeholder="描述鑲入護甲插槽後的效果，留空表示沒有效果"
+                    minRows={2}
+                  />
+                  <label className="flex items-center gap-2 text-[13px] text-slate-400">
+                    <input
+                      type="checkbox"
+                      checked={armorEffectHasBonus}
+                      onChange={(e) => setArmorEffectHasBonus(e.target.checked)}
+                      className="h-4 w-4 rounded border-slate-600 bg-slate-800 text-amber-500 focus:ring-amber-500"
+                    />
+                    此效果會影響角色數值
+                  </label>
+                  {armorEffectHasBonus && (
+                    <StatBonusEditor value={armorEffectBonus} onChange={setArmorEffectBonus} />
+                  )}
+                </div>
+              )}
             </div>
           )}
           <div>
@@ -225,35 +305,37 @@ export const AddPersonalItemModal: React.FC<AddPersonalItemModalProps> = ({
               minRows={3}
             />
           </div>
-          {/* 影響角色數值設定（放在 modal 尾端） */}
-          <div className="border border-slate-800 rounded-lg p-3 bg-slate-900/60 space-y-2">
-            <label className="flex items-center gap-2 text-[14px] text-slate-200">
-              <input
-                type="checkbox"
-                checked={affectsStats}
-                onChange={(e) => {
-                  const checked = e.target.checked;
-                  setAffectsStats(checked);
-                  if (!checked) {
-                    setStatBonuses({});
-                  }
-                }}
-                className="h-4 w-4 rounded border-slate-600 bg-slate-800 text-amber-500 focus:ring-amber-500"
-              />
-              這個物品會影響角色數值（能力調整值、豁免、技能、戰鬥數值）
-            </label>
-            {affectsStats && (
-              <div className="mt-2 space-y-2">
-                <p className="text-xs text-slate-500">
-                  設定後，角色持有此物品時，這些加值會自動套用並在角色卡與戰鬥檢視的加值列表中顯示來源。
-                </p>
-                <StatBonusEditor
-                  value={statBonuses}
-                  onChange={(next) => setStatBonuses(next)}
+          {/* 影響角色數值設定（放在 modal 尾端；MH素材改由武器/護甲插槽效果各自設定，不顯示此區塊） */}
+          {category !== 'MH素材' && (
+            <div className="border border-slate-800 rounded-lg p-3 bg-slate-900/60 space-y-2">
+              <label className="flex items-center gap-2 text-[14px] text-slate-200">
+                <input
+                  type="checkbox"
+                  checked={affectsStats}
+                  onChange={(e) => {
+                    const checked = e.target.checked;
+                    setAffectsStats(checked);
+                    if (!checked) {
+                      setStatBonuses({});
+                    }
+                  }}
+                  className="h-4 w-4 rounded border-slate-600 bg-slate-800 text-amber-500 focus:ring-amber-500"
                 />
-              </div>
-            )}
-          </div>
+                這個物品會影響角色數值（能力調整值、豁免、技能、戰鬥數值）
+              </label>
+              {affectsStats && (
+                <div className="mt-2 space-y-2">
+                  <p className="text-xs text-slate-500">
+                    設定後，角色持有此物品時，這些加值會自動套用並在角色卡與戰鬥檢視的加值列表中顯示來源。
+                  </p>
+                  <StatBonusEditor
+                    value={statBonuses}
+                    onChange={(next) => setStatBonuses(next)}
+                  />
+                </div>
+              )}
+            </div>
+          )}
           <div className="flex gap-3 pt-2">
             <button
               type="button"
