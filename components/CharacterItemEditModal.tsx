@@ -37,6 +37,7 @@ export const CharacterItemEditModal: React.FC<CharacterItemEditModalProps> = ({
     is_magic: false,
     affects_stats: false,
     stat_bonuses: {},
+    applies_unequipped: false,
     equipment_slot: null,
     is_equipped: false,
     decoration_slots: 0,
@@ -75,6 +76,7 @@ export const CharacterItemEditModal: React.FC<CharacterItemEditModalProps> = ({
         is_magic: display.is_magic,
         affects_stats: hasOverrideStats ? (ci.affects_stats ?? false) : (itemRaw?.affects_stats ?? false),
         stat_bonuses: hasOverrideStats ? (overrideBonuses ?? {}) : ((itemRaw?.stat_bonuses ?? {}) || {}),
+        applies_unequipped: ci.applies_unequipped ?? itemRaw?.applies_unequipped ?? false,
         equipment_kind_override: characterItem.equipment_kind_override ?? characterItem.item?.equipment_kind ?? null,
         equipment_slot: characterItem.equipment_slot ?? null,
         is_equipped: characterItem.is_equipped ?? false,
@@ -140,6 +142,9 @@ export const CharacterItemEditModal: React.FC<CharacterItemEditModalProps> = ({
         }
         if (formData.stat_bonuses !== undefined) {
           updates.stat_bonuses = formData.stat_bonuses;
+        }
+        if (effectiveCategory === '裝備') {
+          updates.applies_unequipped = !!formData.applies_unequipped;
         }
       }
       if (formData.equipment_kind_override !== undefined) {
@@ -358,17 +363,31 @@ export const CharacterItemEditModal: React.FC<CharacterItemEditModalProps> = ({
                       ...prev,
                       affects_stats: e.target.checked,
                       stat_bonuses: e.target.checked ? prev.stat_bonuses ?? {} : {},
+                      applies_unequipped: e.target.checked ? prev.applies_unequipped : false,
                     }))
                   }
                   className="h-4 w-4 rounded border-slate-600 bg-slate-800 text-amber-500 focus:ring-amber-500"
                 />
-                這個物品會影響角色數值（能力調整值、豁免、技能、戰鬥數值）
+                {(formData.category_override ?? characterItem.item?.category) === '裝備'
+                  ? '此物品會影響角色數值（需裝備）'
+                  : '此物品會直接影響角色數值，無須裝備'}
               </label>
               {formData.affects_stats && (
                 <div className="mt-2 space-y-2">
                   <p className="text-xs text-slate-500">
                     設定後，角色持有此物品時，這些加值會自動套用並在角色卡與戰鬥檢視的加值列表中顯示來源。
                   </p>
+                  {(formData.category_override ?? characterItem.item?.category) === '裝備' && (
+                    <label className="flex items-center gap-2 text-[13px] text-slate-400">
+                      <input
+                        type="checkbox"
+                        checked={!!formData.applies_unequipped}
+                        onChange={(e) => setFormData((prev) => ({ ...prev, applies_unequipped: e.target.checked }))}
+                        className="h-4 w-4 rounded border-slate-600 bg-slate-800 text-amber-500 focus:ring-amber-500"
+                      />
+                      此物品無須裝備也有效果
+                    </label>
+                  )}
                   <StatBonusEditor
                     value={(formData.stat_bonuses ?? {}) as StatBonusEditorValue}
                     onChange={(next) =>

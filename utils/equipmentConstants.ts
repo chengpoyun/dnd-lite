@@ -16,6 +16,7 @@ export type EquipmentKind =
   | 'waist'
   | 'feet'
   | 'ring'
+  | 'accessory'
   | 'melee_weapon'
   | 'ranged_weapon'
   | 'shield';
@@ -32,6 +33,7 @@ export type EquipmentSlot =
   | 'hands'
   | 'ring_1'
   | 'ring_2'
+  | 'accessory'
   | 'waist'
   | 'feet'
   | 'melee_weapon1'
@@ -53,6 +55,7 @@ export const EQUIPMENT_KIND_TO_SLOTS: Record<EquipmentKind, EquipmentSlot[]> = {
   waist: ['waist'],
   feet: ['feet'],
   ring: ['ring_1', 'ring_2'],
+  accessory: ['accessory'],
   melee_weapon: ['melee_weapon1', 'melee_weapon2'],
   ranged_weapon: ['ranged_weapon1', 'ranged_weapon2'],
   shield: ['shield'],
@@ -62,7 +65,7 @@ export const EQUIPMENT_KIND_TO_SLOTS: Record<EquipmentKind, EquipmentSlot[]> = {
 export const EQUIPMENT_SLOTS_ORDERED: { section: string; slots: EquipmentSlot[] }[] = [
   { section: '頭部與頸部', slots: ['face', 'head', 'neck', 'shoulders'] },
   { section: '身體', slots: ['body', 'torso', 'arms', 'hands', 'waist', 'feet'] },
-  { section: '戒指', slots: ['ring_1', 'ring_2'] },
+  { section: '裝飾', slots: ['ring_1', 'ring_2', 'accessory'] },
   { section: '近戰與盾', slots: ['melee_weapon1', 'melee_weapon2', 'shield'] },
   { section: '遠程武器', slots: ['ranged_weapon1', 'ranged_weapon2'] },
 ];
@@ -80,6 +83,7 @@ export const EQUIPMENT_KIND_LABELS: Record<EquipmentKind, string> = {
   waist: '腰帶',
   feet: '腳部',
   ring: '戒指',
+  accessory: '飾品',
   melee_weapon: '近戰武器',
   ranged_weapon: '遠程武器',
   shield: '盾牌',
@@ -88,7 +92,7 @@ export const EQUIPMENT_KIND_LABELS: Record<EquipmentKind, string> = {
 /** 所有裝備類型（依顯示順序） */
 export const EQUIPMENT_KINDS: EquipmentKind[] = [
   'face', 'head', 'neck', 'shoulders', 'body', 'torso', 'arms', 'hands',
-  'waist', 'feet', 'ring', 'melee_weapon', 'ranged_weapon', 'shield',
+  'waist', 'feet', 'ring', 'accessory', 'melee_weapon', 'ranged_weapon', 'shield',
 ];
 
 /** 槽位顯示名稱 */
@@ -103,6 +107,7 @@ export const EQUIPMENT_SLOT_LABELS: Record<EquipmentSlot, string> = {
   hands: '手部',
   ring_1: '戒指 1',
   ring_2: '戒指 2',
+  accessory: '飾品',
   waist: '腰帶',
   feet: '腳部',
   melee_weapon1: '近戰武器 1',

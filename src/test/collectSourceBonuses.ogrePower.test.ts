@@ -22,6 +22,7 @@ const gauntletRow = (isEquipped: boolean) => ({
   item: {
     id: 'gi-gauntlet',
     name: '食人魔力量手套',
+    category: '裝備',
     affects_stats: true,
     stat_bonuses: { abilityScoreFloors: { str: 19 } },
   },
@@ -39,6 +40,7 @@ const strBeltRow = (bonus: number) => ({
   item: {
     id: 'gi-belt',
     name: '力量腰帶',
+    category: '裝備',
     affects_stats: true,
     stat_bonuses: { abilityScores: { str: bonus } },
   },

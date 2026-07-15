@@ -23,6 +23,7 @@ const itemRow = (id: string, name: string, statBonuses: any, overrides: Record<s
   item: {
     id: `gi-${id}`,
     name,
+    category: '裝備',
     affects_stats: true,
     stat_bonuses: statBonuses,
   },
