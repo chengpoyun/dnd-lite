@@ -143,7 +143,7 @@ export const CharacterItemEditModal: React.FC<CharacterItemEditModalProps> = ({
         if (formData.stat_bonuses !== undefined) {
           updates.stat_bonuses = formData.stat_bonuses;
         }
-        if (effectiveCategory === '裝備' && formData.affects_stats) {
+        if (effectiveCategory === '裝備') {
           updates.applies_unequipped = !!formData.applies_unequipped;
         }
       }

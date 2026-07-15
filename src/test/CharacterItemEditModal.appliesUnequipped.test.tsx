@@ -98,4 +98,17 @@ describe('CharacterItemEditModal - applies_unequipped 文案與子選項', () =>
     const checkbox = screen.getByText('此物品無須裝備也有效果').closest('label')?.querySelector('input');
     expect(checkbox).toBeChecked();
   });
+
+  it('已勾選 applies_unequipped=true 的物品，取消勾選「此物品會影響角色數值」並儲存，updates.applies_unequipped 明確送出 false（避免 DB 殘留舊的 true）', async () => {
+    const itemWithFlag: CharacterItem = { ...equipmentItem, affects_stats: true, applies_unequipped: true } as any;
+    render(
+      <CharacterItemEditModal isOpen onClose={onClose} characterItem={itemWithFlag} onSubmit={onSubmit} />
+    );
+    fireEvent.click(screen.getByText('此物品會影響角色數值（需裝備）'));
+    fireEvent.click(screen.getByText('儲存修改'));
+
+    await vi.waitFor(() => expect(onSubmit).toHaveBeenCalled());
+    const updates = onSubmit.mock.calls[0][1];
+    expect(updates.applies_unequipped).toBe(false);
+  });
 });
