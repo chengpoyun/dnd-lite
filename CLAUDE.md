@@ -18,6 +18,7 @@ D&D 冒險者助手 — Vite + React 19 + TypeScript 的手機優先角色管理
 ## 陷阱與注意事項
 
 - **瀏覽器驗證一律用 `claude-in-chrome`（使用者的真實 Chrome），不要用內建的 `Claude_Browser`/`Claude_Preview` 工具**：後者曾經真的重現不出 touch/滑動手勢造成的 re-render bug，而且容易在長對話中因為沿用前一輪已開啟的分頁而忘記切換。開始瀏覽器驗證前，先用 `ToolSearch` 載入 `claude-in-chrome` 系列工具再操作。
+- **瀏覽器驗證一律先 resize 成 Pixel 7 尺寸（412×915）**：主要使用族群是手機用戶，這是專案核定的視覺基準機型（見下方「手機優先」）。用 `claude-in-chrome` 開新分頁後、截圖或操作前，先呼叫 `resize_window` 設成 412×915，不要用預設桌面尺寸或隨意的寬高。
 - **登入牆**：App 開啟後先要登入（Google OAuth 或「匿名試用」），才會進到角色頁。測試用的既有角色叫「**新**」（Google 帳號登入，Claude 的瀏覽器 preview 連不到，因為那是另一個 OAuth 身分）。
 - **Preview 驗證用的固定匿名測試角色**：Claude 在瀏覽器 preview 驗證功能時，每次開新分頁都要重新走「匿名試用→建立角色」很浪費 token。已建好一個固定角色「開發固定測試角色」（`characters.id = 61669877-fe13-4b33-ba8a-9bce40c881a2`，法師5預言學派 + 遊蕩者5，涵蓋法術位/偷襲傷害等多種測試情境）。要直接跳到這個角色，在 preview 開啟後執行一次：`localStorage.setItem('dnd_anonymous_user_id', 'anon_devfixture'); location.reload();`（匿名模式一個帳號只能有一個角色，重新整理後會自動載入這個角色，不需要另外設定 `current_character_id`）。
 - **DB migration 一建立就要立刻推送**：新增 migration 後必須馬上 `npm run db:push` 推到遠端，勿累積。

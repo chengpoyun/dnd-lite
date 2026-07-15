@@ -1814,15 +1814,19 @@ export class DetailedCharacterService {
           character_id,
           item_id,
           name_override,
+          category_override,
           affects_stats,
           stat_bonuses,
+          applies_unequipped,
           is_equipped,
           sockets,
           item:global_items(
             id,
             name,
+            category,
             affects_stats,
-            stat_bonuses
+            stat_bonuses,
+            applies_unequipped
           )
         `)
         .eq('character_id', characterId)
@@ -1831,8 +1835,13 @@ export class DetailedCharacterService {
         console.error('collectSourceBonusesForCharacter: 讀取角色物品失敗:', ciError)
       } else if (Array.isArray(characterItems)) {
         for (const row of characterItems as any[]) {
-          if (row.is_equipped !== true) continue
           const itemRaw = Array.isArray(row.item) ? row.item[0] : row.item
+          // 裝備類物品預設需穿戴中才生效；applies_unequipped 為 true 時例外，即使未裝備也套用。
+          // 非裝備類物品（藥水、雜項）本來就沒有裝備概念，一律不受此限制。
+          const effectiveCategory = row.category_override ?? itemRaw?.category
+          const appliesUnequipped = row.applies_unequipped ?? itemRaw?.applies_unequipped ?? false
+          const requiresEquip = effectiveCategory === '裝備' && !appliesUnequipped
+          if (requiresEquip && row.is_equipped !== true) continue
           const hasOverride =
             (typeof row.affects_stats === 'boolean' && row.affects_stats) ||
             (row.stat_bonuses && typeof row.stat_bonuses === 'object' && Object.keys(row.stat_bonuses).length > 0)

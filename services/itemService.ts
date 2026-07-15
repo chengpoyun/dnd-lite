@@ -51,6 +51,8 @@ export interface GlobalItem {
   is_magic: boolean;
   /** 是否影響角色數值 */
   affects_stats?: boolean;
+  /** 裝備類專用：此物品是否無須裝備中即可套用加值（預設 false，維持「需裝備才生效」） */
+  applies_unequipped?: boolean;
   /** 此物品提供的數值加成定義（存入 global_items.stat_bonuses） */
   stat_bonuses?: {
     abilityModifiers?: Record<string, number>;
@@ -104,6 +106,8 @@ export interface CharacterItem {
   category_override?: ItemCategory | null;
   /** 覆寫：此角色版物品是否影響角色數值 */
   affects_stats?: boolean;
+  /** 覆寫：裝備類專用，此物品是否無須裝備中即可套用加值 */
+  applies_unequipped?: boolean;
   /** 覆寫：此角色版物品的數值加成（存入 character_items.stat_bonuses） */
   stat_bonuses?: GlobalItem['stat_bonuses'];
   /** 裝備類型覆寫（優先於 global_items.equipment_kind） */
@@ -146,6 +150,8 @@ export interface CharacterItemWithDetails extends CharacterItem {
   displayArmorDecoration: boolean;
   /** 顯示用：是否已加入★列表 */
   displayIsFavorite: boolean;
+  /** 顯示用（override 優先於 global_items）：裝備類專用，是否無須裝備中即可套用加值 */
+  displayAppliesUnequipped: boolean;
   /** 顯示用：依鑲入武器／護甲分別設定的效果 */
   displayDecorationEffects: DecorationEffects;
 }
@@ -159,6 +165,8 @@ export interface UpdateCharacterItemData {
   is_magic_override?: boolean | null;
   /** 覆寫：此角色版物品是否影響角色數值 */
   affects_stats?: boolean;
+  /** 覆寫：裝備類專用，此物品是否無須裝備中即可套用加值 */
+  applies_unequipped?: boolean;
   /** 覆寫：此角色版物品的數值加成（與 StatBonusEditorValue 結構一致） */
   stat_bonuses?: any;
   equipment_kind_override?: string | null;
@@ -185,6 +193,8 @@ export interface CreateCharacterItemData {
   is_magic: boolean;
   /** 是否影響角色數值（個人物品直接帶入 character_items） */
   affects_stats?: boolean;
+  /** 裝備類專用：此物品是否無須裝備中即可套用加值 */
+  applies_unequipped?: boolean;
   /** 此個人物品的數值加成（與 StatBonusEditorValue 結構一致） */
   stat_bonuses?: any;
   /** 裝備類可選：裝備類型（由裝備頁決定實際槽位與穿戴狀態） */
@@ -393,6 +403,7 @@ export async function createCharacterItem(
       category_override: data.category,
     };
     if (data.affects_stats !== undefined) payload.affects_stats = data.affects_stats;
+    if (data.applies_unequipped !== undefined) payload.applies_unequipped = data.applies_unequipped;
     if (data.stat_bonuses !== undefined) payload.stat_bonuses = data.stat_bonuses;
     if (data.equipment_kind_override !== undefined) payload.equipment_kind_override = data.equipment_kind_override;
     if (data.decoration_slots !== undefined) payload.decoration_slots = data.decoration_slots;
@@ -596,6 +607,7 @@ export function getDisplayValues(characterItem: CharacterItem): CharacterItemWit
     : !!characterItem.is_magic;
   const displayWeaponDecoration = characterItem.weapon_decoration ?? characterItem.item?.weapon_decoration ?? false;
   const displayArmorDecoration = characterItem.armor_decoration ?? characterItem.item?.armor_decoration ?? false;
+  const displayAppliesUnequipped = characterItem.applies_unequipped ?? characterItem.item?.applies_unequipped ?? false;
   const displayDecorationEffects = characterItem.decoration_effects ?? characterItem.item?.decoration_effects ?? {};
   const rawDescription = characterItem.description_override ?? characterItem.item?.description ?? '';
 
@@ -619,6 +631,7 @@ export function getDisplayValues(characterItem: CharacterItem): CharacterItemWit
     displayArmorDecoration,
     displayIsFavorite: characterItem.is_favorite ?? false,
     displayDecorationEffects,
+    displayAppliesUnequipped,
   };
 }
 

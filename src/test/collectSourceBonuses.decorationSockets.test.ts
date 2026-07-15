@@ -22,6 +22,7 @@ const weaponRow = (overrides: Record<string, any> = {}) => ({
   item: {
     id: 'gi-sword',
     name: '大劍',
+    category: '裝備',
     affects_stats: false,
     stat_bonuses: null,
   },

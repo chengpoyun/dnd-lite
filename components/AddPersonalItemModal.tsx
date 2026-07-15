@@ -48,6 +48,7 @@ export const AddPersonalItemModal: React.FC<AddPersonalItemModalProps> = ({
   const [armorEffectBonus, setArmorEffectBonus] = useState<StatBonusEditorValue>({});
   const [affectsStats, setAffectsStats] = useState(false);
   const [statBonuses, setStatBonuses] = useState<StatBonusEditorValue>({});
+  const [appliesUnequipped, setAppliesUnequipped] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -61,6 +62,7 @@ export const AddPersonalItemModal: React.FC<AddPersonalItemModalProps> = ({
       }
       setAffectsStats(false);
       setStatBonuses({});
+      setAppliesUnequipped(false);
       setDecorationSlots(0);
       setWeaponDecoration(false);
       setArmorDecoration(false);
@@ -114,6 +116,9 @@ export const AddPersonalItemModal: React.FC<AddPersonalItemModalProps> = ({
       } else if (affectsStats) {
         data.affects_stats = true;
         data.stat_bonuses = statBonuses;
+        if (category === '裝備') {
+          data.applies_unequipped = appliesUnequipped;
+        }
       }
       await onSubmit(data);
       setName('');
@@ -132,6 +137,7 @@ export const AddPersonalItemModal: React.FC<AddPersonalItemModalProps> = ({
       setArmorEffectBonus({});
       setAffectsStats(false);
       setStatBonuses({});
+      setAppliesUnequipped(false);
       onClose();
     } catch (err) {
       console.error('新增個人物品失敗:', err);
@@ -317,17 +323,29 @@ export const AddPersonalItemModal: React.FC<AddPersonalItemModalProps> = ({
                     setAffectsStats(checked);
                     if (!checked) {
                       setStatBonuses({});
+                      setAppliesUnequipped(false);
                     }
                   }}
                   className="h-4 w-4 rounded border-slate-600 bg-slate-800 text-amber-500 focus:ring-amber-500"
                 />
-                這個物品會影響角色數值（能力調整值、豁免、技能、戰鬥數值）
+                {category === '裝備' ? '此物品會影響角色數值（需裝備）' : '此物品會直接影響角色數值，無須裝備'}
               </label>
               {affectsStats && (
                 <div className="mt-2 space-y-2">
                   <p className="text-xs text-slate-500">
                     設定後，角色持有此物品時，這些加值會自動套用並在角色卡與戰鬥檢視的加值列表中顯示來源。
                   </p>
+                  {category === '裝備' && (
+                    <label className="flex items-center gap-2 text-[13px] text-slate-400">
+                      <input
+                        type="checkbox"
+                        checked={appliesUnequipped}
+                        onChange={(e) => setAppliesUnequipped(e.target.checked)}
+                        className="h-4 w-4 rounded border-slate-600 bg-slate-800 text-amber-500 focus:ring-amber-500"
+                      />
+                      此物品無須裝備也有效果
+                    </label>
+                  )}
                   <StatBonusEditor
                     value={statBonuses}
                     onChange={(next) => setStatBonuses(next)}
