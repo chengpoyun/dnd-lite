@@ -210,6 +210,8 @@ export const CombatView: React.FC<CombatViewProps> = ({
   const [editingCategory, setEditingCategory] = useState<'action' | 'bonus' | 'reaction' | null>(null);
   
   const [isBonusTableExpanded, setIsBonusTableExpanded] = useState(false);
+  // 其他效果獨立區塊：內容重要，預設展開
+  const [isOtherEffectsExpanded, setIsOtherEffectsExpanded] = useState(true);
   const [isNoteModalOpen, setIsNoteModalOpen] = useState(false);
 
   const [isRestOptionsOpen, setIsRestOptionsOpen] = useState(false);
@@ -1057,6 +1059,37 @@ export const CombatView: React.FC<CombatViewProps> = ({
         </button>
       )}
 
+      {/* 其他效果：獨立可收合區塊（預設展開），逐條列出各來源（能力/物品/素材）的「其他」自由文字說明 */}
+      {(() => {
+        const otherNotes = getOtherEffectNotes(stats);
+        if (otherNotes.length === 0) return null;
+        return (
+          <div className="rounded-xl border border-slate-800 bg-slate-900 overflow-hidden">
+            <button
+              type="button"
+              onClick={() => setIsOtherEffectsExpanded(prev => !prev)}
+              className="w-full flex items-center justify-between px-3 py-2.5 bg-slate-800/50 hover:bg-slate-800 transition-colors text-left"
+            >
+              <span className="text-[16px] font-black text-slate-300 uppercase tracking-tighter">其他效果</span>
+              <span className={`text-slate-500 transition-transform ${isOtherEffectsExpanded ? 'rotate-180' : ''}`}>▼</span>
+            </button>
+            {isOtherEffectsExpanded && (
+              <div className="p-2 space-y-1.5 border-t border-slate-800">
+                {otherNotes.map((note, idx) => (
+                  <div
+                    key={`${note.label}-${idx}`}
+                    className="px-2 py-1.5 rounded-lg border bg-slate-800/50 border-slate-700/50 text-sm"
+                  >
+                    <span className="font-bold text-slate-300">{note.label}：</span>
+                    <span className="text-slate-400">{note.text}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      })()}
+
       {/* 可展開的加值表：屬性豁免 3x2 + 技能加值 3x6 */}
       <div className="rounded-xl border border-slate-800 bg-slate-900 overflow-hidden">
         <button
@@ -1064,7 +1097,7 @@ export const CombatView: React.FC<CombatViewProps> = ({
           onClick={() => setIsBonusTableExpanded(prev => !prev)}
           className="w-full flex items-center justify-between px-3 py-2.5 bg-slate-800/50 hover:bg-slate-800 transition-colors text-left"
         >
-          <span className="text-[16px] font-black text-slate-300 uppercase tracking-tighter">屬性豁免、技能加值、其他效果</span>
+          <span className="text-[16px] font-black text-slate-300 uppercase tracking-tighter">屬性豁免、技能加值</span>
           <span className={`text-slate-500 transition-transform ${isBonusTableExpanded ? 'rotate-180' : ''}`}>▼</span>
         </button>
         {isBonusTableExpanded && (() => {
@@ -1119,27 +1152,6 @@ export const CombatView: React.FC<CombatViewProps> = ({
                   })}
                 </div>
               </div>
-              {/* 其他效果：逐條列出各來源（能力/物品/素材）的「其他」自由文字說明 */}
-              {(() => {
-                const otherNotes = getOtherEffectNotes(stats);
-                if (otherNotes.length === 0) return null;
-                return (
-                  <div>
-                    <span className="text-xs font-black text-slate-500 uppercase tracking-wider block mb-1.5">其他效果</span>
-                    <div className="space-y-1.5">
-                      {otherNotes.map((note, idx) => (
-                        <div
-                          key={`${note.label}-${idx}`}
-                          className="px-2 py-1.5 rounded-lg border bg-slate-800/50 border-slate-700/50 text-sm"
-                        >
-                          <span className="font-bold text-slate-300">{note.label}：</span>
-                          <span className="text-slate-400">{note.text}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                );
-              })()}
             </div>
           );
         })()}
