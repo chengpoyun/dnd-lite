@@ -69,6 +69,16 @@ export const SpellDetailModal: React.FC<SpellDetailModalProps> = ({
                 ul: ({ children }) => <ul className="list-disc list-inside mb-3 space-y-1">{children}</ul>,
                 ol: ({ children }) => <ol className="list-decimal list-inside mb-3 space-y-1">{children}</ol>,
                 li: ({ children }) => <li className="text-slate-100">{children}</li>,
+                a: ({ children, href }) => (
+                  <a
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-bold underline text-blue-400 hover:text-blue-300"
+                  >
+                    {children}
+                  </a>
+                ),
               }}
             >
               {display.displayDescription}
