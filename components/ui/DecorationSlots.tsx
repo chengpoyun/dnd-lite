@@ -10,7 +10,7 @@ import React from 'react';
 import type { DecorationSocket } from '../../services/itemService';
 
 const GEM_BLUE_SRC = `${import.meta.env.BASE_URL}icons/gem_blue.png`;
-const GEM_HOLLOW_SRC = `${import.meta.env.BASE_URL}icons/gem-hollow.png`;
+const GEM_EMPTY_SRC = `${import.meta.env.BASE_URL}icons/gem-small.png`;
 
 interface DecorationSlotsProps {
   totalSlots: number;
@@ -37,7 +37,7 @@ export const DecorationSlots: React.FC<DecorationSlotsProps> = ({
           const content = (
             <>
               <img
-                src={socket ? GEM_BLUE_SRC : GEM_HOLLOW_SRC}
+                src={socket ? GEM_BLUE_SRC : GEM_EMPTY_SRC}
                 alt=""
                 className={`w-6 h-6 object-contain flex-shrink-0 ${socket ? '' : 'opacity-60'}`}
               />
@@ -79,7 +79,7 @@ export const DecorationSlots: React.FC<DecorationSlotsProps> = ({
         const socket = sockets?.[i] ?? null;
         const img = (
           <img
-            src={socket ? GEM_BLUE_SRC : GEM_HOLLOW_SRC}
+            src={socket ? GEM_BLUE_SRC : GEM_EMPTY_SRC}
             alt=""
             className={`${sizeClass} object-contain ${socket ? '' : 'opacity-60'}`}
           />

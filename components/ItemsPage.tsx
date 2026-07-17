@@ -10,7 +10,7 @@
  * - 新增到全域物品庫
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   DndContext,
   DragEndEvent,
@@ -98,9 +98,13 @@ interface ItemsPageProps {
   characterId: string;
   /** 當角色物品異動後呼叫，以刷新角色數據（含加值列表） */
   onCharacterDataChanged?: () => void;
+  /** 從其他頁（如裝備頁 ↪）跳轉過來時，載入完成後自動開啟此道具的詳情 modal */
+  initialDetailItemId?: string | null;
+  /** 自動開啟詳情處理完畢後呼叫（不論是否找到道具），供呼叫端清除待開啟狀態 */
+  onInitialDetailConsumed?: () => void;
 }
 
-export default function ItemsPage({ characterId, onCharacterDataChanged }: ItemsPageProps) {
+export default function ItemsPage({ characterId, onCharacterDataChanged, initialDetailItemId, onInitialDetailConsumed }: ItemsPageProps) {
   const { showSuccess, showError } = useToast();
 
   const [items, setItems] = useState<CharacterItem[]>([]);
@@ -137,6 +141,20 @@ export default function ItemsPage({ characterId, onCharacterDataChanged }: Items
   useEffect(() => {
     if (characterId) loadItems();
   }, [characterId, loadItems]);
+
+  // 從裝備頁 ↪ 跳轉過來：載入完成後自動開啟指定道具的詳情（只處理一次）
+  const initialDetailHandled = useRef(false);
+  useEffect(() => {
+    if (initialDetailHandled.current) return;
+    if (!initialDetailItemId || isLoading) return;
+    initialDetailHandled.current = true;
+    const target = items.find((i) => i.id === initialDetailItemId);
+    if (target) {
+      setSelectedItem(target);
+      setIsDetailModalOpen(true);
+    }
+    onInitialDetailConsumed?.();
+  }, [initialDetailItemId, isLoading, items, onInitialDetailConsumed]);
 
   // 類別篩選（使用 display values）
   useEffect(() => {

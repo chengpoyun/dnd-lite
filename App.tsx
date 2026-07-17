@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo, lazy, Suspense } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback, lazy, Suspense } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { WelcomePage } from './components/WelcomePage';
 import { CharacterSheet } from './components/CharacterSheet';
@@ -80,7 +80,16 @@ const AuthenticatedApp: React.FC = () => {
 
   // 應用程式狀態
   const [activeTab, setActiveTab] = useState<Tab>(Tab.CHARACTER)
-  
+
+  // 裝備頁 ↪ 跳轉道具頁：待自動開啟詳情的道具 id（ItemsPage 載入後開啟並清除）
+  // useCallback 固定參考：避免滑動切換 tab 的 touch 事件每次 render 產生新函式（見 CLAUDE.md 慣例）
+  const [pendingItemDetailId, setPendingItemDetailId] = useState<string | null>(null)
+  const handleOpenItemDetail = useCallback((characterItemId: string) => {
+    setPendingItemDetailId(characterItemId)
+    setActiveTab(Tab.ITEMS)
+  }, [])
+  const handleItemDetailConsumed = useCallback(() => setPendingItemDetailId(null), [])
+
   // 滑動切換 Tab 狀態
   const [touchStartX, setTouchStartX] = useState<number>(0)
   const [touchStartY, setTouchStartY] = useState<number>(0)
@@ -910,13 +919,22 @@ const AuthenticatedApp: React.FC = () => {
 
           {activeTab === Tab.ITEMS && (
             <Suspense fallback={<PageLoadingFallback message="載入道具頁面..." />}>
-              <ItemsPage characterId={currentCharacter?.id || ''} onCharacterDataChanged={refetchCharacterStats} />
+              <ItemsPage
+                characterId={currentCharacter?.id || ''}
+                onCharacterDataChanged={refetchCharacterStats}
+                initialDetailItemId={pendingItemDetailId}
+                onInitialDetailConsumed={handleItemDetailConsumed}
+              />
             </Suspense>
           )}
 
           {activeTab === Tab.EQUIPMENT && currentCharacter && (
             <Suspense fallback={<PageLoadingFallback message="載入裝備頁面..." />}>
-              <EquipmentPage characterId={currentCharacter.id} onCharacterDataChanged={refetchCharacterStats} />
+              <EquipmentPage
+                characterId={currentCharacter.id}
+                onCharacterDataChanged={refetchCharacterStats}
+                onOpenItemDetail={handleOpenItemDetail}
+              />
             </Suspense>
           )}
 

@@ -15,14 +15,17 @@ import {
   type EquipmentSlot,
 } from '../utils/equipmentConstants';
 import { PageContainer, Title, Card, Loading } from './ui';
+import { DecorationSlots } from './ui/DecorationSlots';
 import { STYLES, combineStyles } from '../styles/common';
 
 interface EquipmentPageProps {
   characterId: string;
   onCharacterDataChanged?: () => void;
+  /** 按下 ↪ 時呼叫：跳轉到道具頁並開啟該道具的詳情 modal */
+  onOpenItemDetail?: (characterItemId: string) => void;
 }
 
-export default function EquipmentPage({ characterId, onCharacterDataChanged }: EquipmentPageProps) {
+export default function EquipmentPage({ characterId, onCharacterDataChanged, onOpenItemDetail }: EquipmentPageProps) {
   const { showSuccess, showError } = useToast();
   const [items, setItems] = useState<CharacterItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -125,28 +128,49 @@ export default function EquipmentPage({ characterId, onCharacterDataChanged }: E
                   const current = getItemInSlot(slot);
                   const options = getItemsForSlot(slot);
                   const isUpdating = updatingSlot === slot;
+                  const currentSlots = current ? ItemService.getDisplayValues(current).displayDecorationSlots : 0;
                   return (
                     <div
                       key={slot}
                       className={combineStyles(STYLES.layout.flexBetween, 'gap-3 flex-wrap')}
                     >
                       <span className={STYLES.text.body}>{EQUIPMENT_SLOT_LABELS[slot]}</span>
-                      <select
-                        className={combineStyles(
-                          STYLES.input.base,
-                          'min-w-[140px] max-w-[220px] cursor-pointer'
+                      <div className="flex items-center gap-2 min-w-0">
+                        {current && currentSlots > 0 && (
+                          <DecorationSlots
+                            totalSlots={currentSlots}
+                            sockets={current.sockets}
+                            size="small"
+                          />
                         )}
-                        value={current?.id ?? ''}
-                        disabled={isUpdating}
-                        onChange={(e) => handleSlotChange(slot, e.target.value)}
-                      >
-                        <option value="">未裝備</option>
-                        {options.map((item) => (
-                          <option key={item.id} value={item.id}>
-                            {ItemService.getDisplayValues(item).displayName}
-                          </option>
-                        ))}
-                      </select>
+                        <select
+                          className={combineStyles(
+                            STYLES.input.base,
+                            'min-w-[140px] max-w-[220px] cursor-pointer'
+                          )}
+                          value={current?.id ?? ''}
+                          disabled={isUpdating}
+                          onChange={(e) => handleSlotChange(slot, e.target.value)}
+                        >
+                          <option value="">未裝備</option>
+                          {options.map((item) => (
+                            <option key={item.id} value={item.id}>
+                              {ItemService.getDisplayValues(item).displayName}
+                            </option>
+                          ))}
+                        </select>
+                        {current && onOpenItemDetail && (
+                          <button
+                            type="button"
+                            aria-label="前往道具頁檢視"
+                            title="前往道具頁檢視"
+                            onClick={() => onOpenItemDetail(current.id)}
+                            className="w-9 h-9 flex-shrink-0 flex items-center justify-center rounded-lg bg-slate-700 text-slate-200 text-lg active:bg-slate-600"
+                          >
+                            ↗
+                          </button>
+                        )}
+                      </div>
                     </div>
                   );
                 })}
