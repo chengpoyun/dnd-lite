@@ -347,6 +347,8 @@ export async function learnItem(
       character_id: characterId,
       item_id: itemId,
       quantity: 1,
+      // 讓新物品排在列表最上面：越晚新增的值越小，永遠排在既有物品與更早新增的物品之前
+      sort_order: -Date.now(),
     };
     if (equipmentOptions) {
       if (equipmentOptions.equipment_slot !== undefined) payload.equipment_slot = equipmentOptions.equipment_slot;
@@ -401,6 +403,8 @@ export async function createCharacterItem(
       name_override: data.name.trim(),
       description_override: data.description?.trim() ?? '',
       category_override: data.category,
+      // 讓新物品排在列表最上面：越晚新增的值越小，永遠排在既有物品與更早新增的物品之前
+      sort_order: -Date.now(),
     };
     if (data.affects_stats !== undefined) payload.affects_stats = data.affects_stats;
     if (data.applies_unequipped !== undefined) payload.applies_unequipped = data.applies_unequipped;

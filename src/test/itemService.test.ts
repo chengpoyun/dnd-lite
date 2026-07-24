@@ -152,6 +152,7 @@ describe('learnItem', () => {
   });
 
   it('成功時把裝備選項一併寫入 payload', async () => {
+    vi.spyOn(Date, 'now').mockReturnValue(123456);
     const builder = createChainable({ data: null, error: null });
     mockedSupabase.from.mockReturnValue(builder);
 
@@ -161,9 +162,11 @@ describe('learnItem', () => {
       character_id: 'c1',
       item_id: 'g1',
       quantity: 1,
+      sort_order: -123456,
       equipment_slot: 'head',
       is_equipped: true,
     });
+    vi.restoreAllMocks();
   });
 });
 
