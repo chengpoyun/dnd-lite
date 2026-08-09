@@ -28,6 +28,9 @@ export const getRawErrorMessage = (error: unknown): string => {
  * 純物件而非 Error 實例，所以兩種都要處理。找不到 message 時回傳 JSON，
  * 保留原本 `console.error('...', error)` 的診斷價值。
  *
+ * message 為**空字串**時同樣視為「沒有訊息」而退回 JSON：空訊息顯示給
+ * 使用者等於什麼都沒說，不如把 code 之類的線索留下來。
+ *
  * **只適合用來顯示或寫 log。** 若要拿訊息做判斷（例如比對是否為可重試的
  * 網路錯誤），請改用 [getRawErrorMessage]，避免 JSON fallback 造成誤判。
  */

@@ -16,14 +16,18 @@ const USER_ID = 'user-uuid-0001'
 /**
  * 讓 useEffect 內的 async 轉換流程跑完。
  *
- * 寫成 `advanceTimersByTimeAsync(0)` 而不是數次 `await Promise.resolve()`，
- * 是為了讓意圖明確——「把待處理的工作排乾」，而不是「剛好 await 兩次」。
- * （實測兩種寫法都能正確等到結果，因為 `await act(async ...)` 本身在收尾時
- * 就會排乾 microtask queue；這裡純粹是可讀性選擇，不是修 bug。）
+ * 用 `advanceTimersByTimeAsync(1)`：
+ * - 純 microtask 的等待其實 `await act(async ...)` 收尾就會排乾，不需要特別處理；
+ * - 但服務層若是「經過計時器才回覆」（debounce、退避重試、逾時包裝），
+ *   就必須真的推進假計時器，而且要推進到足以帶動**串接的下一代計時器**——
+ *   `advanceTimersByTimeAsync(0)` 只推得動第一代。
+ *
+ * 推進 1ms 遠小於畫面自動跳轉的 1500/2000ms，不會誤觸那些計時器。
+ * 下方「服務層經過計時器才回覆」那支測試就是在守這件事。
  */
 const flush = async () => {
   await act(async () => {
-    await vi.advanceTimersByTimeAsync(0)
+    await vi.advanceTimersByTimeAsync(1)
   })
 }
 
@@ -153,21 +157,21 @@ describe('ConversionPage - 匿名角色轉換', () => {
     await flush()
   })
 
-  // 迴歸保護：服務層之後若在中間多插幾層 await（例如重試或快取查詢），
-  // 這些測試的等待方式仍必須成立。
-  it('轉換流程中間多幾層 await 也要能正確等到結果', async () => {
-    dataManagerMocks.hasAnonymousCharactersToConvert.mockImplementation(async () => {
-      await Promise.resolve()
-      await Promise.resolve()
-      await Promise.resolve()
-      return true
-    })
-    dataManagerMocks.convertAnonymousCharactersToUser.mockImplementation(async () => {
-      await Promise.resolve()
-      await Promise.resolve()
-      await Promise.resolve()
-      return true
-    })
+  // 迴歸保護：服務層之後若改成經過計時器才回覆（例如加了 debounce、
+  // 退避重試或逾時包裝），這裡的等待方式仍必須成立。
+  //
+  // 刻意用 setTimeout 而非 `await Promise.resolve()`：假計時器啟用時，
+  // setTimeout 只有在計時器被推進後才會解析，所以這支測試只有在 flush()
+  // 真的會推進計時器時才會過。若把 flush() 換成單純的 act(async () => {})
+  // 或數次 await Promise.resolve()，這支就會紅——那才叫有守住東西。
+  const resolveAfterTimer = <T,>(value: T) => async () => {
+    await new Promise((resolve) => setTimeout(resolve, 0))
+    return value
+  }
+
+  it('服務層經過計時器才回覆時也要能正確等到結果', async () => {
+    dataManagerMocks.hasAnonymousCharactersToConvert.mockImplementation(resolveAfterTimer(true))
+    dataManagerMocks.convertAnonymousCharactersToUser.mockImplementation(resolveAfterTimer(true))
     const onComplete = vi.fn()
 
     render(<ConversionPage userId={USER_ID} onComplete={onComplete} />)

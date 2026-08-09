@@ -29,6 +29,19 @@ describe('getErrorMessage', () => {
     )
   })
 
+  // Supabase 偶爾會回 { message: '', code: ... }。空訊息拿去顯示等於什麼都沒說，
+  // 所以這裡刻意讓它跟「沒有 message」一樣走 JSON，把 code 之類的線索留下來。
+  it('message 是空字串時視同沒有訊息，退回 JSON 而不是回傳空字串', () => {
+    expect(getErrorMessage({ message: '', code: 'PGRST301' })).toBe(
+      '{"message":"","code":"PGRST301"}'
+    )
+  })
+
+  // 對照：決策用的版本對空 message 必須回空字串，不可退回 JSON
+  it('同一個空 message 物件，getRawErrorMessage 要回空字串', () => {
+    expect(getRawErrorMessage({ message: '', code: 'PGRST301' })).toBe('')
+  })
+
   it('null / undefined 應回傳預設文字而不是 "null"', () => {
     expect(getErrorMessage(null)).toBe('未知錯誤')
     expect(getErrorMessage(undefined)).toBe('未知錯誤')

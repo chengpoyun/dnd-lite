@@ -4,6 +4,12 @@
 
 ---
 
+## 1.14.2
+
+- 修正：`ConversionPage` 測試的 `flush()` 改用 `advanceTimersByTimeAsync(1)`。原本的 `(0)` 只推得動第一代計時器，服務層若是「經過計時器才回覆」（debounce、退避重試、逾時包裝）且串接兩段，就等不到結果。
+- 測試：上一版新增的那支「多幾層 await」迴歸測試**其實沒有守住任何東西**——把 `flush()` 掏空成 `act(async () => {})` 它照樣通過（真正在排乾工作的是 `act` 本身）。改成讓 mock 經由 `setTimeout` 回覆，現已實測確認：`act(async () => {})`、`await Promise.resolve()` 兩次、`advanceTimersByTimeAsync(0)` 三種寫法都會讓它變紅，只有正式版能過。
+- 更正：1.14.1 說「`getErrorMessage()` 維持原樣」**不正確**。改成呼叫 `getRawErrorMessage()` 後，`{ message: '' }` 從回傳空字串變成退回 JSON。這個行為其實比較好（空訊息顯示給使用者等於什麼都沒說，退回 JSON 至少留下 code 之類的線索），因此保留，但補上測試釘住它，並在 doc comment 寫明。
+
 ## 1.14.1
 
 - 修正：重試判斷改用新的 `getRawErrorMessage()`。`getErrorMessage()` 在找不到 message 時會退回整個錯誤物件的 JSON，而 `databaseInit` 與 `detailedCharacter` 拿它去比對 `includes('503')`／`'CORS'` 決定要不要重試——像 `{ code: 503 }` 這種「數字剛好長得像狀態碼」的錯誤會被誤判成值得重試。新函式取不到真正的 message 就回空字串，不做 JSON fallback。
