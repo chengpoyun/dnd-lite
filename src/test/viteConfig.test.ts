@@ -60,3 +60,59 @@ describe('vite.config - 正式建置移除開發用日誌', () => {
     expect(config.build?.target).toContain('safari14')
   })
 })
+
+describe('vite.config - 第三方套件分包', () => {
+  const getManualChunks = () => {
+    const config = resolve(buildEnv)
+    const output = config.build?.rollupOptions?.output as
+      | { manualChunks?: (id: string) => string | undefined }
+      | undefined
+    const manualChunks = output?.manualChunks
+
+    expect(typeof manualChunks).toBe('function')
+    return manualChunks as (id: string) => string | undefined
+  }
+
+  it('react / react-dom / scheduler 應歸到 react-vendor', () => {
+    const manualChunks = getManualChunks()
+
+    expect(manualChunks('/app/node_modules/react/index.js')).toBe('react-vendor')
+    expect(manualChunks('/app/node_modules/react/jsx-runtime.js')).toBe('react-vendor')
+    expect(manualChunks('/app/node_modules/react-dom/client.js')).toBe('react-vendor')
+    expect(manualChunks('/app/node_modules/scheduler/index.js')).toBe('react-vendor')
+  })
+
+  it('Windows 的反斜線路徑也要能正確歸類', () => {
+    const manualChunks = getManualChunks()
+
+    expect(manualChunks('C:\\app\\node_modules\\react\\index.js')).toBe('react-vendor')
+    expect(
+      manualChunks('C:\\app\\node_modules\\@supabase\\supabase-js\\dist\\index.js')
+    ).toBe('supabase-vendor')
+  })
+
+  it('react-markdown 不可被誤判成 react（否則會被拉進首屏 chunk）', () => {
+    const manualChunks = getManualChunks()
+
+    expect(manualChunks('/app/node_modules/react-markdown/index.js')).toBeUndefined()
+    expect(manualChunks('/app/node_modules/react-zoom-pan-pinch/dist/index.js')).toBeUndefined()
+  })
+
+  it('@supabase 應歸到 supabase-vendor', () => {
+    const manualChunks = getManualChunks()
+
+    expect(manualChunks('/app/node_modules/@supabase/supabase-js/dist/module/index.js')).toBe(
+      'supabase-vendor'
+    )
+    expect(manualChunks('/app/node_modules/@supabase/realtime-js/dist/index.js')).toBe(
+      'supabase-vendor'
+    )
+  })
+
+  it('專案自己的程式碼不應被歸到任何 vendor chunk', () => {
+    const manualChunks = getManualChunks()
+
+    expect(manualChunks('/app/components/CombatView.tsx')).toBeUndefined()
+    expect(manualChunks('/app/services/detailedCharacter.ts')).toBeUndefined()
+  })
+})
