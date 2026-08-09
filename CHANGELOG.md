@@ -4,6 +4,69 @@
 
 ---
 
+## 1.14.2
+
+- 修正：`ConversionPage` 測試的 `flush()` 改用 `advanceTimersByTimeAsync(1)`。原本的 `(0)` 只推得動第一代計時器，服務層若是「經過計時器才回覆」（debounce、退避重試、逾時包裝）且串接兩段，就等不到結果。
+- 測試：上一版新增的那支「多幾層 await」迴歸測試**其實沒有守住任何東西**——把 `flush()` 掏空成 `act(async () => {})` 它照樣通過（真正在排乾工作的是 `act` 本身）。改成讓 mock 經由 `setTimeout` 回覆，現已實測確認：`act(async () => {})`、`await Promise.resolve()` 兩次、`advanceTimersByTimeAsync(0)` 三種寫法都會讓它變紅，只有正式版能過。
+- 更正：1.14.1 說「`getErrorMessage()` 維持原樣」**不正確**。改成呼叫 `getRawErrorMessage()` 後，`{ message: '' }` 從回傳空字串變成退回 JSON。這個行為其實比較好（空訊息顯示給使用者等於什麼都沒說，退回 JSON 至少留下 code 之類的線索），因此保留，但補上測試釘住它，並在 doc comment 寫明。
+
+## 1.14.1
+
+- 修正：重試判斷改用新的 `getRawErrorMessage()`。`getErrorMessage()` 在找不到 message 時會退回整個錯誤物件的 JSON，而 `databaseInit` 與 `detailedCharacter` 拿它去比對 `includes('503')`／`'CORS'` 決定要不要重試——像 `{ code: 503 }` 這種「數字剛好長得像狀態碼」的錯誤會被誤判成值得重試。新函式取不到真正的 message 就回空字串，不做 JSON fallback。
+- 改進：角色卡的刪除鈕（只有垃圾桶圖示、沒有文字）補上 `aria-label="刪除角色 {角色名}"`。讀屏軟體原本唸不出這顆按鈕是做什麼的；測試也改用 `getByRole` 定位，不再依賴 Tailwind class 與按鈕排列順序。
+- 測試：登入頁版號測試改成 mock `package.json` 為假版號再斷言畫面顯示它。原本的寫法是自己 import 真的 `package.json` 再拿它比對，只要元件從那裡讀就必然成立，抓不到任何東西。
+- 測試：`ConversionPage` 的等待改用 `advanceTimersByTimeAsync(0)`，意圖比「await 兩次 `Promise.resolve()`」明確；並補一支「流程中間多幾層 await 也要能等到結果」的迴歸測試。
+
+## 1.14.0
+
+> 純內部重構：**對使用者沒有任何可見變更**，對外的服務介面與既有 import 路徑也完全沒動，因此不進 Major。
+
+- 重構：`services/detailedCharacter.ts` 從 2014 行縮到 1299 行，把三段與角色 CRUD 沒有共用狀態的邏輯拆成獨立模組：
+  - `services/characterBonusAggregation.ts`（515 行）— `collectSourceBonusesForCharacter`，原本是該檔裡最長的單一方法（約 450 行）。`AggregatedStatBonuses` 型別也搬到這裡，並由 `detailedCharacter.ts` 再匯出，既有 import 路徑不受影響。
+  - `services/characterProficiencies.ts`（202 行）— 技能與豁免熟練度的讀寫。
+  - `services/anonymousConversion.ts`（83 行）— 匿名角色轉換到登入帳號。
+- `DetailedCharacterService` 保留全部同名方法轉呼叫新模組，**呼叫端與測試替身都不需要改**。搬移的程式碼一行未改（三段原本都沒有用到 `this`）。
+- 重構：`components/CombatView.tsx` 從 1816 行縮到 1632 行：
+  - `utils/combatItemMapping.ts` — 戰鬥項目在前端與 DB 之間的字彙對照（`bonus` vs `bonus_action`、`round` vs `turn`）與 `CombatItem` / `ItemCategory` 型別。原本這幾支對照函式定義在元件內部，沒辦法單獨測試；拆出來後補上 15 個單元測試。
+  - `components/CombatActionList.tsx` — 「動作／附贈動作／反應／職業資源」的清單區塊元件（原本擠在 CombatView 檔案最下方）。順手清掉搬移過來的死變數 `recoveryLabel`。
+- 文件：`docs/code-architecture.md` 的目錄對照表與 §6 服務層、`README-project.md` 的關鍵服務清單都補上新模組，並註明「呼叫端一律照舊透過 `DetailedCharacterService`，不要直接 import 拆出來的三個模組」（`src/test/setup.ts` 的全域 mock 掛在前者上）。
+- 驗證：1102 個測試全通過、`tsc --noEmit` 零錯誤；並用 `vite preview` 對照重構前後的實際畫面，角色頁的六項屬性／技能加值、戰鬥頁的骰子記法加成（`+2d20-1d12`、`+1d6+1d4`）與四個動作清單區塊內容完全一致——這些正是走聚合邏輯與被拆出元件的路徑。
+
+## 1.13.6
+
+- 改進：開啟 TypeScript `strict`。原本 `strictNullChecks` 與 `noImplicitAny` 都是關的，代表 `npx tsc --noEmit` 通過其實不保證什麼——對一個到處都是「DB 欄位可能為 null、舊格式向後相容」的專案來說，最容易出錯的地方剛好完全沒被檢查。修掉因此浮現的 32 個錯誤，全部 1087 個測試維持通過。
+- 修正：`CharacterSheet` 的修整期／名聲／自訂紀錄三個儲存流程直接呼叫選填的 `onSaveExtraData`，沒帶這個 prop 時會 TypeError。改成與同檔其他地方一致的選擇性呼叫。
+- 整理：移除 `AbilitiesPage` 裡沒有任何引用點的 `handleDelete`（刪除確認框綁的一直是 `handleUnlearn`，走 `AbilityService.unlearnAbility`，本來就正確處理 `ability_id` 為 null 的情況）。連帶 `AbilityService.deleteAbility` 目前已無呼叫端，暫予保留。
+- 新增：`utils/common.ts` 的 `getErrorMessage()`，統一處理 `Error` 實例與 Supabase 那種 `{ message }` 純物件，取代散在各處的 `error.message`（strict 下 catch 變數是 `unknown`，不能直接取用）。
+- 新增：`@types/react` 與 `@types/react-dom` 補進 devDependencies。原本專案沒有直接宣告，只是碰巧從 `@testing-library/react` 間接拿到 `@types/react`，而 `@types/react-dom` 根本沒裝（`react-dom/client` 是 implicit any）。
+- 新增：`CreatedCharacterData` 型別。`createCharacter` 在匿名模式為避開 RLS 只會建 characters 主表，其餘欄位是 null，原本卻宣告成 `FullCharacterData`（謊稱一定有值）。
+
+## 1.13.5
+
+- 改進：補上「匿名帳號轉登入帳號」整條流程的測試（原本完全沒有覆蓋，而這條路出錯等於使用者角色資料對不回來）。除了元件層的成功／失敗／重試／跳過分支，也在服務層鎖住最關鍵的一條規則：**轉換失敗時絕不可清除本機的匿名 ID**，否則角色就再也找不回來了。
+- 改進：補上角色選擇頁的測試，重點在刪除角色這個不可復原的操作——沒按確認前不會真的刪、按取消不會刪、刪除失敗時角色必須留在列表上。另補登出二次確認與匿名模式的限制。
+- 改進：補上登入頁與「帳號已在其他裝置登入」彈窗的測試。
+- 測試總數從 1040 增加到 1079（新增 39 個），未被任何測試引用的元件從 24 個降到 20 個。
+
+## 1.13.4
+
+- 改進：把 react 與 supabase 切成獨立的 vendor chunk。首屏主檔（index）從 532.7 kB 降到 157.1 kB，另外兩包（react-vendor 189.8 kB、supabase-vendor 164.5 kB）幾乎不會變動，之後每次改程式碼只有主檔會失效，回訪的手機使用者不必重新下載這 350 kB。build 也不再跳「chunk 超過 500 kB」警告。
+- 改進：更新 `caniuse-lite` 瀏覽器資料庫（原本已 7 個月未更新，可能影響 `safari14` 建置目標的判斷）。實測目標瀏覽器清單沒有變化，產出不受影響。
+
+## 1.13.3
+
+- 修正：登入頁頁尾的版號寫死成 `v1.0`，跟關於頁顯示的版本長期對不上；改為與關於頁一樣讀 `package.json`，之後升版會自動同步。
+
+## 1.13.2
+
+- 修正：正式建置不再把開發用的 `console.log` 打包進去。原本 158 處 `console.log` 會在正式站把角色 ID、使用者 ID、DB 查詢耗時印在使用者的 console；現在 build 時由 minifier 移除（dev 完全不受影響，仍看得到全部日誌）。`console.warn` 與 `console.error` 刻意保留，否則線上出問題時無從診斷。主 chunk 順帶從 532.7 kB 降到 512.8 kB。
+
+## 1.13.1
+
+- 修正：移除從未被任何程式碼 import 的 `xlsx` 依賴。該套件帶有兩個 high 等級漏洞（Prototype Pollution、ReDoS）且 npm 上沒有修復版本，移除後正式站的相依樹不再包含它。
+- 修正：升級 `ws`（經 `@supabase/realtime-js` 間接引入）至 8.21.3，修掉未初始化記憶體洩漏與記憶體耗盡 DoS 兩個 high 等級漏洞。
+- 修正：以 `overrides` 將 `qs`（經 Stryker 的 `typed-rest-client` 間接引入，僅開發時使用）鎖到 6.15.3，修掉 DoS 漏洞。`npm audit` 現為 0 vulnerabilities。
+
 ## 1.13.0
 
 - 新增：道具列表可拖曳排序（跟能力列表共用同一套「插入排序」演算法：只更新被拖曳項目自己的順序值，不驚動其他項目），任何分類篩選畫面都能拖曳，不再限制只有「全部」能拖；能力列表原本的拖曳排序也一併套用同一套邏輯，拿掉「只有全部能拖」的限制。

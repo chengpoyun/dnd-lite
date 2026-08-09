@@ -48,7 +48,7 @@ export const CharacterSpellEditModal: React.FC<CharacterSpellEditModalProps> = (
       const display = getDisplayValues(characterSpell);
       setFormData({
         name_override: display.displayName,
-        name_en_override: display.displayNameEn,
+        name_en_override: display.displayNameEn ?? '',
         level_override: display.displayLevel,
         casting_time_override: display.displayCastingTime,
         school_override: display.displaySchool as any,

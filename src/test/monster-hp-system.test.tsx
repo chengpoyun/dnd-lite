@@ -255,7 +255,8 @@ describe('Max HP 系統測試', () => {
   describe('整合測試：HP 狀態轉換', () => {
     it('應該正確處理 HP 從未知 → 已知 → 死亡的完整流程', () => {
       // 1. 初始：未知 HP
-      let monster = { ...baseMonster, max_hp: null, total_damage: 0 };
+      // 標註成 number | null，否則 TS 會把 max_hp 推導成字面型別 null，後面就不能指派數字
+      let monster = { ...baseMonster, max_hp: null as number | null, total_damage: 0 };
       expect(monster.max_hp).toBeNull();
 
       // 2. 設定已知 HP
@@ -275,7 +276,7 @@ describe('Max HP 系統測試', () => {
 
     it('應該正確處理 HP 從未知直接到死亡的流程', () => {
       // 1. 初始：未知 HP
-      let monster = { ...baseMonster, max_hp: null, total_damage: 35 };
+      let monster = { ...baseMonster, max_hp: null as number | null, total_damage: 35 };
       expect(monster.max_hp).toBeNull();
 
       // 2. 死亡時設定 max_hp = -total_damage
@@ -284,7 +285,7 @@ describe('Max HP 系統測試', () => {
       expect(monster.max_hp).toBeLessThan(0);
 
       // 3. 顯示時使用絕對值
-      const displayValue = Math.abs(monster.max_hp);
+      const displayValue = Math.abs(monster.max_hp!);
       expect(displayValue).toBe(35);
     });
   });

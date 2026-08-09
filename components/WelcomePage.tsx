@@ -5,6 +5,7 @@ import { PageContainer, Card, Button, Title, Subtitle } from './ui'
 import { STYLES, combineStyles } from '../styles/common'
 import { useToast } from '../hooks/useToast'
 import { ToastContainer } from './Toast'
+import packageJson from '../package.json'
 
 interface WelcomePageProps {
   onNext: (mode: 'authenticated' | 'anonymous') => void
@@ -176,7 +177,7 @@ export const WelcomePage: React.FC<WelcomePageProps> = ({ onNext, initError, onR
 
         {/* 版本資訊 */}
         <div className="mt-8 text-center text-slate-600 text-xs">
-          D&D 角色助手 v1.0
+          D&D 角色助手 v{packageJson.version}
         </div>
       </Card>
       <ToastContainer toasts={toasts} onRemove={removeToast} />

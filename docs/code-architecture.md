@@ -23,9 +23,9 @@
 | 路徑 | 職責 |
 |------|------|
 | `App.tsx` | 中央狀態、Tab 路由、`stats` / `setStats`、`onSaveXxx` 回調 |
-| `components/` | 頁面與 Modal；`ui/` 下為共用 UI（Modal、FilterBar、FinalTotalRow 等） |
-| `services/` | 資料存取：`hybridDataManager`、`detailedCharacter` 等 |
-| `utils/` | `characterConstants`、`appInit`（組裝 CharacterStats）、`characterAttributes`（basic+bonus 計算） |
+| `components/` | 頁面與 Modal；`ui/` 下為共用 UI（Modal、FilterBar、FinalTotalRow 等）。`CombatActionList.tsx` 為戰鬥頁的動作／資源清單區塊 |
+| `services/` | 資料存取：`hybridDataManager`、`detailedCharacter`，以及從後者拆出的 `characterBonusAggregation`、`characterProficiencies`、`anonymousConversion`（見 §6） |
+| `utils/` | `characterConstants`、`appInit`（組裝 CharacterStats）、`characterAttributes`（basic+bonus 計算）、`combatItemMapping`（戰鬥項目前端↔DB 字彙對照）、`common`（含 `getErrorMessage`） |
 | `styles/` | `modalStyles.ts`、`common.ts`（STYLES、combineStyles、conditionalStyle） |
 | `types/index.ts` | `CharacterStats`、`CustomRecord`、`ClassInfo` 等前端型別 |
 | `lib/supabase.ts` | Supabase 客戶端與 DB 型別（如 `CharacterCurrentStats`） |
@@ -141,6 +141,10 @@ flowchart TD
 
 - **HybridDataManager**（[services/hybridDataManager.ts](../services/hybridDataManager.ts)）：統一角色資料存取介面。
 - **DetailedCharacterService**（[services/detailedCharacter.ts](../services/detailedCharacter.ts)）：角色 CRUD、`updateCurrentStats`、`updateExtraData`；`getFullCharacter` 會聚合能力/物品的 `affects_stats`、`stat_bonuses` 並寫入 `extra_data`，供 [buildCharacterStats](../utils/appInit.ts) 組裝 CharacterStats。
+- 下列三個模組是從 `detailedCharacter.ts` 拆出的實作。**`DetailedCharacterService` 保留同名方法轉呼叫，呼叫端一律照舊透過它使用，不要直接 import 這三個模組**（`src/test/setup.ts` 的全域 mock 也是掛在 `DetailedCharacterService` 上）：
+  - **CharacterBonusAggregationService**（[services/characterBonusAggregation.ts](../services/characterBonusAggregation.ts)）：`collectSourceBonusesForCharacter`，聚合能力／物品的 `stat_bonuses`。`AggregatedStatBonuses` 型別定義在此，並由 `detailedCharacter.ts` 再匯出。
+  - **CharacterProficiencyService**（[services/characterProficiencies.ts](../services/characterProficiencies.ts)）：技能與豁免熟練度的讀寫。
+  - **AnonymousConversionService**（[services/anonymousConversion.ts](../services/anonymousConversion.ts)）：匿名角色轉換到登入帳號。**最重要的規則是轉換失敗時絕不可清除本機匿名 ID**，否則角色再也對不回來；對應測試見 `src/test/anonymousConversion.test.ts`。
 - DB 欄位：`character_current_stats`（含 `combat_notes`）、`extra_data`（JSONB）；能力/物品的 `affects_stats`、`stat_bonuses` 見 5.2。
 
 ---

@@ -63,7 +63,10 @@
 ### 關鍵服務與模組
 
 - **HybridDataManager**（`services/hybridDataManager.ts`）：統一角色資料存取介面，依登入／匿名選擇後端。
-- **DetailedCharacterService**（`services/detailedCharacter.ts`）：角色 CRUD、`updateCurrentStats`、`updateExtraData`；`getFullCharacter` 會聚合能力/物品的 `affects_stats`、`stat_bonuses` 並寫入 `extra_data`，供 `buildCharacterStats` 組裝。
+- **DetailedCharacterService**（`services/detailedCharacter.ts`）：角色 CRUD、`updateCurrentStats`、`updateExtraData`；`getFullCharacter` 會聚合能力/物品的 `affects_stats`、`stat_bonuses` 並寫入 `extra_data`，供 `buildCharacterStats` 組裝。下列三個模組是從本檔拆出的實作，`DetailedCharacterService` 仍保留同名方法轉呼叫，既有呼叫端不需改動：
+  - **CharacterBonusAggregationService**（`services/characterBonusAggregation.ts`）：`collectSourceBonusesForCharacter`，聚合能力／物品的 `stat_bonuses`，也是 `AggregatedStatBonuses` 型別的定義處。
+  - **CharacterProficiencyService**（`services/characterProficiencies.ts`）：技能與豁免熟練度的讀寫。
+  - **AnonymousConversionService**（`services/anonymousConversion.ts`）：匿名角色轉換到登入帳號。
 - **UserSettingsService** / **AnonymousService** / **Auth**：使用者設定、匿名 ID、登入狀態。
 - **characterItems / combatService / spellService / itemService / abilityService**：戰鬥動作、法術、物品、能力的讀寫與業務規則。
 - **databaseInit / migrationHelpers**：DB 初始化與遷移輔助。
