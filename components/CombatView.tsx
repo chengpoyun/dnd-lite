@@ -13,7 +13,6 @@ import { resetAbilityUses } from '../services/abilityService';
 import { PageContainer, Card, Button, Title, Subtitle, Input } from './ui';
 import { AdvantageDisadvantageBorder } from './ui/AdvantageDisadvantageBorder';
 import { STYLES } from '../styles/common';
-import type { CharacterCombatAction as DatabaseCombatItem } from '../lib/supabase';
 import { isSpellcaster } from '../utils/spellUtils';
 import CombatNoteModal from './CombatNoteModal';
 import NumberEditModal from './NumberEditModal';
@@ -1108,7 +1107,6 @@ export const CombatView: React.FC<CombatViewProps> = ({
 
       <ActionList
         title="職業資源"
-        category="resource"
         items={resources} 
         colorClass="text-cyan-500" 
         isEditMode={isEditMode}
@@ -1120,7 +1118,6 @@ export const CombatView: React.FC<CombatViewProps> = ({
 
       <ActionList 
         title="動作 (Action)" 
-        category="action"
         items={actions} 
         colorClass="text-amber-500" 
         isEditMode={isEditMode}
@@ -1133,7 +1130,6 @@ export const CombatView: React.FC<CombatViewProps> = ({
 
       <ActionList 
         title="附贈動作 (Bonus)" 
-        category="bonus"
         items={bonusActions} 
         colorClass="text-indigo-400" 
         isEditMode={isEditMode}
@@ -1146,7 +1142,6 @@ export const CombatView: React.FC<CombatViewProps> = ({
 
       <ActionList 
         title="反應 (Reaction)" 
-        category="reaction"
         items={reactions} 
         colorClass="text-rose-400" 
         isEditMode={isEditMode}

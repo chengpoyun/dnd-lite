@@ -1,5 +1,5 @@
 import React from 'react';
-import type { CombatItem, ItemCategory } from '../utils/combatItemMapping';
+import type { CombatItem } from '../utils/combatItemMapping';
 
 /**
  * 戰鬥頁的「動作／附贈動作／反應／職業資源」清單區塊。
@@ -7,7 +7,6 @@ import type { CombatItem, ItemCategory } from '../utils/combatItemMapping';
  */
 interface ActionListProps {
   title: string;
-  category: ItemCategory;
   items: CombatItem[];
   colorClass: string;
   onAdd: () => void;
@@ -19,7 +18,7 @@ interface ActionListProps {
   onEditCategoryUsage?: () => void;
 }
 
-const ActionList: React.FC<ActionListProps> = ({ title, category, items, colorClass, onAdd, isEditMode, onRemove, onUse, isTwoCol = false, categoryUsage, onEditCategoryUsage }) => {
+const ActionList: React.FC<ActionListProps> = ({ title, items, colorClass, onAdd, isEditMode, onRemove, onUse, isTwoCol = false, categoryUsage, onEditCategoryUsage }) => {
   const isCategoryDisabled = categoryUsage && categoryUsage.current <= 0;
   
   return (

@@ -4,6 +4,10 @@
 
 ---
 
+## 1.14.3
+
+- 整理：清掉 1.14.0 拆檔時留下的兩處死碼。`CombatView.tsx` 的 `DatabaseCombatItem` type import（用到它的五支對照函式都搬去 `utils/combatItemMapping.ts` 了）、以及 `CombatActionList` 宣告並解構卻從未使用的 `category` prop（連同四個呼叫端傳入的 `category="..."`）。兩者 tsc 都抓不到（`noUnusedLocals` 未開、type import 無 runtime 成本）。無行為變更。
+
 ## 1.14.2
 
 - 修正：`ConversionPage` 測試的 `flush()` 改用 `advanceTimersByTimeAsync(1)`。原本的 `(0)` 只推得動第一代計時器，服務層若是「經過計時器才回覆」（debounce、退避重試、逾時包裝）且串接兩段，就等不到結果。
