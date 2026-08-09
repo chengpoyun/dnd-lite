@@ -4,6 +4,21 @@
 
 ---
 
+## 1.14.0
+
+> 純內部重構：**對使用者沒有任何可見變更**，對外的服務介面與既有 import 路徑也完全沒動，因此不進 Major。
+
+- 重構：`services/detailedCharacter.ts` 從 2014 行縮到 1299 行，把三段與角色 CRUD 沒有共用狀態的邏輯拆成獨立模組：
+  - `services/characterBonusAggregation.ts`（515 行）— `collectSourceBonusesForCharacter`，原本是該檔裡最長的單一方法（約 450 行）。`AggregatedStatBonuses` 型別也搬到這裡，並由 `detailedCharacter.ts` 再匯出，既有 import 路徑不受影響。
+  - `services/characterProficiencies.ts`（202 行）— 技能與豁免熟練度的讀寫。
+  - `services/anonymousConversion.ts`（83 行）— 匿名角色轉換到登入帳號。
+- `DetailedCharacterService` 保留全部同名方法轉呼叫新模組，**呼叫端與測試替身都不需要改**。搬移的程式碼一行未改（三段原本都沒有用到 `this`）。
+- 重構：`components/CombatView.tsx` 從 1816 行縮到 1632 行：
+  - `utils/combatItemMapping.ts` — 戰鬥項目在前端與 DB 之間的字彙對照（`bonus` vs `bonus_action`、`round` vs `turn`）與 `CombatItem` / `ItemCategory` 型別。原本這幾支對照函式定義在元件內部，沒辦法單獨測試；拆出來後補上 15 個單元測試。
+  - `components/CombatActionList.tsx` — 「動作／附贈動作／反應／職業資源」的清單區塊元件（原本擠在 CombatView 檔案最下方）。順手清掉搬移過來的死變數 `recoveryLabel`。
+- 文件：`docs/code-architecture.md` 的目錄對照表與 §6 服務層、`README-project.md` 的關鍵服務清單都補上新模組，並註明「呼叫端一律照舊透過 `DetailedCharacterService`，不要直接 import 拆出來的三個模組」（`src/test/setup.ts` 的全域 mock 掛在前者上）。
+- 驗證：1102 個測試全通過、`tsc --noEmit` 零錯誤；並用 `vite preview` 對照重構前後的實際畫面，角色頁的六項屬性／技能加值、戰鬥頁的骰子記法加成（`+2d20-1d12`、`+1d6+1d4`）與四個動作清單區塊內容完全一致——這些正是走聚合邏輯與被拆出元件的路徑。
+
 ## 1.13.6
 
 - 改進：開啟 TypeScript `strict`。原本 `strictNullChecks` 與 `noImplicitAny` 都是關的，代表 `npx tsc --noEmit` 通過其實不保證什麼——對一個到處都是「DB 欄位可能為 null、舊格式向後相容」的專案來說，最容易出錯的地方剛好完全沒被檢查。修掉因此浮現的 32 個錯誤，全部 1087 個測試維持通過。

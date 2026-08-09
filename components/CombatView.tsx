@@ -30,33 +30,20 @@ import PortentUseConfirmModal from './PortentUseConfirmModal';
 import PortentRerollModal from './PortentRerollModal';
 import { Modal, ModalButton } from './ui/Modal';
 import { MODAL_CONTAINER_CLASS, MODAL_BUTTON_CANCEL_CLASS, MODAL_FOOTER_BUTTONS_CLASS, MODAL_BUTTON_APPLY_INDIGO_CLASS } from '../styles/modalStyles';
-
-interface CombatItem {
-  id: string;
-  name: string;
-  icon: string;
-  current: number;
-  max: number;
-  recovery: 'round' | 'short' | 'long';
-  character_id?: string;
-  category?: string;
-  item_id?: string;
-  created_at?: string;
-  is_default?: boolean; // 是否為預設項目
-  maxUsesBasic?: number; // 自動計算項目（如法術位）的 basic 值；有值代表 max 為 basic+bonus，編輯時應換算為 bonus
-  // D&D 5E 進階屬性
-  description?: string;
-  action_type?: 'attack' | 'spell' | 'ability' | 'item';
-  damage_formula?: string; // 如 '1d8+3'
-  attack_bonus?: number;   // 攻擊加值
-  save_dc?: number;        // 救難DC
-}
+import ActionList from './CombatActionList';
+import {
+  mapCategoryToDb,
+  mapCategoryFromDb,
+  mapRecoveryToDb,
+  mapRecoveryFromDb,
+  convertDbItemToLocal,
+  type CombatItem,
+  type ItemCategory,
+} from '../utils/combatItemMapping';
 
 const STORAGE_KEYS = {
   COMBAT_STATE: 'dnd-lite-combat-state',
 } as const;
-
-type ItemCategory = 'action' | 'bonus' | 'reaction' | 'resource';
 
 interface CombatViewProps {
   stats: CharacterStats;
@@ -303,80 +290,6 @@ export const CombatView: React.FC<CombatViewProps> = ({
 
     loadData();
   }, [characterId, isCaster, spellSlotCasterLevel, rogueLevel]);
-
-  // 分類映射 - 前端到資料庫
-  const mapCategoryToDb = (category: ItemCategory): DatabaseCombatItem['category'] => {
-    const mapping: Record<ItemCategory, DatabaseCombatItem['category']> = {
-      'action': 'action',
-      'bonus': 'bonus_action',
-      'reaction': 'reaction',
-      'resource': 'resource'
-    };
-    return mapping[category];
-  };
-
-  // 分類映射 - 資料庫到前端
-  const mapCategoryFromDb = (dbCategory: string): ItemCategory => {
-    const mapping: Record<string, ItemCategory> = {
-      'action': 'action',
-      'bonus_action': 'bonus',
-      'reaction': 'reaction',
-      'resource': 'resource'
-    };
-    return mapping[dbCategory] || 'resource' as const;
-  };
-
-  // 恢復類型映射 - 前端到資料庫
-  const mapRecoveryToDb = (recovery: 'round' | 'short' | 'long'): DatabaseCombatItem['recovery_type'] => {
-    const mapping: Record<'round' | 'short' | 'long', DatabaseCombatItem['recovery_type']> = {
-      'round': 'turn',
-      'short': 'short_rest',
-      'long': 'long_rest'
-    };
-    return mapping[recovery];
-  };
-
-  // 恢復類型映射 - 資料庫到前端
-  const mapRecoveryFromDb = (dbRecovery: string): 'round' | 'short' | 'long' => {
-    const mapping: Record<string, 'round' | 'short' | 'long'> = {
-      'turn': 'round',
-      'short_rest': 'short',
-      'long_rest': 'long',
-      'manual': 'long' // 手動管理預設為長休
-    };
-    return mapping[dbRecovery] || 'long' as const;
-  };
-
-  // 將資料庫項目轉換為本地格式
-  const convertDbItemToLocal = (dbItem: DatabaseCombatItem): CombatItem => {
-    // 優先使用 default_item_id，否則使用資料庫 ID
-    const itemId = dbItem.default_item_id || dbItem.id;
-    
-    // 判斷是否為預設項目：只要有 default_item_id 就是預設項目
-    // （因為只有系統預設項目才會有這個欄位）
-    const finalIsDefault = dbItem.is_default || !!dbItem.default_item_id;
-    
-    return {
-      id: itemId,
-      name: dbItem.name,
-      icon: dbItem.icon,
-      current: dbItem.current_uses,
-      max: dbItem.max_uses,
-      recovery: mapRecoveryFromDb(dbItem.recovery_type),
-      character_id: dbItem.character_id,
-      category: mapCategoryFromDb(dbItem.category),
-      item_id: dbItem.id, // 保存資料庫 ID 作為 item_id
-      created_at: dbItem.created_at,
-      is_default: finalIsDefault,
-      maxUsesBasic: dbItem.max_uses_basic ?? undefined,
-      // D&D 5E 進階屬性
-      description: dbItem.description,
-      action_type: dbItem.action_type as 'attack' | 'spell' | 'ability' | 'item',
-      damage_formula: dbItem.damage_formula,
-      attack_bonus: dbItem.attack_bonus,
-      save_dc: dbItem.save_dc
-    };
-  };
 
   // 保存狀態到本地 localStorage (保留原有的戰鬥狀態同步)
   useEffect(() => {
@@ -1712,103 +1625,6 @@ export const CombatView: React.FC<CombatViewProps> = ({
         onClose={() => setIsEndCombatConfirmOpen(false)}
         onConfirm={confirmEndCombat}
       />
-    </div>
-  );
-};
-
-interface ActionListProps {
-  title: string;
-  category: ItemCategory;
-  items: CombatItem[];
-  colorClass: string;
-  onAdd: () => void;
-  isEditMode: boolean;
-  onRemove: (id: string) => void;
-  onUse: (id: string) => void;
-  isTwoCol?: boolean;
-  categoryUsage?: { current: number; max: number };
-  onEditCategoryUsage?: () => void;
-}
-
-const ActionList: React.FC<ActionListProps> = ({ title, category, items, colorClass, onAdd, isEditMode, onRemove, onUse, isTwoCol = false, categoryUsage, onEditCategoryUsage }) => {
-  const isCategoryDisabled = categoryUsage && categoryUsage.current <= 0;
-  
-  return (
-    <div className="bg-slate-900/60 p-2 rounded-2xl border border-slate-800/80 space-y-1.5 shadow-inner">
-      <div className="flex justify-between items-center border-b border-slate-800 pb-1.5 px-1">
-        <h3 className={`text-[16px] font-black uppercase tracking-widest ${colorClass} flex items-center gap-2`}>
-          {title}
-          <button onClick={onAdd} className="w-4 h-4 rounded bg-slate-800 flex items-center justify-center text-[16px] opacity-50 active:scale-90 active:bg-slate-700 transition-all">+</button>
-        </h3>
-        {categoryUsage && onEditCategoryUsage ? (
-          <button 
-            onClick={onEditCategoryUsage}
-            className={`text-[16px] font-mono font-black px-2 py-1 rounded border active:scale-95 transition-all ${
-              isCategoryDisabled 
-                ? 'text-slate-600 border-slate-800 bg-slate-950' 
-                : `${colorClass.replace('text-', 'text-')} border-slate-700 bg-slate-800/50`
-            }`}
-          >
-            {categoryUsage.current}/{categoryUsage.max}
-          </button>
-        ) : (
-          <span className="text-[16px] font-bold text-slate-700 uppercase tracking-tighter">點擊消耗</span>
-        )}
-      </div>
-      <div className={`grid ${isTwoCol ? 'grid-cols-2' : 'grid-cols-4'} gap-1`}>
-        {items.map((item) => {
-          // 規則：如果 max:1 且 recovery: 'round'，不顯示數值標籤
-          const showCounter = !(item.max === 1 && item.recovery === 'round');
-          const recoveryLabel = item.recovery === 'short' ? '短' : item.recovery === 'long' ? '長' : '';
-
-          return (
-            <div key={item.id} className="relative">
-              <button
-                onClick={() => onUse(item.id)}
-                className={`w-full flex ${isTwoCol ? 'items-center gap-3 h-[70px]' : 'flex-col items-center justify-center h-[120px]'} rounded-xl border transition-all text-left group
-                  ${(item.current > 0 || isEditMode) && !isCategoryDisabled
-                    ? 'bg-slate-800/40 border-slate-700/50 active:scale-95 active:bg-slate-700/50 shadow-sm' 
-                    : 'bg-slate-950 border-slate-900/50 opacity-20'
-                  }`}
-                disabled={isCategoryDisabled && !isEditMode}
-              >
-                {isTwoCol ? (
-                  <>
-                    <div className="flex flex-col items-center justify-center border-r border-slate-700/50 shrink-0">
-                      <span className="text-2xl leading-none">{item.icon}</span>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-[16px] font-black text-slate-500 truncate leading-none mb-1.5 uppercase tracking-tighter">{item.name}</div>
-                      <div className="flex items-baseline gap-1.5">
-                        <span className={`text-3xl font-mono font-black leading-none ${item.current > 0 && !isCategoryDisabled ? colorClass : 'text-slate-600'}`}>
-                          {item.current}
-                        </span>
-                        <span className="text-[16px] text-slate-700 font-bold">/ {item.max}</span>
-                      </div>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <span className="text-3xl mb-1">{item.icon}</span>
-                    <span className="text-[16px] font-bold text-slate-400 truncate w-full text-center tracking-tight leading-tight">{item.name}</span>
-                    {showCounter && (
-                      <div className="flex items-center gap-1 mt-1 opacity-80">
-                         <span className={`text-[16px] font-mono font-black ${item.current > 0 && !isCategoryDisabled ? colorClass : 'text-slate-600'}`}>{item.current}/{item.max}</span>
-                      </div>
-                    )}
-                  </>
-                )}
-              </button>
-              {isEditMode && !item.is_default && (
-                <button 
-                  onClick={(e) => { e.stopPropagation(); onRemove(item.id); }}
-                  className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-rose-600 text-white rounded-full flex items-center justify-center text-[16px] font-black border border-slate-950 shadow-lg z-10 active:scale-75 transition-transform"
-                >✕</button>
-              )}
-            </div>
-          );
-        })}
-      </div>
     </div>
   );
 };
