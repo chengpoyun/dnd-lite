@@ -1,5 +1,6 @@
 import { supabase } from '../lib/supabase'
 import { AnonymousService } from './anonymous'
+import { getErrorMessage } from '../utils/common'
 import type { 
   Character, 
   CharacterAbilityScores, 
@@ -8,7 +9,8 @@ import type {
   CharacterCurrentStats, 
   CharacterCurrency,
   CharacterCombatAction,
-  FullCharacterData 
+  FullCharacterData,
+  CreatedCharacterData
 } from '../lib/supabase'
 import type { CharacterStats } from '../types'
 import { ABILITY_KEYS, ABILITY_STR_TO_FULL, ABILITY_FULL_TO_STR, type AbilityDbKey } from '../utils/characterConstants'
@@ -112,7 +114,7 @@ export class DetailedCharacterService {
       }
     } catch (error) {
       const totalTime = performance.now() - startTime
-      console.error(`❌ getCurrentUserContext 失敗 (${totalTime.toFixed(1)}ms):`, error?.message)
+      console.error(`❌ getCurrentUserContext 失敗 (${totalTime.toFixed(1)}ms):`, getErrorMessage(error))
       
       // 降級到匿名模式
       const anonymousId = AnonymousService.getAnonymousId()
@@ -175,7 +177,7 @@ export class DetailedCharacterService {
         lastError = error
         // 檢查是否為網路錯誤（值得重試）
         if (attempt < maxRetries) {
-          const errorMessage = error?.message || ''
+          const errorMessage = getErrorMessage(error, '')
           if (errorMessage.includes('CORS') || errorMessage.includes('520') || 
               errorMessage.includes('502') || errorMessage.includes('503') ||
               errorMessage.includes('Failed to fetch')) {
@@ -429,7 +431,7 @@ export class DetailedCharacterService {
     level?: number
     abilityScores?: Partial<CharacterAbilityScores>
     stats?: CharacterStats // 向後相容
-  }): Promise<FullCharacterData | null> {
+  }): Promise<CreatedCharacterData | null> {
     try {
       const context = await this.getCurrentUserContext()
       

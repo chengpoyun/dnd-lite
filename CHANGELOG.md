@@ -4,6 +4,15 @@
 
 ---
 
+## 1.13.6
+
+- 改進：開啟 TypeScript `strict`。原本 `strictNullChecks` 與 `noImplicitAny` 都是關的，代表 `npx tsc --noEmit` 通過其實不保證什麼——對一個到處都是「DB 欄位可能為 null、舊格式向後相容」的專案來說，最容易出錯的地方剛好完全沒被檢查。修掉因此浮現的 32 個錯誤，全部 1087 個測試維持通過。
+- 修正：`CharacterSheet` 的修整期／名聲／自訂紀錄三個儲存流程直接呼叫選填的 `onSaveExtraData`，沒帶這個 prop 時會 TypeError。改成與同檔其他地方一致的選擇性呼叫。
+- 整理：移除 `AbilitiesPage` 裡沒有任何引用點的 `handleDelete`（刪除確認框綁的一直是 `handleUnlearn`，走 `AbilityService.unlearnAbility`，本來就正確處理 `ability_id` 為 null 的情況）。連帶 `AbilityService.deleteAbility` 目前已無呼叫端，暫予保留。
+- 新增：`utils/common.ts` 的 `getErrorMessage()`，統一處理 `Error` 實例與 Supabase 那種 `{ message }` 純物件，取代散在各處的 `error.message`（strict 下 catch 變數是 `unknown`，不能直接取用）。
+- 新增：`@types/react` 與 `@types/react-dom` 補進 devDependencies。原本專案沒有直接宣告，只是碰巧從 `@testing-library/react` 間接拿到 `@types/react`，而 `@types/react-dom` 根本沒裝（`react-dom/client` 是 implicit any）。
+- 新增：`CreatedCharacterData` 型別。`createCharacter` 在匿名模式為避開 RLS 只會建 characters 主表，其餘欄位是 null，原本卻宣告成 `FullCharacterData`（謊稱一定有值）。
+
 ## 1.13.5
 
 - 改進：補上「匿名帳號轉登入帳號」整條流程的測試（原本完全沒有覆蓋，而這條路出錯等於使用者角色資料對不回來）。除了元件層的成功／失敗／重試／跳過分支，也在服務層鎖住最關鍵的一條規則：**轉換失敗時絕不可清除本機的匿名 ID**，否則角色就再也找不回來了。

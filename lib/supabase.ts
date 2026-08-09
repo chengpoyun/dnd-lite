@@ -229,6 +229,20 @@ export interface FullCharacterData {
   hitDicePools?: CharacterHitDicePools  // 新增：生命骰池（可選，向後兼容）
 }
 
+/**
+ * createCharacter 的回傳型別。
+ *
+ * 匿名模式為了避開 RLS 只會建立 characters 主表，abilityScores / currentStats /
+ * currency 都會是 null；登入模式才會全部建齊。原本共用 FullCharacterData 會讓
+ * 型別謊稱這三個欄位一定存在，開啟 strict 後被 TypeScript 抓出來。
+ */
+export interface CreatedCharacterData
+  extends Omit<FullCharacterData, 'abilityScores' | 'currentStats' | 'currency'> {
+  abilityScores: CharacterAbilityScores | null
+  currentStats: CharacterCurrentStats | null
+  currency: CharacterCurrency | null
+}
+
 // 更新專用類型：用於部分更新角色資料
 export interface CharacterUpdateData {
   character?: Partial<Character>

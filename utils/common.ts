@@ -1,5 +1,30 @@
 // 常用的工具函數
 
+/**
+ * 把 catch 到的東西轉成可讀訊息。
+ *
+ * strict 模式下 catch 變數是 unknown，不能直接寫 `error.message`；
+ * 而 Supabase 丟回來的錯誤又常常只是 `{ message, code, details }` 這種
+ * 純物件而非 Error 實例，所以兩種都要處理。找不到 message 時回傳 JSON，
+ * 保留原本 `console.error('...', error)` 的診斷價值。
+ */
+export const getErrorMessage = (error: unknown, defaultValue = '未知錯誤'): string => {
+  if (error instanceof Error) return error.message
+  if (typeof error === 'string') return error
+  if (error === null || error === undefined) return defaultValue
+
+  if (typeof error === 'object' && 'message' in error) {
+    const { message } = error as { message: unknown }
+    if (typeof message === 'string') return message
+  }
+
+  try {
+    return JSON.stringify(error) ?? defaultValue
+  } catch {
+    return String(error)
+  }
+}
+
 // 格式化日期
 export const formatDate = (date: string | Date, locale = 'zh-TW'): string => {
   try {

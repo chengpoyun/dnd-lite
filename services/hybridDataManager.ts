@@ -1,7 +1,8 @@
 import { DetailedCharacterService } from './detailedCharacter'
 import { CombatItemService } from './database'
 import { supabase } from '../lib/supabase'
-import type { FullCharacterData, Character, CharacterCombatAction, CharacterCurrentStats, CharacterUpdateData } from '../lib/supabase'
+import { getErrorMessage } from '../utils/common'
+import type { FullCharacterData, CreatedCharacterData, Character, CharacterCombatAction, CharacterCurrentStats, CharacterUpdateData } from '../lib/supabase'
 
 /**
  * 資料管理器 (原 HybridDataManager)
@@ -43,7 +44,7 @@ export class HybridDataManager {
       console.warn(`角色 ${characterId} 不存在`)
       return null
     } catch (error) {
-      console.error('❌ 載入角色失敗:', error?.message || error)
+      console.error('❌ 載入角色失敗:', getErrorMessage(error))
       return null
     }
   }
@@ -75,7 +76,7 @@ export class HybridDataManager {
     } catch (error) {
       this.connectionTestCache.lastTest = now
       this.connectionTestCache.isConnected = false
-      console.warn('⚠️ 資料庫連接測試失敗:', error.message)
+      console.warn('⚠️ 資料庫連接測試失敗:', getErrorMessage(error))
       return false
     }
   }
@@ -130,7 +131,7 @@ export class HybridDataManager {
       
       return dbCharacters
     } catch (error) {
-      console.error('❌ 載入角色列表失敗:', error?.message)
+      console.error('❌ 載入角色列表失敗:', getErrorMessage(error))
       
       // 如果有緩存，返回緩存數據
       if (this.cachedCharacters) {
@@ -335,7 +336,7 @@ export class HybridDataManager {
     name: string
     class: string
     level?: number
-  }): Promise<FullCharacterData | null> {
+  }): Promise<CreatedCharacterData | null> {
     try {
       console.log(`創建新角色: ${characterData.name}`)
       

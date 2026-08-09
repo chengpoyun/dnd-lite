@@ -74,7 +74,9 @@ describe('LearnItemModal - keyword gating', () => {
       {
         id: 'item-1',
         name: '誇爾羽符鳥',
-        name_en: null,
+        // GlobalItem 把這兩欄宣告成非 null，但 DB 實際會回 null，
+        // 這支測試要的正是那個情境，所以沿用同一種轉型寫法
+        name_en: null as unknown as string,
         description: null as unknown as string,
         category: '雜項',
         is_magic: false,

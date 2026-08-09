@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase'
+import { getErrorMessage } from '../utils/common'
 
 /**
  * 確保資料庫表結構正確的初始化服務
@@ -35,7 +36,7 @@ export class DatabaseInitService {
           
         } catch (error) {
           lastError = error
-          const errorMessage = error?.message || ''
+          const errorMessage = getErrorMessage(error, '')
           // 檢測值得重試的錯誤（網路問題、伺服器錯誤、冷啟動）
           if (attempt < maxRetries && (
             errorMessage.includes('CORS') || 
@@ -82,7 +83,7 @@ export class DatabaseInitService {
         throw error
       }
     } catch (error) {
-      console.error('無法存取 characters 表:', error?.message || error)
+      console.error('無法存取 characters 表:', getErrorMessage(error))
       throw error
     }
   }

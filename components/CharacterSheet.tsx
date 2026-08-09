@@ -400,7 +400,9 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
       attacks: stats.attacks || []
     }
     
-    const success = await onSaveExtraData(extraData)
+    // onSaveExtraData 是選填 prop（本檔其他地方都有防護，這三處原本漏了，
+    // 沒帶這個 prop 時會直接 TypeError）
+    const success = await onSaveExtraData?.(extraData)
     if (success) {
       console.log('✅ 冒險紀錄保存成功')
     } else {
@@ -431,7 +433,9 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
       attacks: stats.attacks || []
     }
     
-    const success = await onSaveExtraData(extraData)
+    // onSaveExtraData 是選填 prop（本檔其他地方都有防護，這三處原本漏了，
+    // 沒帶這個 prop 時會直接 TypeError）
+    const success = await onSaveExtraData?.(extraData)
     if (success) {
       console.log('✅ 冒險紀錄更新成功')
     } else {
@@ -460,7 +464,9 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
       attacks: stats.attacks || []
     }
     
-    const success = await onSaveExtraData(extraData)
+    // onSaveExtraData 是選填 prop（本檔其他地方都有防護，這三處原本漏了，
+    // 沒帶這個 prop 時會直接 TypeError）
+    const success = await onSaveExtraData?.(extraData)
     if (success) {
       console.log('✅ 冒險紀錄刪除成功')
     } else {

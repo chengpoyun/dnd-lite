@@ -154,10 +154,11 @@ export const calculateHitDiceTotals = (classes: ClassInfo[]): HitDicePools => {
   }
   
   classes.forEach(classInfo => {
-    const dieType = classInfo.hitDie
-    if (pools[dieType]) {
-      pools[dieType].total += classInfo.level
-      pools[dieType].current += classInfo.level // 新角色滿血
+    // hitDie 可能是 d4，但 HitDicePools 只涵蓋 d6~d12；維持原本「查不到就略過」的行為
+    const pool = pools[classInfo.hitDie as keyof HitDicePools] as HitDicePools['d6'] | undefined
+    if (pool) {
+      pool.total += classInfo.level
+      pool.current += classInfo.level // 新角色滿血
     }
   })
   

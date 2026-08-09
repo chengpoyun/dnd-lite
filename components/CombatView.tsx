@@ -171,7 +171,8 @@ export const CombatView: React.FC<CombatViewProps> = ({
   }
 
   const savedState = JSON.parse(localStorage.getItem(STORAGE_KEYS.COMBAT_STATE) || '{}');
-  const [combatSeconds, setCombatSeconds] = useState(savedState.combatSeconds ?? 0);
+  // savedState 來自 JSON.parse（any），明確標註型別才不會讓 setCombatSeconds 的 updater 參數變成 any
+  const [combatSeconds, setCombatSeconds] = useState<number>(savedState.combatSeconds ?? 0);
   
   const [categoryUsages, setCategoryUsages] = useState({
     action: { current: 1, max: 1 },
@@ -316,11 +317,11 @@ export const CombatView: React.FC<CombatViewProps> = ({
 
   // 分類映射 - 資料庫到前端
   const mapCategoryFromDb = (dbCategory: string): ItemCategory => {
-    const mapping = {
-      'action': 'action' as const,
-      'bonus_action': 'bonus' as const,
-      'reaction': 'reaction' as const,
-      'resource': 'resource' as const
+    const mapping: Record<string, ItemCategory> = {
+      'action': 'action',
+      'bonus_action': 'bonus',
+      'reaction': 'reaction',
+      'resource': 'resource'
     };
     return mapping[dbCategory] || 'resource' as const;
   };
@@ -337,11 +338,11 @@ export const CombatView: React.FC<CombatViewProps> = ({
 
   // 恢復類型映射 - 資料庫到前端
   const mapRecoveryFromDb = (dbRecovery: string): 'round' | 'short' | 'long' => {
-    const mapping = {
-      'turn': 'round' as const,
-      'short_rest': 'short' as const,
-      'long_rest': 'long' as const,
-      'manual': 'long' as const // 手動管理預設為長休
+    const mapping: Record<string, 'round' | 'short' | 'long'> = {
+      'turn': 'round',
+      'short_rest': 'short',
+      'long_rest': 'long',
+      'manual': 'long' // 手動管理預設為長休
     };
     return mapping[dbRecovery] || 'long' as const;
   };

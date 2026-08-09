@@ -5,7 +5,7 @@ import { AuthService } from '../services/auth'
 import { PageContainer, Card, Button, Input, Loading, Title, Subtitle, Avatar, BackButton, Modal } from './ui'
 import { ConfirmDeleteModal } from './ConfirmDeleteModal'
 import { STYLES, combineStyles } from '../styles/common'
-import { formatDate } from '../utils/common'
+import { formatDate, getErrorMessage } from '../utils/common'
 
 interface CharacterSelectPageProps {
   userMode: 'authenticated' | 'anonymous'
@@ -95,7 +95,7 @@ export const CharacterSelectPage: React.FC<CharacterSelectPageProps> = ({
       }
     } catch (error) {
       console.error('創建角色失敗:', error)
-      alert(`創建角色失敗: ${error.message || error}`)
+      alert(`創建角色失敗: ${getErrorMessage(error)}`)
     } finally {
       console.log('創建流程結束，設置 isCreating = false')
       setIsCreating(false)
@@ -141,7 +141,7 @@ export const CharacterSelectPage: React.FC<CharacterSelectPageProps> = ({
       }
     } catch (error) {
       console.error('登入過程出錯:', error)
-      alert('登入過程出錯: ' + error.message)
+      alert('登入過程出錯: ' + getErrorMessage(error))
     } finally {
       setIsSigningIn(false)
     }

@@ -8,7 +8,8 @@ let cached: TerrainDef[] | null = null;
 export async function getTerrainRewards(): Promise<TerrainDef[]> {
   if (cached) return cached;
   const data = await import('../data/terrain-rewards.json');
-  cached = (data.default ?? data) as TerrainDef[];
+  // JSON 匯入的推導型別與 TerrainDef 不重疊（TS 會擋直接轉型），先過 unknown
+  cached = (data.default ?? data) as unknown as TerrainDef[];
   return cached;
 }
 

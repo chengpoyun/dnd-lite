@@ -257,23 +257,6 @@ export default function AbilitiesPage({ characterId, onCharacterDataChanged }: A
     }
   };
 
-  // 刪除能力（從全域資料庫刪除）
-  const handleDelete = async () => {
-    if (!selectedCharacterAbility) return;
-
-    try {
-      await AbilityService.deleteAbility(selectedCharacterAbility.ability_id);
-      showSuccess('特殊能力已刪除');
-      setIsDeleteModalOpen(false);
-      setIsDetailModalOpen(false);
-      setSelectedCharacterAbility(null);
-      loadData();
-    } catch (error) {
-      console.error('刪除特殊能力失敗:', error);
-      showError('刪除特殊能力失敗');
-    }
-  };
-
   // 移除能力（從角色移除）
   const handleUnlearn = async () => {
     if (!selectedCharacterAbility) return;
