@@ -4,6 +4,13 @@
 
 ---
 
+## 1.14.1
+
+- 修正：重試判斷改用新的 `getRawErrorMessage()`。`getErrorMessage()` 在找不到 message 時會退回整個錯誤物件的 JSON，而 `databaseInit` 與 `detailedCharacter` 拿它去比對 `includes('503')`／`'CORS'` 決定要不要重試——像 `{ code: 503 }` 這種「數字剛好長得像狀態碼」的錯誤會被誤判成值得重試。新函式取不到真正的 message 就回空字串，不做 JSON fallback。
+- 改進：角色卡的刪除鈕（只有垃圾桶圖示、沒有文字）補上 `aria-label="刪除角色 {角色名}"`。讀屏軟體原本唸不出這顆按鈕是做什麼的；測試也改用 `getByRole` 定位，不再依賴 Tailwind class 與按鈕排列順序。
+- 測試：登入頁版號測試改成 mock `package.json` 為假版號再斷言畫面顯示它。原本的寫法是自己 import 真的 `package.json` 再拿它比對，只要元件從那裡讀就必然成立，抓不到任何東西。
+- 測試：`ConversionPage` 的等待改用 `advanceTimersByTimeAsync(0)`，意圖比「await 兩次 `Promise.resolve()`」明確；並補一支「流程中間多幾層 await 也要能等到結果」的迴歸測試。
+
 ## 1.14.0
 
 > 純內部重構：**對使用者沒有任何可見變更**，對外的服務介面與既有 import 路徑也完全沒動，因此不進 Major。

@@ -1,22 +1,43 @@
 // 常用的工具函數
 
 /**
+ * 只取「真正的錯誤訊息」，取不到就回空字串。
+ *
+ * 給**拿訊息做決策**的場景用（例如判斷該不該重試：`msg.includes('503')`）。
+ * 刻意不做 JSON fallback——否則整個錯誤物件的內容都會被丟進比對，
+ * 像 `{ code: 503 }` 這種「數字剛好長得像 HTTP 狀態碼」的東西會被誤判成
+ * 值得重試的網路錯誤。要印給人看請改用 [getErrorMessage]。
+ */
+export const getRawErrorMessage = (error: unknown): string => {
+  if (error instanceof Error) return error.message
+  if (typeof error === 'string') return error
+
+  if (typeof error === 'object' && error !== null && 'message' in error) {
+    const { message } = error as { message: unknown }
+    if (typeof message === 'string') return message
+  }
+
+  return ''
+}
+
+/**
  * 把 catch 到的東西轉成可讀訊息。
  *
  * strict 模式下 catch 變數是 unknown，不能直接寫 `error.message`；
  * 而 Supabase 丟回來的錯誤又常常只是 `{ message, code, details }` 這種
  * 純物件而非 Error 實例，所以兩種都要處理。找不到 message 時回傳 JSON，
  * 保留原本 `console.error('...', error)` 的診斷價值。
+ *
+ * **只適合用來顯示或寫 log。** 若要拿訊息做判斷（例如比對是否為可重試的
+ * 網路錯誤），請改用 [getRawErrorMessage]，避免 JSON fallback 造成誤判。
  */
 export const getErrorMessage = (error: unknown, defaultValue = '未知錯誤'): string => {
   if (error instanceof Error) return error.message
   if (typeof error === 'string') return error
   if (error === null || error === undefined) return defaultValue
 
-  if (typeof error === 'object' && 'message' in error) {
-    const { message } = error as { message: unknown }
-    if (typeof message === 'string') return message
-  }
+  const message = getRawErrorMessage(error)
+  if (message) return message
 
   try {
     return JSON.stringify(error) ?? defaultValue

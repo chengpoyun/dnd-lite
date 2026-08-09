@@ -1,6 +1,6 @@
 import { supabase } from '../lib/supabase'
 import { AnonymousService } from './anonymous'
-import { getErrorMessage } from '../utils/common'
+import { getErrorMessage, getRawErrorMessage } from '../utils/common'
 import {
   CharacterBonusAggregationService,
   type AggregatedStatBonuses,
@@ -138,7 +138,8 @@ export class DetailedCharacterService {
         lastError = error
         // 檢查是否為網路錯誤（值得重試）
         if (attempt < maxRetries) {
-          const errorMessage = getErrorMessage(error, '')
+          // 用 getRawErrorMessage：這裡是拿訊息做重試判斷，不可用會退回 JSON 的版本
+          const errorMessage = getRawErrorMessage(error)
           if (errorMessage.includes('CORS') || errorMessage.includes('520') || 
               errorMessage.includes('502') || errorMessage.includes('503') ||
               errorMessage.includes('Failed to fetch')) {

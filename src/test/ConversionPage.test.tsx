@@ -13,18 +13,24 @@ vi.mock('../../services/hybridDataManager', () => ({
 
 const USER_ID = 'user-uuid-0001'
 
-/** 讓 useEffect 內的 async 轉換流程跑完 */
+/**
+ * 讓 useEffect 內的 async 轉換流程跑完。
+ *
+ * 寫成 `advanceTimersByTimeAsync(0)` 而不是數次 `await Promise.resolve()`，
+ * 是為了讓意圖明確——「把待處理的工作排乾」，而不是「剛好 await 兩次」。
+ * （實測兩種寫法都能正確等到結果，因為 `await act(async ...)` 本身在收尾時
+ * 就會排乾 microtask queue；這裡純粹是可讀性選擇，不是修 bug。）
+ */
 const flush = async () => {
   await act(async () => {
-    await Promise.resolve()
-    await Promise.resolve()
+    await vi.advanceTimersByTimeAsync(0)
   })
 }
 
-/** 推進畫面上的自動跳轉計時器 */
+/** 推進畫面上的自動跳轉計時器（同樣會順帶把 pending 的 promise 排乾） */
 const advance = async (ms: number) => {
   await act(async () => {
-    vi.advanceTimersByTime(ms)
+    await vi.advanceTimersByTimeAsync(ms)
   })
 }
 
@@ -142,9 +148,34 @@ describe('ConversionPage - 匿名角色轉換', () => {
     expect(screen.getByText('正在處理中，請勿關閉瀏覽器')).toBeInTheDocument()
     expect(screen.getByText('檢查帳號資料')).toBeInTheDocument()
 
-    await act(async () => {
-      resolveCheck(false)
+    // 收尾：讓 pending 的 promise 跑完，避免測試結束後才更新 state
+    resolveCheck(false)
+    await flush()
+  })
+
+  // 迴歸保護：服務層之後若在中間多插幾層 await（例如重試或快取查詢），
+  // 這些測試的等待方式仍必須成立。
+  it('轉換流程中間多幾層 await 也要能正確等到結果', async () => {
+    dataManagerMocks.hasAnonymousCharactersToConvert.mockImplementation(async () => {
       await Promise.resolve()
+      await Promise.resolve()
+      await Promise.resolve()
+      return true
     })
+    dataManagerMocks.convertAnonymousCharactersToUser.mockImplementation(async () => {
+      await Promise.resolve()
+      await Promise.resolve()
+      await Promise.resolve()
+      return true
+    })
+    const onComplete = vi.fn()
+
+    render(<ConversionPage userId={USER_ID} onComplete={onComplete} />)
+    await flush()
+
+    expect(screen.getByText('轉換完成！')).toBeInTheDocument()
+
+    await advance(2000)
+    expect(onComplete).toHaveBeenCalledWith(true)
   })
 })

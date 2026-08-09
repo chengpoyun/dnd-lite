@@ -1,5 +1,5 @@
 import { supabase } from '../lib/supabase'
-import { getErrorMessage } from '../utils/common'
+import { getErrorMessage, getRawErrorMessage } from '../utils/common'
 
 /**
  * 確保資料庫表結構正確的初始化服務
@@ -36,7 +36,8 @@ export class DatabaseInitService {
           
         } catch (error) {
           lastError = error
-          const errorMessage = getErrorMessage(error, '')
+          // 用 getRawErrorMessage：這裡是拿訊息做重試判斷，不可用會退回 JSON 的版本
+          const errorMessage = getRawErrorMessage(error)
           // 檢測值得重試的錯誤（網路問題、伺服器錯誤、冷啟動）
           if (attempt < maxRetries && (
             errorMessage.includes('CORS') || 

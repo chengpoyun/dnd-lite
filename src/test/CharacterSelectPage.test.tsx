@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { render, screen, waitFor, fireEvent, within } from '@testing-library/react'
+import { render, screen, waitFor, fireEvent } from '@testing-library/react'
 import { CharacterSelectPage } from '../../components/CharacterSelectPage'
 import type { Character } from '../../lib/supabase'
 
@@ -88,7 +88,9 @@ describe('CharacterSelectPage - 角色列表', () => {
     await screen.findByText('貝瑞')
 
     expect(screen.getByText(/匿名模式下僅限一個角色/)).toBeInTheDocument()
-    expect(screen.queryByText('確認刪除')).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('button', { name: '刪除角色 貝瑞' })
+    ).not.toBeInTheDocument()
   })
 })
 
@@ -105,10 +107,9 @@ describe('CharacterSelectPage - 刪除角色（不可復原，須有防誤刪）
 
   const openDeleteConfirm = async () => {
     await screen.findByText('貝瑞')
-    // 刪除鈕只有圖示，取角色卡片內最後一顆按鈕
-    const card = screen.getByText('貝瑞').closest('div.group') as HTMLElement
-    const buttons = within(card).getAllByRole('button')
-    fireEvent.click(buttons[buttons.length - 1])
+    // 刪除鈕只有圖示，靠 aria-label 定位（不要用 class 或按鈕順序，
+    // 那會讓測試被 Tailwind class 或版面調整弄壞）
+    fireEvent.click(screen.getByRole('button', { name: '刪除角色 貝瑞' }))
   }
 
   it('點刪除只會跳確認框，在確認前絕不可真的刪除', async () => {

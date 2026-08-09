@@ -207,6 +207,7 @@ export const CharacterSelectPage: React.FC<CharacterSelectPageProps> = ({
                   <Button
                     variant="icon"
                     onClick={() => handleDeleteClick(character)}
+                    aria-label={`刪除角色 ${character.name}`}
                     className="text-red-400 hover:text-red-300 opacity-70 hover:opacity-100 transition-opacity"
                   >
                     <svg className={STYLES.icon.small} fill="none" stroke="currentColor" viewBox="0 0 24 24">
