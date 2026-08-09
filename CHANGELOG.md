@@ -4,6 +4,10 @@
 
 ---
 
+## 1.13.2
+
+- 修正：正式建置不再把開發用的 `console.log` 打包進去。原本 158 處 `console.log` 會在正式站把角色 ID、使用者 ID、DB 查詢耗時印在使用者的 console；現在 build 時由 minifier 移除（dev 完全不受影響，仍看得到全部日誌）。`console.warn` 與 `console.error` 刻意保留，否則線上出問題時無從診斷。主 chunk 順帶從 532.7 kB 降到 512.8 kB。
+
 ## 1.13.1
 
 - 修正：移除從未被任何程式碼 import 的 `xlsx` 依賴。該套件帶有兩個 high 等級漏洞（Prototype Pollution、ReDoS）且 npm 上沒有修復版本，移除後正式站的相依樹不再包含它。
