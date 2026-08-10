@@ -7,7 +7,6 @@ import { SegmentBar, type SegmentBarOption } from './ui/SegmentBar';
 import {
   MODAL_CONTAINER_CLASS,
   MODAL_BODY_TEXT_CLASS,
-  MODAL_DESCRIPTION_CLASS,
   MODAL_BUTTON_CANCEL_CLASS,
   MODAL_BUTTON_RESET_CLASS,
   MODAL_FOOTER_BUTTONS_CLASS,
@@ -67,15 +66,11 @@ export const AbilityEditModal: React.FC<AbilityEditModalProps> = ({
   }, [isOpen, scoreBasic, isSaveProficient]);
 
   const {
-    safeScore,
     finalScore,
     abilityModBasic,
     finalModifier,
     saveBasic,
     finalSave,
-    totalScoreBonus,
-    totalModifierBonus,
-    totalSaveBonus,
   } = useMemo(() => {
     const parsed = parseInt(localScore, 10);
     const safeScoreValue = Number.isFinite(parsed) ? parsed : scoreBasic;

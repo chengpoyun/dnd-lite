@@ -3,8 +3,8 @@
  * 測試複合傷害分組邏輯、AC 範圍更新、版本衝突檢測
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import type { CombatDamageLog, CombatMonsterWithLogs } from '../../lib/supabase';
+import { describe, it, expect } from 'vitest';
+import type { CombatDamageLog } from '../../lib/supabase';
 
 // ===== 傷害記錄分組邏輯測試 =====
 describe('複合傷害分組邏輯', () => {

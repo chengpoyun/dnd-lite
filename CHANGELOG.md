@@ -4,6 +4,15 @@
 
 ---
 
+## 1.14.5
+
+- 整理：清掉 `noUnusedLocals` 揪出的其餘死碼（1.14.4 清完 React import 後剩 81 個）。57 個是未使用的 import／型別匯入；其餘是真正沒人呼叫的東西：`MonstersPage` 的 `handleAddMonster`（實際在用的是複數的 `handleAddMonsters`）與 `handleCombatEnded`、`WelcomePage` 的 `getRedirectUrl`（`services/auth.ts` 有自己的一份在用）、`App.tsx` 的 `saveAbilityBonuses` 與 `saveTimeoutRef`、`CombatView` 的 `hasHitDiceAvailable` 與整組沒人讀的 `selectedHitDie` state、`detailedCharacter` 的 4 支私有方法、`CombatItemEditModal` 的 `CATEGORY_LABELS`、`characterAttributes` 的 `getBasicBonusFinal` 等。
+- 整理：`vite.config.ts` 移除只呼叫卻沒使用結果的 `loadEnv`（Vite 本來就會自行載入 `.env` 供 `import.meta.env` 使用，這行是多餘的）。
+- 整理：`TerrainRewardModal` 的 `failureRollSuccess` 改成 `const [, setFailureRollSuccess]`。這個狀態三處有寫、卻沒有任何地方讀，先保留 setter 維持原行為並加註說明。
+- **尚未開啟 `noUnusedLocals`**：還剩 `CharacterSheet` 的 `openMulticlassModal` 一項未處理，因為它牽涉到刪掉整個已被取代的 `MulticlassAddModal` 路徑（詳見下方）。
+
+> **待決事項**：`openMulticlassModal` 是唯一把 `activeModal` 設成 `'multiclass'` 的地方，而它沒有任何呼叫端 —— 也就是說 `MulticlassAddModal` 目前**完全打不開**。兼職的新增／編輯已經整個搬到 `CharacterInfoModal`（它收 `addNewEditClass`／`removeEditClass`／`updateEditClass`），所以這是被取代的舊路徑而非漏接。要清乾淨得連同 `MulticlassAddModal.tsx` 整個元件一起刪，影響面較大，留待確認。
+
 ## 1.14.4
 
 - 整理：移除 88 個檔案裡多餘的 `import React from 'react'`。專案的 JSX transform 是 `react-jsx`，寫 JSX 不需要 React 在作用域內，這些 import 一直是多餘的。其中 74 個檔案整行刪除、14 個只拿掉 `React,` 保留具名 import。純機械性變更，無行為差異。

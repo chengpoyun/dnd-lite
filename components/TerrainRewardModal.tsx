@@ -63,7 +63,9 @@ export function TerrainRewardModal({
   const [failureCategoryIndex, setFailureCategoryIndex] = useState(0);
   const [failureBackupSkill, setFailureBackupSkill] = useState<string>('');
   const [failureRollTotal, setFailureRollTotal] = useState<number | null>(null);
-  const [failureRollSuccess, setFailureRollSuccess] = useState(false);
+  // 這個狀態只寫不讀（三處 setter 有呼叫，值沒有任何地方使用），
+  // 先保留 setter 維持原行為，之後可考慮連同三處呼叫一併移除
+  const [, setFailureRollSuccess] = useState(false);
   const [failureRollDetail, setFailureRollDetail] = useState<{ d20: number; bonus: number; dc: number; skillName: string } | null>(null);
   const [failurePickOptions, setFailurePickOptions] = useState<ParsedReward[]>([]);
   const [specialStoryCount, setSpecialStoryCount] = useState(0);

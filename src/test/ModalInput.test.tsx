@@ -3,7 +3,7 @@
  * 確保在 modal 內使用時不自動聚焦（傳入 autoFocus 仍不傳給 DOM，避免一開 modal 就彈鍵盤）
  */
 import { vi, describe, it, expect, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render } from '@testing-library/react';
 import { ModalInput } from '../../components/ui/Modal';
 
 describe('ModalInput', () => {

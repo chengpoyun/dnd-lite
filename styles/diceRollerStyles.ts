@@ -12,7 +12,6 @@ const borderSlateSoft = 'border-slate-800/60';
 const textSize16 = 'text-[16px]';
 const textSize18 = 'text-[18px]';
 const fontBold = 'font-bold';
-const fontBlack = 'font-black';
 
 /** 單顆骰子面共同尺寸與字體（選中/未選中皆用） */
 const dieFaceSize = 'inline-flex items-center justify-center w-11 h-11 rounded-lg font-bold text-[18px]';

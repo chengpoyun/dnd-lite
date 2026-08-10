@@ -6,7 +6,6 @@ import {
   computeRollResults,
   getNextDowngradeTier,
 } from '../../utils/terrainRewardFlow';
-import type { TierKey } from '../../types/terrainReward';
 
 describe('terrainRewardFlow - computeRollResults', () => {
   it('單次擲骰 >= DC 算 1 次成功，擲出 20 再 +1 次成功', () => {

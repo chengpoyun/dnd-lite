@@ -14,7 +14,6 @@ export class HybridDataManager {
   private static cacheTimestamp: number = 0
   private static connectionTestCache = { lastTest: 0, isConnected: false }
   private static CACHE_DURATION = 60000 // 60秒緩存（提升到 1 分鐘）
-  private static isPreloading = false // 防止重複預載
   
   /**
    * 清除所有緩存（用於緊急重置）

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../hooks/useToast';
 import CombatService from '../services/combatService';
-import type { CombatSession, CombatMonsterWithLogs, CombatDamageLog, ResistanceType } from '../lib/supabase';
+import type { CombatMonsterWithLogs, CombatDamageLog, ResistanceType } from '../lib/supabase';
 import MonsterCard from './MonsterCard';
 import AddDamageModal from './AddDamageModal';
 import AddMonsterModal from './AddMonsterModal';
@@ -133,23 +133,6 @@ const MonstersPage: React.FC = () => {
   /**
    * 新增怪物 (舊版 - 保留向後兼容)
    */
-  const handleAddMonster = async (code?: string) => {
-    const targetCode = code || sessionCode;
-    if (!targetCode) return;
-
-    // 檢查衝突
-    if (!code && await checkConflict()) return;
-
-    const result = await CombatService.addMonster(targetCode);
-    
-    if (result.success) {
-      showSuccess(`新增怪物 #${result.monster?.monster_number}`);
-      await refreshCombatData(targetCode);
-    } else {
-      showError(result.error || '新增怪物失敗');
-    }
-  };
-
   /**
    * 批次新增怪物
    */
@@ -280,19 +263,6 @@ const MonstersPage: React.FC = () => {
   /**
    * 處理戰鬥已結束的情況
    */
-  const handleCombatEnded = (viewFinal: boolean) => {
-    if (viewFinal) {
-      // 保持當前頁面，讓用戶查看最終狀態
-      setCombatEndedModalOpen(false);
-    } else {
-      // 清除狀態並返回首頁
-      setSessionCode('');
-      setLocalLastUpdated('');
-      setMonsters([]);
-      setCombatEndedModalOpen(false);
-    }
-  };
-
   // 初始載入
   useEffect(() => {
     // 從 localStorage 恢復戰鬥狀態

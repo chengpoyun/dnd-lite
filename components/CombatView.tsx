@@ -1,18 +1,16 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { CharacterStats, ClassInfo } from '../types';
-import { evaluateValue, getProfBonus, handleValueInput } from '../utils/helpers';
+import { getProfBonus } from '../utils/helpers';
 import { STAT_LABELS, SKILLS_MAP, ABILITY_KEYS } from '../utils/characterConstants';
 import { getFinalCombatStat, getBasicCombatStat, getFinalAbilityModifier, getFinalSavingThrow, getFinalSkillBonus, getDefaultMaxHpBasic, getBonusValue, getStatBonusSourcesBreakdown, getCombatStatDiceSuffix, getCombatStatDiceBreakdown, getOtherEffectNotes, type CombatStatKey } from '../utils/characterAttributes';
-import { formatHitDicePools, getTotalCurrentHitDice, useHitDie, recoverHitDiceOnLongRest } from '../utils/classUtils';
+import { formatHitDicePools, useHitDie, recoverHitDiceOnLongRest } from '../utils/classUtils';
 import { calculateCasterLevelForSpellSlots } from '../utils/spellSlots';
 import { getRogueLevel } from '../utils/sneakAttack';
 import { getDivinationWizardClass, getPortentDiceCount, getPortentDiceForDisplay, createRerolledPortentDice, type PortentDieState } from '../utils/portentDice';
 import { HybridDataManager } from '../services/hybridDataManager';
 import { MulticlassService } from '../services/multiclassService';
 import { resetAbilityUses } from '../services/abilityService';
-import { PageContainer, Card, Button, Title, Subtitle, Input } from './ui';
 import { AdvantageDisadvantageBorder } from './ui/AdvantageDisadvantageBorder';
-import { STYLES } from '../styles/common';
 import { isSpellcaster } from '../utils/spellUtils';
 import CombatNoteModal from './CombatNoteModal';
 import NumberEditModal from './NumberEditModal';
@@ -32,9 +30,7 @@ import { MODAL_CONTAINER_CLASS, MODAL_BUTTON_CANCEL_CLASS, MODAL_FOOTER_BUTTONS_
 import ActionList from './CombatActionList';
 import {
   mapCategoryToDb,
-  mapCategoryFromDb,
   mapRecoveryToDb,
-  mapRecoveryFromDb,
   convertDbItemToLocal,
   type CombatItem,
   type ItemCategory,
@@ -176,7 +172,6 @@ export const CombatView: React.FC<CombatViewProps> = ({
   const [isLoading, setIsLoading] = useState(true);
   
   // Hit dice states for multiclass support
-  const [selectedHitDie, setSelectedHitDie] = useState<'d12' | 'd10' | 'd8' | 'd6' | null>(null);
   const [error, setError] = useState<string | null>(null);
   
   const [isEditMode, setIsEditMode] = useState(false);
@@ -686,13 +681,6 @@ export const CombatView: React.FC<CombatViewProps> = ({
   };
 
   // Check if any hit dice are available
-  const hasHitDiceAvailable = () => {
-    if (stats.hitDicePools) {
-      return getTotalCurrentHitDice(stats.hitDicePools) > 0;
-    }
-    return stats.hitDice.current > 0;
-  };
-
   const confirmEndCombat = () => {
     setCombatSeconds(0);
     resetByRecovery(['round']);
@@ -1016,7 +1004,6 @@ export const CombatView: React.FC<CombatViewProps> = ({
         {isBonusTableExpanded && (() => {
           const profs = stats.proficiencies ?? {};
           const saveProfs = stats.savingProficiencies ?? [];
-          const statSources = stats.extraData?.statBonusSources ?? [];
           return (
             <div className="p-2 space-y-3 border-t border-slate-800">
               {/* 屬性豁免 3x2 */}

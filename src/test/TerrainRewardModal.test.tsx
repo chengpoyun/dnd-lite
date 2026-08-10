@@ -141,7 +141,6 @@ describe('TerrainRewardModal', () => {
       0, 0,
     ];
     let randomIndex = 0;
-    const originalRandom = Math.random;
     vi.spyOn(Math, 'random').mockImplementation(() => {
       const v = randomSequence[randomIndex % randomSequence.length];
       randomIndex += 1;

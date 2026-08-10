@@ -33,13 +33,6 @@ interface CombatItemEditModalProps {
   showDescription?: boolean;
 }
 
-const CATEGORY_LABELS: Record<ItemEditCategory, string> = {
-  action: '動作',
-  bonus: '附贈動作',
-  reaction: '反應',
-  resource: '職業資源',
-};
-
 export default function CombatItemEditModal({
   isOpen,
   onClose,

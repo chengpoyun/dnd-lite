@@ -16,7 +16,6 @@ import {
   getOtherEffectNotes,
 } from '../../utils/characterAttributes';
 import type { CharacterStats } from '../../types';
-import { SKILLS_MAP, ABILITY_KEYS } from '../../utils/characterConstants';
 
 /** 建立帶 basic+bonus 結構的 mock stats（新架構） */
 function createMockStats(overrides: Partial<CharacterStats> = {}): CharacterStats {

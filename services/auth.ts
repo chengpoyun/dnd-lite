@@ -1,6 +1,5 @@
 import { supabase } from '../lib/supabase'
-import { DetailedCharacterService } from './detailedCharacter'
-import type { User, Session } from '@supabase/supabase-js'
+import type { Session } from '@supabase/supabase-js'
 
 export interface AuthUser {
   id: string
@@ -27,7 +26,7 @@ export class AuthService {
         return finalUrl
       }
 
-      const { data, error } = await supabase.auth.signInWithOAuth({
+      const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
           redirectTo: getRedirectUrl()

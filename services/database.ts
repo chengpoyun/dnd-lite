@@ -1,5 +1,4 @@
 import { supabase, type Character, type CharacterCombatAction as CombatItem, type DefaultCombatAction } from '../lib/supabase'
-import type { CharacterStats } from '../types'
 import { getSpellSlotsForCasterLevel } from '../utils/spellSlots'
 import { getSneakAttackDice } from '../utils/sneakAttack'
 

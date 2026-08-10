@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { AuthService } from '../services/auth'
 import { AnonymousService } from '../services/anonymous'
-import { PageContainer, Card, Button, Title, Subtitle } from './ui'
+import { Card, Button, Title, Subtitle } from './ui'
 import { STYLES, combineStyles } from '../styles/common'
 import { useToast } from '../hooks/useToast'
 import { ToastContainer } from './Toast'
@@ -18,13 +18,6 @@ export const WelcomePage: React.FC<WelcomePageProps> = ({ onNext, initError, onR
   const { toasts, showSuccess, showError, removeToast } = useToast()
 
   // 動態重定向 URL 配置
-  const getRedirectUrl = () => {
-    const isLocalhost = window.location.hostname === 'localhost'
-    return isLocalhost 
-      ? `http://localhost:${window.location.port}/dnd-lite/` 
-      : 'https://chengpoyun.github.io/dnd-lite/'
-  }
-
   const handleGoogleSignIn = async () => {
     setIsSigningIn(true)
     try {

@@ -1,6 +1,6 @@
 import { vi, describe, it, expect } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { StatBonusEditor, type StatBonusEditorValue } from '../../components/StatBonusEditor';
+import { StatBonusEditor } from '../../components/StatBonusEditor';
 
 /** 依戰鬥屬性列標籤文字（如「攻擊傷害」）找到該列的 input */
 const getCombatStatInput = (label: string): HTMLInputElement => {

@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { HybridDataManager } from '../services/hybridDataManager'
-import { AnonymousService } from '../services/anonymous'
 import { Card, Title } from './ui'
-import { STYLES, combineStyles } from '../styles/common'
 import { useToast } from '../hooks/useToast'
 import { ToastContainer } from './Toast'
 

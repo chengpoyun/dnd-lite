@@ -2,7 +2,6 @@ import { supabase } from '../lib/supabase';
 import type { 
   CombatSession, 
   CombatMonster, 
-  CombatDamageLog, 
   CombatMonsterWithLogs,
   ResistanceType 
 } from '../lib/supabase';

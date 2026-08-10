@@ -75,7 +75,6 @@ describe('CharacterSheet - Modal 開啟與儲存', () => {
     await waitFor(() => {
       expect(screen.getByText('修改資金')).toBeInTheDocument();
     });
-    const input = document.querySelector('input[placeholder*="150"]') || screen.getByRole('textbox', { name: '' });
     const inputs = screen.getAllByRole('textbox');
     const gpInput = inputs.find((el) => (el as HTMLInputElement).placeholder?.includes('150')) ?? inputs[0];
     fireEvent.change(gpInput, { target: { value: '200' } });

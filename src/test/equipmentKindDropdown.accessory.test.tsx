@@ -3,7 +3,7 @@
  * （AddPersonalItemModal / CharacterItemEditModal 皆直接讀 EQUIPMENT_KINDS，理論上不需額外改動）
  */
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { AddPersonalItemModal } from '../../components/AddPersonalItemModal';
 import { CharacterItemEditModal } from '../../components/CharacterItemEditModal';
 import type { CharacterItem } from '../../services/itemService';

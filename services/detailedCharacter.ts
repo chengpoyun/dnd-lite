@@ -10,11 +10,8 @@ import { AnonymousConversionService } from './anonymousConversion'
 import type {
   Character, 
   CharacterAbilityScores, 
-  CharacterSavingThrow, 
-  CharacterSkillProficiency, 
   CharacterCurrentStats, 
   CharacterCurrency,
-  CharacterCombatAction,
   FullCharacterData,
   CreatedCharacterData
 } from '../lib/supabase'
@@ -718,15 +715,6 @@ export class DetailedCharacterService {
   }
 
   // 正規化為 { str, dex, con, int, wis, cha } 數字物件，確保可寫入 JSONB
-  private static normalizeAbilityBonusMap(obj: any): Record<string, number> {
-    const out: Record<string, number> = {}
-    for (const key of ABILITY_KEYS) {
-      const v = obj?.[key]
-      out[key] = typeof v === 'number' && Number.isFinite(v) ? v : 0
-    }
-    return out
-  }
-
   // 專門更新 extra_data 的方法（修整期、名聲、屬性加成、自定義冒險紀錄等寫入 character_current_stats.extra_data）
   static async updateExtraData(characterId: string, extraData: any): Promise<boolean> {
     try {
@@ -1108,10 +1096,6 @@ export class DetailedCharacterService {
     }
   }
 
-  private static async createDefaultAbilityScores(characterId: string): Promise<CharacterAbilityScores> {
-    return this.createAbilityScores(characterId, {})
-  }
-
   private static async createAbilityScores(characterId: string, scores: Partial<CharacterAbilityScores>): Promise<CharacterAbilityScores> {
     const { data, error } = await supabase
       .from('character_ability_scores')
@@ -1130,10 +1114,6 @@ export class DetailedCharacterService {
 
     if (error) throw error
     return data
-  }
-
-  private static async createDefaultCurrentStats(characterId: string): Promise<CharacterCurrentStats> {
-    return this.createCurrentStats(characterId)
   }
 
   private static async createCurrentStats(characterId: string, stats?: CharacterStats): Promise<CharacterCurrentStats> {
@@ -1176,10 +1156,6 @@ export class DetailedCharacterService {
 
     if (error) throw error
     return data
-  }
-
-  private static async createDefaultCurrency(characterId: string): Promise<CharacterCurrency> {
-    return this.createCurrency(characterId)
   }
 
   private static async createCurrency(characterId: string, currency?: any): Promise<CharacterCurrency> {

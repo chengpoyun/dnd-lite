@@ -22,7 +22,6 @@ const mockGetCharacterSpells = vi.mocked(spellService.getCharacterSpells);
 const mockGetPreparedSpellsCount = vi.mocked(spellService.getPreparedSpellsCount);
 const mockGetPreparedCantripsCount = vi.mocked(spellService.getPreparedCantripsCount);
 const mockGetAllSpells = vi.mocked(spellService.getAllSpells);
-const mockLearnSpell = vi.mocked(spellService.learnSpell);
 const mockTogglePrepared = vi.mocked(spellService.togglePrepared);
 
 const defaultProps = {

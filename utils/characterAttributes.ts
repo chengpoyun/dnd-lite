@@ -5,7 +5,6 @@
 import type { CharacterStats, ClassInfo } from '../types';
 import { getModifier, getProfBonus } from './helpers';
 import { SKILLS_MAP } from './characterConstants';
-import { ABILITY_KEYS } from './characterConstants';
 import { getClassHitDie, getTotalLevel } from './classUtils';
 
 const HIT_DIE_MAX: Record<string, number> = { d4: 4, d6: 6, d8: 8, d10: 10, d12: 12 };
@@ -26,15 +25,6 @@ export type AbilityKey = keyof CharacterStats['abilityScores'];
 interface BasicBonusValue {
   basic: number;
   bonus: number;
-}
-
-function getBasicBonusFinal(
-  value: number | BasicBonusValue | undefined,
-  defaultVal = 0
-): number {
-  if (value === undefined || value === null) return defaultVal;
-  if (typeof value === 'number') return value;
-  return (value.basic ?? 0) + (value.bonus ?? 0);
 }
 
 function getBasicValue(

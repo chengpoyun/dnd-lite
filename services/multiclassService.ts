@@ -1,6 +1,5 @@
 // 兼職系統服務 - 處理角色職業資料
 import { supabase } from '../lib/supabase'
-import type { CharacterClass, CharacterHitDicePools } from '../lib/supabase'
 import type { ClassInfo, HitDicePools } from '../types'
 import { formatClassDisplay, getPrimaryClass, getTotalLevel, calculateHitDiceTotals, getClassHitDie } from '../utils/classUtils'
 

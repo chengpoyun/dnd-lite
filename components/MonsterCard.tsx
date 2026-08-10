@@ -1,5 +1,5 @@
 import React from 'react';
-import type { CombatMonsterWithLogs, CombatDamageLog, ResistanceType } from '../lib/supabase';
+import type { CombatMonsterWithLogs, CombatDamageLog } from '../lib/supabase';
 import { getDamageTypeDisplay, RESISTANCE_ICONS, RESISTANCE_COLORS, DAMAGE_TYPES } from '../utils/damageTypes';
 import { ListCard } from './ui';
 

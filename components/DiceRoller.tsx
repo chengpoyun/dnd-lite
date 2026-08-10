@@ -149,7 +149,6 @@ export const DiceRoller: React.FC = () => {
             // 排序並決定保留哪些
             const sorted = [...allRolls].sort((a, b) => keepType === 'h' ? b - a : a - b);
             const kept = sorted.slice(0, keepCount);
-            const keptSet = new Set<number>();
             
             // 標記哪些骰子被保留（處理重複數字的情況）
             const rollsWithIndex = allRolls.map((val, idx) => ({ val, idx, kept: false }));

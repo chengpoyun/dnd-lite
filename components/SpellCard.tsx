@@ -1,6 +1,6 @@
 import React from 'react';
 import { CharacterSpell, getDisplayValues } from '../services/spellService';
-import { getSpellLevelText, getSchoolColor } from '../utils/spellUtils';
+import { getSchoolColor } from '../utils/spellUtils';
 
 interface SpellCardProps {
   characterSpell: CharacterSpell;

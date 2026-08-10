@@ -340,4 +340,3 @@ export interface CombatMonsterWithLogs extends CombatMonster {
 }
 
 // 從現有類型導入（向後相容）
-import type { CharacterStats } from '../types'

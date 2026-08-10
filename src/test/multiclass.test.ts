@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { MulticlassService } from '../../services/multiclassService'
 import type { ClassInfo, HitDicePools } from '../../types'
 

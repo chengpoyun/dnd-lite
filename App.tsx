@@ -23,7 +23,7 @@ const InfoPage = lazy(() => import('./components/InfoPage'));
 const AboutPage = lazy(() => import('./components/AboutPage'));
 
 import { CharacterStats } from './types';
-import { formatClassDisplay, getPrimaryClass, getTotalLevel, getClassHitDie } from './utils/classUtils';
+import { getClassHitDie } from './utils/classUtils';
 import { getFinalAbilityModifier, getCombatStatBonus } from './utils/characterAttributes';
 import { ABILITY_STR_TO_FULL } from './utils/characterConstants';
 import { withSaveGuard } from './utils/saveGuard';
@@ -32,7 +32,7 @@ import { isSpellcaster } from './utils/spellUtils';
 import { HybridDataManager } from './services/hybridDataManager';
 import { AnonymousService } from './services/anonymous';
 import { UserSettingsService } from './services/userSettings';
-import type { Character, CharacterAbilityScores, CharacterCurrentStats, CharacterCurrency, CharacterUpdateData, CharacterSkillProficiency, CharacterSavingThrow } from './lib/supabase';
+import type { Character, CharacterAbilityScores, CharacterCurrentStats, CharacterCurrency, CharacterUpdateData } from './lib/supabase';
 
 enum Tab {
   CHARACTER = 'character',
@@ -50,7 +50,6 @@ enum Tab {
   ABOUT = 'about'
 }
 
-type AppState = 'welcome' | 'conversion' | 'characterSelect' | 'main'
 type UserMode = 'authenticated' | 'anonymous'
 
 const AuthenticatedApp: React.FC = () => {
@@ -61,7 +60,6 @@ const AuthenticatedApp: React.FC = () => {
     setAppState,
     userMode,
     setUserMode,
-    needsConversion,
     setNeedsConversion,
     showSessionExpired,
     setShowSessionExpired,
@@ -124,7 +122,6 @@ const AuthenticatedApp: React.FC = () => {
   }, [activeTab])
 
   // 保存操作鎖和序列化機制
-  const saveTimeoutRef = React.useRef<NodeJS.Timeout | null>(null)
   
   // Session 驗證輔助函數
   const validateSessionBeforeSave = async (): Promise<boolean> => {
@@ -257,25 +254,6 @@ const AuthenticatedApp: React.FC = () => {
   }
 
   // 保存屬性額外調整值（寫入 character_ability_scores 的 *_bonus / *_modifier_bonus）
-  const saveAbilityBonuses = async (abilityBonuses: Record<string, number>, modifierBonuses: Record<string, number>) => {
-    return withSaveGuard({
-      currentCharacter,
-      isSaving,
-      validate: validateSessionBeforeSave,
-      setSaving: setIsSaving,
-      fn: async () => {
-        try {
-          const success = await HybridDataManager.updateAbilityBonuses(currentCharacter!.id, abilityBonuses, modifierBonuses)
-          if (success) console.log('✅ 屬性加成保存成功')
-          return success
-        } catch (error) {
-          console.error('❌ 屬性加成保存失敗:', error)
-          throw error
-        }
-      },
-    })
-  }
-
   // 保存 HP：當前、暫時、最大 HP basic（0=用公式）
   const saveHP = async (currentHP: number, temporaryHP?: number, maxHpBasic?: number) => {
     return withSaveGuard({
