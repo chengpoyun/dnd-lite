@@ -1,5 +1,4 @@
 import { vi, describe, it, expect, beforeEach } from 'vitest';
-import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { CombatView } from '../../components/CombatView';
 import { HybridDataManager } from '../../services/hybridDataManager';

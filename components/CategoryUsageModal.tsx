@@ -1,7 +1,7 @@
 /**
  * CategoryUsageModal - 編輯分類使用次數（動作/附贈/反應的剩餘與每回合最大）
  */
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Modal, ModalButton, ModalInput } from './ui/Modal';
 import { ModalSaveButton } from './ui/ModalSaveButton';
 import { LoadingOverlay } from './ui/LoadingOverlay';

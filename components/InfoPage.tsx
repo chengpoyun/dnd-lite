@@ -1,7 +1,7 @@
 /**
  * InfoPage - 「資訊」分頁：帳號層級的參考連結清單（同一登入/匿名身分下所有角色共用）
  */
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useToast } from '../hooks/useToast';
 import * as InfoLinkService from '../services/infoLinks';
 import type { InfoLinkUserContext } from '../services/infoLinks';

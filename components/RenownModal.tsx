@@ -1,7 +1,7 @@
 /**
  * RenownModal - 名聲（使用 / 累計）編輯
  */
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Modal, ModalButton, ModalInput } from './ui/Modal';
 import { ModalSaveButton } from './ui/ModalSaveButton';
 import { LoadingOverlay } from './ui/LoadingOverlay';

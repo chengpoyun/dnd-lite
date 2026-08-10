@@ -1,7 +1,6 @@
 /**
  * CurrencyModal - 金幣 (GP) 編輯
  */
-import React from 'react';
 import NumberEditModal from './NumberEditModal';
 import { formatDecimal } from '../utils/helpers';
 import { MODAL_LABEL_AMBER_CLASS, MODAL_BUTTON_APPLY_AMBER_CLASS } from '../styles/modalStyles';

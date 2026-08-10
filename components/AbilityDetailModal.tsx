@@ -2,7 +2,6 @@
  * AbilityDetailModal - 特殊能力詳細資訊彈窗
  */
 
-import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkBreaks from 'remark-breaks';
 import { Modal } from './ui/Modal';

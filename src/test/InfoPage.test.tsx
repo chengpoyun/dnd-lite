@@ -2,7 +2,6 @@
  * InfoPage - 資訊連結清單：載入、新增、編輯、刪除，連結以新分頁開啟
  */
 import { vi, describe, it, expect, beforeEach, beforeAll } from 'vitest';
-import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import InfoPage from '../../components/InfoPage';
 import * as InfoLinkService from '../../services/infoLinks';

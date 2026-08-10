@@ -2,7 +2,6 @@
  * ModalSaveButton - 儲存按鈕 loading 狀態（spinner + 儲存中…）
  */
 import { describe, it, expect, vi } from 'vitest';
-import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ModalSaveButton } from '../../components/ui/ModalSaveButton';

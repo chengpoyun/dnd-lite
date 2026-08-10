@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import React from 'react';
 import ItemsPage from '../../components/ItemsPage';
 import type { CharacterItem, GlobalItem } from '../../services/itemService';
 import * as ItemService from '../../services/itemService';

@@ -3,7 +3,7 @@
  * 第一列：名稱 + tags + 數量調整；其餘空間全部留給詳細訊息
  */
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkBreaks from 'remark-breaks';
 import { Modal } from './ui/Modal';

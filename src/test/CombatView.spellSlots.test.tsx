@@ -4,7 +4,6 @@
  * 且編輯 max 時換算為 max_uses_bonus 保存（basic 由等級自動計算，不應被覆蓋）。
  */
 import { vi, describe, it, expect, beforeEach } from 'vitest';
-import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { CombatView } from '../../components/CombatView';
 import { HybridDataManager } from '../../services/hybridDataManager';

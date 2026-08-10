@@ -2,7 +2,6 @@
  * CombatView - 預言學派法師「預言骰」整合測試
  */
 import { vi, describe, it, expect, beforeEach } from 'vitest';
-import React from 'react';
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import { CombatView } from '../../components/CombatView';
 import { HybridDataManager } from '../../services/hybridDataManager';

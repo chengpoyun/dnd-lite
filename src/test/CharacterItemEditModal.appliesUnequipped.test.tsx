@@ -3,7 +3,6 @@
  * 裝備類別另外提供「此物品無須裝備也有效果」子選項
  */
 import { vi, describe, it, expect, beforeEach } from 'vitest';
-import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { CharacterItemEditModal } from '../../components/CharacterItemEditModal';
 import type { CharacterItem } from '../../services/itemService';

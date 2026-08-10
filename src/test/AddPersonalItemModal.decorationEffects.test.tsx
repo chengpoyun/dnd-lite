@@ -3,7 +3,6 @@
  * 取代舊的通用「影響角色數值」區塊，改為武器插槽效果／護甲插槽效果各自輸入
  */
 import { vi, describe, it, expect, beforeEach } from 'vitest';
-import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { AddPersonalItemModal } from '../../components/AddPersonalItemModal';
 

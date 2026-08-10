@@ -3,7 +3,6 @@
  * 確保清空法術效果並按儲存時，updateCharacterSpell 會收到 description_override: null
  */
 import { vi, describe, it, expect, beforeEach } from 'vitest';
-import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import type { CharacterSpell, Spell } from '../../services/spellService';
 

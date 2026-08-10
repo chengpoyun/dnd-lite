@@ -1,7 +1,7 @@
 /**
  * CombatItemEditModal - 新增/編輯職業資源或動作項目（圖示、名稱、剩餘/最大、恢復週期）
  */
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Modal, ModalButton, ModalInput } from './ui/Modal';
 import { ModalSaveButton } from './ui/ModalSaveButton';
 import { LoadingOverlay } from './ui/LoadingOverlay';

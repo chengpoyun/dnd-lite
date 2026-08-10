@@ -4,6 +4,10 @@
 
 ---
 
+## 1.14.4
+
+- 整理：移除 88 個檔案裡多餘的 `import React from 'react'`。專案的 JSX transform 是 `react-jsx`，寫 JSX 不需要 React 在作用域內，這些 import 一直是多餘的。其中 74 個檔案整行刪除、14 個只拿掉 `React,` 保留具名 import。純機械性變更，無行為差異。
+
 ## 1.14.3
 
 - 整理：清掉 1.14.0 拆檔時留下的兩處死碼。`CombatView.tsx` 的 `DatabaseCombatItem` type import（用到它的五支對照函式都搬去 `utils/combatItemMapping.ts` 了）、以及 `CombatActionList` 宣告並解構卻從未使用的 `category` prop（連同四個呼叫端傳入的 `category="..."`）。兩者 tsc 都抓不到（`noUnusedLocals` 未開、type import 無 runtime 成本）。無行為變更。

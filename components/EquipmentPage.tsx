@@ -4,7 +4,7 @@
  * 共用：PageContainer、Title、Card、STYLES、combineStyles
  */
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useToast } from '../hooks/useToast';
 import * as ItemService from '../services/itemService';
 import type { CharacterItem } from '../services/itemService';

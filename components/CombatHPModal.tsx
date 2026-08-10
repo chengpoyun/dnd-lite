@@ -2,7 +2,7 @@
  * CombatHPModal - 編輯當前 HP、暫時生命、最大 HP（basic+bonus）
  * 左：當前 HP；右：暫時生命。最大 HP = 基礎值 + 其他加值；basic=0 時用公式，可重置。
  */
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Modal, ModalButton, ModalInput } from './ui/Modal';
 import { handleValueInput } from '../utils/helpers';
 import { MODAL_CONTAINER_CLASS, MODAL_BODY_TEXT_CLASS, MODAL_DESCRIPTION_CLASS, MODAL_BUTTON_CANCEL_CLASS, MODAL_BUTTON_RESET_CLASS } from '../styles/modalStyles';

@@ -2,7 +2,6 @@
  * EquipmentPage - 「戒指」section 改名「裝飾」，並新增「飾品」槽位測試
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import EquipmentPage from '../../components/EquipmentPage';
 import * as ItemService from '../../services/itemService';

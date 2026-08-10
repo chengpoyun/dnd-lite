@@ -3,7 +3,6 @@
  * 載入完成後自動開啟該道具的詳情 modal（等同點擊該道具卡片），並回報已消化避免重複開啟
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import ItemsPage from '../../components/ItemsPage';
 import * as ItemService from '../../services/itemService';

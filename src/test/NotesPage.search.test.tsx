@@ -3,7 +3,6 @@
  * 位於「筆記」標題列與「新增筆記」按鈕下方；依標題+內容過濾筆記列表。
  */
 import { vi, describe, it, expect, beforeEach } from 'vitest';
-import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import NotesPage from '../../components/NotesPage';
 import * as NoteService from '../../services/noteService';

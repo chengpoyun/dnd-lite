@@ -1,7 +1,6 @@
 /**
  * MulticlassAddModal - 新增單一兼職（選擇職業與等級）
  */
-import React from 'react';
 import { Modal, ModalButton } from './ui/Modal';
 import { MODAL_CONTAINER_CLASS, MODAL_BUTTON_CANCEL_CLASS, MODAL_FOOTER_BUTTONS_CLASS, SELECT_CLASS, MODAL_LABEL_SECONDARY_CLASS, MODAL_SECTION_CLASS, MODAL_FIELD_CLASS, MODAL_INPUT_NUMBER_LG_CLASS, MODAL_PREVIEW_BOX_CLASS, MODAL_BUTTON_APPLY_EMERALD_CLASS } from '../styles/modalStyles';
 

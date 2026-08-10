@@ -1,7 +1,6 @@
 /**
  * LongRestConfirmModal - 長休確認
  */
-import React from 'react';
 import { Modal, ModalButton } from './ui/Modal';
 import { MODAL_CONTAINER_CLASS, MODAL_BUTTON_CANCEL_CLASS, MODAL_FOOTER_BUTTONS_CLASS, MODAL_BUTTON_APPLY_INDIGO_CLASS, MODAL_DESCRIPTION_CLASS } from '../styles/modalStyles';
 

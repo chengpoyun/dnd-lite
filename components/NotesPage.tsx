@@ -3,7 +3,7 @@
  * 列表（新到舊、兩行預覽）＋ 單篇詳情（返回、編輯、自動儲存、刪除）；頂部 Tab 列保持顯示。
  */
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useToast } from '../hooks/useToast';
 import * as NoteService from '../services/noteService';
 import type { CharacterNote } from '../services/noteService';

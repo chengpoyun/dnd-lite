@@ -1,7 +1,7 @@
 /**
  * CustomRecordModal - 新增或編輯冒險紀錄（CustomRecord）
  */
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Modal, ModalButton } from './ui/Modal';
 import { ModalSaveButton } from './ui/ModalSaveButton';
 import { LoadingOverlay } from './ui/LoadingOverlay';

@@ -3,7 +3,6 @@
  * TDD：先寫測試，再實作表單與寫入。
  */
 import { vi, describe, it, expect, beforeEach } from 'vitest';
-import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import CombatItemEditModal, { type ItemEditValues } from '../../components/CombatItemEditModal';
 

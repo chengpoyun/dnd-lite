@@ -1,7 +1,6 @@
 /**
  * DowntimeModal - 修整期天數編輯
  */
-import React from 'react';
 import NumberEditModal from './NumberEditModal';
 import { MODAL_BUTTON_APPLY_AMBER_CLASS } from '../styles/modalStyles';
 

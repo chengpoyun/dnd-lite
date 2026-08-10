@@ -1,7 +1,6 @@
 /**
  * RestOptionsModal - 選擇休息方式（短休 / 長休 / 取消）
  */
-import React from 'react';
 import { Modal, ModalButton } from './ui/Modal';
 import { MODAL_CONTAINER_CLASS, MODAL_BUTTON_CANCEL_CLASS } from '../styles/modalStyles';
 

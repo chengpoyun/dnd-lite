@@ -1,7 +1,7 @@
 /**
  * InfoLinkFormModal - 新增／編輯資訊連結（僅標題與網址兩個欄位）
  */
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Modal, ModalButton } from './ui/Modal';
 import {
   MODAL_CONTAINER_CLASS,

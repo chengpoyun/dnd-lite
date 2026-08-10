@@ -3,7 +3,6 @@
  * 確保清空 description 並按儲存時，onSubmit 會收到 description_override: null
  */
 import { vi, describe, it, expect, beforeEach } from 'vitest';
-import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { CharacterItemEditModal } from '../../components/CharacterItemEditModal';
 import type { CharacterItem } from '../../services/itemService';

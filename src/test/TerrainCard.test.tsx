@@ -3,7 +3,6 @@
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import React from 'react';
 import { TerrainCard } from '../../components/TerrainCard';
 import type { TerrainDef, TierTable } from '../../types/terrainReward';
 

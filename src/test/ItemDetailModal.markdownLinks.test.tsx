@@ -4,7 +4,6 @@
  */
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import React from 'react';
 import ItemDetailModal from '../../components/ItemDetailModal';
 import type { CharacterItem } from '../../services/itemService';
 

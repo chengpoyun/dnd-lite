@@ -2,7 +2,7 @@
  * CombatStatEditModal - 戰鬥屬性編輯（攻擊命中、攻擊傷害、法術命中、法術豁免等）
  * 可選 segment bar（如力量/敏捷）+ 基礎值輸入 + 加值列表 + 公式備註
  */
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Modal, ModalButton, ModalInput } from './ui/Modal';
 import { SegmentBar, type SegmentBarOption } from './ui/SegmentBar';
 import { handleValueInput } from '../utils/helpers';

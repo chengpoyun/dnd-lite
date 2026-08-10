@@ -1,7 +1,6 @@
 /**
  * TerrainCard - 地形卡：名稱、地貌標籤、階級列（當前高亮）、可獲取物資表、獲取按鈕
  */
-import React from 'react';
 import { Card, Button } from './ui';
 import { STYLES, combineStyles } from '../styles/common';
 import { getTierForLevel, getColumnKeys, parseRewardCell } from '../utils/terrainReward';

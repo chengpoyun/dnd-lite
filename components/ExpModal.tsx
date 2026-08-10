@@ -1,7 +1,6 @@
 /**
  * ExpModal - 經驗值編輯，顯示當前等級與下一等級所需 EXP
  */
-import React from 'react';
 import { Modal, ModalButton, ModalInput } from './ui/Modal';
 import { handleDecimalInput } from '../utils/helpers';
 import { getLevelFromExp, getNextLevelExp } from '../utils/expLevelUtils';

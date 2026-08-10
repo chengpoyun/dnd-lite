@@ -2,7 +2,6 @@
  * LoadingOverlay - Modal 內儲存中蓋版（spinner + 文案）
  */
 import { describe, it, expect } from 'vitest';
-import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { LoadingOverlay } from '../../components/ui/LoadingOverlay';
 

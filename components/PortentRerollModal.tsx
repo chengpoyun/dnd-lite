@@ -2,7 +2,7 @@
  * PortentRerollModal - 長休後輸入新的預言骰數值
  * 不可透過背景點擊關閉，避免忘記輸入導致骰值卡在舊資料
  */
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Modal, ModalButton, ModalInput } from './ui/Modal';
 import { MODAL_CONTAINER_CLASS, MODAL_FOOTER_BUTTONS_CLASS, MODAL_DESCRIPTION_CLASS, MODAL_LABEL_CLASS, MODAL_BUTTON_APPLY_AMBER_CLASS } from '../styles/modalStyles';
 

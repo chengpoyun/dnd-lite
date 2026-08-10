@@ -2,7 +2,6 @@
  * 經驗值 / 修整期 / 名聲 / 金幣 四個彈窗：支援小數與負數輸入
  */
 import { describe, it, expect, vi } from 'vitest';
-import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import ExpModal from '../../components/ExpModal';
 import DowntimeModal from '../../components/DowntimeModal';

@@ -4,7 +4,6 @@
  * 原本的加值表標題改回「屬性豁免、技能加值」，內部不再重複顯示其他效果
  */
 import { vi, describe, it, expect, beforeEach } from 'vitest';
-import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { CombatView } from '../../components/CombatView';
 import { HybridDataManager } from '../../services/hybridDataManager';

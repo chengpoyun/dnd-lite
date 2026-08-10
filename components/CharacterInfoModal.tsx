@@ -1,7 +1,6 @@
 /**
  * CharacterInfoModal - 編輯角色名稱與職業/等級（含兼職列表）
  */
-import React from 'react';
 import { Modal, ModalButton } from './ui/Modal';
 import { ModalSaveButton } from './ui/ModalSaveButton';
 import { LoadingOverlay } from './ui/LoadingOverlay';

@@ -2,7 +2,6 @@
  * NumberEditModal - 單一數字編輯（basic 值），支援運算式輸入
  * 預留 bonusValue / bonusSources 供之後顯示加值來源
  */
-import React from 'react';
 import { Modal, ModalButton, ModalInput } from './ui/Modal';
 import { handleValueInput, handleDecimalInput } from '../utils/helpers';
 import { FinalTotalRow } from './ui/FinalTotalRow';

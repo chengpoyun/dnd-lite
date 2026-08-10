@@ -1,7 +1,6 @@
 /**
  * ShortRestDetailModal - 短休詳情（生命骰池、擲骰療傷、完成短休）
  */
-import React from 'react';
 import { Modal, ModalButton } from './ui/Modal';
 import { MODAL_BUTTON_APPLY_EMERALD_CLASS } from '../styles/modalStyles';
 import type { HitDicePools } from '../types';

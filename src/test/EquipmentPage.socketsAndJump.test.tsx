@@ -3,7 +3,6 @@
  * 與 ↪ 跳轉按鈕（下拉選單右側，跳到道具頁並開啟該道具詳情）
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import React from 'react';
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import EquipmentPage from '../../components/EquipmentPage';
 import * as ItemService from '../../services/itemService';
