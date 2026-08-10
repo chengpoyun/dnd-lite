@@ -3,7 +3,7 @@
  * 第一列：名稱 + tags + 數量調整；其餘空間全部留給詳細訊息
  */
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkBreaks from 'remark-breaks';
 import { Modal } from './ui/Modal';
@@ -36,15 +36,23 @@ export default function ItemDetailModal({
   onToggleFavorite,
 }: ItemDetailModalProps) {
   const [quantityUpdating, setQuantityUpdating] = useState(false);
+  // 輸入中的暫存值：打字過程不寫 DB，等失焦或按 Enter 才送出
+  const [quantityDraft, setQuantityDraft] = useState('');
+
+  const currentQuantity = characterItem?.quantity ?? 0;
+
+  // 外部數量變更（含自己送出後 refetch 回來的結果）時同步回輸入框
+  useEffect(() => {
+    setQuantityDraft(String(currentQuantity));
+  }, [currentQuantity]);
 
   if (!characterItem) return null;
 
   const display = getDisplayValues(characterItem);
   const qty = characterItem.quantity;
 
-  const handleQuantityDelta = async (delta: number) => {
+  const commitQuantity = async (next: number) => {
     if (!onQuantityChange) return;
-    const next = Math.max(0, qty + delta);
     if (next === qty) return;
     setQuantityUpdating(true);
     try {
@@ -52,6 +60,23 @@ export default function ItemDetailModal({
     } finally {
       setQuantityUpdating(false);
     }
+  };
+
+  const handleQuantityDelta = async (delta: number) => {
+    await commitQuantity(Math.max(0, qty + delta));
+  };
+
+  /** 送出輸入框的值；無效就還原成目前數量 */
+  const submitQuantityDraft = async () => {
+    // 不用 setNormalValue：它把「小於下限」也回報成 numericValue 0，
+    // 這裡需要區分「輸入 0」與「輸入 -5」——前者要存、後者要還原。
+    const parsed = Number.parseInt(quantityDraft.trim(), 10);
+    if (!Number.isFinite(parsed) || parsed < 0) {
+      setQuantityDraft(String(qty));
+      return;
+    }
+    setQuantityDraft(String(parsed));
+    await commitQuantity(parsed);
   };
 
   return (
@@ -95,9 +120,22 @@ export default function ItemDetailModal({
               >
                 −
               </button>
-              <span className="min-w-[1.5rem] text-center text-slate-200 font-medium">
-                {qty}
-              </span>
+              <input
+                type="text"
+                inputMode="numeric"
+                aria-label="數量"
+                value={quantityDraft}
+                disabled={quantityUpdating || !onQuantityChange}
+                onChange={(e) => setQuantityDraft(e.target.value)}
+                onBlur={submitQuantityDraft}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    submitQuantityDraft();
+                  }
+                }}
+                className="w-12 text-center text-slate-200 font-medium bg-slate-800 border border-slate-700 rounded-md py-1 outline-none focus:border-amber-600 disabled:opacity-50"
+              />
               <button
                 type="button"
                 onClick={() => handleQuantityDelta(1)}
