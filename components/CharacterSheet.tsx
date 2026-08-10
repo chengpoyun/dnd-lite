@@ -793,12 +793,13 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
           scoreBasic={stats.abilityScores[activeAbilityKey]}
           scoreBonusSources={(() => {
             // 只顯示「來源明細」，不重複顯示總計（extraData.abilityBonuses 已是這些來源的加總）
+            //
+            // 只能讀 abilityScores。原本這裡會在沒有 abilityScores 時退而取
+            // abilityModifiers，導致「只加調整值」的來源（如力量證明）被當成能力值加值，
+            // 最終屬性值比角色頁多算一份，連帶把基礎調整值也墊高。
             const fromAbilities =
               stats.extraData?.statBonusSources?.flatMap((src) => {
-                const v =
-                  src.abilityScores?.[activeAbilityKey] ??
-                  src.abilityModifiers?.[activeAbilityKey] ??
-                  0;
+                const v = src.abilityScores?.[activeAbilityKey] ?? 0;
                 return v !== 0
                   ? [{ label: src.name, value: v }]
                   : [];

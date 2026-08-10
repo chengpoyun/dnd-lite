@@ -4,6 +4,10 @@
 
 ---
 
+## 1.15.3
+
+- 修正：屬性詳細彈窗把「只加調整值」的來源誤算進「能力值」，導致最終屬性值、最終調整值、最終豁免全部比角色頁多算一份。組能力值加值清單時，若某來源沒有 `abilityScores` 會退而取它的 `abilityModifiers`，於是像「力量證明」（只有 `abilityModifiers: str/dex/con +1`）這種道具會同時出現在兩個區塊。以實際角色為例：力量基礎 6 + 食人魔力量手套 +13 = 19，彈窗卻顯示 20，基礎調整值也跟著從 `getModifier(19)`＝+4 變成 `getModifier(20)`＝+5。角色頁一直是對的（走 `getFinalAbilityScore`），只有彈窗自行加總才出錯。同一個來源影響的敏捷、體質也一併修正。
+
 ## 1.15.2
 
 - 整理：`ModalInput` 的 `autoFocus` prop 整個移除，連同 6 個傳入它卻毫無作用的呼叫端（`CombatHPModal`、`CombatItemEditModal`、`CombatStatEditModal`、`ExpModal`、`NumberEditModal`、`RenownModal`）。彈窗不自動聚焦是刻意的（手機上會跳軟鍵盤蓋掉半個畫面），改成「傳了就編譯錯誤」比「執行期默默忽略」更擋得住後人誤改。`ModalInput.test.tsx` 同步改為驗證 DOM 層的最終行為。無使用者可見變更。
