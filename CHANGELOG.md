@@ -4,6 +4,10 @@
 
 ---
 
+## 1.15.1
+
+- 文件：`ModalInput` 的 `autoFocus` 無效**是刻意的**，已與專案擁有者確認並寫進 `components/ui/Modal.tsx` 的註解與 `CLAUDE.md`。手機優先的專案不希望彈窗一開就跳軟鍵盤蓋掉半個畫面。1.15.0 當時把它記成「推測」並留了恢復建議，容易被後人當成 bug 修掉，現已改成明確的「請不要修好它」。無程式行為變更。
+
 ## 1.15.0
 
 - 移除：已被取代的 `MulticlassAddModal` 整條路徑（元件檔、`CharacterSheet` 的 `openMulticlassModal` 與 `addNewClass`、`newClassName` / `newClassLevel` state、渲染區塊，以及 `activeModal` 型別裡的 `'multiclass'`）。它是唯一把 `activeModal` 設成 `'multiclass'` 的地方卻沒有任何呼叫端，**等於這個彈窗已經打不開**；兼職的新增／移除／編輯早就整個搬到「編輯角色資料」彈窗（`CharacterInfoModal`）。已在真實 Chrome（412×915、dev server）確認該彈窗的 `+` 新增職業、`×` 移除職業都正常。
