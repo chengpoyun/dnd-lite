@@ -102,7 +102,6 @@ export default function CombatItemEditModal({
               onChange={setName}
               placeholder="名稱"
               className="col-span-2"
-              autoFocus
             />
           </div>
           <div className="grid grid-cols-2 gap-3">

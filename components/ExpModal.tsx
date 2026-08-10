@@ -44,7 +44,6 @@ export default function ExpModal({
             onChange={onChange}
             placeholder={placeholder}
             className="text-3xl font-mono text-center text-emerald-400 w-full"
-            autoFocus
           />
         </div>
         <div className="text-center mt-2 mb-4">

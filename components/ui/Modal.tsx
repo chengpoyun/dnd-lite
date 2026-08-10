@@ -94,16 +94,6 @@ interface ModalInputProps {
   placeholder?: string;
   type?: 'text' | 'number';
   className?: string;
-  /**
-   * ⚠️ 這個 prop 不會有任何作用，**而且是刻意的**（已與專案擁有者確認）。
-   *
-   * 本專案手機優先，自動聚焦會馬上彈出軟鍵盤蓋掉半個畫面，所以下方 input
-   * 寫死 `autoFocus={false}`。目前有 7 個 modal 仍傳入此 prop，全部無效。
-   *
-   * **請不要「修好」它** —— 把它接上去會讓那 7 個彈窗一開啟就跳鍵盤，
-   * 這正是要避免的行為。
-   */
-  autoFocus?: boolean;
 }
 
 export const ModalInput: React.FC<ModalInputProps> = ({
@@ -119,6 +109,8 @@ export const ModalInput: React.FC<ModalInputProps> = ({
       value={value}
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
+      // 刻意不自動聚焦：本專案手機優先，一開彈窗就跳軟鍵盤會蓋掉半個畫面。
+      // ModalInputProps 也刻意不提供 autoFocus prop，傳了會是編譯錯誤。
       autoFocus={false}
       className={`w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-white outline-none ${className}`}
     />

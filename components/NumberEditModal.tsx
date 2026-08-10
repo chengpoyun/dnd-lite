@@ -112,7 +112,6 @@ export default function NumberEditModal({
             onChange={onChange}
             placeholder={placeholder}
             className={inputClassName}
-            autoFocus
           />
         </div>
         {description && (

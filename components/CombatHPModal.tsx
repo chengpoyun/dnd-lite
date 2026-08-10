@@ -110,7 +110,6 @@ export default function CombatHPModal({
               value={tempCurrent}
               onChange={setTempCurrent}
               className="text-2xl font-mono text-center w-full"
-              autoFocus
             />
           </div>
           <div>

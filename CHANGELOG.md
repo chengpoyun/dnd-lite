@@ -4,6 +4,11 @@
 
 ---
 
+## 1.15.2
+
+- 整理：`ModalInput` 的 `autoFocus` prop 整個移除，連同 6 個傳入它卻毫無作用的呼叫端（`CombatHPModal`、`CombatItemEditModal`、`CombatStatEditModal`、`ExpModal`、`NumberEditModal`、`RenownModal`）。彈窗不自動聚焦是刻意的（手機上會跳軟鍵盤蓋掉半個畫面），改成「傳了就編譯錯誤」比「執行期默默忽略」更擋得住後人誤改。`ModalInput.test.tsx` 同步改為驗證 DOM 層的最終行為。無使用者可見變更。
+- **待決**：`InfoLinkFormModal`（資訊頁的新增／編輯連結彈窗）的 `autoFocus` 是掛在原生 `<input>` 上而不是 `ModalInput`，**它是真的會生效的** —— 開啟該彈窗時標題欄位會自動聚焦並跳出鍵盤，與其他彈窗的行為不一致。這次沒有動它，因為移除會改變實際行為。
+
 ## 1.15.1
 
 - 文件：`ModalInput` 的 `autoFocus` 無效**是刻意的**，已與專案擁有者確認並寫進 `components/ui/Modal.tsx` 的註解與 `CLAUDE.md`。手機優先的專案不希望彈窗一開就跳軟鍵盤蓋掉半個畫面。1.15.0 當時把它記成「推測」並留了恢復建議，容易被後人當成 bug 修掉，現已改成明確的「請不要修好它」。無程式行為變更。

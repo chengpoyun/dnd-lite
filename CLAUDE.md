@@ -27,7 +27,7 @@ D&D 冒險者助手 — Vite + React 19 + TypeScript 的手機優先角色管理
 - **先寫測試再實作，不是建議是規則**：動手寫功能碼前，先寫會失敗的對應測試（單元/元件測試）。使用者說「開始實作」只代表設計討論結束，**不代表可以跳過先寫測試這一步**；完整流程見 `docs/ai-workflow.md`。
 - **等級/職業變更後必須 refetch**：依等級或職業計算的數值來自 `extra_data.statBonusSources`；改動等級或職業並寫入 DB 後，要呼叫 `refetchCharacterStats`，否則 max HP、加值列表等會沿用舊值（細節見 `docs/code-architecture.md` §2.1）。
 - **路徑別名**：`@` → 專案根目錄（vite 與 vitest 皆設定）。
-- **`ModalInput` 的 `autoFocus` 是刻意無效的，不要「修好」它**：`components/ui/Modal.tsx` 裡的 input 寫死 `autoFocus={false}`。本專案手機優先，自動聚焦會馬上彈出軟鍵盤蓋掉半個畫面。目前有 7 個 modal 仍傳入此 prop，全部無效且應維持無效。
+- **彈窗輸入框刻意不自動聚焦**：`components/ui/Modal.tsx` 的 `ModalInput` 寫死 `autoFocus={false}`，且 `ModalInputProps` **刻意不提供 `autoFocus` prop**（傳了是編譯錯誤）。本專案手機優先，一開彈窗就跳軟鍵盤會蓋掉半個畫面。行為由 `src/test/ModalInput.test.tsx` 鎖住，不要「修好」它。
 - **TypeScript 已開 `strict`**：`npx tsc --noEmit` 必須是零錯誤，別用 `any` 或 `@ts-ignore` 繞過。catch 到的變數型別是 `unknown`，要取錯誤訊息一律用 `utils/common.ts` 的 `getErrorMessage(error)`（它同時處理 `Error` 實例與 Supabase 那種 `{ message }` 純物件），不要寫 `error.message`。
 
 ## 架構速覽

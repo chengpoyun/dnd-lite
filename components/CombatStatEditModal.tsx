@@ -115,7 +115,6 @@ export default function CombatStatEditModal<T extends string = string>({
             onChange={setValue}
             placeholder={basicValue.toString()}
             className="text-2xl font-mono flex-1"
-            autoFocus
           />
         </div>
         {description && (

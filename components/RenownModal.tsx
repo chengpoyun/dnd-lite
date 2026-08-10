@@ -59,7 +59,6 @@ export default function RenownModal({
               onChange={onChangeUsed}
               placeholder={currentUsed.toString()}
               className="w-full text-2xl font-mono text-center text-white"
-              autoFocus
             />
             <div className="flex items-center justify-center gap-2 mt-1">
               <span className="text-[14px] text-slate-600 font-bold">{currentUsed}</span>
