@@ -1170,7 +1170,6 @@ export const CombatView: React.FC<CombatViewProps> = ({
             isOpen={isItemEditModalOpen}
             onClose={() => setIsItemEditModalOpen(false)}
             mode={editingItemId ? 'edit' : 'add'}
-            category={activeCategory}
             initialValues={itemEditInitialValues}
             onSave={handleSaveItemValues}
             showDescription={editingItemId ? showDescriptionForEdit : true}

@@ -4,6 +4,14 @@
 
 ---
 
+## 1.15.0
+
+- 移除：已被取代的 `MulticlassAddModal` 整條路徑（元件檔、`CharacterSheet` 的 `openMulticlassModal` 與 `addNewClass`、`newClassName` / `newClassLevel` state、渲染區塊，以及 `activeModal` 型別裡的 `'multiclass'`）。它是唯一把 `activeModal` 設成 `'multiclass'` 的地方卻沒有任何呼叫端，**等於這個彈窗已經打不開**；兼職的新增／移除／編輯早就整個搬到「編輯角色資料」彈窗（`CharacterInfoModal`）。已在真實 Chrome（412×915、dev server）確認該彈窗的 `+` 新增職業、`×` 移除職業都正常。
+- **開啟 `noUnusedLocals` 與 `noUnusedParameters`**：`tsc --noEmit` 現在會擋下沒人用的變數、import 與參數。這類死碼（如 `handleDelete`、`ActionList` 的 `category`）先前得靠人工 review 才抓得到。
+- 修正：`CombatItemEditModal` 移除宣告了卻沒使用的 `category` prop 與其呼叫端。
+- 修正：`AddPersonalSpellModal` 的 `colors`、`MonsterCard` 的 `logIndex` 兩個未使用的 callback 參數。
+- 文件：`ModalInput` 的 `autoFocus` prop 加上警語。**它目前完全無效** —— 元件內寫死 `autoFocus={false}`，但有 7 個 modal 傳入這個 prop，全部靜默失效。手機自動聚焦會彈出鍵盤蓋掉半個畫面，推測是刻意關掉的，因此不改行為只補說明。
+
 ## 1.14.5
 
 - 整理：清掉 `noUnusedLocals` 揪出的其餘死碼（1.14.4 清完 React import 後剩 81 個）。57 個是未使用的 import／型別匯入；其餘是真正沒人呼叫的東西：`MonstersPage` 的 `handleAddMonster`（實際在用的是複數的 `handleAddMonsters`）與 `handleCombatEnded`、`WelcomePage` 的 `getRedirectUrl`（`services/auth.ts` 有自己的一份在用）、`App.tsx` 的 `saveAbilityBonuses` 與 `saveTimeoutRef`、`CombatView` 的 `hasHitDiceAvailable` 與整組沒人讀的 `selectedHitDie` state、`detailedCharacter` 的 4 支私有方法、`CombatItemEditModal` 的 `CATEGORY_LABELS`、`characterAttributes` 的 `getBasicBonusFinal` 等。

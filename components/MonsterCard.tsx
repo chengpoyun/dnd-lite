@@ -135,7 +135,7 @@ const MonsterCard: React.FC<MonsterCardProps> = ({
           <div className="space-y-2 max-h-48 overflow-y-auto">
             {groupedDamageLogs.map((group, groupIndex) => (
               <div key={groupIndex} className="bg-slate-900 rounded-lg overflow-hidden">
-                {group.map((log, logIndex) => {
+                {group.map((log) => {
                   const icon = RESISTANCE_ICONS[log.resistance_type];
                   const color = RESISTANCE_COLORS[log.resistance_type];
                   

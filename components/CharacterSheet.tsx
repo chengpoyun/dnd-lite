@@ -14,7 +14,6 @@ import DowntimeModal from './DowntimeModal';
 import RenownModal from './RenownModal';
 import CustomRecordModal from './CustomRecordModal';
 import CharacterInfoModal from './CharacterInfoModal';
-import MulticlassAddModal from './MulticlassAddModal';
 import CombatHPModal from './CombatHPModal';
 
 interface CharacterSheetProps {
@@ -51,7 +50,7 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
   onSaveExtraData,
   onSaveAvatarUrl
 }) => {
-  const [activeModal, setActiveModal] = useState<'info' | 'multiclass' | 'currency' | 'downtime' | 'renown' | 'exp' | 'skill_detail' | 'ability_detail' | 'add_record' | 'edit_record' | null>(null);
+  const [activeModal, setActiveModal] = useState<'info' | 'currency' | 'downtime' | 'renown' | 'exp' | 'skill_detail' | 'ability_detail' | 'add_record' | 'edit_record' | null>(null);
   const [selectedSkill, setSelectedSkill] = useState<{ name: string; base: keyof CharacterStats['abilityScores'] } | null>(null);
   const [activeAbilityKey, setActiveAbilityKey] = useState<AbilityKey | null>(null);
   const [selectedRecord, setSelectedRecord] = useState<CustomRecord | null>(null);
@@ -69,8 +68,6 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
       subclassName: c.subclassName
     })) || [{ id: 'class-0', name: stats.class, level: stats.level, isPrimary: true }]
   );
-  const [newClassName, setNewClassName] = useState('');
-  const [newClassLevel, setNewClassLevel] = useState('1');
   const [tempGPValue, setTempGPValue] = useState('');
   const [tempExpValue, setTempExpValue] = useState('');
   const [tempDowntimeValue, setTempDowntimeValue] = useState('');
@@ -162,87 +159,6 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
     setSelectedRecord(record);
     setNewRecord({ name: record.name, value: record.value, note: record.note || '' });
     setActiveModal('edit_record');
-  };
-
-  // 兼職管理函數
-  const openMulticlassModal = () => {
-    // 初始化編輯狀態
-    setEditClasses(
-      stats.classes?.map((c, index) => ({
-        id: `class-${index}`,
-        name: c.name,
-        level: c.level,
-        isPrimary: c.isPrimary,
-        subclassName: c.subclassName
-      })) || [{ id: 'class-0', name: stats.class, level: stats.level, isPrimary: true }]
-    );
-    setActiveModal('multiclass');
-  };
-
-  const addNewClass = async () => {
-    const level = parseInt(newClassLevel) || 1;
-    if (!newClassName || level < 1) return;
-    
-    const newId = `class-${Date.now()}`;
-    const updatedClasses = [
-      ...editClasses,
-      { id: newId, name: newClassName, level: level, isPrimary: false }
-    ];
-    
-    setEditClasses(updatedClasses);
-    setNewClassName('');
-    setNewClassLevel('1');
-    
-    const totalLevel = updatedClasses.reduce((sum, c) => sum + c.level, 0);
-    const primaryClass = updatedClasses.find(c => c.isPrimary) || updatedClasses[0];
-    const validClasses = updatedClasses.map(c => ({
-      ...c,
-      level: Math.max(1, parseInt(String(c.level)) || 1)
-    }));
-    
-    try {
-      if (onSaveCharacterBasicInfo) {
-        const basicSuccess = await onSaveCharacterBasicInfo(stats.name, primaryClass.name, totalLevel);
-        if (!basicSuccess) {
-          console.error('❌ 基本信息保存失敗');
-          return;
-        }
-      }
-      
-      // 持久化到 character_classes 並重新計算生命骰池
-      if (characterId) {
-        const { MulticlassService } = await import('../services/multiclassService');
-        const replaceSuccess = await MulticlassService.replaceCharacterClasses(characterId, validClasses);
-        if (!replaceSuccess) {
-          return;
-        }
-        await MulticlassService.recalculateHitDicePools(characterId);
-      }
-
-      if (onSaveExtraData) {
-        await onSaveExtraData({ ...stats.extraData, classes: validClasses });
-      }
-      
-      const newClassesWithHitDie = validClasses.map(c => ({
-        id: c.id,
-        name: c.name,
-        level: c.level,
-        hitDie: getClassHitDie(c.name),
-        isPrimary: c.isPrimary
-      }));
-      const newHitDicePools = calculateHitDiceTotals(newClassesWithHitDie);
-      
-      setStats(prev => ({ 
-        ...prev, 
-        class: primaryClass.name,
-        level: totalLevel,
-        classes: newClassesWithHitDie,
-        hitDicePools: newHitDicePools
-      }));
-      setActiveModal(null);
-    } catch (error) {
-      console.error('❌ 新增兼職保存錯誤:', error);
-    }
   };
 
   // 簡化的職業編輯函數
@@ -993,20 +909,6 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
           totalLevel={editClasses.reduce((sum, c) => sum + (parseInt(String(c.level)) || 0), 0)}
           onSave={saveInfoWithClasses}
           isSaving={isSavingInfo}
-        />
-      )}
-
-      {activeModal === 'multiclass' && (
-        <MulticlassAddModal
-          isOpen
-          onClose={() => setActiveModal(null)}
-          newClassName={newClassName}
-          newClassLevel={newClassLevel}
-          onNewClassNameChange={setNewClassName}
-          onNewClassLevelChange={setNewClassLevel}
-          availableClasses={getAvailableClasses()}
-          usedClassNames={editClasses.map((c) => c.name)}
-          onAdd={addNewClass}
         />
       )}
 

@@ -26,7 +26,6 @@ interface CombatItemEditModalProps {
   isOpen: boolean;
   onClose: () => void;
   mode: 'add' | 'edit';
-  category: ItemEditCategory;
   initialValues: ItemEditValues;
   onSave: (values: ItemEditValues) => void | Promise<void>;
   /** 是否顯示描述欄位（自定義項目新增時為 true，編輯自定義項目時為 true） */
@@ -37,7 +36,6 @@ export default function CombatItemEditModal({
   isOpen,
   onClose,
   mode,
-  category,
   initialValues,
   onSave,
   showDescription = false,

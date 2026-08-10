@@ -94,6 +94,11 @@ interface ModalInputProps {
   placeholder?: string;
   type?: 'text' | 'number';
   className?: string;
+  /**
+   * ⚠️ 目前無效：下方 input 寫死 `autoFocus={false}`，所以傳這個 prop 不會有任何作用。
+   * 手機上自動聚焦會直接彈出鍵盤、蓋掉半個畫面，推測是刻意關掉的。
+   * 要恢復的話請一併確認 7 個傳入此 prop 的 modal 在手機上的觀感。
+   */
   autoFocus?: boolean;
 }
 
@@ -103,7 +108,6 @@ export const ModalInput: React.FC<ModalInputProps> = ({
   placeholder = '',
   type = 'text',
   className = '',
-  autoFocus = false
 }) => {
   return (
     <input

@@ -153,7 +153,7 @@ export const AddPersonalSpellModal: React.FC<AddPersonalSpellModalProps> = ({
                   SPELL_SCHOOLS[formData.school as keyof typeof SPELL_SCHOOLS]?.text || 'text-slate-200'
                 }`}
               >
-                {Object.entries(SPELL_SCHOOLS).map(([school, colors]) => (
+                {Object.entries(SPELL_SCHOOLS).map(([school]) => (
                   <option
                     key={school}
                     value={school}
