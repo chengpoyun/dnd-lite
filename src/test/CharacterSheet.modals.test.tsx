@@ -158,7 +158,8 @@ describe('CharacterSheet - Modal 開啟與儲存', () => {
 
   it('新增紀錄 modal：開啟、填寫名稱與數值、新增後應呼叫 onSaveExtraData 並 setStats', async () => {
     render(<CharacterSheet {...defaultProps} />);
-    fireEvent.click(screen.getByText('+'));
+    // 用 aria-label 定位：組織區塊也有一顆「＋」，只找文字會有兩個而失敗
+    fireEvent.click(screen.getByRole('button', { name: '新增紀錄' }));
     await waitFor(() => {
       expect(screen.getByText('新增紀錄')).toBeInTheDocument();
     });

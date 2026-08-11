@@ -15,6 +15,21 @@ import RenownModal from './RenownModal';
 import CustomRecordModal from './CustomRecordModal';
 import CharacterInfoModal from './CharacterInfoModal';
 import CombatHPModal from './CombatHPModal';
+import OrganizationModal from './OrganizationModal';
+import { Modal, ModalButton } from './ui/Modal';
+import {
+  MODAL_CONTAINER_CLASS,
+  MODAL_BUTTON_CANCEL_CLASS,
+  MODAL_FOOTER_BUTTONS_CLASS,
+} from '../styles/modalStyles';
+import {
+  ORGANIZATIONS,
+  getGatherMultiplier,
+  getNextThreshold,
+  getOrgMultiplier,
+  getOrgRank,
+  getOrganizationDef,
+} from '../utils/organizations';
 
 interface CharacterSheetProps {
   stats: CharacterStats;
@@ -50,7 +65,9 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
   onSaveExtraData,
   onSaveAvatarUrl
 }) => {
-  const [activeModal, setActiveModal] = useState<'info' | 'currency' | 'downtime' | 'renown' | 'exp' | 'skill_detail' | 'ability_detail' | 'add_record' | 'edit_record' | null>(null);
+  const [activeModal, setActiveModal] = useState<'info' | 'currency' | 'downtime' | 'renown' | 'exp' | 'skill_detail' | 'ability_detail' | 'add_record' | 'edit_record' | 'join_org' | null>(null);
+  /** 正在編輯聲望的組織 id；null 代表沒開 */
+  const [editingOrgId, setEditingOrgId] = useState<string | null>(null);
   const [selectedSkill, setSelectedSkill] = useState<{ name: string; base: keyof CharacterStats['abilityScores'] } | null>(null);
   const [activeAbilityKey, setActiveAbilityKey] = useState<AbilityKey | null>(null);
   const [selectedRecord, setSelectedRecord] = useState<CustomRecord | null>(null);
@@ -313,7 +330,7 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
       customRecords: updatedCustomRecords,
       attacks: stats.attacks || []
     }
-    
+
     // onSaveExtraData 是選填 prop（本檔其他地方都有防護，這三處原本漏了，
     // 沒帶這個 prop 時會直接 TypeError）
     const success = await onSaveExtraData?.(extraData)
@@ -322,9 +339,36 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
     } else {
       console.error('❌ 冒險紀錄保存失敗')
     }
-    
+
     setActiveModal(null);
   };
+
+  // === 組織 ===
+  const joinedOrgs = stats.organizations ?? [];
+  const gatherMultiplier = getGatherMultiplier(stats);
+  const availableOrgs = ORGANIZATIONS.filter((o) => !joinedOrgs.some((j) => j.id === o.id));
+
+  /** 寫入 organizations：本地狀態與 DB 一起更新，避免 reload 後不一致 */
+  const persistOrganizations = async (next: Array<{ id: string; reputation: number }>) => {
+    setStats((prev) => ({ ...prev, organizations: next }));
+    const success = await onSaveExtraData?.({
+      downtime: stats.downtime || 0,
+      renown: stats.renown || { used: 0, total: 0 },
+      customRecords: stats.customRecords || [],
+      attacks: stats.attacks || [],
+      organizations: next,
+    });
+    if (!success) console.error('❌ 組織保存失敗');
+  };
+
+  const handleJoinOrg = (id: string) =>
+    persistOrganizations([...joinedOrgs, { id, reputation: 0 }]);
+
+  const handleSaveOrgReputation = (id: string, reputation: number) =>
+    persistOrganizations(joinedOrgs.map((o) => (o.id === id ? { ...o, reputation } : o)));
+
+  const handleLeaveOrg = (id: string) =>
+    persistOrganizations(joinedOrgs.filter((o) => o.id !== id));
 
   const handleUpdateRecord = async () => {
     if (!selectedRecord || !newRecord.name || !newRecord.value) return;
@@ -642,12 +686,81 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
         </div>
       </div>
 
+      {/* 組織：放在冒險紀錄上方（冒險紀錄的自訂項目會無限增加） */}
+      <div className="bg-slate-900/40 rounded-lg border border-slate-800 p-2 space-y-2 shadow-inner">
+        <div className="flex justify-between items-center border-b border-slate-800 pb-1.5">
+          <h3 className="text-base font-black text-slate-400 uppercase tracking-tighter">組織</h3>
+          {availableOrgs.length > 0 && (
+            <Button
+              variant="secondary"
+              onClick={() => setActiveModal('join_org')}
+              aria-label="加入組織"
+              className="w-8 h-8 min-w-8 min-h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-amber-500 font-bold text-lg p-0"
+            >
+              +
+            </Button>
+          )}
+        </div>
+        <div className="flex flex-col gap-2">
+          {joinedOrgs.length === 0 && (
+            <div className="text-center text-slate-500 text-base py-2">尚未加入任何組織</div>
+          )}
+          {joinedOrgs.map((joined) => {
+            const def = getOrganizationDef(joined.id);
+            if (!def) return null;
+            const rank = getOrgRank(joined.reputation, def);
+            const multiplier = getOrgMultiplier(rank, def);
+            const next = getNextThreshold(joined.reputation, def);
+            const prevThreshold = rank > 0 ? def.thresholds[rank - 1] : 0;
+            const progress =
+              next === null
+                ? 100
+                : Math.max(
+                    0,
+                    Math.min(100, ((joined.reputation - prevThreshold) / (next - prevThreshold)) * 100)
+                  );
+            return (
+              <div
+                key={joined.id}
+                onClick={() => setEditingOrgId(joined.id)}
+                className="bg-slate-800/50 p-2 rounded border border-slate-700/50 active:bg-slate-700 transition-colors cursor-pointer flex flex-col gap-1.5"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex flex-col min-w-0">
+                    <span className="text-base font-bold text-slate-300 truncate">{def.name}</span>
+                    <span className="text-sm text-slate-500">聲望 {joined.reputation}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 flex-shrink-0">
+                    <span className="text-base font-black text-amber-500">階級 {rank}</span>
+                    <span className="text-sm font-black text-white bg-amber-700 rounded-full px-2 py-0.5">
+                      ×{multiplier}
+                    </span>
+                  </div>
+                </div>
+                <div className="h-1.5 rounded-full bg-slate-700 overflow-hidden">
+                  <div className="h-full bg-amber-500" style={{ width: `${progress}%` }} />
+                </div>
+                <span className="text-sm text-slate-500 font-mono">
+                  {next === null ? '已達最高階級' : `距階級 ${rank + 1} 還差 ${next - joined.reputation}`}
+                </span>
+              </div>
+            );
+          })}
+          {joinedOrgs.length > 0 && (
+            <div className="text-center text-slate-500 text-sm py-0.5">
+              採集倍數 <span className="text-amber-500 font-black">×{gatherMultiplier}</span>（取最高）
+            </div>
+          )}
+        </div>
+      </div>
+
       <div className="bg-slate-900/40 rounded-lg border border-slate-800 p-2 space-y-2 shadow-inner">
         <div className="flex justify-between items-center border-b border-slate-800 pb-1.5">
           <h3 className="text-base font-black text-slate-400 uppercase tracking-tighter">冒險紀錄</h3>
           <Button
             variant="secondary"
             onClick={openAddRecordModal}
+            aria-label="新增紀錄"
             className="w-8 h-8 min-w-8 min-h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-amber-500 font-bold text-lg p-0"
           >
             +
@@ -982,6 +1095,52 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
               attacks: stats.attacks || [],
             });
           }}
+        />
+      )}
+
+      {/* 加入組織：只列出還沒加入的 */}
+      {activeModal === 'join_org' && (
+        <Modal isOpen onClose={() => setActiveModal(null)} size="xs">
+          <div className={MODAL_CONTAINER_CLASS}>
+            <h2 className="text-xl font-bold mb-5">加入組織</h2>
+            <div className="flex flex-col gap-2">
+              {availableOrgs.map((org) => (
+                <button
+                  key={org.id}
+                  type="button"
+                  onClick={async () => {
+                    setActiveModal(null);
+                    await handleJoinOrg(org.id);
+                  }}
+                  className="flex items-center justify-between bg-slate-800/50 p-3 rounded border border-slate-700/50 active:bg-slate-700 transition-colors text-left"
+                >
+                  <span className="text-base font-bold text-slate-300">{org.name}</span>
+                  <span className="text-sm text-slate-500 font-mono">{org.thresholds.length} 個階級</span>
+                </button>
+              ))}
+            </div>
+            <div className={`${MODAL_FOOTER_BUTTONS_CLASS} pt-4`}>
+              <ModalButton
+                variant="secondary"
+                onClick={() => setActiveModal(null)}
+                className={MODAL_BUTTON_CANCEL_CLASS}
+              >
+                取消
+              </ModalButton>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* 編輯聲望 */}
+      {editingOrgId && getOrganizationDef(editingOrgId) && (
+        <OrganizationModal
+          isOpen
+          onClose={() => setEditingOrgId(null)}
+          def={getOrganizationDef(editingOrgId)!}
+          reputation={joinedOrgs.find((o) => o.id === editingOrgId)?.reputation ?? 0}
+          onSave={(rep) => handleSaveOrgReputation(editingOrgId, rep)}
+          onLeave={() => handleLeaveOrg(editingOrgId)}
         />
       )}
 
