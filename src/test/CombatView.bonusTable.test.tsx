@@ -61,7 +61,6 @@ describe('CombatView - 加值表功能測試', () => {
       savingProficiencies: [],
       downtime: 0,
       renown: { used: 0, total: 0 },
-      prestige: { org: '', level: 0, rankName: '' },
       attacks: [],
       currency: { cp: 0, sp: 0, ep: 0, gp: 0, pp: 0 },
       customRecords: []
@@ -92,7 +91,6 @@ describe('CombatView - 加值表功能測試', () => {
       savingProficiencies: [],
       downtime: 0,
       renown: { used: 0, total: 0 },
-      prestige: { org: '', level: 0, rankName: '' },
       attacks: [],
       currency: { cp: 0, sp: 0, ep: 0, gp: 0, pp: 0 },
       customRecords: []
@@ -131,7 +129,6 @@ describe('CombatView - 加值表功能測試', () => {
       savingProficiencies: [],
       downtime: 0,
       renown: { used: 0, total: 0 },
-      prestige: { org: '', level: 0, rankName: '' },
       attacks: [],
       currency: { cp: 0, sp: 0, ep: 0, gp: 0, pp: 0 },
       customRecords: []
@@ -173,7 +170,6 @@ describe('CombatView - 加值表功能測試', () => {
       savingProficiencies: [],
       downtime: 0,
       renown: { used: 0, total: 0 },
-      prestige: { org: '', level: 0, rankName: '' },
       attacks: [],
       currency: { cp: 0, sp: 0, ep: 0, gp: 0, pp: 0 },
       customRecords: []
@@ -213,7 +209,6 @@ describe('CombatView - 加值表功能測試', () => {
       savingProficiencies,
       downtime: 0,
       renown: { used: 0, total: 0 },
-      prestige: { org: '', level: 0, rankName: '' },
       attacks: [],
       currency: { cp: 0, sp: 0, ep: 0, gp: 0, pp: 0 },
       customRecords: []
@@ -243,7 +238,6 @@ describe('CombatView - 加值表功能測試', () => {
       savingProficiencies: ['str', 'con'],
       downtime: 0,
       renown: { used: 0, total: 0 },
-      prestige: { org: '', level: 0, rankName: '' },
       attacks: [],
       currency: { cp: 0, sp: 0, ep: 0, gp: 0, pp: 0 },
       customRecords: []
@@ -281,7 +275,6 @@ describe('CombatView - 加值表功能測試', () => {
       savingProficiencies: [],
       downtime: 0,
       renown: { used: 0, total: 0 },
-      prestige: { org: '', level: 0, rankName: '' },
       attacks: [],
       currency: { cp: 0, sp: 0, ep: 0, gp: 0, pp: 0 },
       customRecords: []
@@ -323,7 +316,6 @@ describe('CombatView - 加值表功能測試', () => {
       savingProficiencies: [],
       downtime: 0,
       renown: { used: 0, total: 0 },
-      prestige: { org: '', level: 0, rankName: '' },
       attacks: [],
       currency: { cp: 0, sp: 0, ep: 0, gp: 0, pp: 0 },
       customRecords: []
@@ -357,7 +349,6 @@ describe('CombatView - 加值表功能測試', () => {
       savingProficiencies: [],
       downtime: 0,
       renown: { used: 0, total: 0 },
-      prestige: { org: '', level: 0, rankName: '' },
       attacks: [],
       currency: { cp: 0, sp: 0, ep: 0, gp: 0, pp: 0 },
       customRecords: []

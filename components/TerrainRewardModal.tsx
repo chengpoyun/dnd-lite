@@ -154,7 +154,6 @@ export function TerrainRewardModal({
       const extraData = {
         downtime: stats.downtime ?? 0,
         renown: stats.renown ?? { used: 0, total: 0 },
-        prestige: stats.prestige ?? { org: '', level: 0, rankName: '' },
         customRecords: updated,
         attacks: stats.attacks ?? [],
       };

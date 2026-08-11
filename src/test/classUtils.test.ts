@@ -496,7 +496,6 @@ describe('classUtils - D&D 5E 職業工具函數', () => {
       savingProficiencies: ["str", "con"],
       downtime: 10,
       renown: { used: 2, total: 8 },
-      prestige: { org: "哈潑同盟", level: 1, rankName: "披風" },
       customRecords: [],
       attacks: [],
       currency: { cp: 0, sp: 0, ep: 0, gp: 100, pp: 0 }
@@ -557,7 +556,6 @@ describe('classUtils - D&D 5E 職業工具函數', () => {
           savingProficiencies: ["str", "con"],
           downtime: 0,
           renown: { used: 0, total: 0 },
-          prestige: { org: "", level: 0, rankName: "" },
           customRecords: [],
           attacks: [],
           currency: { cp: 0, sp: 0, ep: 0, gp: 150, pp: 0 }
@@ -590,7 +588,6 @@ describe('classUtils - D&D 5E 職業工具函數', () => {
           savingProficiencies: ["int", "wis"],
           downtime: 0,
           renown: { used: 0, total: 0 },
-          prestige: { org: "", level: 0, rankName: "" },
           customRecords: [],
           attacks: [],
           currency: { cp: 0, sp: 0, ep: 0, gp: 0, pp: 0 }
@@ -662,7 +659,6 @@ describe('classUtils - D&D 5E 職業工具函數', () => {
         savingProficiencies: ["str", "con"],
         downtime: 15,
         renown: { used: 1, total: 5 },
-        prestige: { org: "哈潑同盟", level: 1, rankName: "披風" },
         customRecords: [],
         attacks: [],
         currency: { cp: 0, sp: 0, ep: 0, gp: 250, pp: 1 },

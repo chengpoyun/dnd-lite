@@ -31,7 +31,6 @@ const mockStats: CharacterStats = {
   savingProficiencies: ['str'],
   downtime: 0,
   renown: { used: 0, total: 0 },
-  prestige: { org: '', level: 0, rankName: '' },
   attacks: [],
   currency: { cp: 0, sp: 0, ep: 0, gp: 150, pp: 0 },
   avatarUrl: undefined,

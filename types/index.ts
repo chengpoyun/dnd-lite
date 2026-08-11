@@ -6,6 +6,15 @@ export interface WeaponAttack {
   type: string;
 }
 
+/**
+ * 角色在單一組織的狀態（存於 extra_data.organizations）。
+ * 只存聲望——階級與素材倍數由 utils/organizations.ts 即時算出，避免兩份資料不同步。
+ */
+export interface CharacterOrganization {
+  id: string;
+  reputation: number;
+}
+
 export interface CustomRecord {
   id: string;
   name: string;
@@ -61,11 +70,11 @@ export interface CharacterStats {
     used: number;
     total: number;
   };
-  prestige: {
-    org: string;
-    level: number;
-    rankName: string;
-  };
+  /**
+   * 已加入的組織與各自聲望；階級與倍數由 utils/organizations.ts 即時算出，不存 DB。
+   * 選填：角色可以不加入任何組織，且此欄位之前的資料本來就沒有。
+   */
+  organizations?: CharacterOrganization[];
   attacks: WeaponAttack[];
   currency: {
     cp: number;

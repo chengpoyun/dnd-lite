@@ -747,7 +747,7 @@ export class DetailedCharacterService {
           : (existingEd as any)?.renown && typeof (existingEd as any).renown === 'object'
             ? { used: Number((existingEd as any).renown.used) || 0, total: Number((existingEd as any).renown.total) || 0 }
             : { used: 0, total: 0 },
-        prestige: extraData?.prestige && typeof extraData.prestige === 'object' ? extraData.prestige : (existingEd as any)?.prestige && typeof (existingEd as any).prestige === 'object' ? (existingEd as any).prestige : { org: '', level: 0, rankName: '' },
+        organizations: Array.isArray(extraData?.organizations) ? extraData.organizations : Array.isArray((existingEd as any)?.organizations) ? (existingEd as any).organizations : [],
         customRecords: Array.isArray(extraData?.customRecords) ? extraData.customRecords : Array.isArray((existingEd as any)?.customRecords) ? (existingEd as any).customRecords : [],
         attacks: Array.isArray(extraData?.attacks) ? extraData.attacks : Array.isArray((existingEd as any)?.attacks) ? (existingEd as any).attacks : [],
         attack_hit_ability: extraData?.attack_hit_ability ?? extraData?.attackHitAbility ?? (existingEd as any)?.attack_hit_ability ?? 'str',
@@ -1022,7 +1022,6 @@ export class DetailedCharacterService {
       })(),
       downtime: 0,
       renown: { used: 0, total: 0 },
-      prestige: { org: '', level: 0, rankName: '' },
       attacks: [],
       currency: {
         cp: fullData.currency.copper,

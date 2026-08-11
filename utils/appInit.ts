@@ -23,7 +23,7 @@ export const INITIAL_STATS: CharacterStats = {
   savingProficiencies: [],
   downtime: 0,
   renown: { used: 0, total: 0 },
-  prestige: { org: "", level: 0, rankName: "" },
+  organizations: [],
   attacks: [],
   currency: { cp: 0, sp: 0, ep: 0, gp: 50, pp: 0 },
   avatarUrl: undefined,
@@ -145,7 +145,8 @@ export function buildCharacterStats(characterData: any, previousStats: Character
         renownObj && typeof renownObj === 'object' && typeof renownObj.used === 'number' && typeof renownObj.total === 'number'
           ? { used: renownObj.used, total: renownObj.total }
           : INITIAL_STATS.renown;
-      const prestige = ed?.prestige && typeof ed.prestige === 'object' ? ed.prestige : INITIAL_STATS.prestige;
+      // 讀不回來就會「reload 後資料不見」——寫入白名單與這裡必須成對出現
+      const organizations = Array.isArray(ed?.organizations) ? ed.organizations : INITIAL_STATS.organizations;
       const customRecords = Array.isArray(ed?.customRecords) ? ed.customRecords : INITIAL_STATS.customRecords;
       const attacks = Array.isArray(ed?.attacks) ? ed.attacks : INITIAL_STATS.attacks;
       // 屬性值／調整值加值一律來自 extra_data（由 getFullCharacter 聚合能力／物品 stat_bonuses 與既有 extra_data 寫入）
@@ -161,7 +162,7 @@ export function buildCharacterStats(characterData: any, previousStats: Character
       return {
         downtime,
         renown,
-        prestige,
+        organizations,
         customRecords,
         extraData: {
           abilityBonuses,

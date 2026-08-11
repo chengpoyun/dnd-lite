@@ -310,7 +310,6 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
     const extraData = {
       downtime: stats.downtime || 0,
       renown: stats.renown || { used: 0, total: 0 },
-      prestige: stats.prestige || { org: '', level: 0, rankName: '' },
       customRecords: updatedCustomRecords,
       attacks: stats.attacks || []
     }
@@ -343,7 +342,6 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
     const extraData = {
       downtime: stats.downtime || 0,
       renown: stats.renown || { used: 0, total: 0 },
-      prestige: stats.prestige || { org: '', level: 0, rankName: '' },
       customRecords: updatedCustomRecords,
       attacks: stats.attacks || []
     }
@@ -374,7 +372,6 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
     const extraData = {
       downtime: stats.downtime || 0,
       renown: stats.renown || { used: 0, total: 0 },
-      prestige: stats.prestige || { org: '', level: 0, rankName: '' },
       customRecords: updatedCustomRecords,
       attacks: stats.attacks || []
     }
@@ -957,7 +954,6 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
               ...stats.extraData,
               downtime: v,
               renown: stats.renown || { used: 0, total: 0 },
-              prestige: stats.prestige || { org: '', level: 0, rankName: '' },
               customRecords: stats.customRecords || [],
               attacks: stats.attacks || [],
             });
@@ -982,7 +978,6 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
               ...stats.extraData,
               downtime: stats.downtime || 0,
               renown: { used, total },
-              prestige: stats.prestige || { org: '', level: 0, rankName: '' },
               customRecords: stats.customRecords || [],
               attacks: stats.attacks || [],
             });

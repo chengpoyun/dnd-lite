@@ -19,7 +19,6 @@ const mockStats: CharacterStats = {
   savingProficiencies: ['str', 'con'],
   downtime: 5,
   renown: { used: 2, total: 8 },
-  prestige: { org: "冒險者公會", level: 1, rankName: "見習冒險者" },
   attacks: [],
   currency: { cp: 10, sp: 25, ep: 0, gp: 150, pp: 2 },
   avatarUrl: undefined,

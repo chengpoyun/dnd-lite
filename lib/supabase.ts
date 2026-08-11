@@ -130,7 +130,7 @@ export interface CharacterCurrentStats {
   extra_data?: {
     downtime?: number
     renown?: { used: number; total: number }
-    prestige?: { org: string; level: number; rankName: string }
+    organizations?: Array<{ id: string; reputation: number }>
     customRecords?: Array<{ id: string; name: string; value: string; note?: string }>
     attacks?: Array<{ name: string; bonus: number; damage: string; type: string }>
   }
