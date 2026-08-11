@@ -10,6 +10,7 @@ import { STYLES, combineStyles } from '../styles/common';
 import { getFinalSkillBonus } from '../utils/characterAttributes';
 import { getTierForLevel, getRewardFromTable, getRewardsForCategoryInTier, getBackupSkillsForCategory } from '../utils/terrainReward';
 import { computeRollResults, getNextDowngradeTier } from '../utils/terrainRewardFlow';
+import { getGatherMultiplier } from '../utils/organizations';
 import type { TerrainDef, TierKey, TierTable, ParsedReward } from '../types/terrainReward';
 import type { CharacterStats } from '../types';
 import type { CustomRecord } from '../types';
@@ -94,6 +95,9 @@ export function TerrainRewardModal({
     }
     setStep('roll_result');
   }, [attemptsInput, dc, skillBonus, currentTable]);
+
+  // 組織階級帶來的素材倍數；顯示與寫入都用乘完的數量
+  const gatherMultiplier = getGatherMultiplier(stats);
 
   const addRewardToInventory = useCallback(
     async (name: string, quantity: number): Promise<boolean> => {
@@ -189,7 +193,7 @@ export function TerrainRewardModal({
     const item = successRewards[successIndex];
     if (!item) return;
     setIsSubmitting(true);
-    const ok = await addRewardToInventory(item.reward.name, item.reward.quantity);
+    const ok = await addRewardToInventory(item.reward.name, item.reward.quantity * gatherMultiplier);
     setIsSubmitting(false);
     if (!ok) return;
     if (successIndex + 1 >= successRewards.length) {
@@ -302,7 +306,7 @@ export function TerrainRewardModal({
     const reward = pickedFailureReward ?? failurePickOptions[0];
     if (!reward) return;
     setIsSubmitting(true);
-    const ok = await addRewardToInventory(reward.name, reward.quantity);
+    const ok = await addRewardToInventory(reward.name, reward.quantity * gatherMultiplier);
     setIsSubmitting(false);
     if (!ok) return;
     setPickedFailureReward(null);
@@ -377,7 +381,7 @@ export function TerrainRewardModal({
           <>
             <p className={combineStyles(STYLES.text.subtitle, 'mb-2')}>成功獎勵 ({successIndex + 1}/{successRewards.length})</p>
             <p className={STYLES.text.bodySmall}>擲出 X={currentSuccessItem.x}, Y={currentSuccessItem.y} → 獲得</p>
-            <p className={combineStyles(STYLES.text.emphasis, 'my-2')}>{currentSuccessItem.reward.name} × {currentSuccessItem.reward.quantity}</p>
+            <p className={combineStyles(STYLES.text.emphasis, 'my-2')}>{currentSuccessItem.reward.name} × {currentSuccessItem.reward.quantity * gatherMultiplier}</p>
             <button type="button" className={combineStyles(BUTTON_PRIMARY_CLASS, 'w-full')} onClick={confirmSuccessReward} disabled={isSubmitting}>
               確認加入物品欄
             </button>
@@ -454,7 +458,7 @@ export function TerrainRewardModal({
                     pickedFailureReward?.name === r.name ? STYLES.choiceChip.selected : STYLES.choiceChip.unselected
                   )}
                 >
-                  {r.name}{r.quantity > 1 ? ` × ${r.quantity}` : ''}
+                  {r.name}{r.quantity * gatherMultiplier > 1 ? ` × ${r.quantity * gatherMultiplier}` : ''}
                 </button>
               ))}
             </div>

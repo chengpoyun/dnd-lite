@@ -29,6 +29,7 @@ import { ABILITY_STR_TO_FULL } from './utils/characterConstants';
 import { withSaveGuard } from './utils/saveGuard';
 import { buildBasicInfoCharacterUpdate, buildExpCharacterUpdate, buildAvatarCharacterUpdate } from './utils/characterUpdate';
 import { isSpellcaster } from './utils/spellUtils';
+import { getGatherMultiplier } from './utils/organizations';
 import { HybridDataManager } from './services/hybridDataManager';
 import { AnonymousService } from './services/anonymous';
 import { UserSettingsService } from './services/userSettings';
@@ -899,6 +900,7 @@ const AuthenticatedApp: React.FC = () => {
             <Suspense fallback={<PageLoadingFallback message="載入道具頁面..." />}>
               <ItemsPage
                 characterId={currentCharacter?.id || ''}
+                gatherMultiplier={getGatherMultiplier(stats)}
                 onCharacterDataChanged={refetchCharacterStats}
                 initialDetailItemId={pendingItemDetailId}
                 onInitialDetailConsumed={handleItemDetailConsumed}

@@ -102,9 +102,11 @@ interface ItemsPageProps {
   initialDetailItemId?: string | null;
   /** 自動開啟詳情處理完畢後呼叫（不論是否找到道具），供呼叫端清除待開啟狀態 */
   onInitialDetailConsumed?: () => void;
+  /** 組織階級帶來的素材倍數；手動新增 MH素材 時可選擇套用 */
+  gatherMultiplier?: number;
 }
 
-export default function ItemsPage({ characterId, onCharacterDataChanged, initialDetailItemId, onInitialDetailConsumed }: ItemsPageProps) {
+export default function ItemsPage({ characterId, onCharacterDataChanged, initialDetailItemId, onInitialDetailConsumed, gatherMultiplier = 1 }: ItemsPageProps) {
   const { showSuccess, showError } = useToast();
 
   const [items, setItems] = useState<CharacterItem[]>([]);
@@ -515,6 +517,7 @@ export default function ItemsPage({ characterId, onCharacterDataChanged, initial
         isOpen={isAddPersonalModalOpen}
         onClose={closeAddPersonalModal}
         onSubmit={handleAddPersonalItem}
+        gatherMultiplier={gatherMultiplier}
         initialName={addPersonalInitialName}
         initialCategory={
           selectedCategory !== 'all' && selectedCategory !== 'magic' && selectedCategory !== 'favorite'

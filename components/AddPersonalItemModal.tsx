@@ -23,6 +23,8 @@ interface AddPersonalItemModalProps {
   initialName?: string;
   /** 預填類別（例如從物品頁面當前篩選帶入） */
   initialCategory?: ItemCategory;
+  /** 組織階級帶來的素材倍數；僅 MH素材 會顯示套用開關 */
+  gatherMultiplier?: number;
 }
 
 export const AddPersonalItemModal: React.FC<AddPersonalItemModalProps> = ({
@@ -31,10 +33,14 @@ export const AddPersonalItemModal: React.FC<AddPersonalItemModalProps> = ({
   onSubmit,
   initialName,
   initialCategory,
+  gatherMultiplier = 1,
 }) => {
   const [name, setName] = useState('');
   const [category, setCategory] = useState<ItemCategory>('裝備');
   const [description, setDescription] = useState('');
+  const [quantity, setQuantity] = useState('1');
+  /** 手動新增的素材多半也是採集來的，所以預設套用；隊友分的素材可以關掉 */
+  const [applyMultiplier, setApplyMultiplier] = useState(true);
   const [isMagic, setIsMagic] = useState(false);
   const [equipmentKind, setEquipmentKind] = useState<string>('');
   const [decorationSlots, setDecorationSlots] = useState(0);
@@ -82,6 +88,12 @@ export const AddPersonalItemModal: React.FC<AddPersonalItemModalProps> = ({
     return { note: trimmedNote, stat_bonuses: hasBonusValue ? bonus : undefined };
   };
 
+  /** 只有 MH素材 顯示數量與倍數開關；其他類別維持原本行為（固定 1 個） */
+  const showMultiplier = category === 'MH素材';
+  const parsedPreview = Number.parseInt(quantity.trim(), 10);
+  const baseForPreview = Number.isFinite(parsedPreview) && parsedPreview > 0 ? parsedPreview : 1;
+  const previewQuantity = applyMultiplier ? baseForPreview * gatherMultiplier : baseForPreview;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
@@ -89,11 +101,13 @@ export const AddPersonalItemModal: React.FC<AddPersonalItemModalProps> = ({
 
     setIsSubmitting(true);
     try {
+      const parsedQty = Number.parseInt(quantity.trim(), 10);
+      const baseQty = Number.isFinite(parsedQty) && parsedQty > 0 ? parsedQty : 1;
       const data: CreateCharacterItemData = {
         name: name.trim(),
         category,
         description: description.trim() || undefined,
-        quantity: 1,
+        quantity: showMultiplier && applyMultiplier ? baseQty * gatherMultiplier : baseQty,
         is_magic: isMagic,
       };
       if (category === '裝備') {
@@ -298,6 +312,34 @@ export const AddPersonalItemModal: React.FC<AddPersonalItemModalProps> = ({
                     <StatBonusEditor value={armorEffectBonus} onChange={setArmorEffectBonus} />
                   )}
                 </div>
+              )}
+            </div>
+          )}
+          {/* 數量與組織倍數：只有 MH素材 需要（採集來的素材才吃倍數） */}
+          {showMultiplier && (
+            <div>
+              <label className="block text-[14px] text-slate-400 mb-2" htmlFor="add-item-quantity">數量</label>
+              <input
+                id="add-item-quantity"
+                type="text"
+                inputMode="numeric"
+                value={quantity}
+                onChange={(e) => setQuantity(e.target.value)}
+                className="w-full bg-slate-800 rounded-lg border border-slate-700 p-3 text-slate-200 text-center font-mono focus:outline-none focus:border-amber-500"
+              />
+              {gatherMultiplier > 1 && (
+                <label className="flex items-center gap-2 text-[14px] text-slate-200 mt-2">
+                  <input
+                    type="checkbox"
+                    checked={applyMultiplier}
+                    onChange={(e) => setApplyMultiplier(e.target.checked)}
+                    className="w-4 h-4 accent-amber-500"
+                  />
+                  <span>
+                    套用組織倍數 ×{gatherMultiplier} → 實得{' '}
+                    <b className="text-amber-500">{previewQuantity}</b> 個
+                  </span>
+                </label>
               )}
             </div>
           )}
