@@ -23,10 +23,10 @@ describe('組織定義', () => {
   it('五個組織的門檻與倍數模式與規格一致', () => {
     expect(ORGANIZATIONS.map((o) => [o.id, o.thresholds.length, o.multiplierMode])).toEqual([
       ['hunters-guild', 4, 'standard'],
-      ['royal-paleontology', 8, 'standard'],
+      ['royal-paleontology', 7, 'standard'],
       ['talon-society', 3, 'talon'],
       ['wikadmi-academy', 5, 'standard'],
-      ['spiral-council', 7, 'standard'],
+      ['spiral-council', 5, 'standard'],
     ]);
   });
 

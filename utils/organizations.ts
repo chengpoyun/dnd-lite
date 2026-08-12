@@ -28,17 +28,12 @@ export const ORGANIZATIONS: OrganizationDef[] = [
   {
     id: 'royal-paleontology',
     name: '皇家古生物學院',
-    thresholds: [1, 3, 10, 25, 50, 80, 100, 120],
+    thresholds: [1, 3, 10, 25, 50, 80, 100],
     multiplierMode: 'standard',
   },
   { id: 'talon-society', name: '塔龍協會', thresholds: [1, 10, 25], multiplierMode: 'talon' },
   { id: 'wikadmi-academy', name: '威卡德米學院', thresholds: [1, 3, 10, 25, 50], multiplierMode: 'standard' },
-  {
-    id: 'spiral-council',
-    name: '螺旋委員會',
-    thresholds: [1, 3, 10, 25, 50, 80, 100],
-    multiplierMode: 'standard',
-  },
+  { id: 'spiral-council', name: '螺旋委員會', thresholds: [1, 10, 25, 50, 100], multiplierMode: 'standard' },
 ];
 
 export function getOrganizationDef(id: string): OrganizationDef | undefined {
