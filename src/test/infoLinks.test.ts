@@ -43,9 +43,9 @@ describe('infoLinks - getInfoLinks', () => {
     expect(result.links).toEqual(existing);
   });
 
-  it('匿名帳號清單為空時，自動補上預設的異常狀態說明連結', async () => {
+  it('匿名帳號清單為空時，自動補上全部預設連結（入口網 + 異常狀態說明）', async () => {
     const { supabase } = await import('../../lib/supabase');
-    let insertedRow: any = null;
+    let insertedRows: any = null;
 
     vi.mocked(supabase.from).mockImplementation((table: string) => {
       if (table === 'info_links') {
@@ -55,12 +55,14 @@ describe('infoLinks - getInfoLinks', () => {
               order: () => Promise.resolve({ data: [], error: null }),
             }),
           }),
-          insert: (row: any) => {
-            insertedRow = row;
+          insert: (rows: any) => {
+            insertedRows = rows;
             return {
-              select: () => ({
-                single: () => Promise.resolve({ data: { id: 'seeded-1', ...row }, error: null }),
-              }),
+              select: () =>
+                Promise.resolve({
+                  data: rows.map((row: any, i: number) => ({ id: `seeded-${i}`, ...row })),
+                  error: null,
+                }),
             };
           },
         } as any;
@@ -71,20 +73,30 @@ describe('infoLinks - getInfoLinks', () => {
     const result = await getInfoLinks({ isAuthenticated: false, anonymousId: 'anon_1' });
 
     expect(result.success).toBe(true);
-    expect(result.links).toHaveLength(1);
-    expect(result.links?.[0].title).toBe('異常狀態說明');
-    expect(insertedRow).toMatchObject({
-      anonymous_id: 'anon_1',
-      is_anonymous: true,
-      title: '異常狀態說明',
-      url: 'https://5etools.vercel.app/conditionsdiseases.html',
-    });
+    expect(result.links?.map((l) => l.url)).toEqual([
+      'https://5etools.vercel.app/conditionsdiseases.html',
+      'https://woofname.github.io/Magelan/',
+    ]);
+    expect(insertedRows).toEqual([
+      {
+        anonymous_id: 'anon_1',
+        is_anonymous: true,
+        title: '異常狀態說明',
+        url: 'https://5etools.vercel.app/conditionsdiseases.html',
+      },
+      {
+        anonymous_id: 'anon_1',
+        is_anonymous: true,
+        title: 'TRPG 跑團工具入口網',
+        url: 'https://woofname.github.io/Magelan/',
+      },
+    ]);
   });
 
   it('登入帳號用 user_id 查詢與補預設值，不使用 anonymous_id', async () => {
     const { supabase } = await import('../../lib/supabase');
     let eqCalledWith: [string, string] | null = null;
-    let insertedRow: any = null;
+    let insertedRows: any = null;
 
     vi.mocked(supabase.from).mockImplementation((table: string) => {
       if (table === 'info_links') {
@@ -95,12 +107,14 @@ describe('infoLinks - getInfoLinks', () => {
               return { order: () => Promise.resolve({ data: [], error: null }) };
             },
           }),
-          insert: (row: any) => {
-            insertedRow = row;
+          insert: (rows: any) => {
+            insertedRows = rows;
             return {
-              select: () => ({
-                single: () => Promise.resolve({ data: { id: 'seeded-2', ...row }, error: null }),
-              }),
+              select: () =>
+                Promise.resolve({
+                  data: rows.map((row: any, i: number) => ({ id: `seeded-${i}`, ...row })),
+                  error: null,
+                }),
             };
           },
         } as any;
@@ -111,7 +125,34 @@ describe('infoLinks - getInfoLinks', () => {
     await getInfoLinks({ isAuthenticated: true, userId: 'user-1' });
 
     expect(eqCalledWith).toEqual(['user_id', 'user-1']);
-    expect(insertedRow).toMatchObject({ user_id: 'user-1', is_anonymous: false });
+    expect(insertedRows).toHaveLength(2);
+    insertedRows.forEach((row: any) => {
+      expect(row).toMatchObject({ user_id: 'user-1', is_anonymous: false });
+      expect(row.anonymous_id).toBeUndefined();
+    });
+  });
+
+  it('補預設值失敗時回傳空清單，不讓整個資訊頁載入失敗', async () => {
+    const { supabase } = await import('../../lib/supabase');
+
+    vi.mocked(supabase.from).mockImplementation((table: string) => {
+      if (table === 'info_links') {
+        return {
+          select: () => ({
+            eq: () => ({ order: () => Promise.resolve({ data: [], error: null }) }),
+          }),
+          insert: () => ({
+            select: () => Promise.resolve({ data: null, error: { message: 'DB error' } }),
+          }),
+        } as any;
+      }
+      return {} as any;
+    });
+
+    const result = await getInfoLinks({ isAuthenticated: false, anonymousId: 'anon_1' });
+
+    expect(result.success).toBe(true);
+    expect(result.links).toEqual([]);
   });
 });
 

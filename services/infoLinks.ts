@@ -12,30 +12,33 @@ export interface InfoLinkUserContext {
   anonymousId?: string;
 }
 
-/** 帳號第一次使用、目前一筆連結都沒有時，自動補上的預設連結 */
-const DEFAULT_INFO_LINK = {
-  title: '異常狀態說明',
-  url: 'https://5etools.vercel.app/conditionsdiseases.html',
-};
+/**
+ * 全站共用的預設連結：帳號第一次使用、一筆連結都沒有時整組補上。
+ * 只在「完全沒有連結」時補，所以使用者刪掉之後不會又被塞回來。
+ * 既有帳號則以一次性 SQL 補資料（見 CHANGELOG 1.17.1），不在這裡做自動補齊。
+ */
+const DEFAULT_INFO_LINKS = [
+  { title: '異常狀態說明', url: 'https://5etools.vercel.app/conditionsdiseases.html' },
+  { title: 'TRPG 跑團工具入口網', url: 'https://woofname.github.io/Magelan/' },
+];
 
-async function insertDefaultInfoLink(
+async function insertDefaultInfoLinks(
   userContext: InfoLinkUserContext
-): Promise<{ success: boolean; link?: InfoLink; error?: string }> {
-  const insertData = userContext.isAuthenticated && userContext.userId
-    ? { user_id: userContext.userId, is_anonymous: false, ...DEFAULT_INFO_LINK }
-    : { anonymous_id: userContext.anonymousId, is_anonymous: true, ...DEFAULT_INFO_LINK };
+): Promise<{ success: boolean; links?: InfoLink[]; error?: string }> {
+  const scope = userContext.isAuthenticated && userContext.userId
+    ? { user_id: userContext.userId, is_anonymous: false }
+    : { anonymous_id: userContext.anonymousId, is_anonymous: true };
 
   const { data, error } = await supabase
     .from('info_links')
-    .insert(insertData)
-    .select()
-    .single();
+    .insert(DEFAULT_INFO_LINKS.map((link) => ({ ...scope, ...link })))
+    .select();
 
   if (error) {
     console.error('建立預設資訊連結失敗:', error);
     return { success: false, error: error.message };
   }
-  return { success: true, link: data };
+  return { success: true, links: data ?? [] };
 }
 
 export async function getInfoLinks(
@@ -57,12 +60,12 @@ export async function getInfoLinks(
       return { success: true, links: data };
     }
 
-    // 帳號目前沒有任何連結：自動補上預設值
-    const seeded = await insertDefaultInfoLink(userContext);
-    if (!seeded.success || !seeded.link) {
+    // 帳號目前沒有任何連結：整組補上預設連結
+    const seeded = await insertDefaultInfoLinks(userContext);
+    if (!seeded.success || !seeded.links) {
       return { success: true, links: [] };
     }
-    return { success: true, links: [seeded.link] };
+    return { success: true, links: seeded.links };
   } catch (e) {
     console.error('取得資訊連結異常:', e);
     return { success: false, error: '取得資訊連結時發生錯誤' };
