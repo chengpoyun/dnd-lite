@@ -111,4 +111,35 @@ describe('NotesPage - 搜尋列', () => {
     fireEvent.change(search, { target: { value: '' } });
     expect(screen.getByText('NPC筆記')).toBeInTheDocument();
   });
+
+  it('搜尋欄無文字時不顯示清空按鈕', async () => {
+    mockNoteService.getNotes.mockResolvedValue({ success: true, notes });
+    render(<NotesPage characterId="char-1" />);
+
+    await waitFor(() => screen.getByPlaceholderText('搜尋筆記...'));
+    expect(screen.queryByLabelText('清空搜尋')).not.toBeInTheDocument();
+  });
+
+  it('搜尋欄有文字時顯示清空按鈕', async () => {
+    mockNoteService.getNotes.mockResolvedValue({ success: true, notes });
+    render(<NotesPage characterId="char-1" />);
+
+    const search = await screen.findByPlaceholderText('搜尋筆記...');
+    fireEvent.change(search, { target: { value: '戰' } });
+
+    expect(screen.getByLabelText('清空搜尋')).toBeInTheDocument();
+  });
+
+  it('點清空按鈕後搜尋文字清空、清單恢復全部', async () => {
+    mockNoteService.getNotes.mockResolvedValue({ success: true, notes });
+    render(<NotesPage characterId="char-1" />);
+
+    const search = await screen.findByPlaceholderText('搜尋筆記...');
+    fireEvent.change(search, { target: { value: '戰' } });
+    expect(screen.queryByText('NPC筆記')).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByLabelText('清空搜尋'));
+    expect(screen.getByText('NPC筆記')).toBeInTheDocument();
+    expect((search as HTMLInputElement).value).toBe('');
+  });
 });

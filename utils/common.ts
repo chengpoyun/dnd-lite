@@ -73,6 +73,17 @@ export const truncateString = (str: string, maxLength: number): string => {
   return str.length > maxLength ? `${str.slice(0, maxLength)}...` : str
 }
 
+/**
+ * 搜尋比對：query 為空（含只有空白）時一律視為符合，不做篩選；
+ * 否則只要任一欄位（忽略 undefined/null/空字串）包含 query 即符合，大小寫不分。
+ * 供筆記／道具／能力頁的搜尋欄共用。
+ */
+export const matchesSearch = (query: string, ...fields: (string | undefined | null)[]): boolean => {
+  const q = query.trim().toLowerCase()
+  if (!q) return true
+  return fields.some((field) => !!field && field.toLowerCase().includes(q))
+}
+
 // 防抖函數
 export const debounce = <T extends (...args: any[]) => any>(
   func: T,

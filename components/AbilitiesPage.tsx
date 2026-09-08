@@ -28,8 +28,10 @@ import { useToast } from '../hooks/useToast';
 import * as AbilityService from '../services/abilityService';
 import { ABILITY_SOURCE_ORDER } from '../services/abilityService';
 import { planReorder } from '../utils/fractionalOrder';
+import { matchesSearch } from '../utils/common';
 import type { CharacterAbilityWithDetails } from '../lib/supabase';
 import { FilterBar } from './ui/FilterBar';
+import { SearchInput } from './ui/SearchInput';
 import { AbilityCard } from './AbilityCard';
 import { AbilityFormModal } from './AbilityFormModal';
 import AbilityDetailModal from './AbilityDetailModal';
@@ -95,6 +97,7 @@ export default function AbilitiesPage({ characterId, onCharacterDataChanged }: A
 
   const [characterAbilities, setCharacterAbilities] = useState<CharacterAbilityWithDetails[]>([]);
   const [selectedSource, setSelectedSource] = useState<'all' | (typeof ABILITY_SOURCE_ORDER)[number]>('all');
+  const [searchText, setSearchText] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isSavingOrder, setIsSavingOrder] = useState(false);
 
@@ -125,13 +128,17 @@ export default function AbilitiesPage({ characterId, onCharacterDataChanged }: A
     if (characterId) loadData();
   }, [characterId, loadData]);
 
-  // 依來源篩選：全部或單一來源
+  // 依來源篩選 + 搜尋（全部或單一來源；與搜尋同時套用，AND）
   const filteredAbilities = React.useMemo(() => {
-    if (selectedSource === 'all') return characterAbilities;
-    return characterAbilities.filter(
-      (ca) => AbilityService.getDisplayValues(ca).source === selectedSource
-    );
-  }, [characterAbilities, selectedSource]);
+    let result = characterAbilities;
+    if (selectedSource !== 'all') {
+      result = result.filter((ca) => AbilityService.getDisplayValues(ca).source === selectedSource);
+    }
+    return result.filter((ca) => {
+      const display = AbilityService.getDisplayValues(ca);
+      return matchesSearch(searchText, display.name, display.description);
+    });
+  }, [characterAbilities, selectedSource, searchText]);
 
   const filterOptions = React.useMemo(
     () => [
@@ -370,6 +377,14 @@ export default function AbilitiesPage({ characterId, onCharacterDataChanged }: A
           onSelect={(v) => setSelectedSource(v as typeof selectedSource)}
         />
 
+        {/* 搜尋 */}
+        <SearchInput
+          value={searchText}
+          onChange={setSearchText}
+          placeholder="搜尋能力..."
+          className="mb-4"
+        />
+
         {/* 能力列表 */}
         {isLoading ? (
           <div className="text-center py-12 text-slate-400">載入中...</div>
@@ -377,16 +392,20 @@ export default function AbilitiesPage({ characterId, onCharacterDataChanged }: A
           <div className="text-center py-12 bg-slate-800 border border-slate-700 rounded-lg">
             <div className="text-slate-500 text-4xl mb-3">✨</div>
             <p className="text-slate-400">
-              {selectedSource === 'all'
+              {searchText.trim()
+                ? '找不到符合的能力'
+                : selectedSource === 'all'
                 ? '還沒有特殊能力'
                 : `尚無「${selectedSource}」來源的能力`}
             </p>
+            {!searchText.trim() && (
             <button
               onClick={handleAddClick}
               className="mt-4 px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors font-medium"
             >
               {selectedSource === 'all' ? '新增第一個能力' : '獲得能力'}
             </button>
+            )}
           </div>
         ) : (
           <div className="space-y-3 relative">

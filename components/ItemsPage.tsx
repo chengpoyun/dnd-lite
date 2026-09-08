@@ -29,7 +29,9 @@ import { useToast } from '../hooks/useToast';
 import * as ItemService from '../services/itemService';
 import type { CharacterItem, ItemCategory, CreateCharacterItemData, UpdateCharacterItemData } from '../services/itemService';
 import { planReorder } from '../utils/fractionalOrder';
+import { matchesSearch } from '../utils/common';
 import { FilterBar } from './ui/FilterBar';
+import { SearchInput } from './ui/SearchInput';
 import { ItemCard } from './ItemCard';
 import { LearnItemModal } from './LearnItemModal';
 import { AddPersonalItemModal } from './AddPersonalItemModal';
@@ -112,6 +114,7 @@ export default function ItemsPage({ characterId, onCharacterDataChanged, initial
   const [items, setItems] = useState<CharacterItem[]>([]);
   const [filteredItems, setFilteredItems] = useState<CharacterItem[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<ItemFilterValue>('favorite');
+  const [searchText, setSearchText] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isSavingOrder, setIsSavingOrder] = useState(false);
 
@@ -158,21 +161,22 @@ export default function ItemsPage({ characterId, onCharacterDataChanged, initial
     onInitialDetailConsumed?.();
   }, [initialDetailItemId, isLoading, items, onInitialDetailConsumed]);
 
-  // 類別篩選（使用 display values）
+  // 類別篩選 + 搜尋（使用 display values；同時套用，AND）
   useEffect(() => {
-    if (selectedCategory === 'all') {
-      setFilteredItems(items);
-    } else if (selectedCategory === 'magic') {
-      setFilteredItems(items.filter(item => ItemService.getDisplayValues(item).displayIsMagic));
+    let result = items;
+    if (selectedCategory === 'magic') {
+      result = result.filter(item => ItemService.getDisplayValues(item).displayIsMagic);
     } else if (selectedCategory === 'favorite') {
-      setFilteredItems(items.filter(item => ItemService.getDisplayValues(item).displayIsFavorite));
-    } else {
-      setFilteredItems(items.filter(item => {
-        const display = ItemService.getDisplayValues(item);
-        return display.displayCategory === selectedCategory;
-      }));
+      result = result.filter(item => ItemService.getDisplayValues(item).displayIsFavorite);
+    } else if (selectedCategory !== 'all') {
+      result = result.filter(item => ItemService.getDisplayValues(item).displayCategory === selectedCategory);
     }
-  }, [items, selectedCategory]);
+    result = result.filter(item => {
+      const display = ItemService.getDisplayValues(item);
+      return matchesSearch(searchText, display.displayName, display.displayDescription);
+    });
+    setFilteredItems(result);
+  }, [items, selectedCategory, searchText]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -451,6 +455,14 @@ export default function ItemsPage({ characterId, onCharacterDataChanged, initial
           onSelect={(v) => setSelectedCategory(v as ItemFilterValue)}
         />
 
+        {/* 搜尋 */}
+        <SearchInput
+          value={searchText}
+          onChange={setSearchText}
+          placeholder="搜尋道具..."
+          className="mb-4"
+        />
+
         {/* 道具列表 */}
         {isLoading ? (
           <div className="text-center py-12 text-slate-400">載入中...</div>
@@ -458,18 +470,22 @@ export default function ItemsPage({ characterId, onCharacterDataChanged, initial
           <div className="text-center py-12 bg-slate-800 border border-slate-700 rounded-lg">
             <div className="text-slate-500 text-4xl mb-3">📦</div>
           <div className="text-slate-400">
-              {selectedCategory === 'all'
+              {searchText.trim()
+                ? '找不到符合的道具'
+                : selectedCategory === 'all'
                 ? '尚無道具'
                 : selectedCategory === 'favorite'
                 ? '尚無收藏的道具'
                 : `尚無「${selectedCategory === 'magic' ? '魔法物品' : selectedCategory}」類別的道具`}
             </div>
+            {!searchText.trim() && (
             <button
               onClick={() => setIsLearnModalOpen(true)}
               className="mt-4 px-6 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors font-bold"
             >
               獲得第一個物品
             </button>
+            )}
           </div>
         ) : (
           <div className="space-y-3 relative">

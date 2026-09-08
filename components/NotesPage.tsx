@@ -9,8 +9,10 @@ import * as NoteService from '../services/noteService';
 import type { CharacterNote } from '../services/noteService';
 import { debounce } from '../utils/common';
 import { PageContainer, Title, Card, ListCard, BackButton, Button, Loading } from './ui';
+import { SearchInput } from './ui/SearchInput';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 import { STYLES, combineStyles } from '../styles/common';
+import { matchesSearch } from '../utils/common';
 
 interface NotesPageProps {
   characterId: string;
@@ -244,13 +246,7 @@ export default function NotesPage({ characterId }: NotesPageProps) {
     );
   }
 
-  const filteredNotes = (() => {
-    const q = searchText.trim().toLowerCase();
-    if (!q) return notes;
-    return notes.filter(
-      (n) => n.title.toLowerCase().includes(q) || n.content.toLowerCase().includes(q)
-    );
-  })();
+  const filteredNotes = notes.filter((n) => matchesSearch(searchText, n.title, n.content));
 
   return (
     <PageContainer>
@@ -271,12 +267,11 @@ export default function NotesPage({ characterId }: NotesPageProps) {
         </Card>
       ) : (
         <>
-          <input
-            type="text"
+          <SearchInput
             value={searchText}
-            onChange={(e) => setSearchText(e.target.value)}
+            onChange={setSearchText}
             placeholder="搜尋筆記..."
-            className={combineStyles(STYLES.input.base, 'w-full', STYLES.spacing.marginBottomSmall)}
+            className={STYLES.spacing.marginBottomSmall}
           />
           {filteredNotes.length === 0 ? (
             <p className={STYLES.text.muted}>找不到符合的筆記</p>
