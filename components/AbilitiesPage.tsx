@@ -128,10 +128,10 @@ export default function AbilitiesPage({ characterId, onCharacterDataChanged }: A
     if (characterId) loadData();
   }, [characterId, loadData]);
 
-  // 依來源篩選 + 搜尋（全部或單一來源；與搜尋同時套用，AND）
+  // 依來源篩選 + 搜尋：有搜尋文字時一律全域搜尋，忽略來源篩選
   const filteredAbilities = React.useMemo(() => {
     let result = characterAbilities;
-    if (selectedSource !== 'all') {
+    if (!searchText.trim() && selectedSource !== 'all') {
       result = result.filter((ca) => AbilityService.getDisplayValues(ca).source === selectedSource);
     }
     return result.filter((ca) => {

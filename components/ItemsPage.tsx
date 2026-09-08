@@ -161,15 +161,17 @@ export default function ItemsPage({ characterId, onCharacterDataChanged, initial
     onInitialDetailConsumed?.();
   }, [initialDetailItemId, isLoading, items, onInitialDetailConsumed]);
 
-  // 類別篩選 + 搜尋（使用 display values；同時套用，AND）
+  // 類別篩選 + 搜尋（使用 display values）：有搜尋文字時一律全域搜尋，忽略類別篩選
   useEffect(() => {
     let result = items;
-    if (selectedCategory === 'magic') {
-      result = result.filter(item => ItemService.getDisplayValues(item).displayIsMagic);
-    } else if (selectedCategory === 'favorite') {
-      result = result.filter(item => ItemService.getDisplayValues(item).displayIsFavorite);
-    } else if (selectedCategory !== 'all') {
-      result = result.filter(item => ItemService.getDisplayValues(item).displayCategory === selectedCategory);
+    if (!searchText.trim()) {
+      if (selectedCategory === 'magic') {
+        result = result.filter(item => ItemService.getDisplayValues(item).displayIsMagic);
+      } else if (selectedCategory === 'favorite') {
+        result = result.filter(item => ItemService.getDisplayValues(item).displayIsFavorite);
+      } else if (selectedCategory !== 'all') {
+        result = result.filter(item => ItemService.getDisplayValues(item).displayCategory === selectedCategory);
+      }
     }
     result = result.filter(item => {
       const display = ItemService.getDisplayValues(item);

@@ -138,21 +138,24 @@ describe('ItemsPage - 搜尋列', () => {
     });
   });
 
-  it('搜尋與類別篩選同時套用：選了類別後搜尋範圍只在該類別內', async () => {
+  it('搜尋一律全域搜尋，不受目前選的類別限制', async () => {
     mockGetCharacterItems.mockResolvedValue({ success: true, items });
     render(<ItemsPage characterId="char-1" />);
     await screen.findByText('長劍');
 
+    // 切到「藥水」類別，長劍（裝備）應該從畫面上消失
     fireEvent.click(screen.getByRole('button', { name: '藥水' }));
     await waitFor(() => {
       expect(screen.queryByText('長劍')).not.toBeInTheDocument();
     });
 
+    // 在「藥水」類別下搜尋「長劍」，仍應找到它（搜尋忽略類別篩選）
     fireEvent.change(screen.getByPlaceholderText('搜尋道具...'), { target: { value: '長劍' } });
 
     await waitFor(() => {
-      expect(screen.getByText('找不到符合的道具')).toBeInTheDocument();
+      expect(screen.getByText('長劍')).toBeInTheDocument();
     });
+    expect(screen.queryByText('治療藥水')).not.toBeInTheDocument();
   });
 
   it('搜尋不到結果時顯示「找不到符合的道具」', async () => {

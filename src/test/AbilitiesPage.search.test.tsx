@@ -99,21 +99,24 @@ describe('AbilitiesPage - 搜尋列', () => {
     expect(screen.getByText('預言波動')).toBeInTheDocument();
   });
 
-  it('搜尋與來源篩選同時套用：選了來源後搜尋範圍只在該來源內', async () => {
+  it('搜尋一律全域搜尋，不受目前選的來源限制', async () => {
     mockGetCharacterAbilities.mockResolvedValue(abilities);
     render(<AbilitiesPage characterId="char-1" />);
     await screen.findByText('二刀流');
 
+    // 切到「種族」來源，二刀流（職業）應該從畫面上消失
     fireEvent.click(screen.getByRole('button', { name: '種族' }));
     await waitFor(() => {
       expect(screen.queryByText('二刀流')).not.toBeInTheDocument();
     });
 
+    // 在「種族」來源下搜尋「二刀」，仍應找到它（搜尋忽略來源篩選）
     fireEvent.change(screen.getByPlaceholderText('搜尋能力...'), { target: { value: '二刀' } });
 
     await waitFor(() => {
-      expect(screen.getByText('找不到符合的能力')).toBeInTheDocument();
+      expect(screen.getByText('二刀流')).toBeInTheDocument();
     });
+    expect(screen.queryByText('夜視')).not.toBeInTheDocument();
   });
 
   it('搜尋不到結果時顯示「找不到符合的能力」', async () => {
