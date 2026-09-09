@@ -7,6 +7,15 @@ import {
   getSpellcasterLevel,
   calculateMaxCantrips,
 } from '../../utils/spellUtils';
+import type { ClassInfo } from '../../types';
+
+const classInfo = (name: string, level: number, subclassName?: string): ClassInfo => ({
+  name,
+  level,
+  hitDie: 'd6',
+  isPrimary: true,
+  subclassName,
+});
 
 describe('getSpellLevelText', () => {
   it('0 環回傳「戲法」', () => {
@@ -34,6 +43,17 @@ describe('isSpellcaster', () => {
   it('職業列表包含施法職業時回傳 true', () => {
     expect(isSpellcaster(['戰士', '法師'])).toBe(true);
     expect(isSpellcaster(['牧師'])).toBe(true);
+  });
+
+  it('半施法者（聖騎士/遊俠）與奇械師也算施法職業', () => {
+    expect(isSpellcaster(['聖騎士'])).toBe(true);
+    expect(isSpellcaster(['遊俠'])).toBe(true);
+    expect(isSpellcaster(['奇械師'])).toBe(true);
+  });
+
+  it('武僧不是施法職業（迴歸測試：曾經誤把武僧列為施法者，與 spellSlots.ts 的法術位計算規則矛盾）', () => {
+    expect(isSpellcaster(['武僧'])).toBe(false);
+    expect(isSpellcaster(['武僧', '戰士'])).toBe(false);
   });
 
   it('職業列表不含任何施法職業時回傳 false', () => {
@@ -65,30 +85,31 @@ describe('calculateMaxPrepared', () => {
 });
 
 describe('getSpellcasterLevel', () => {
+  // 比照 spellSlots.ts 的多職施法者合併規則（不是「取最高等級」，而是依全/半/1/3施法者
+  // 分別加權後加總）——兩者若各自維護一套規則會互相矛盾，故直接委派給 calculateCasterLevelForSpellSlots。
   it('沒有職業時回傳 0', () => {
     expect(getSpellcasterLevel([])).toBe(0);
   });
 
   it('職業列表中沒有施法職業時回傳 0', () => {
-    expect(getSpellcasterLevel([{ name: '戰士', level: 10 }])).toBe(0);
+    expect(getSpellcasterLevel([classInfo('戰士', 10)])).toBe(0);
   });
 
-  it('只取施法職業裡最高的等級，忽略非施法職業（即使等級更高）', () => {
-    expect(
-      getSpellcasterLevel([
-        { name: '戰士', level: 15 },
-        { name: '法師', level: 5 },
-      ])
-    ).toBe(5);
+  it('忽略非施法職業，只計入施法職業等級', () => {
+    expect(getSpellcasterLevel([classInfo('戰士', 15), classInfo('法師', 5)])).toBe(5);
   });
 
-  it('多個施法職業時取最高等級', () => {
-    expect(
-      getSpellcasterLevel([
-        { name: '法師', level: 3 },
-        { name: '牧師', level: 7 },
-      ])
-    ).toBe(7);
+  it('多個全施法者職業時等級加總（不是取最高），與 spellSlots.ts 的規則一致', () => {
+    expect(getSpellcasterLevel([classInfo('法師', 3), classInfo('牧師', 7)])).toBe(10);
+  });
+
+  it('半施法者（聖騎士/遊俠）等級加總後除以2無條件捨去', () => {
+    expect(getSpellcasterLevel([classInfo('聖騎士', 3)])).toBe(1);
+  });
+
+  it('1/3施法者需搭配對應子職業才計入', () => {
+    expect(getSpellcasterLevel([classInfo('戰士', 6, '奧術騎士')])).toBe(2);
+    expect(getSpellcasterLevel([classInfo('戰士', 6, '冠軍')])).toBe(0);
   });
 });
 

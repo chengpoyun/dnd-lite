@@ -1,3 +1,11 @@
+import type { ClassInfo } from '../types';
+import {
+  FULL_CASTER_CLASS_NAMES,
+  HALF_CASTER_CLASS_NAMES,
+  ARTIFICER_CLASS_NAME,
+  calculateCasterLevelForSpellSlots,
+} from './spellSlots';
+
 export const SPELL_SCHOOLS = {
   '塑能': { 
     name: '塑能',
@@ -67,10 +75,16 @@ export const SPELL_SCHOOLS = {
 
 export type SpellSchool = keyof typeof SPELL_SCHOOLS;
 
-export const SPELLCASTER_CLASSES = [
-  '奇械師', '吟遊詩人', '牧師', '德魯伊', 
-  '武僧', '聖騎士', '遊俠', '術士', '咒術師', '法師'
-] as const;
+/**
+ * 施法職業名稱（不含 1/3 施法者，那需要搭配特定子職業才算，見 spellSlots.ts 的
+ * THIRD_CASTER_CLASS_SUBCLASS）。跟 spellSlots.ts 共用同一份分類，避免兩邊各自
+ * 維護一套「誰算施法者」的名單而互相矛盾（曾經這裡誤把武僧列為施法職業）。
+ */
+const SPELLCASTER_CLASSES: readonly string[] = [
+  ...FULL_CASTER_CLASS_NAMES,
+  ...HALF_CASTER_CLASS_NAMES,
+  ARTIFICER_CLASS_NAME,
+];
 
 /**
  * 取得法術環位的顯示文字
@@ -114,19 +128,15 @@ export function calculateMaxPrepared(intelligenceModifier: number, spellcasterLe
 }
 
 /**
- * 取得施法職業的總等級（用於計算可準備數量）
- * @param classes 角色的職業列表
- * @returns 施法職業的總等級
+ * 取得施法職業的合併等級（用於計算可準備數量）。
+ * 直接委派給 spellSlots.ts 的 calculateCasterLevelForSpellSlots——D&D 5E 多職施法者
+ * 規則是依全/半/1/3施法者分別加權後加總，不是「取最高等級」，兩邊各自實作一套
+ * 容易互相矛盾（例如多職法師+牧師的合併施法等級應該是等級相加，不是取較高者）。
+ * @param classes 角色的職業列表（需含 subclassName 才能正確判斷 1/3 施法者）
+ * @returns 合併後的施法者等級
  */
-export function getSpellcasterLevel(classes: { name: string; level: number }[]): number {
-  const spellcasterClasses = classes.filter(c => 
-    SPELLCASTER_CLASSES.includes(c.name as any)
-  );
-  
-  if (spellcasterClasses.length === 0) return 0;
-  
-  // 返回最高的施法職業等級
-  return Math.max(...spellcasterClasses.map(c => c.level));
+export function getSpellcasterLevel(classes: ClassInfo[]): number {
+  return calculateCasterLevelForSpellSlots(classes);
 }
 
 /**

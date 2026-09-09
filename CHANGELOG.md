@@ -4,6 +4,10 @@
 
 ---
 
+## 2.4.3
+
+- 修正：`utils/spellUtils.ts` 判斷「是否為施法職業」「合併施法者等級」的邏輯，跟 `utils/spellSlots.ts` 的法術位計算規則各自維護一套名單，兩邊互相矛盾——`spellUtils.ts` 誤把**武僧**列為施法職業（武僧不會法術），且 `getSpellcasterLevel` 用「取多職業中最高等級」計算可準備法術數量，但 D&D 5E 規則其實是「依全/半/1/3施法者分別加權後加總」（例如法師3級+牧師7級的合併施法等級應該是 10 級，不是 7 級）。這兩個函式的實際影響：`isSpellcaster` 決定「法術」分頁是否顯示、`getSpellcasterLevel` 決定可準備法術數量上限，武僧角色之前會被誤判為施法者而顯示法術分頁，多職法術角色的可準備法術數量也可能被低估。改成直接沿用 `spellSlots.ts` 已經正確實作的分類與合併算法，不再各自維護一套規則。
+
 ## 2.4.2
 
 - 修正：特殊能力來源標籤在 `AbilityDetailModal`（能力詳情彈窗）漏了「裝備」這個來源的配色，來源是「裝備」的能力在詳情彈窗會顯示成沒有顏色的空白徽章（className 含 `undefined`）。原因是來源/恢復規則的配色對照表在 `AbilityDetailModal`、`AbilityCard`、`LearnAbilityModal` 三個檔案各自維護一份，這份漏掉了「裝備」。統一成 `utils/abilityColors.ts` 共用一份，之後新增來源只需要改一個地方。
