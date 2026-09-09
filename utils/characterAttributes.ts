@@ -347,6 +347,43 @@ export function getFinalSavingThrow(
 }
 
 /**
+ * 找出哪些能力/物品來源賦予了某豁免熟練（如「適應力」專長），供 UI 顯示「加值來源」用。
+ * 不含角色本身的 savingProficiencies（那是角色層級的熟練，非來源賦予）。
+ */
+export function getSavingThrowProficiencyGrantSources(
+  stats: CharacterStats,
+  abilityKey: AbilityKey
+): string[] {
+  return (stats.extraData?.statBonusSources ?? [])
+    .filter(
+      (src: any) =>
+        Array.isArray(src.savingThrowProficiency) &&
+        src.savingThrowProficiency.includes(abilityKey)
+    )
+    .map((src: any) => src.name as string);
+}
+
+/**
+ * 找出賦予某技能熟練/專精的能力/物品來源，回傳其中最高的等級與所有來源名稱，
+ * 供 UI 顯示「加值來源」用。不含角色本身的 proficiencies（那是角色層級的熟練度）。
+ */
+export function getSkillProficiencyGrant(
+  stats: CharacterStats,
+  skillName: string
+): { level: number; names: string[] } {
+  let level = 0;
+  const names: string[] = [];
+  for (const src of stats.extraData?.statBonusSources ?? []) {
+    const lvl = (src as any).skillProficiency?.[skillName] ?? 0;
+    if (lvl > 0) {
+      names.push((src as any).name);
+      if (lvl > level) level = lvl;
+    }
+  }
+  return { level, names };
+}
+
+/**
  * 取得 18 技能加值 final = ability_mod + profLevel * profBonus + misc_bonus
  * 若有 extraData.skillBasicOverrides[skillName]（使用者手動覆寫基礎值），則為 覆寫基礎值 + misc_bonus
  * misc_bonus 來自 extraData.skillBonuses（後端聚合能力／物品 + DB misc）

@@ -14,6 +14,8 @@ import {
   getCombatStatDiceSuffix,
   getCombatStatDiceBreakdown,
   getOtherEffectNotes,
+  getSavingThrowProficiencyGrantSources,
+  getSkillProficiencyGrant,
 } from '../../utils/characterAttributes';
 import type { CharacterStats } from '../../types';
 
@@ -323,6 +325,52 @@ describe('characterAttributes - getFinalSavingThrow', () => {
     });
     const profBonus = 3;
     expect(getFinalSavingThrow(stats, 'con')).toBe(profBonus);
+  });
+});
+
+describe('characterAttributes - getSavingThrowProficiencyGrantSources', () => {
+  it('回傳賦予某豁免熟練的來源名稱列表', () => {
+    const stats = createMockStats({
+      extraData: {
+        statBonusSources: [
+          { id: 'a1', type: 'ability', name: '適應力（體質）', savingThrowProficiency: ['con'] },
+          { id: 'i1', type: 'item', name: '不相關物品', savingThrowProficiency: ['str'] },
+        ],
+      } as any,
+    });
+    expect(getSavingThrowProficiencyGrantSources(stats, 'con')).toEqual(['適應力（體質）']);
+    expect(getSavingThrowProficiencyGrantSources(stats, 'dex')).toEqual([]);
+  });
+
+  it('多個來源賦予同一豁免時，回傳全部名稱', () => {
+    const stats = createMockStats({
+      extraData: {
+        statBonusSources: [
+          { id: 'a1', type: 'ability', name: '來源A', savingThrowProficiency: ['con'] },
+          { id: 'i1', type: 'item', name: '來源B', savingThrowProficiency: ['con'] },
+        ],
+      } as any,
+    });
+    expect(getSavingThrowProficiencyGrantSources(stats, 'con')).toEqual(['來源A', '來源B']);
+  });
+});
+
+describe('characterAttributes - getSkillProficiencyGrant', () => {
+  it('回傳賦予某技能的最高熟練度與來源名稱', () => {
+    const stats = createMockStats({
+      extraData: {
+        statBonusSources: [
+          { id: 'a1', type: 'ability', name: '來源A', skillProficiency: { '運動': 1 } },
+          { id: 'i1', type: 'item', name: '來源B', skillProficiency: { '運動': 2 } },
+        ],
+      } as any,
+    });
+    expect(getSkillProficiencyGrant(stats, '運動')).toEqual({ level: 2, names: ['來源A', '來源B'] });
+  });
+
+  it('沒有任何來源賦予時，回傳 level 0 與空名稱陣列', () => {
+    const stats = createMockStats({ extraData: { statBonusSources: [] } as any });
+    expect(getSkillProficiencyGrant(stats, '運動')).toEqual({ level: 0, names: [] });
   });
 });
 

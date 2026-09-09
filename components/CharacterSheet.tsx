@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { CharacterStats, CustomRecord } from '../types';
 import { getProfBonus, formatDecimal } from '../utils/helpers';
-import { getFinalAbilityModifier, getFinalAbilityScore, getFinalSavingThrow, getFinalSkillBonus, getFinalCombatStat, getBasicCombatStat, getDefaultMaxHpBasic, type AbilityKey } from '../utils/characterAttributes';
+import { getFinalAbilityModifier, getFinalAbilityScore, getFinalSavingThrow, getFinalSkillBonus, getFinalCombatStat, getBasicCombatStat, getDefaultMaxHpBasic, getSavingThrowProficiencyGrantSources, getSkillProficiencyGrant, type AbilityKey } from '../utils/characterAttributes';
 import { STAT_LABELS, SKILLS_MAP, ABILITY_KEYS } from '../utils/characterConstants';
 import { getAvailableClasses, getClassHitDie, formatClassDisplayLines, calculateHitDiceTotals, canSelectSubclass } from '../utils/classUtils';
 import { Button } from './ui';
@@ -816,19 +816,29 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
         </div>
       </div>
 
-      {activeModal === 'skill_detail' && selectedSkill && (
+      {activeModal === 'skill_detail' && selectedSkill && (() => {
+        // 角色本身的熟練度（職業/背景給的）；currentProfLevel 只代表這個，刻意不 OR 進能力/物品
+        // 賦予的熟練度——否則使用者沒動切換就直接按「儲存」，會把「來源賦予的熟練/專精」誤存成
+        // 角色自己永久擁有的熟練度（之後能力被移除，角色也不會跟著失去）。
+        const ownSkillLevel =
+          ((stats.proficiencies as any)?.[selectedSkill.name] === 1 ||
+            (stats.proficiencies as any)?.[selectedSkill.name] === 2)
+            ? (stats.proficiencies as any)[selectedSkill.name]
+            : 0;
+        // 能力/物品賦予的技能熟練/專精（如「適應力」專長那類效果）：跟角色本身的熟練度不疊加，
+        // 只有「來源等級 > 角色自己等級」那段差額才需要額外加值（例如自己已熟練(1)、來源賦予專精(2)，
+        // 只差一級的熟練加值；自己已是專精則差額為 0，只顯示來源名稱不重複加值）
+        const skillGrant = getSkillProficiencyGrant(stats, selectedSkill.name);
+        const extraGrantLevel = Math.max(0, skillGrant.level - ownSkillLevel);
+        const grantBonusValue = extraGrantLevel * getProfBonus(stats.level ?? 1);
+        return (
         <SkillAdjustModal
           isOpen
           skillName={selectedSkill.name}
           abilityLabel={STAT_LABELS[selectedSkill.base]}
           abilityModifier={getFinalAbilityModifier(stats, selectedSkill.base)}
           characterLevel={stats.level ?? 1}
-          currentProfLevel={
-            ((stats.proficiencies as any)?.[selectedSkill.name] === 1 ||
-              (stats.proficiencies as any)?.[selectedSkill.name] === 2)
-              ? (stats.proficiencies as any)[selectedSkill.name]
-              : 0
-          }
+          currentProfLevel={ownSkillLevel}
           overrideBasic={
             ((stats.extraData as any)?.skillBasicOverrides as Record<string, number> | undefined)?.[
               selectedSkill.name
@@ -848,12 +858,20 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
             const extra: { label: string; value: number; hideValue?: boolean }[] = [];
             if (advNames.length) extra.push({ label: `優勢：${advNames.join('、')}`, value: 0, hideValue: true });
             if (disNames.length) extra.push({ label: `劣勢：${disNames.join('、')}`, value: 0, hideValue: true });
+            if (skillGrant.names.length) {
+              const label = `${skillGrant.level === 2 ? '專精' : '熟練'}：${skillGrant.names.join('、')}`;
+              extra.push(
+                grantBonusValue > 0
+                  ? { label, value: grantBonusValue }
+                  : { label, value: 0, hideValue: true }
+              );
+            }
             return [...fromSources, ...extra];
           })()}
           miscBonus={
-            ((stats.extraData as any)?.skillBonuses as Record<string, number> | undefined)?.[
+            (((stats.extraData as any)?.skillBonuses as Record<string, number> | undefined)?.[
               selectedSkill.name
-            ] ?? 0
+            ] ?? 0) + grantBonusValue
           }
           onClose={() => setActiveModal(null)}
           onSave={async (nextProfLevel, nextOverrideBasic) => {
@@ -893,7 +911,8 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
             setActiveModal(null);
           }}
         />
-      )}
+        );
+      })()}
 
       {activeModal === 'ability_detail' && activeAbilityKey && (
         <AbilityEditModal
@@ -953,8 +972,25 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
               .map((src) => src.name) ?? [];
             if (advNames.length) sources.push({ label: `優勢：${advNames.join('、')}`, value: 0, hideValue: true });
             if (disNames.length) sources.push({ label: `劣勢：${disNames.join('、')}`, value: 0, hideValue: true });
+            // 能力/物品賦予的豁免熟練（如「適應力」專長）：角色本身已熟練時不重複顯示加值（避免疊加），
+            // 只顯示來源名稱；角色本身未熟練時才把熟練加值算進來源列表（彈窗的「無/熟練」切換
+            // 刻意不因此打勾，見下方 isSaveProficient 註解）
+            const grantNames = getSavingThrowProficiencyGrantSources(stats, activeAbilityKey);
+            if (grantNames.length) {
+              const ownProficient = (stats.savingProficiencies || []).includes(activeAbilityKey);
+              const label = `熟練：${grantNames.join('、')}`;
+              sources.push(
+                ownProficient
+                  ? { label, value: 0, hideValue: true }
+                  : { label, value: getProfBonus(stats.level ?? 1) }
+              );
+            }
             return [...sources, ...fromAbilities];
           })()}
+          // 只代表角色「自己」的熟練（職業/背景給的），刻意不 OR 進能力/物品賦予的熟練——
+          // 否則使用者沒動這個切換就直接按「儲存」，會把「來源賦予的熟練」誤存成角色自己
+          // 永久擁有的熟練（之後能力被移除，角色也不會跟著失去）。來源賦予的加值改在
+          // saveBonusSources 顯示（見上方）。
           isSaveProficient={
             (stats.savingProficiencies || []).includes(activeAbilityKey)
           }
