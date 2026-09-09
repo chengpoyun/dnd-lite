@@ -176,7 +176,7 @@ describe('collectSourceBonusesForCharacter - 插槽鑲嵌素材效果', () => {
     expect(result.bySource[0].name).toBe('大劍［純敘述素材］');
   });
 
-  it('note 與 stat_bonuses.other 都有填且文字不同時，以 stat_bonuses.other 為準', async () => {
+  it('note 與 stat_bonuses.other 都有填且文字不同時，兩者一併顯示（note 在前）', async () => {
     const { supabase } = await import('../../lib/supabase');
     (supabase as any).__mockAbilities = [];
     (supabase as any).__mockItems = [
@@ -185,7 +185,7 @@ describe('collectSourceBonusesForCharacter - 插槽鑲嵌素材效果', () => {
           {
             decoration_name: '雙重敘述素材',
             note: '道具描述用的文字',
-            stat_bonuses: { other: '戰鬥頁刻意顯示的不同文字' },
+            stat_bonuses: { other: '戰鬥頁額外補充的文字' },
           },
         ],
       }),
@@ -197,7 +197,31 @@ describe('collectSourceBonusesForCharacter - 插槽鑲嵌素材效果', () => {
       abilityScores: {},
     });
 
-    expect(result.bySource[0].other).toBe('戰鬥頁刻意顯示的不同文字');
+    expect(result.bySource[0].other).toBe('道具描述用的文字\n戰鬥頁額外補充的文字');
+  });
+
+  it('note 與 stat_bonuses.other 文字完全相同時，不重複疊加', async () => {
+    const { supabase } = await import('../../lib/supabase');
+    (supabase as any).__mockAbilities = [];
+    (supabase as any).__mockItems = [
+      weaponRow({
+        sockets: [
+          {
+            decoration_name: '重複填寫素材',
+            note: 'AC-5, 傷害1d20',
+            stat_bonuses: { other: 'AC-5, 傷害1d20' },
+          },
+        ],
+      }),
+    ];
+
+    const { DetailedCharacterService } = await import('../../services/detailedCharacter');
+    const result = await DetailedCharacterService.collectSourceBonusesForCharacter(CHARACTER_ID, {
+      level: 5,
+      abilityScores: {},
+    });
+
+    expect(result.bySource[0].other).toBe('AC-5, 傷害1d20');
   });
 
   it('note 為空白字串、也沒有其他數值加成時，仍不會產生加值來源', async () => {

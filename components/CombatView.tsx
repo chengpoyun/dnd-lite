@@ -982,7 +982,7 @@ export const CombatView: React.FC<CombatViewProps> = ({
                     className="px-2 py-1.5 rounded-lg border bg-slate-800/50 border-slate-700/50 text-sm"
                   >
                     <span className="font-bold text-slate-300">{note.label}：</span>
-                    <span className="text-slate-400">{note.text}</span>
+                    <span className="text-slate-400 whitespace-pre-wrap">{note.text}</span>
                   </div>
                 ))}
               </div>

@@ -483,11 +483,12 @@ export class CharacterBonusAggregationService {
           sockets.forEach((socket: any, idx: number) => {
             if (!socket || typeof socket !== 'object') return
             const decoName = typeof socket.decoration_name === 'string' ? socket.decoration_name : '素材'
-            // 插槽效果的「其他」文字：stat_bonuses.other 有明確填寫時優先採用（保留刻意覆寫的彈性），
-            // 否則退回鑲嵌時填的 note，讓純敘述效果不需要額外勾選數值加成也能出現在戰鬥頁「其他效果」
+            // 插槽效果的「其他」文字：鑲嵌時填的 note 讓純敘述效果不需要另外勾選數值加成也能出現在
+            // 戰鬥頁「其他效果」；stat_bonuses.other 若也有填（刻意額外補充），兩者一併顯示，note 在前。
+            // 兩者文字完全相同時（沿用舊流程重複填寫的資料）只顯示一次，不重複疊加。
             const explicitOther = typeof socket.stat_bonuses?.other === 'string' ? socket.stat_bonuses.other.trim() : ''
             const noteText = typeof socket.note === 'string' ? socket.note.trim() : ''
-            const other = explicitOther || noteText
+            const other = [noteText, explicitOther].filter((t, i, arr) => t && arr.indexOf(t) === i).join('\n')
             const bonuses = other ? { ...(socket.stat_bonuses ?? {}), other } : socket.stat_bonuses
             applyItemBonusSource(`${row.id}-socket-${idx}`, `${itemName}［${decoName}］`, bonuses)
           })
