@@ -1,5 +1,6 @@
 // D&D 5E 遊蕩者「偷襲傷害」：依官方表格逐級記錄骰數（d6 顆數），不用公式推算，比照法術位查表的做法。
-import type { CharacterStats, ClassInfo } from '../types';
+import type { CharacterStats } from '../types';
+import { getEffectiveClasses } from './classUtils';
 
 export const ROGUE_CLASS_NAME = '遊蕩者';
 
@@ -10,9 +11,7 @@ const SNEAK_ATTACK_DICE_BY_LEVEL: readonly number[] = [
 
 /** 取得角色的遊蕩者職業等級（多職時只算遊蕩者，不含其他職業） */
 export function getRogueLevel(stats: CharacterStats): number {
-  const classes: ClassInfo[] = stats.classes?.length
-    ? stats.classes
-    : (stats.class ? [{ name: stats.class, level: stats.level ?? 1, hitDie: 'd8', isPrimary: true }] : []);
+  const classes = getEffectiveClasses(stats);
 
   return classes
     .filter((c) => c.name === ROGUE_CLASS_NAME)

@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { CharacterStats, ClassInfo } from '../types';
+import { CharacterStats } from '../types';
 import { getProfBonus } from '../utils/helpers';
 import { STAT_LABELS, SKILLS_MAP, ABILITY_KEYS } from '../utils/characterConstants';
 import { getFinalCombatStat, getBasicCombatStat, getFinalAbilityModifier, getFinalSavingThrow, getFinalSkillBonus, getDefaultMaxHpBasic, getBonusValue, getStatBonusSourcesBreakdown, getCombatStatDiceSuffix, getCombatStatDiceBreakdown, getOtherEffectNotes, type CombatStatKey } from '../utils/characterAttributes';
-import { formatHitDicePools, useHitDie, recoverHitDiceOnLongRest } from '../utils/classUtils';
+import { formatHitDicePools, useHitDie, recoverHitDiceOnLongRest, getEffectiveClasses } from '../utils/classUtils';
 import { calculateCasterLevelForSpellSlots } from '../utils/spellSlots';
 import { getRogueLevel } from '../utils/sneakAttack';
 import { getDivinationWizardClass, getPortentDiceCount, getPortentDiceForDisplay, createRerolledPortentDice, type PortentDieState } from '../utils/portentDice';
@@ -103,16 +103,11 @@ export const CombatView: React.FC<CombatViewProps> = ({
   onSaveExtraData,
   showSpellStats = false
 }) => {
-  const spellcasterClassNames = stats.classes?.length
-    ? stats.classes.map(item => item.name)
-    : (stats.class ? [stats.class] : []);
-  const isCaster = isSpellcaster(spellcasterClassNames);
+  const effectiveClasses = getEffectiveClasses(stats);
+  const isCaster = isSpellcaster(effectiveClasses.map(c => c.name));
 
   // 全施法者法術位：依合併施法者等級計算（見 utils/spellSlots.ts）
-  const casterLevelClasses: ClassInfo[] = stats.classes?.length
-    ? stats.classes
-    : (stats.class ? [{ name: stats.class, level: stats.level, hitDie: 'd8', isPrimary: true }] : []);
-  const spellSlotCasterLevel = calculateCasterLevelForSpellSlots(casterLevelClasses);
+  const spellSlotCasterLevel = calculateCasterLevelForSpellSlots(effectiveClasses);
 
   // 遊蕩者偷襲傷害：依遊蕩者等級查表（見 utils/sneakAttack.ts）
   const rogueLevel = getRogueLevel(stats);

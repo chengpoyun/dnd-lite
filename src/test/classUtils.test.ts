@@ -5,6 +5,7 @@ import { describe, it, expect } from 'vitest'
 import {
   getAvailableClasses,
   getClassHitDie,
+  getEffectiveClasses,
   getPrimaryClass,
   getTotalLevel,
   formatClassDisplay,
@@ -680,5 +681,45 @@ describe('classUtils - D&D 5E 職業工具函數', () => {
       expect(pools.d6).toEqual({ current: 0, total: 0 })
       expect(pools.d12).toEqual({ current: 0, total: 0 })
     })
+  })
+})
+
+describe('getEffectiveClasses - 取得角色有效職業列表（含舊版單職業 fallback）', () => {
+  it('已有 classes 陣列時直接回傳同一份資料', () => {
+    const classes: ClassInfo[] = [
+      { name: '法師', level: 5, hitDie: 'd6', isPrimary: true },
+      { name: '戰士', level: 2, hitDie: 'd10', isPrimary: false },
+    ]
+    const stats = { class: '法師', level: 7, classes } as CharacterStats
+
+    expect(getEffectiveClasses(stats)).toBe(classes)
+  })
+
+  it('沒有 classes 但有舊版單一 class/level 時，依該職業建立單一職業陣列（hitDie 依職業推算，不是寫死值）', () => {
+    const stats = { class: '法師', level: 5 } as CharacterStats
+
+    expect(getEffectiveClasses(stats)).toEqual([
+      { name: '法師', level: 5, hitDie: 'd6', isPrimary: true },
+    ])
+  })
+
+  it('classes 為空陣列（非 undefined）時，一樣視為需要 fallback', () => {
+    const stats = { class: '戰士', level: 3, classes: [] } as unknown as CharacterStats
+
+    expect(getEffectiveClasses(stats)).toEqual([
+      { name: '戰士', level: 3, hitDie: 'd10', isPrimary: true },
+    ])
+  })
+
+  it('既沒有 classes 也沒有 class 時回傳空陣列', () => {
+    const stats = { level: 1 } as CharacterStats
+
+    expect(getEffectiveClasses(stats)).toEqual([])
+  })
+
+  it('沒有 level 時預設視為 1 級', () => {
+    const stats = { class: '牧師' } as CharacterStats
+
+    expect(getEffectiveClasses(stats)[0]).toEqual({ name: '牧師', level: 1, hitDie: 'd8', isPrimary: true })
   })
 })

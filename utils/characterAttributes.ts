@@ -2,10 +2,10 @@
  * 角色屬性計算 - basic + bonus = final
  * 供各 Page 與 buildCharacterStats 使用
  */
-import type { CharacterStats, ClassInfo } from '../types';
+import type { CharacterStats } from '../types';
 import { getModifier, getProfBonus } from './helpers';
 import { SKILLS_MAP } from './characterConstants';
-import { getClassHitDie, getTotalLevel } from './classUtils';
+import { getEffectiveClasses, getTotalLevel } from './classUtils';
 
 const HIT_DIE_MAX: Record<string, number> = { d4: 4, d6: 6, d8: 8, d10: 10, d12: 12 };
 const HIT_DIE_AVG: Record<string, number> = { d4: 3, d6: 4, d8: 5, d10: 6, d12: 7 };
@@ -146,9 +146,7 @@ export function getOtherEffectNotes(stats: CharacterStats): { label: string; tex
  */
 export function getDefaultMaxHpBasic(stats: CharacterStats): number {
   const conMod = getFinalAbilityModifier(stats, 'con');
-  const classes = stats.classes?.length
-    ? stats.classes
-    : (stats.class ? [{ name: stats.class, level: stats.level ?? 1, hitDie: getClassHitDie(stats.class), isPrimary: true }] as ClassInfo[] : []);
+  const classes = getEffectiveClasses(stats);
 
   if (!classes.length) return Math.max(1, 1 + conMod);
 

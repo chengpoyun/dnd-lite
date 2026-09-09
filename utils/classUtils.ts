@@ -1,5 +1,5 @@
 // D&D 5E 職業工具函數
-import { DND_CLASSES, SUBCLASSES_BY_CLASS, type DndClassName, type ClassInfo, type HitDicePools } from '../types'
+import { DND_CLASSES, SUBCLASSES_BY_CLASS, type DndClassName, type ClassInfo, type HitDicePools, type CharacterStats } from '../types'
 
 /**
  * 獲取所有可用的D&D職業列表
@@ -67,6 +67,19 @@ const formatClassName = (classInfo: ClassInfo): string => {
 export const getClassHitDie = (className: string): 'd4' | 'd6' | 'd8' | 'd10' | 'd12' => {
   const classData = DND_CLASSES[className as DndClassName]
   return classData?.hitDie || 'd8' // 預設為d8
+}
+
+/**
+ * 取得角色的有效職業列表：已有 classes（多職業系統）就直接用，否則依舊版單一
+ * class/level 欄位建立單一職業陣列（hitDie 依職業推算）。
+ *
+ * 供需要「跑過角色所有職業」的計算共用（生命骰、偷襲傷害、預言骰、法術位等），
+ * 避免每個檔案各自重寫一次同樣的 fallback 邏輯，寫法／預設值不小心跑掉。
+ */
+export function getEffectiveClasses(stats: CharacterStats): ClassInfo[] {
+  if (stats.classes?.length) return stats.classes
+  if (!stats.class) return []
+  return [{ name: stats.class, level: stats.level ?? 1, hitDie: getClassHitDie(stats.class), isPrimary: true }]
 }
 
 /**

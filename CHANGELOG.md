@@ -4,6 +4,10 @@
 
 ---
 
+## 2.4.5
+
+- 整理：「取得角色有效職業列表（已有 classes 就用，否則依舊版單一 class/level 建立單一職業陣列）」這段 fallback 邏輯，原本在 `characterAttributes.ts`、`sneakAttack.ts`、`portentDice.ts`、`CombatView.tsx` 各自重寫一次（`sneakAttack.ts`／`CombatView.tsx` 的版本甚至把生命骰類型寫死成 `d8`，跟其他處用 `getClassHitDie` 推算不一致）。統一成 `utils/classUtils.ts` 匯出的 `getEffectiveClasses(stats)`，各處呼叫端改為呼叫它。
+
 ## 2.4.4
 
 - 整理：`utils/combatItemMapping.ts` 的 `ItemCategory`（戰鬥動作分類：action/bonus/reaction/resource）跟 `services/itemService.ts` 的 `ItemCategory`（道具分類：裝備/藥水/MH素材/雜項）同名但完全不相關，容易在 import 時不小心拿錯。前者改名為 `CombatActionCategory`（唯一使用者 `CombatView.tsx` 一併更新），道具分類的 `ItemCategory` 維持不變。

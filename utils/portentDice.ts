@@ -1,6 +1,6 @@
 // 預言學派法師「預言骰」（Portent）：2 等取得 2 顆，14 等（更偉大的預言）起變為 3 顆。
 import type { CharacterStats, ClassInfo } from '../types';
-import { getClassHitDie } from './classUtils';
+import { getEffectiveClasses } from './classUtils';
 
 export const DIVINATION_WIZARD_CLASS_NAME = '法師';
 export const DIVINATION_SUBCLASS_NAME = '預言學派';
@@ -16,11 +16,7 @@ export interface PortentDieState {
 
 /** 找出角色的預言學派法師職業（多職時只看法師那一格，找不到回傳 undefined） */
 export function getDivinationWizardClass(stats: CharacterStats): ClassInfo | undefined {
-  const classes: ClassInfo[] = stats.classes?.length
-    ? stats.classes
-    : (stats.class
-      ? [{ name: stats.class, level: stats.level ?? 1, hitDie: getClassHitDie(stats.class), isPrimary: true }]
-      : []);
+  const classes = getEffectiveClasses(stats);
 
   return classes.find(
     (c) => c.name === DIVINATION_WIZARD_CLASS_NAME && c.subclassName === DIVINATION_SUBCLASS_NAME
