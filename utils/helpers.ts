@@ -32,6 +32,21 @@ const resolveEffectiveMin = (minValue: number, allowZero: boolean, allowNegative
   allowNegative ? minValue : (allowZero ? 0 : minValue);
 
 /**
+ * 依 tokens 累加成單一結果值：tokens[0] 為初始值，之後每兩個一組是「運算子, 數值」。
+ * evaluateValue（整數）與 evaluateDecimalValue（小數）共用同一套累加邏輯，只是 parseFn 不同。
+ */
+const accumulateTokens = (tokens: string[], parseFn: (s: string) => number): number => {
+  let result = parseFn(tokens[0]) || 0;
+  for (let i = 1; i < tokens.length; i += 2) {
+    const op = tokens[i];
+    const val = parseFn(tokens[i + 1]) || 0;
+    if (op === '+') result += val;
+    else if (op === '-') result -= val;
+  }
+  return result;
+};
+
+/**
  * 解析字串運算，支援 "+5", "-2", "10+5" 等格式
  * 用於 HP、金幣、經驗值等數值的快速增減
  */
@@ -39,14 +54,8 @@ export const evaluateValue = (input: string, current: number, max?: number): num
   const cleanTokens = tokenizeExpression(input, current);
   if (!cleanTokens) return current;
 
-  let result = parseInt(cleanTokens[0]) || 0;
-  for (let i = 1; i < cleanTokens.length; i += 2) {
-    const op = cleanTokens[i];
-    const val = parseInt(cleanTokens[i + 1]) || 0;
-    if (op === '+') result += val; 
-    else if (op === '-') result -= val;
-  }
-  
+  let result = accumulateTokens(cleanTokens, (s) => parseInt(s));
+
   result = Math.max(0, result);
   if (max !== undefined) result = Math.min(max, result);
   return result;
@@ -68,13 +77,7 @@ export const evaluateDecimalValue = (
   const cleanTokens = tokenizeExpression(input, current);
   if (!cleanTokens) return current;
 
-  let result = parseFloat(cleanTokens[0]) || 0;
-  for (let i = 1; i < cleanTokens.length; i += 2) {
-    const op = cleanTokens[i];
-    const val = parseFloat(cleanTokens[i + 1]) || 0;
-    if (op === '+') result += val;
-    else if (op === '-') result -= val;
-  }
+  let result = accumulateTokens(cleanTokens, (s) => parseFloat(s));
 
   // 四捨五入到指定小數位數（未指定則不四捨五入，保留完整精度）
   if (decimalPlaces !== undefined) {

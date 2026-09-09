@@ -4,6 +4,10 @@
 
 ---
 
+## 2.4.10
+
+- 整理：`utils/helpers.ts` 的 `evaluateValue`（整數）與 `evaluateDecimalValue`（小數）內部的「依 tokens 累加」迴圈幾乎逐字重複，只差 `parseInt`/`parseFloat`。抽出共用的 `accumulateTokens` 內部函式，行為不變。
+
 ## 2.4.9
 
 - 整理：`abilityCatalog`/`spellCatalog`/`mhMaterialCatalog`/`generalItemCatalog`/`terrainRewardService` 五個本地 JSON 目錄服務，各自重寫一次「模組級快取變數 + 動態 import + 依欄位關鍵字搜尋」的樣板邏輯。抽出 `utils/localCatalog.ts` 的 `createLocalCatalog` 共用實作，五個檔案改為呼叫它，行為不變。
