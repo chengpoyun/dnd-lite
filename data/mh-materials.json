@@ -191,7 +191,7 @@
   },
   {
     "name": "古龍骨",
-    "nameEn": "Elder Dragonbone",
+    "nameEn": "Elder Dragon Bone",
     "rarity": null
   },
   {
@@ -257,7 +257,7 @@
   },
   {
     "name": "冰人魚龍的重殼",
-    "nameEn": "",
+    "nameEn": "Auroracanth Icecortex",
     "rarity": null,
     "weaponDecoration": true,
     "armorDecoration": true,
@@ -272,7 +272,7 @@
   },
   {
     "name": "冰人魚龍的凍鱗",
-    "nameEn": "",
+    "nameEn": "Auroracanth Icescale",
     "rarity": null,
     "weaponDecoration": true,
     "armorDecoration": true,
@@ -332,7 +332,7 @@
   },
   {
     "name": "泡狐龍的水玉",
-    "nameEn": "",
+    "nameEn": "Mizutsune Water Gem",
     "rarity": null,
     "weaponDecoration": true,
     "armorDecoration": true,
@@ -352,7 +352,7 @@
   },
   {
     "name": "泡狐龍的爪",
-    "nameEn": "",
+    "nameEn": "Mizutsune Claw",
     "rarity": null,
     "weaponDecoration": true,
     "decorationEffects": {
@@ -368,12 +368,12 @@
   },
   {
     "name": "泡狐龍的尾巴",
-    "nameEn": "",
+    "nameEn": "Mizutsune Tail",
     "rarity": null
   },
   {
     "name": "泡狐龍的逆鱗",
-    "nameEn": "",
+    "nameEn": "Mizutsune Plate",
     "rarity": null,
     "weaponDecoration": true,
     "armorDecoration": true,
@@ -393,18 +393,18 @@
   },
   {
     "name": "泡狐龍的紫毛",
-    "nameEn": "",
+    "nameEn": "Mizutsune Purplefur",
     "rarity": null,
     "description": "對強酸傷害有抗性"
   },
   {
     "name": "泡狐龍的錦鰭",
-    "nameEn": "",
+    "nameEn": "Mizutsune Fin",
     "rarity": null
   },
   {
     "name": "泡狐龍的鱗",
-    "nameEn": "",
+    "nameEn": "Mizutsune Scale",
     "rarity": null,
     "armorDecoration": true,
     "decorationEffects": {
@@ -636,12 +636,12 @@
   },
   {
     "name": "黑狼鳥的耳",
-    "nameEn": "",
+    "nameEn": "Garuga Ear",
     "rarity": null
   },
   {
     "name": "黑狼鳥的尾巴",
-    "nameEn": "",
+    "nameEn": "Garuga Tail",
     "rarity": null
   },
   {
@@ -666,7 +666,7 @@
   },
   {
     "name": "黑狼鳥的翼",
-    "nameEn": "",
+    "nameEn": "Garuga Wing",
     "rarity": null,
     "weaponDecoration": true,
     "decorationEffects": {
@@ -693,7 +693,7 @@
   },
   {
     "name": "溟波龍的韌尾",
-    "nameEn": "",
+    "nameEn": "Namielle Lash",
     "rarity": null,
     "weaponDecoration": true,
     "armorDecoration": true,
@@ -789,8 +789,18 @@
   },
   {
     "name": "歷戰麒麟的皮",
-    "nameEn": "",
-    "rarity": null
+    "nameEn": "T.Kirin Hide",
+    "rarity": null,
+    "weaponDecoration": true,
+    "armorDecoration": true,
+    "decorationEffects": {
+      "weapon": {
+        "note": "武器攻擊額外造成1d8閃電傷害。"
+      },
+      "armor": {
+        "note": "馬拉松跑者+：步行速度增加10呎，並可以無視非魔法效應造成的困難地形。"
+      }
+    }
   },
   {
     "name": "燕雀石",
@@ -957,6 +967,137 @@
   {
     "name": "POP魚",
     "nameEn": "Popfish",
+    "rarity": null
+  },
+  {
+    "name": "古龍的血",
+    "nameEn": "Elder Dragon Blood",
+    "rarity": null
+  },
+  {
+    "name": "冰人魚龍的冰玉",
+    "nameEn": "Aurora Gem",
+    "rarity": null,
+    "weaponDecoration": true,
+    "armorDecoration": true,
+    "decorationEffects": {
+      "weapon": {
+        "note": "挑戰者：武器攻擊造成爆擊的範圍增加1，且額外造成1d6武器傷害。（此素材同時被視為看破素材與「武器額外造成傷害」素材）"
+      },
+      "armor": {
+        "note": "穿戴此防具時，你對寒冷傷害免疫。"
+      }
+    }
+  },
+  {
+    "name": "冰人魚龍的特上鰭",
+    "nameEn": "Auroracanth Fin",
+    "rarity": null,
+    "weaponDecoration": true,
+    "armorDecoration": true,
+    "decorationEffects": {
+      "weapon": {
+        "note": "依鑲嵌的武器種類獲得不同好處：（弓）塗有毒瓶的箭矢擊中生物時可施加冰異常狀態而非中毒狀態。（雙持弩）冰結彈強化時施加冰異常狀態而非水異常狀態。（重弩）毒彈擊中生物時可施加水異常狀態而非中毒狀態。（輕弩）水冷彈擊中生物時，其移動速度減少5呎直到下個回合結束。"
+      },
+      "armor": {
+        "note": "道具使用強化+：每當你使用具有持續時間的消耗性道具時，其持續時間增加額外的12秒。"
+      }
+    }
+  },
+  {
+    "name": "大型魔物骨",
+    "nameEn": "Lg Monster Bone",
+    "rarity": null,
+    "description": "極稀有防具升級素材。"
+  },
+  {
+    "name": "復甦的喙",
+    "nameEn": "Rejuvenated Beak",
+    "rarity": null,
+    "weaponDecoration": true,
+    "armorDecoration": true,
+    "decorationEffects": {
+      "weapon": {
+        "note": "此武器能警告你危險。若在戰鬥開始時你或30呎內的同伴正在自然睡眠，它會用魔法喚醒你們。"
+      },
+      "armor": {
+        "note": "穿戴此防具時，你的先攻檢定具有優勢。"
+      }
+    }
+  },
+  {
+    "name": "歷戰麒麟的鬃毛",
+    "nameEn": "T.Kirin Mane",
+    "rarity": null,
+    "weaponDecoration": true,
+    "armorDecoration": true,
+    "decorationEffects": {
+      "weapon": {
+        "note": "此武器具有3個符文，每天黎明時恢復。擊中生物時可消耗1個符文使目標進行DC16體質豁免，失敗則陷入失能狀態且移動速度降至0，持續1分鐘（每回合結束可重複豁免）。"
+      },
+      "armor": {
+        "note": "控制閃電：施放造成閃電或雷鳴傷害的錐形或直線法術時，可選擇你周圍30呎內的任何位置作為起始位置。"
+      }
+    }
+  },
+  {
+    "name": "歷戰麒麟的雷尾",
+    "nameEn": "T.Kirin Tail",
+    "rarity": null
+  },
+  {
+    "name": "歷戰麒麟的雷角",
+    "nameEn": "T.Kirin Thunderhorn",
+    "rarity": null
+  },
+  {
+    "name": "歷戰麒麟的蒼角",
+    "nameEn": "T.Kirin Azure Horn",
+    "rarity": null
+  },
+  {
+    "name": "溟波龍的天鱗",
+    "nameEn": "Namielle Mantle",
+    "rarity": null
+  },
+  {
+    "name": "溟波龍的剛爪",
+    "nameEn": "Namielle Hardclaw",
+    "rarity": null
+  },
+  {
+    "name": "溟波龍的剛翼",
+    "nameEn": "Namielle Fellwing",
+    "rarity": null
+  },
+  {
+    "name": "溟波龍的特上皮",
+    "nameEn": "Namielle Finehide",
+    "rarity": null
+  },
+  {
+    "name": "溟波龍的觸鬚",
+    "nameEn": "Namielle Whisker",
+    "rarity": null
+  },
+  {
+    "name": "泡狐龍的發泡液",
+    "nameEn": "Bubble Fluid",
+    "rarity": null
+  },
+  {
+    "name": "黑狼鳥的甲殼",
+    "nameEn": "Garuga Shell",
+    "rarity": null
+  },
+  {
+    "name": "黑狼鳥的鬃毛",
+    "nameEn": "Garuga Mane",
+    "rarity": null
+  },
+  {
+    "name": "黑狼鳥的鱗",
+    "nameEn": "Garuga Scale",
     "rarity": null
   }
 ]
