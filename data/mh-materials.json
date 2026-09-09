@@ -1,0 +1,962 @@
+[
+  {
+    "name": "上鎧玉",
+    "nameEn": "Hard Armor Sphere",
+    "rarity": null
+  },
+  {
+    "name": "千刃龍的伐刀+",
+    "nameEn": "",
+    "rarity": null
+  },
+  {
+    "name": "千刃龍的飛刃+",
+    "nameEn": "",
+    "rarity": null
+  },
+  {
+    "name": "千刃龍的飛膜+",
+    "nameEn": "",
+    "rarity": null,
+    "weaponDecoration": true,
+    "armorDecoration": true,
+    "decorationEffects": {
+      "weapon": {
+        "note": "當你在不受傷害的情況下向一個生物跳躍或飛行20呎時，你對其進行的第一次攻擊額外造成1d6傷害。"
+      },
+      "armor": {
+        "note": "匠+2：每個黎明起24小時內，你獲得你選擇的兩個工匠工具的熟練。"
+      }
+    }
+  },
+  {
+    "name": "千刃龍的破刃+",
+    "nameEn": "",
+    "rarity": null
+  },
+  {
+    "name": "千刃龍的斬翼爪+",
+    "nameEn": "",
+    "rarity": null
+  },
+  {
+    "name": "千刃龍的槍尾+",
+    "nameEn": "",
+    "rarity": null,
+    "weaponDecoration": true,
+    "armorDecoration": true,
+    "decorationEffects": {
+      "weapon": {
+        "note": "擊中時，DC16體質豁免，否則裂傷，每回合開始-1d4。可用一個動作進行醫療檢定，DC12，或是接受魔法治療來止血。"
+      },
+      "armor": {
+        "note": "任何使用近戰攻擊命中你的生物受到1d6揮砍傷害。"
+      }
+    }
+  },
+  {
+    "name": "千刃龍的鏡玉",
+    "nameEn": "",
+    "rarity": null
+  },
+  {
+    "name": "土蝗",
+    "nameEn": "Bughopper",
+    "rarity": null
+  },
+  {
+    "name": "大地結晶",
+    "nameEn": "Earth Crystal",
+    "rarity": null
+  },
+  {
+    "name": "大角蜂",
+    "nameEn": "Great Hornfly",
+    "rarity": null
+  },
+  {
+    "name": "大型怪獸骨",
+    "nameEn": "",
+    "rarity": null
+  },
+  {
+    "name": "大毒蛛",
+    "nameEn": "Large Toxic Kumori",
+    "rarity": null
+  },
+  {
+    "name": "大骨堆",
+    "nameEn": "",
+    "rarity": null
+  },
+  {
+    "name": "大骨殼",
+    "nameEn": "Lg Bone Husk",
+    "rarity": null
+  },
+  {
+    "name": "大魔物骨",
+    "nameEn": "Lg Monster Bone",
+    "rarity": null
+  },
+  {
+    "name": "小金魚",
+    "nameEn": "Small Goldenfish",
+    "rarity": null
+  },
+  {
+    "name": "小型怪獸骨",
+    "nameEn": "",
+    "rarity": null
+  },
+  {
+    "name": "小骨堆",
+    "nameEn": "Sm Bone Husk",
+    "rarity": null
+  },
+  {
+    "name": "小骨殼",
+    "nameEn": "Sm Bone Husk",
+    "rarity": null
+  },
+  {
+    "name": "小魔物骨",
+    "nameEn": "Sm Monster Bone",
+    "rarity": null
+  },
+  {
+    "name": "不死蟲",
+    "nameEn": "Godbug",
+    "rarity": null
+  },
+  {
+    "name": "中型怪獸骨",
+    "nameEn": "",
+    "rarity": null
+  },
+  {
+    "name": "中魔物骨",
+    "nameEn": "Med Monster Bone",
+    "rarity": null
+  },
+  {
+    "name": "天狗獸的毛",
+    "nameEn": "",
+    "rarity": null
+  },
+  {
+    "name": "天狗獸的爪",
+    "nameEn": "",
+    "rarity": null
+  },
+  {
+    "name": "天狗獸的角",
+    "nameEn": "",
+    "rarity": null
+  },
+  {
+    "name": "幻蝶",
+    "nameEn": "Phantom Butterfly",
+    "rarity": null
+  },
+  {
+    "name": "木天蓼",
+    "nameEn": "Felvine",
+    "rarity": null
+  },
+  {
+    "name": "火藥草",
+    "nameEn": "Fire Herb",
+    "rarity": null
+  },
+  {
+    "name": "王族聖甲蟲",
+    "nameEn": "King Scarab",
+    "rarity": null
+  },
+  {
+    "name": "仙人掌花",
+    "nameEn": "Cactus Flower",
+    "rarity": null
+  },
+  {
+    "name": "古代魚",
+    "nameEn": "Ancient Fish",
+    "rarity": null
+  },
+  {
+    "name": "古龍血",
+    "nameEn": "",
+    "rarity": null
+  },
+  {
+    "name": "古龍骨",
+    "nameEn": "Elder Dragonbone",
+    "rarity": null
+  },
+  {
+    "name": "巨大骨",
+    "nameEn": "Jumbo Bone",
+    "rarity": null
+  },
+  {
+    "name": "幼慘爪龍的爪",
+    "nameEn": "",
+    "rarity": null,
+    "weaponDecoration": true,
+    "armorDecoration": true,
+    "decorationEffects": {
+      "weapon": {
+        "note": "造成黯蝕傷害，加入熟練值一半的傷害。"
+      },
+      "armor": {
+        "note": "攀爬速度等同行動速度。"
+      }
+    }
+  },
+  {
+    "name": "幼慘爪龍的鱗",
+    "nameEn": "",
+    "rarity": null
+  },
+  {
+    "name": "打消果實",
+    "nameEn": "Nullberry",
+    "rarity": null
+  },
+  {
+    "name": "生命結晶",
+    "nameEn": "Lifecrystals",
+    "rarity": null
+  },
+  {
+    "name": "石頭",
+    "nameEn": "Stone",
+    "rarity": null
+  },
+  {
+    "name": "光水晶",
+    "nameEn": "Lightcrystal",
+    "rarity": null
+  },
+  {
+    "name": "冰人魚龍冰玉",
+    "nameEn": "",
+    "rarity": null,
+    "description": "護甲：免疫寒冷\n武器：爆擊-1，額外+1d6（效果挑戰者）",
+    "weaponDecoration": true,
+    "armorDecoration": true,
+    "decorationEffects": {
+      "weapon": {
+        "note": "爆擊-1，額外+1d6（效果挑戰者，不可與效果看破一起用）"
+      },
+      "armor": {
+        "note": "免疫寒冷傷害"
+      }
+    }
+  },
+  {
+    "name": "冰人魚龍的重殼",
+    "nameEn": "",
+    "rarity": null,
+    "weaponDecoration": true,
+    "armorDecoration": true,
+    "decorationEffects": {
+      "weapon": {
+        "note": "擲出20時，朝目標方向15呎錐形，或30呎長、5呎寬直線地面會被冰層覆蓋1分鐘，視為困難地形。"
+      },
+      "armor": {
+        "note": "精靈加護＋：當你受到你不免疫或沒有抗性的傷害時，擲1d6並減去該數值。使用次數等同於熟練加值。長休恢復。"
+      }
+    }
+  },
+  {
+    "name": "冰人魚龍的凍鱗",
+    "nameEn": "",
+    "rarity": null,
+    "weaponDecoration": true,
+    "armorDecoration": true,
+    "decorationEffects": {
+      "weapon": {
+        "note": "使用附贈動作將武器插入地面，使周圍15呎半徑的地面結冰變為困難地形，最多持續1分鐘或直到你將之拔出為止。可分段使用每次至少6秒。每12小時恢復6秒的能量。"
+      },
+      "armor": {
+        "note": "無視由冰雪造成的困難地形。並可以忍受 -45°C 的低溫，若穿著厚重衣物，則可忍受至 -73°C。"
+      }
+    }
+  },
+  {
+    "name": "冰人魚龍重殼",
+    "nameEn": "",
+    "rarity": null
+  },
+  {
+    "name": "冰人魚龍特上鰭",
+    "nameEn": "",
+    "rarity": null
+  },
+  {
+    "name": "冰人魚龍涷鱗",
+    "nameEn": "",
+    "rarity": null
+  },
+  {
+    "name": "冰凍漿果",
+    "nameEn": "Frozen Berry",
+    "rarity": null
+  },
+  {
+    "name": "冰結晶",
+    "nameEn": "Ice Crystal",
+    "rarity": null
+  },
+  {
+    "name": "尖鎧玉",
+    "nameEn": "Heavy Armor Sphere",
+    "rarity": null
+  },
+  {
+    "name": "忍耐種子",
+    "nameEn": "Adamant Seed",
+    "rarity": null
+  },
+  {
+    "name": "刺身魚",
+    "nameEn": "",
+    "rarity": null
+  },
+  {
+    "name": "怪力種子",
+    "nameEn": "Might Seed",
+    "rarity": null
+  },
+  {
+    "name": "泡狐龍的水玉",
+    "nameEn": "",
+    "rarity": null,
+    "weaponDecoration": true,
+    "armorDecoration": true,
+    "decorationEffects": {
+      "weapon": {
+        "note": "始終準備著水球術"
+      },
+      "armor": {
+        "note": "敏捷豁免優勢+減速效果持續時間減半",
+        "statBonuses": {
+          "savingThrowAdvantage": [
+            "dex"
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "泡狐龍的爪",
+    "nameEn": "",
+    "rarity": null,
+    "weaponDecoration": true,
+    "decorationEffects": {
+      "weapon": {
+        "note": "法術攻擊檢定 +1",
+        "statBonuses": {
+          "combatStats": {
+            "spellHit": 1
+          }
+        }
+      }
+    }
+  },
+  {
+    "name": "泡狐龍的尾巴",
+    "nameEn": "",
+    "rarity": null
+  },
+  {
+    "name": "泡狐龍的逆鱗",
+    "nameEn": "",
+    "rarity": null,
+    "weaponDecoration": true,
+    "armorDecoration": true,
+    "decorationEffects": {
+      "weapon": {
+        "note": "死裡逃生(Crisis)：若你正受到由敵對生物造成的異常狀態影響(如中毒、燃燒、減速、目盲等)，你的所有攻擊和法術將額外造成1d10傷害"
+      },
+      "armor": {
+        "note": "移動不會發出聲音，隱匿檢定優勢。",
+        "statBonuses": {
+          "skillAdvantage": [
+            "隱匿"
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "泡狐龍的紫毛",
+    "nameEn": "",
+    "rarity": null,
+    "description": "對強酸傷害有抗性"
+  },
+  {
+    "name": "泡狐龍的錦鰭",
+    "nameEn": "",
+    "rarity": null
+  },
+  {
+    "name": "泡狐龍的鱗",
+    "nameEn": "",
+    "rarity": null,
+    "armorDecoration": true,
+    "decorationEffects": {
+      "armor": {
+        "note": "美食家(Gourmand)：與此防具同調期間，你在遭受一級力竭之前可以不吃不喝的天數翻倍。"
+      }
+    }
+  },
+  {
+    "name": "空心果",
+    "nameEn": "Huskberry",
+    "rarity": null
+  },
+  {
+    "name": "空氣草",
+    "nameEn": "Airweed",
+    "rarity": null
+  },
+  {
+    "name": "花朵蟋蟀",
+    "nameEn": "Blossom Cricket",
+    "rarity": null
+  },
+  {
+    "name": "金獅子的尖角",
+    "nameEn": "",
+    "rarity": null
+  },
+  {
+    "name": "青熊獸毛皮",
+    "nameEn": "",
+    "rarity": null
+  },
+  {
+    "name": "青熊獸腕甲",
+    "nameEn": "",
+    "rarity": null
+  },
+  {
+    "name": "青熊獸蜂蜜",
+    "nameEn": "",
+    "rarity": null
+  },
+  {
+    "name": "星見花",
+    "nameEn": "Stargazer Flower",
+    "rarity": null
+  },
+  {
+    "name": "染色果",
+    "nameEn": "Paintberry",
+    "rarity": null
+  },
+  {
+    "name": "毒菇",
+    "nameEn": "Toadstool",
+    "rarity": null
+  },
+  {
+    "name": "毒蛛",
+    "nameEn": "Toxic Kumori",
+    "rarity": null
+  },
+  {
+    "name": "皇帝蝗蟲",
+    "nameEn": "Emperor Locust",
+    "rarity": null
+  },
+  {
+    "name": "皇家鎧玉",
+    "nameEn": "Royal Armor Sphere",
+    "rarity": null
+  },
+  {
+    "name": "美食家鮪魚",
+    "nameEn": "Gastronome Tuna",
+    "rarity": null
+  },
+  {
+    "name": "苦蟲",
+    "nameEn": "Bitterbug",
+    "rarity": null
+  },
+  {
+    "name": "重鎧玉",
+    "nameEn": "Heavy Armor Sphere",
+    "rarity": null
+  },
+  {
+    "name": "冥淵龍的翼爪",
+    "nameEn": "",
+    "rarity": null,
+    "weaponDecoration": true,
+    "armorDecoration": true,
+    "decorationEffects": {
+      "weapon": {
+        "note": "連擊：連續擊中同一生物會使你的爆擊範圍+1，直到你成功爆擊、攻擊失誤、或攻擊不同目標為止。"
+      },
+      "armor": {
+        "note": "健康：你不會陷入非自願的睡眠、中毒、麻痺、或震懾狀態。"
+      }
+    }
+  },
+  {
+    "name": "凍結袋",
+    "nameEn": "",
+    "rarity": null,
+    "weaponDecoration": true,
+    "armorDecoration": true,
+    "decorationEffects": {
+      "weapon": {
+        "note": "額外1d6寒冷傷害"
+      },
+      "armor": {
+        "note": "寒冷抗性"
+      }
+    }
+  },
+  {
+    "name": "浮空龍的寶玉",
+    "nameEn": "",
+    "rarity": null,
+    "description": "護甲：長修一次，僅限放大\n武器：銃槍限定，每天兩次衝擊砲"
+  },
+  {
+    "name": "真鎧玉",
+    "nameEn": "Royal Armor Sphere",
+    "rarity": null
+  },
+  {
+    "name": "眠魚",
+    "nameEn": "Sleepyfish",
+    "rarity": null
+  },
+  {
+    "name": "砥石魚",
+    "nameEn": "Whetfish",
+    "rarity": null
+  },
+  {
+    "name": "針果",
+    "nameEn": "Needleberry",
+    "rarity": null
+  },
+  {
+    "name": "針鮪魚",
+    "nameEn": "Pin Tuna",
+    "rarity": null
+  },
+  {
+    "name": "閃光蟲",
+    "nameEn": "Flashbug",
+    "rarity": null
+  },
+  {
+    "name": "骨",
+    "nameEn": "",
+    "rarity": null
+  },
+  {
+    "name": "骨頭",
+    "nameEn": "Bone",
+    "rarity": null
+  },
+  {
+    "name": "常春藤葉",
+    "nameEn": "Ivy",
+    "rarity": null
+  },
+  {
+    "name": "混沌真菌",
+    "nameEn": "Chaos Mushroom",
+    "rarity": null
+  },
+  {
+    "name": "蛇蜂幼蟲",
+    "nameEn": "Snakebee Larva",
+    "rarity": null
+  },
+  {
+    "name": "貪吃鮪魚",
+    "nameEn": "Glutton Tuna",
+    "rarity": null
+  },
+  {
+    "name": "野獸骨",
+    "nameEn": "Brute Bone",
+    "rarity": null
+  },
+  {
+    "name": "雪山草",
+    "nameEn": "Snow Herb",
+    "rarity": null
+  },
+  {
+    "name": "雪草",
+    "nameEn": "",
+    "rarity": null
+  },
+  {
+    "name": "鳥龍種的骨",
+    "nameEn": "Bird Wyvern Bone",
+    "rarity": null
+  },
+  {
+    "name": "鳥獸骨",
+    "nameEn": "Bird Wyvern Bone",
+    "rarity": null
+  },
+  {
+    "name": "麻痺菇",
+    "nameEn": "",
+    "rarity": null
+  },
+  {
+    "name": "麻痺蘑菇",
+    "nameEn": "Parashroom",
+    "rarity": null
+  },
+  {
+    "name": "散彈果",
+    "nameEn": "Scatternut",
+    "rarity": null
+  },
+  {
+    "name": "硝化蘑菇",
+    "nameEn": "",
+    "rarity": null
+  },
+  {
+    "name": "黑狼鳥的耳",
+    "nameEn": "",
+    "rarity": null
+  },
+  {
+    "name": "黑狼鳥的尾巴",
+    "nameEn": "",
+    "rarity": null
+  },
+  {
+    "name": "黑狼鳥的重殼",
+    "nameEn": "",
+    "rarity": null
+  },
+  {
+    "name": "黑狼鳥的銀狼毛",
+    "nameEn": "",
+    "rarity": null,
+    "weaponDecoration": true,
+    "armorDecoration": true,
+    "decorationEffects": {
+      "weapon": {
+        "note": "看破：你的武器爆擊範圍+1"
+      },
+      "armor": {
+        "note": "使用動作說出啟動詞，恢復一個最高四環的法術位。黎明恢復"
+      }
+    }
+  },
+  {
+    "name": "黑狼鳥的翼",
+    "nameEn": "",
+    "rarity": null,
+    "weaponDecoration": true,
+    "decorationEffects": {
+      "weapon": {
+        "note": "異常狀態攻擊強化（小）：你對生物或物體施加一分鐘以上的狀態的時候，狀態會多加一輪"
+      }
+    }
+  },
+  {
+    "name": "黑狼鳥復甦的喙",
+    "nameEn": "",
+    "rarity": null
+  },
+  {
+    "name": "溟波龍的天麟",
+    "nameEn": "",
+    "rarity": null,
+    "weaponDecoration": true,
+    "decorationEffects": {
+      "weapon": {
+        "note": "法術豁免 DC +1, 寒冷或閃電法術則 +2"
+      }
+    }
+  },
+  {
+    "name": "溟波龍的韌尾",
+    "nameEn": "",
+    "rarity": null,
+    "weaponDecoration": true,
+    "armorDecoration": true,
+    "decorationEffects": {
+      "weapon": {
+        "note": "10個符文，可以施用任一法術：速水術、枯水術/造水術、雲霧術、召雷術（3）、操水術（4）\n每天1d4回復"
+      },
+      "armor": {
+        "note": "閃電抗性"
+      }
+    }
+  },
+  {
+    "name": "溟波龍的鋼爪",
+    "nameEn": "",
+    "rarity": null
+  },
+  {
+    "name": "睡眠草",
+    "nameEn": "Sleep Herb",
+    "rarity": null
+  },
+  {
+    "name": "蜂蜜",
+    "nameEn": "Honey",
+    "rarity": null
+  },
+  {
+    "name": "解毒草",
+    "nameEn": "Antidote Herb",
+    "rarity": null
+  },
+  {
+    "name": "雷光蟲",
+    "nameEn": "Thunderbug",
+    "rarity": null
+  },
+  {
+    "name": "壽司魚",
+    "nameEn": "Sushifish",
+    "rarity": null
+  },
+  {
+    "name": "旗魚",
+    "nameEn": "Speartuna",
+    "rarity": null
+  },
+  {
+    "name": "蜘蛛網",
+    "nameEn": "Spiderweb",
+    "rarity": null
+  },
+  {
+    "name": "辣椒",
+    "nameEn": "Hot Pepper",
+    "rarity": null
+  },
+  {
+    "name": "鳳尾魚",
+    "nameEn": "Wanchovy",
+    "rarity": null
+  },
+  {
+    "name": "暮光草根",
+    "nameEn": "Gloamgrass Root",
+    "rarity": null
+  },
+  {
+    "name": "熱帶草莓",
+    "nameEn": "Tropical Berry",
+    "rarity": null
+  },
+  {
+    "name": "輝龍石",
+    "nameEn": "Dragonite Ore",
+    "rarity": null
+  },
+  {
+    "name": "歷戰不滅的交心",
+    "nameEn": "",
+    "rarity": null
+  },
+  {
+    "name": "歷戰煉黑龍的黑焰",
+    "nameEn": "",
+    "rarity": null,
+    "weaponDecoration": true,
+    "decorationEffects": {
+      "weapon": {
+        "note": "四個符文，每天恢復全部。使用符文打中生物時，感知豁免dc16，失敗的話到下一輪之前打我之外的目標劣勢。"
+      }
+    }
+  },
+  {
+    "name": "歷戰麒麟的皮",
+    "nameEn": "",
+    "rarity": null
+  },
+  {
+    "name": "燕雀石",
+    "nameEn": "Machalite Ore",
+    "rarity": null
+  },
+  {
+    "name": "獨角仙",
+    "nameEn": "Carpenterbug",
+    "rarity": null
+  },
+  {
+    "name": "興奮蘑菇",
+    "nameEn": "Exciteshroom",
+    "rarity": null
+  },
+  {
+    "name": "螢火蟲",
+    "nameEn": "Firefly",
+    "rarity": null
+  },
+  {
+    "name": "龍之托斯特菇",
+    "nameEn": "Dragon Toadstool",
+    "rarity": null
+  },
+  {
+    "name": "龍之種子",
+    "nameEn": "Dragon Seed",
+    "rarity": null
+  },
+  {
+    "name": "壓蟲",
+    "nameEn": "Cricket",
+    "rarity": null
+  },
+  {
+    "name": "蟋蟀",
+    "nameEn": "Cricket",
+    "rarity": null
+  },
+  {
+    "name": "黏著草",
+    "nameEn": "Sap Plant",
+    "rarity": null
+  },
+  {
+    "name": "黏著菇",
+    "nameEn": "Bindshroom",
+    "rarity": null
+  },
+  {
+    "name": "藍切魚",
+    "nameEn": "Blue Cutthroat",
+    "rarity": null
+  },
+  {
+    "name": "藍蘑菇",
+    "nameEn": "Blue Mushroom",
+    "rarity": null
+  },
+  {
+    "name": "蟲之骸",
+    "nameEn": "Insect Husk",
+    "rarity": null
+  },
+  {
+    "name": "鎧玉",
+    "nameEn": "Armor Sphere",
+    "rarity": null
+  },
+  {
+    "name": "雙蓋紅花",
+    "nameEn": "Dosbiscus",
+    "rarity": null
+  },
+  {
+    "name": "爆炸菇",
+    "nameEn": "Nitroshroom",
+    "rarity": null
+  },
+  {
+    "name": "爆裂果實",
+    "nameEn": "Bomberry",
+    "rarity": null
+  },
+  {
+    "name": "爆裂龍魚",
+    "nameEn": "Burst Arrowana",
+    "rarity": null
+  },
+  {
+    "name": "爆彈龍魚",
+    "nameEn": "Bomb Arrowana",
+    "rarity": null
+  },
+  {
+    "name": "爆錘龍的甲殼",
+    "nameEn": "",
+    "rarity": null,
+    "weaponDecoration": true,
+    "armorDecoration": true,
+    "decorationEffects": {
+      "weapon": {
+        "note": "砥石使用高速化：短休時可以打磨韌性，打磨後的第一下穿刺或揮砍傷害造成最大化。或是花一分鐘磨刀。"
+      },
+      "armor": {
+        "note": "用反應或附贈，對雷鳴傷害獲得抗性，持續到下一個回合。長休恢復。"
+      }
+    }
+  },
+  {
+    "name": "爆錘龍的紅玉",
+    "nameEn": "",
+    "rarity": null,
+    "description": "護甲：迴避豁免檢定可以用AC取代n20擲骰，長修可用三次"
+  },
+  {
+    "name": "爆錘龍的耐熱殼",
+    "nameEn": "",
+    "rarity": null
+  },
+  {
+    "name": "爆錘龍的骨髓",
+    "nameEn": "",
+    "rarity": null,
+    "armorDecoration": true,
+    "decorationEffects": {
+      "armor": {
+        "note": "裂傷無效。對創傷效果免疫"
+      }
+    }
+  },
+  {
+    "name": "獸骨",
+    "nameEn": "Brute Bone",
+    "rarity": null
+  },
+  {
+    "name": "藥草",
+    "nameEn": "Herb",
+    "rarity": null
+  },
+  {
+    "name": "蠕蟲",
+    "nameEn": "Worm",
+    "rarity": null
+  },
+  {
+    "name": "魔物骨+",
+    "nameEn": "Monster Bone+",
+    "rarity": null
+  },
+  {
+    "name": "魔物硬骨",
+    "nameEn": "Monster Toughbone",
+    "rarity": null
+  },
+  {
+    "name": "靈鶴石",
+    "nameEn": "Carbalite Ore",
+    "rarity": null
+  },
+  {
+    "name": "POP魚",
+    "nameEn": "Popfish",
+    "rarity": null
+  }
+]

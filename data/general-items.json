@@ -1,0 +1,109 @@
+[
+  {
+    "name": "強效治療藥水",
+    "category": "藥水",
+    "rarity": null,
+    "nameEn": "Potion of Superior Healing",
+    "description": "藥水、弱效、珍稀\n你在飲用此藥水時回覆8d4+8點生命值。這瓶藥水的紅色液體會在被搖動時散發微光。\n\n發現於：魔法物品表C\n資源： DMG，第187頁。SRD 資源。",
+    "isMagic": true
+  },
+  {
+    "name": "極效治療藥水",
+    "category": "藥水",
+    "rarity": null,
+    "nameEn": "Potion of Supreme Healing",
+    "description": "藥水、弱效、非常珍稀\n你在飲用此藥水時回覆10d4+20點生命值。這瓶藥水的紅色液體會在被搖動時散發微光。\n\n發現於：魔法物品表D, 魔法物品表E\n資源： DMG，第187頁。SRD 資源。",
+    "isMagic": true
+  },
+  {
+    "name": "火焰吐息藥水",
+    "category": "藥水",
+    "rarity": null,
+    "nameEn": "Potion of Fire Breath",
+    "description": "藥水、弱效、非常見\n在飲用這瓶藥水後，你可以使用一個附贈動作向距離你30尺內的一個目標噴吐火焰。目標必須進行一次DC 13的敏捷豁免，豁免失敗將受到4d6火焰傷害，豁免成功則只受到一半的傷害。這個效果將在你噴出火焰三次、或1個小時過去後結束。這瓶藥水的橙色液體不停閃爍，且濃煙彌漫在容器頂部，並在容器被打開時飄散而出。\n\n發現於：魔法物品表B\n資源： DMG，第187頁",
+    "isMagic": true
+  },
+  {
+    "name": "良效治療藥水",
+    "category": "藥水",
+    "rarity": null,
+    "nameEn": "Potion of Greater Healing",
+    "description": "藥水、弱效、非常見\n你在飲用此藥水時回覆4d4+4點生命值。這瓶藥水的紅色液體會在被搖動時散發微光。\n\n發現於：魔法物品表A, 魔法物品表B\n資源： DMG，第187頁。SRD 資源。",
+    "isMagic": true
+  },
+  {
+    "name": "隱身藥水",
+    "category": "藥水",
+    "rarity": null,
+    "nameEn": "Potion of Invisibility",
+    "description": "藥水、弱效、非常珍稀\n這瓶藥水的容器看起來是空的，但仍能感覺像是它裝有液體。當你飲用它時，你將變得隱形持續1小時。任何你穿戴或攜帶的事物也將跟你一起隱形。這個效果將會在你攻擊或施放法術時提早結束。\n\n發現於：魔法物品表D\n資源： DMG，第188頁。SRD 資源。",
+    "isMagic": true
+  },
+  {
+    "name": "奧術光輝(聖法術光輝)",
+    "category": "裝備",
+    "rarity": null,
+    "nameEn": "Arcane Radiance",
+    "description": "智力、敏捷、魅力 調整值各+1\n進入靈界(以太位面)後，失去所有效果，變為一條50G的項鍊",
+    "isMagic": true,
+    "affectsStats": true,
+    "equipmentKind": "torso",
+    "statBonuses": {
+      "abilityModifiers": {
+        "cha": 1,
+        "dex": 1,
+        "int": 1
+      }
+    }
+  },
+  {
+    "name": "戰蜥人頭骨盔",
+    "category": "裝備",
+    "rarity": null,
+    "nameEn": "Troglodyte Skull Greathelm",
+    "description": "所有豁免檢定+1。\n使用一個動作，將頭盔左右兩邊開關打開，即可獲得能力。\n若長休時未卸下，則需擲一次體質豁免，DC從15開始計算，到5/11/17級時，DC依序改為17/20/25。",
+    "isMagic": true,
+    "affectsStats": true,
+    "equipmentKind": "head",
+    "statBonuses": {
+      "savingThrows": {
+        "cha": 1,
+        "con": 1,
+        "dex": 1,
+        "int": 1,
+        "str": 1,
+        "wis": 1
+      }
+    }
+  },
+  {
+    "name": "聖水",
+    "category": "裝備",
+    "rarity": null,
+    "nameEn": "Holy Water",
+    "description": "冒險裝備\n\n25金幣，1磅。\n\n當你使用「攻擊」動作時，你可以用投擲一瓶聖水代替一次攻擊。指定一個你可見且距離你20尺內的生物。目標必須通過一次敏捷豁免檢定（難度等級8加上你的敏捷調整值和熟練加值），否則如果它是邪魔或不死生物，則受到2d8點光耀傷害。\n\n資料來源：《玩家手冊》（PHB'24），第226頁。可在系統參考文件（SRD）5.2.1和《基礎規則》（2024）中找到。"
+  },
+  {
+    "name": "食人魔力量手套",
+    "category": "裝備",
+    "rarity": null,
+    "nameEn": "Gauntlets of Ogre Power",
+    "description": "穿戴時你的力量值變為 **19**（若你原本的力量已達 19 或更高則無效）。\n\n稀有度：非凡（Uncommon）；需要同調。",
+    "isMagic": true,
+    "affectsStats": true,
+    "equipmentKind": "hands",
+    "statBonuses": {
+      "abilityScoreFloors": {
+        "str": 19
+      }
+    }
+  },
+  {
+    "name": "控制土元素的石頭",
+    "category": "雜項",
+    "rarity": null,
+    "nameEn": "Stone of Controlling Earth Elementals",
+    "description": "奇物、強效、珍稀\n5 磅\n若這顆石頭碰觸於地面，你可以使用一個動作以說出它的命令語，並如同你施放了召喚元素生物法術一樣召喚出一個土元素。這顆石頭的重量為5磅。\n\n發現於：魔法物品表G\n資源： DMG，第205頁。SRD 資源。",
+    "isMagic": true
+  }
+]

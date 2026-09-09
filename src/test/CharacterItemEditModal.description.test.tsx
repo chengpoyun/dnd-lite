@@ -10,22 +10,13 @@ import type { CharacterItem } from '../../services/itemService';
 const mockCharacterItem: CharacterItem = {
   id: 'ci-1',
   character_id: 'c1',
-  item_id: null,
   quantity: 1,
   is_magic: false,
-  name_override: null,
+  name_override: '測試物品',
   description_override: '原本的描述',
-  category_override: null,
+  category_override: '雜項',
   created_at: new Date().toISOString(),
   updated_at: new Date().toISOString(),
-  item: {
-    id: 'item-1',
-    name: '測試物品',
-    name_en: 'Test Item',
-    description: '全域描述',
-    category: '雜項',
-    is_magic: false,
-  } as any,
 };
 
 describe('CharacterItemEditModal - description 清空儲存', () => {

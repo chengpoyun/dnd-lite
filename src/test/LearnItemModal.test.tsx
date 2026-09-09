@@ -1,44 +1,35 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { LearnItemModal } from '../../components/LearnItemModal';
-import * as ItemService from '../../services/itemService';
-import type { GlobalItem } from '../../services/itemService';
+import * as ItemCatalog from '../../services/itemCatalog';
+import type { CatalogItem } from '../../services/itemCatalog';
 
-vi.mock('../../services/itemService', async () => {
-  const actual = await vi.importActual<typeof import('../../services/itemService')>(
-    '../../services/itemService'
+vi.mock('../../services/itemCatalog', async () => {
+  const actual = await vi.importActual<typeof import('../../services/itemCatalog')>(
+    '../../services/itemCatalog'
   );
   return {
     ...actual,
-    searchGlobalItems: vi.fn(),
+    searchLocalCatalog: vi.fn(),
   };
 });
 
 describe('LearnItemModal - keyword gating', () => {
-  const mockedSearchGlobalItems = ItemService.searchGlobalItems as unknown as ReturnType<typeof vi.fn>;
+  const mockedSearchLocalCatalog = ItemCatalog.searchLocalCatalog as unknown as ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   it('does not show items until keyword entered', async () => {
-    const items: GlobalItem[] = [
+    const items: CatalogItem[] = [
       {
-        id: 'item-1',
-        name: '木劍',
-        name_en: 'Wooden Sword',
-        description: 'desc',
-        category: '裝備',
-        is_magic: false,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
+        source: 'general',
+        entry: { name: '木劍', nameEn: 'Wooden Sword', description: 'desc', category: '裝備', rarity: null },
       },
     ];
 
-    mockedSearchGlobalItems.mockResolvedValue({
-      success: true,
-      items,
-    });
+    mockedSearchLocalCatalog.mockResolvedValue(items);
 
     render(
       <LearnItemModal
@@ -46,7 +37,7 @@ describe('LearnItemModal - keyword gating', () => {
         onClose={vi.fn()}
         onLearnItem={vi.fn()}
         onCreateNew={vi.fn()}
-        learnedItemIds={[]}
+        learnedNames={[]}
       />
     );
 
@@ -59,35 +50,21 @@ describe('LearnItemModal - keyword gating', () => {
       target: { value: '木' },
     });
 
-    await waitFor(
-      () => {
-        expect(screen.getByText('木劍')).toBeInTheDocument();
-      },
-      { timeout: 600 }
-    );
-    expect(mockedSearchGlobalItems).toHaveBeenCalledWith('木');
+    await waitFor(() => {
+      expect(screen.getByText('木劍')).toBeInTheDocument();
+    });
+    expect(mockedSearchLocalCatalog).toHaveBeenCalledWith('木');
   });
 
-  it('shows items with null description when name matches search', async () => {
-    const items: GlobalItem[] = [
+  it('shows items with no description when name matches search', async () => {
+    const items: CatalogItem[] = [
       {
-        id: 'item-1',
-        name: '誇爾羽符鳥',
-        // GlobalItem 把這兩欄宣告成非 null，但 DB 實際會回 null，
-        // 這支測試要的正是那個情境，所以沿用同一種轉型寫法
-        name_en: null as unknown as string,
-        description: null as unknown as string,
-        category: '雜項',
-        is_magic: false,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
+        source: 'material',
+        entry: { name: '誇爾羽符鳥', nameEn: '', rarity: null },
       },
     ];
 
-    mockedSearchGlobalItems.mockResolvedValue({
-      success: true,
-      items,
-    });
+    mockedSearchLocalCatalog.mockResolvedValue(items);
 
     render(
       <LearnItemModal
@@ -95,7 +72,7 @@ describe('LearnItemModal - keyword gating', () => {
         onClose={vi.fn()}
         onLearnItem={vi.fn()}
         onCreateNew={vi.fn()}
-        learnedItemIds={[]}
+        learnedNames={[]}
       />
     );
 
@@ -107,12 +84,61 @@ describe('LearnItemModal - keyword gating', () => {
       target: { value: '誇爾羽符' },
     });
 
-    await waitFor(
-      () => {
-        expect(screen.getByText('誇爾羽符鳥')).toBeInTheDocument();
-      },
-      { timeout: 600 }
+    await waitFor(() => {
+      expect(screen.getByText('誇爾羽符鳥')).toBeInTheDocument();
+    });
+    expect(mockedSearchLocalCatalog).toHaveBeenCalledWith('誇爾羽符');
+  });
+
+  it('已擁有的物品（依名稱比對）不會出現在搜尋結果', async () => {
+    const items: CatalogItem[] = [
+      { source: 'material', entry: { name: '藥草', nameEn: 'Herb', rarity: null } },
+    ];
+    mockedSearchLocalCatalog.mockResolvedValue(items);
+
+    render(
+      <LearnItemModal
+        isOpen
+        onClose={vi.fn()}
+        onLearnItem={vi.fn()}
+        onCreateNew={vi.fn()}
+        learnedNames={['藥草']}
+      />
     );
-    expect(mockedSearchGlobalItems).toHaveBeenCalledWith('誇爾羽符');
+
+    fireEvent.change(screen.getByPlaceholderText('輸入名稱或描述...'), {
+      target: { value: '藥草' },
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('沒有符合條件的物品')).toBeInTheDocument();
+    });
+    expect(screen.queryByText('藥草')).not.toBeInTheDocument();
+  });
+
+  it('點「獲得」時把整筆 CatalogItem 傳給 onLearnItem', async () => {
+    const item: CatalogItem = { source: 'material', entry: { name: '藥草', nameEn: 'Herb', rarity: null } };
+    mockedSearchLocalCatalog.mockResolvedValue([item]);
+    const onLearnItem = vi.fn().mockResolvedValue(undefined);
+
+    render(
+      <LearnItemModal
+        isOpen
+        onClose={vi.fn()}
+        onLearnItem={onLearnItem}
+        onCreateNew={vi.fn()}
+        learnedNames={[]}
+      />
+    );
+
+    fireEvent.change(screen.getByPlaceholderText('輸入名稱或描述...'), {
+      target: { value: '藥草' },
+    });
+    await waitFor(() => screen.getByText('獲得'));
+    fireEvent.click(screen.getByText('獲得'));
+
+    await waitFor(() => {
+      expect(onLearnItem).toHaveBeenCalledWith(item);
+    });
   });
 });

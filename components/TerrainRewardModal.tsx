@@ -15,6 +15,7 @@ import type { TerrainDef, TierKey, TierTable, ParsedReward } from '../types/terr
 import type { CharacterStats } from '../types';
 import type { CustomRecord } from '../types';
 import * as ItemService from '../services/itemService';
+import { resolveGatheredMaterialCreateData } from '../services/mhMaterialCatalog';
 import { useToast } from '../hooks/useToast';
 
 const SKILL_OPTIONS: SegmentBarOption<string>[] = [
@@ -118,12 +119,9 @@ export function TerrainRewardModal({
           return false;
         }
       } else {
-        const result = await ItemService.createCharacterItem(characterId, {
-          name,
-          category: 'MH素材',
-          quantity,
-          is_magic: false,
-        });
+        // 依採集到的名稱查本地 MH素材目錄：找得到就把描述／插槽效果一起帶入，找不到就只給名稱
+        const data = await resolveGatheredMaterialCreateData(name, quantity);
+        const result = await ItemService.createCharacterItem(characterId, data);
         if (!result.success) {
           showError(result.error ?? '加入物品失敗');
           return false;

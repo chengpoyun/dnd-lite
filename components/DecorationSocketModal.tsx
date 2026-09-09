@@ -67,7 +67,7 @@ export const DecorationSocketModal: React.FC<DecorationSocketModalProps> = ({
 
   if (!targetItem || slotIndex == null) return null;
 
-  const rawKind = targetItem.equipment_kind_override ?? targetItem.item?.equipment_kind ?? null;
+  const rawKind = targetItem.equipment_kind_override ?? null;
   const isWeapon = rawKind === 'melee_weapon' || rawKind === 'ranged_weapon';
   const decorationKind: DecorationKind = isWeapon ? 'weapon' : 'armor';
 

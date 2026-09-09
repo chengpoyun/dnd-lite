@@ -6,7 +6,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import EquipmentPage from '../../components/EquipmentPage';
 import * as ItemService from '../../services/itemService';
-import type { CharacterItem, GlobalItem } from '../../services/itemService';
+import type { CharacterItem } from '../../services/itemService';
 
 vi.mock('../../hooks/useToast', () => ({
   useToast: () => ({
@@ -25,30 +25,17 @@ vi.mock('../../services/itemService', async (importOriginal) => {
 
 const mockGetCharacterItems = vi.mocked(ItemService.getCharacterItems);
 
-function buildGlobalItem(overrides: Partial<GlobalItem> = {}): GlobalItem {
-  return {
-    id: 'global-1',
-    name: '測試裝備',
-    name_en: '',
-    description: '',
-    category: '裝備',
-    is_magic: false,
-    created_at: '',
-    updated_at: '',
-    ...overrides,
-  };
-}
-
 function buildCharacterItem(overrides: Partial<CharacterItem> = {}): CharacterItem {
   return {
     id: 'ci-1',
     character_id: 'char-1',
-    item_id: 'global-1',
     quantity: 1,
     is_magic: false,
+    name_override: '測試裝備',
+    description_override: '',
+    category_override: '裝備',
     created_at: '',
     updated_at: '',
-    item: buildGlobalItem(),
     ...overrides,
   };
 }
@@ -67,22 +54,22 @@ describe('EquipmentPage - 鑲嵌情形顯示與 ↪ 跳轉按鈕', () => {
     buildCharacterItem({
       id: 'ci-helmet',
       name_override: '測試頭盔',
+      equipment_kind_override: 'head',
       equipment_slot: 'head',
       is_equipped: true,
       decoration_slots: 2,
       sockets: [{ decoration_name: '素材A', note: '' }, null],
-      item: buildGlobalItem({ id: 'g-helmet', name: '測試頭盔', equipment_kind: 'head' } as any),
-    } as any);
+    });
 
   const belt = () =>
     buildCharacterItem({
       id: 'ci-belt',
       name_override: '測試腰帶',
+      equipment_kind_override: 'waist',
       equipment_slot: 'waist',
       is_equipped: true,
       decoration_slots: 0,
-      item: buildGlobalItem({ id: 'g-belt', name: '測試腰帶', equipment_kind: 'waist' } as any),
-    } as any);
+    });
 
   it('穿戴中且有插槽的裝備，該列在下拉選單左側顯示鑲嵌小寶石列（已鑲嵌藍、空槽深色）', async () => {
     mockGetCharacterItems.mockResolvedValue({ success: true, items: [helmet()] });

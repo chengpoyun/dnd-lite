@@ -4,6 +4,14 @@
 
 ---
 
+## 2.0.0
+
+- 重構：**道具資料全面本地化，`global_items` 資料表整個移除**。「獲得物品」的搜尋不再查詢 DB，改成搜尋兩個本地 JSON 檔：`data/mh-materials.json`（155 筆 MH 素材，含名稱、英文名、稀有度、描述、武器／護甲插槽效果）與 `data/general-items.json`（10 筆原本存在 `global_items` 的裝備／藥水／雜項，1:1 搬遷含 `stat_bonuses`）。之後要新增/修改道具目錄，直接改這兩個 JSON 檔、`git push` 後靠 GitHub Actions 自動部署即可，不再需要動 DB。
+- 重構：**`character_items` 每一列改成完全自足**——移除 `item_id` 欄位與 `item:global_items(...)` join，原本「DB 目錄物品（可被 override 覆蓋）vs. 純個人物品」的雙軌模式整個收斂成單一模式：所有欄位（名稱、分類、是否影響數值、`stat_bonuses`...）都直接存在該列自己身上，不再有「找不到覆寫值就 fallback 去查目錄」的分支。`services/itemService.ts`（`GlobalItem`、`searchGlobalItems`、`learnItem` 等移除）、`services/characterBonusAggregation.ts`、`LearnItemModal`、`ItemsPage`、`CharacterItemEditModal`、`DecorationSocketModal`、`TerrainRewardModal` 全數跟著簡化。
+- 遷移：刪表前，先把當時 DB 裡僅有的 11 筆「掛在 `global_items` 底下」的真實角色物品（5 名玩家），依它們原本顯示的有效值（含被角色個人覆寫過的欄位）逐一寫回自己身上、`item_id` 清成 `null`，確認前後顯示值完全一致後才執行 `DROP TABLE global_items` 並移除 `character_items.item_id` 欄位，物品皆完整保留、無資料遺失。
+- 新增：地形採集（採集頁）撿到已收錄在 MH 素材本地目錄裡的素材時，會自動帶入描述與插槽效果，不用再手動補打一次。
+- 資料：素材／物品目錄新增 `nameEn`（英文名，地形採集來源已填）與 `rarity`（稀有度）欄位，先寫入資料、UI 顯示留待之後功能再補；測試角色的資料未列入本次匯出的目錄。
+
 ## 1.18.3
 
 - 修正：MH素材插槽效果的「效果說明」與 stat_bonuses.other 若都有填寫，現在會**一併顯示**在戰鬥頁「其他效果」（效果說明在前、換行接著額外補充的文字），而不是後者蓋掉前者。兩段文字完全相同時（沿用舊流程重複填寫的資料）只顯示一次，不會重複疊加。

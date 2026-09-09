@@ -14,21 +14,13 @@ const CHARACTER_ID = '00000000-0000-0000-0000-000000000066';
 const itemRow = (overrides: Record<string, any> = {}) => ({
   id: 'ci-1',
   character_id: CHARACTER_ID,
-  item_id: 'gi-1',
   name_override: '測試物品',
-  affects_stats: null,
-  stat_bonuses: null,
+  category_override: '裝備',
+  affects_stats: true,
+  stat_bonuses: { combatStats: { ac: 2 } },
   applies_unequipped: false,
   is_equipped: false,
   sockets: [],
-  item: {
-    id: 'gi-1',
-    name: '測試物品',
-    category: '裝備',
-    affects_stats: true,
-    stat_bonuses: { combatStats: { ac: 2 } },
-    applies_unequipped: false,
-  },
   ...overrides,
 });
 
@@ -91,25 +83,17 @@ describe('collectSourceBonusesForCharacter - applies_unequipped（無須裝備�
     expect(result.combatStats.ac).toBe(2);
   });
 
-  it('applies_unequipped 只在 character_items 有明確值時使用，否則退回 global_items 的值', async () => {
+  it('applies_unequipped 未設定時退回 false（裝備分類、未裝備時不套用）', async () => {
     const { supabase } = await import('../../lib/supabase');
     (supabase as any).__mockAbilities = [];
     (supabase as any).__mockItems = [
-      itemRow({
-        is_equipped: false,
-        applies_unequipped: undefined,
-        item: {
-          id: 'gi-1', name: '測試物品', category: '裝備',
-          affects_stats: true, stat_bonuses: { combatStats: { ac: 2 } },
-          applies_unequipped: true,
-        },
-      }),
+      itemRow({ is_equipped: false, applies_unequipped: undefined }),
     ];
 
     const { DetailedCharacterService } = await import('../../services/detailedCharacter');
     const result = await DetailedCharacterService.collectSourceBonusesForCharacter(CHARACTER_ID, { level: 5 });
 
-    expect(result.combatStats.ac).toBe(2);
+    expect(result.combatStats.ac ?? 0).toBe(0);
   });
 
   it('非裝備分類（雜項）物品，即使 is_equipped 為 false，也一律套用加值，不受此限制', async () => {
@@ -117,13 +101,11 @@ describe('collectSourceBonusesForCharacter - applies_unequipped（無須裝備�
     (supabase as any).__mockAbilities = [];
     (supabase as any).__mockItems = [
       itemRow({
+        name_override: '幸運符',
+        category_override: '雜項',
         is_equipped: false,
         applies_unequipped: false,
-        item: {
-          id: 'gi-1', name: '幸運符', category: '雜項',
-          affects_stats: true, stat_bonuses: { combatStats: { ac: 1 } },
-          applies_unequipped: false,
-        },
+        stat_bonuses: { combatStats: { ac: 1 } },
       }),
     ];
 
@@ -139,12 +121,10 @@ describe('collectSourceBonusesForCharacter - applies_unequipped（無須裝備�
     (supabase as any).__mockAbilities = [];
     (supabase as any).__mockItems = [
       itemRow({
-        is_equipped: false,
+        name_override: '力量藥水',
         category_override: '藥水',
-        item: {
-          id: 'gi-1', name: '力量藥水', category: '裝備',
-          affects_stats: true, stat_bonuses: { combatStats: { ac: 1 } },
-        },
+        is_equipped: false,
+        stat_bonuses: { combatStats: { ac: 1 } },
       }),
     ];
 
@@ -162,6 +142,7 @@ describe('collectSourceBonusesForCharacter - applies_unequipped（無須裝備�
         is_equipped: false,
         applies_unequipped: true,
         affects_stats: false,
+        stat_bonuses: null,
         sockets: [{ decoration_name: '素材Y', note: '', stat_bonuses: { combatStats: { initiative: 3 } } }],
       }),
     ];

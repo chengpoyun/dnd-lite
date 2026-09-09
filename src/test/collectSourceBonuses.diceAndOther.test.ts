@@ -14,19 +14,12 @@ const CHARACTER_ID = '00000000-0000-0000-0000-000000000077';
 const itemRow = (id: string, name: string, statBonuses: any, overrides: Record<string, any> = {}) => ({
   id,
   character_id: CHARACTER_ID,
-  item_id: `gi-${id}`,
-  name_override: null,
-  affects_stats: null,
-  stat_bonuses: null,
+  name_override: name,
+  category_override: '裝備',
+  affects_stats: true,
+  stat_bonuses: statBonuses,
   is_equipped: true,
   sockets: [],
-  item: {
-    id: `gi-${id}`,
-    name,
-    category: '裝備',
-    affects_stats: true,
-    stat_bonuses: statBonuses,
-  },
   ...overrides,
 });
 

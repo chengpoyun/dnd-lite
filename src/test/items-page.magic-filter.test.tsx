@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import ItemsPage from '../../components/ItemsPage';
-import type { CharacterItem, GlobalItem } from '../../services/itemService';
+import type { CharacterItem } from '../../services/itemService';
 import * as ItemService from '../../services/itemService';
 
 vi.mock('../../hooks/useToast', () => ({
@@ -28,30 +28,17 @@ vi.mock('../../services/itemService', async () => {
 describe('ItemsPage - 魔法物品篩選', () => {
   const mockedGetCharacterItems = ItemService.getCharacterItems as unknown as ReturnType<typeof vi.fn>;
 
-  const buildItem = (overrides: Partial<GlobalItem>): GlobalItem => ({
-    id: `global-${overrides.name || 'item'}`,
-    name: overrides.name || '物品',
-    name_en: overrides.name_en || '',
-    description: overrides.description || '',
-    category: overrides.category || '裝備',
-    is_magic: overrides.is_magic ?? false,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  });
-
   const buildCharacterItem = (overrides: Partial<CharacterItem>): CharacterItem => ({
-    id: overrides.id || `char-${overrides.item_id || 'item'}`,
+    id: overrides.id || `char-${overrides.name_override || 'item'}`,
     character_id: overrides.character_id || 'char-1',
-    item_id: overrides.item_id ?? 'global-1',
     quantity: overrides.quantity ?? 1,
     is_magic: overrides.is_magic ?? false,
-    is_magic_override: overrides.is_magic_override ?? null,
     name_override: overrides.name_override ?? null,
     description_override: overrides.description_override ?? null,
     category_override: overrides.category_override ?? null,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
-    item: overrides.item,
+    ...overrides,
   });
 
   beforeEach(() => {
@@ -60,12 +47,14 @@ describe('ItemsPage - 魔法物品篩選', () => {
 
   it('應該只顯示魔法物品', async () => {
     const normalItem = buildCharacterItem({
-      item_id: 'global-normal',
-      item: buildItem({ name: '普通劍', category: '裝備', is_magic: false }),
+      name_override: '普通劍',
+      category_override: '裝備',
+      is_magic: false,
     });
     const magicItem = buildCharacterItem({
-      item_id: 'global-magic',
-      item: buildItem({ name: '魔法劍', category: '裝備', is_magic: true }),
+      name_override: '魔法劍',
+      category_override: '裝備',
+      is_magic: true,
     });
 
     mockedGetCharacterItems.mockResolvedValue({

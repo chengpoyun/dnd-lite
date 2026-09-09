@@ -41,17 +41,12 @@ function chainStub(finalResult: { data?: any; error?: any }) {
 describe('getDisplayValues - 鑲嵌插槽相關欄位', () => {
   const base = { id: 'ci1', character_id: 'c1', quantity: 1, is_magic: false, created_at: '', updated_at: '' };
 
-  it('character_items 有 override 時優先於 global_items', () => {
+  it('顯示值直接取自角色物品自己的欄位', () => {
     const result = getDisplayValues({
       ...base,
-      item_id: 'g1',
       decoration_slots: 2,
       weapon_decoration: true,
       armor_decoration: false,
-      item: {
-        id: 'g1', name: 'X', description: '', category: '裝備', is_magic: false, created_at: '', updated_at: '',
-        decoration_slots: 0, weapon_decoration: false, armor_decoration: true,
-      },
     } as CharacterItem);
 
     expect(result.displayDecorationSlots).toBe(2);
@@ -59,44 +54,24 @@ describe('getDisplayValues - 鑲嵌插槽相關欄位', () => {
     expect(result.displayArmorDecoration).toBe(false);
   });
 
-  it('無 override 時退回 global_items 的值', () => {
-    const result = getDisplayValues({
-      ...base,
-      item_id: 'g1',
-      item: {
-        id: 'g1', name: 'X', description: '', category: 'MH素材', is_magic: false, created_at: '', updated_at: '',
-        decoration_slots: 3, weapon_decoration: true, armor_decoration: true,
-      },
-    } as CharacterItem);
-
-    expect(result.displayDecorationSlots).toBe(3);
-    expect(result.displayWeaponDecoration).toBe(true);
-    expect(result.displayArmorDecoration).toBe(true);
-  });
-
-  it('兩者皆無時，插槽數退回 0、武器／護甲鑲嵌旗標退回 false', () => {
-    const result = getDisplayValues({ ...base, item_id: null } as CharacterItem);
+  it('都未設定時，插槽數退回 0、武器／護甲鑲嵌旗標退回 false', () => {
+    const result = getDisplayValues({ ...base } as CharacterItem);
 
     expect(result.displayDecorationSlots).toBe(0);
     expect(result.displayWeaponDecoration).toBe(false);
     expect(result.displayArmorDecoration).toBe(false);
   });
 
-  it('displayDecorationEffects：override 優先於 global_items，兩者皆無時退回空物件', () => {
-    const withOverride = getDisplayValues({
+  it('displayDecorationEffects：直接取自 decoration_effects，未設定時退回空物件', () => {
+    const withEffects = getDisplayValues({
       ...base,
-      item_id: 'g1',
       decoration_effects: { weapon: { note: '燒灼', stat_bonuses: { combatStats: { attackDamage: 1 } } } },
-      item: {
-        id: 'g1', name: 'X', description: '', category: 'MH素材', is_magic: false, created_at: '', updated_at: '',
-        decoration_effects: { armor: { note: '應被覆蓋', stat_bonuses: {} } },
-      },
     } as CharacterItem);
-    expect(withOverride.displayDecorationEffects).toEqual({
+    expect(withEffects.displayDecorationEffects).toEqual({
       weapon: { note: '燒灼', stat_bonuses: { combatStats: { attackDamage: 1 } } },
     });
 
-    const withNeither = getDisplayValues({ ...base, item_id: null } as CharacterItem);
+    const withNeither = getDisplayValues({ ...base } as CharacterItem);
     expect(withNeither.displayDecorationEffects).toEqual({});
   });
 });
@@ -118,8 +93,8 @@ describe('socketDecoration', () => {
   });
 
   it('效果說明留空也允許鑲嵌（純敘述或完全無效果的素材）', async () => {
-    const materialRow = { id: 'm1', character_id: 'c1', quantity: 1, name_override: '素材A', decoration_effects: {}, item: null };
-    const targetRow = { id: 't1', character_id: 'c1', sockets: [], equipment_kind_override: 'melee_weapon', item: null };
+    const materialRow = { id: 'm1', character_id: 'c1', quantity: 1, name_override: '素材A', decoration_effects: {} };
+    const targetRow = { id: 't1', character_id: 'c1', sockets: [], equipment_kind_override: 'melee_weapon' };
 
     mockedSupabase.from
       .mockReturnValueOnce(chainStub({ data: materialRow, error: null }))
@@ -144,7 +119,7 @@ describe('socketDecoration', () => {
 
   it('找不到目標裝備時回傳錯誤訊息', async () => {
     mockedSupabase.from
-      .mockReturnValueOnce(chainStub({ data: { id: 'm1', character_id: 'c1', quantity: 1, name_override: '素材A', item: null }, error: null }))
+      .mockReturnValueOnce(chainStub({ data: { id: 'm1', character_id: 'c1', quantity: 1, name_override: '素材A' }, error: null }))
       .mockReturnValueOnce(chainStub({ data: null, error: { message: '裝備不存在' } }));
 
     const result = await socketDecoration('t1', 0, 'm1', '效果');
@@ -155,9 +130,8 @@ describe('socketDecoration', () => {
     const materialRow = {
       id: 'm1', character_id: 'c1', quantity: 2, name_override: '素材A',
       decoration_effects: { armor: { note: '護甲舊效果', stat_bonuses: { combatStats: { ac: 1 } } } },
-      item: null,
     };
-    const targetRow = { id: 't1', character_id: 'c1', sockets: [], equipment_kind_override: 'melee_weapon', item: null };
+    const targetRow = { id: 't1', character_id: 'c1', sockets: [], equipment_kind_override: 'melee_weapon' };
     const writebackStub = chainStub({ data: null, error: null });
     const socketUpdateStub = chainStub({ data: null, error: null });
     const qtyUpdateStub = chainStub({ data: null, error: null });
@@ -186,14 +160,13 @@ describe('socketDecoration', () => {
     expect(qtyUpdateStub.update).toHaveBeenCalledWith({ quantity: 1 });
   });
 
-  it('鑲入護甲時（依 global_items 的 equipment_kind 判斷），只寫回 decoration_effects.armor，不動 weapon 那份', async () => {
+  it('鑲入護甲時（equipment_kind_override 非武器類型），只寫回 decoration_effects.armor，不動 weapon 那份', async () => {
     const materialRow = {
       id: 'm1', character_id: 'c1', quantity: 1, name_override: '素材B',
       decoration_effects: { weapon: { note: '武器舊效果', stat_bonuses: { combatStats: { attackDamage: 3 } } } },
-      item: null,
     };
-    // equipment_kind_override 未設定，改由 join 的 global_items.equipment_kind 判斷（'body' 非武器 → 視為護甲）
-    const targetRow = { id: 't1', character_id: 'c1', sockets: [null], equipment_kind_override: null, item: { equipment_kind: 'body' } };
+    // equipment_kind_override 為 body（非武器）→ 視為護甲
+    const targetRow = { id: 't1', character_id: 'c1', sockets: [null], equipment_kind_override: 'body' };
     const writebackStub = chainStub({ data: null, error: null });
     const socketUpdateStub = chainStub({ data: null, error: null });
     const deleteStub = chainStub({ data: null, error: null });
@@ -223,8 +196,8 @@ describe('socketDecoration', () => {
   });
 
   it('素材消耗至 0 時改為刪除該筆，而非寫入 quantity', async () => {
-    const materialRow = { id: 'm1', character_id: 'c1', quantity: 1, name_override: '素材A', decoration_effects: {}, item: null };
-    const targetRow = { id: 't1', character_id: 'c1', sockets: [], equipment_kind_override: 'melee_weapon', item: null };
+    const materialRow = { id: 'm1', character_id: 'c1', quantity: 1, name_override: '素材A', decoration_effects: {} };
+    const targetRow = { id: 't1', character_id: 'c1', sockets: [], equipment_kind_override: 'melee_weapon' };
     const deleteStub = chainStub({ data: null, error: null });
 
     mockedSupabase.from
@@ -242,16 +215,15 @@ describe('socketDecoration', () => {
   });
 
   it('鑲嵌成功後，同步更新同名 MH素材庫存的對應 kind 效果，並保留每筆原本另一個 kind 的效果不被覆蓋', async () => {
-    const materialRow = { id: 'm1', character_id: 'c1', quantity: 5, name_override: '素材C', decoration_effects: {}, item: null };
-    const targetRow = { id: 't1', character_id: 'c1', sockets: [], equipment_kind_override: 'melee_weapon', item: null };
+    const materialRow = { id: 'm1', character_id: 'c1', quantity: 5, name_override: '素材C', decoration_effects: {} };
+    const targetRow = { id: 't1', character_id: 'c1', sockets: [], equipment_kind_override: 'melee_weapon' };
     const siblingRows = [
-      { id: 'm1', name_override: '素材C', category_override: 'MH素材', decoration_effects: {}, item: null }, // 自己：應排除
+      { id: 'm1', name_override: '素材C', category_override: 'MH素材', decoration_effects: {} }, // 自己：應排除
       {
         id: 'm2', name_override: '素材C', category_override: 'MH素材',
         decoration_effects: { armor: { note: '護甲既有效果', stat_bonuses: {} } }, // 同名：應同步 weapon，armor 應保留
-        item: null,
       },
-      { id: 'm3', name_override: '素材D', category_override: 'MH素材', decoration_effects: {}, item: null }, // 名稱不同：不應同步
+      { id: 'm3', name_override: '素材D', category_override: 'MH素材', decoration_effects: {} }, // 名稱不同：不應同步
     ];
     const syncUpdateStub = chainStub({ data: null, error: null });
 
@@ -294,7 +266,7 @@ describe('updateSocketedDecoration', () => {
 
   it('該插槽尚未鑲嵌時回傳錯誤，不寫入 DB', async () => {
     mockedSupabase.from.mockReturnValueOnce(
-      chainStub({ data: { character_id: 'c1', sockets: [null], equipment_kind_override: 'melee_weapon', item: null }, error: null })
+      chainStub({ data: { character_id: 'c1', sockets: [null], equipment_kind_override: 'melee_weapon' }, error: null })
     );
     const result = await updateSocketedDecoration('t1', 0, '說明');
     expect(result).toEqual({ success: false, error: '此插槽尚未鑲嵌' });
@@ -305,7 +277,6 @@ describe('updateSocketedDecoration', () => {
       character_id: 'c1',
       sockets: [{ decoration_name: '素材E', note: '舊說明', stat_bonuses: { abilityScores: { str: 1 } } }],
       equipment_kind_override: 'melee_weapon',
-      item: null,
     };
     mockedSupabase.from
       .mockReturnValueOnce(chainStub({ data: targetRow, error: null }))
@@ -320,8 +291,7 @@ describe('updateSocketedDecoration', () => {
     const targetRow = {
       character_id: 'c1',
       sockets: [{ decoration_name: '素材E', note: '舊說明', stat_bonuses: { abilityScores: { str: 1 } } }],
-      equipment_kind_override: null,
-      item: { equipment_kind: 'body' },
+      equipment_kind_override: 'body',
     };
     const socketUpdateStub = chainStub({ data: null, error: null });
     const syncUpdateStub = chainStub({ data: null, error: null });
@@ -330,7 +300,7 @@ describe('updateSocketedDecoration', () => {
       .mockReturnValueOnce(chainStub({ data: targetRow, error: null }))
       .mockReturnValueOnce(socketUpdateStub)
       .mockReturnValueOnce(chainStub({
-        data: [{ id: 'm9', name_override: '素材E', category_override: 'MH素材', decoration_effects: {}, item: null }],
+        data: [{ id: 'm9', name_override: '素材E', category_override: 'MH素材', decoration_effects: {} }],
         error: null,
       }))
       .mockReturnValueOnce(syncUpdateStub);

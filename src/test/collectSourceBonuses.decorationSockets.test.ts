@@ -13,19 +13,12 @@ const CHARACTER_ID = '00000000-0000-0000-0000-000000000088';
 const weaponRow = (overrides: Record<string, any> = {}) => ({
   id: 'ci-sword',
   character_id: CHARACTER_ID,
-  item_id: 'gi-sword',
   name_override: '大劍',
+  category_override: '裝備',
   affects_stats: false,
   stat_bonuses: null,
   is_equipped: true,
   sockets: [],
-  item: {
-    id: 'gi-sword',
-    name: '大劍',
-    category: '裝備',
-    affects_stats: false,
-    stat_bonuses: null,
-  },
   ...overrides,
 });
 

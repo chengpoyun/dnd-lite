@@ -14,36 +14,22 @@ const CHARACTER_ID = '00000000-0000-0000-0000-000000000099';
 const gauntletRow = (isEquipped: boolean) => ({
   id: 'ci-gauntlet',
   character_id: CHARACTER_ID,
-  item_id: 'gi-gauntlet',
-  name_override: null,
-  affects_stats: null,
-  stat_bonuses: null,
+  name_override: '食人魔力量手套',
+  category_override: '裝備',
+  affects_stats: true,
+  stat_bonuses: { abilityScoreFloors: { str: 19 } },
   is_equipped: isEquipped,
-  item: {
-    id: 'gi-gauntlet',
-    name: '食人魔力量手套',
-    category: '裝備',
-    affects_stats: true,
-    stat_bonuses: { abilityScoreFloors: { str: 19 } },
-  },
 });
 
 // 另一件「直接 +N 力量值」的裝備（測試下限是套用在「最終屬性值」上）
 const strBeltRow = (bonus: number) => ({
   id: 'ci-belt',
   character_id: CHARACTER_ID,
-  item_id: 'gi-belt',
-  name_override: null,
-  affects_stats: null,
-  stat_bonuses: null,
+  name_override: '力量腰帶',
+  category_override: '裝備',
+  affects_stats: true,
+  stat_bonuses: { abilityScores: { str: bonus } },
   is_equipped: true,
-  item: {
-    id: 'gi-belt',
-    name: '力量腰帶',
-    category: '裝備',
-    affects_stats: true,
-    stat_bonuses: { abilityScores: { str: bonus } },
-  },
 });
 
 vi.mock('../../lib/supabase', () => ({

@@ -1,22 +1,23 @@
 /**
- * ItemService - 道具管理服務（重構版）
- * 
+ * ItemService - 道具管理服務
+ *
  * 架構：
- * - global_items: 全域物品庫（類似 spells）
- * - character_items: 角色物品關聯表（類似 character_spells），包含 override 欄位
- * 
+ * - character_items: 角色物品表，每筆都是角色自己的獨立資料（不再有共用的全域物品庫）
+ * - 「獲得物品」的目錄改由本地 JSON 維護（見 services/mhMaterialCatalog.ts、
+ *   services/generalItemCatalog.ts），選取後直接複製資料到 character_items，
+ *   不再依賴 DB 裡的共用資料表
+ *
  * 功能：
- * - 取得全域物品庫
  * - 取得角色物品列表（含 display values）
- * - 獲得物品（從全域庫添加到角色）
  * - 新增/更新/刪除物品
- * - Override 欄位支援（角色專屬客製化）
- * 
+ * - 插槽鑲嵌
+ *
  * 資料隔離：
  * - 使用 RLS 政策確保用戶只能操作自己的角色物品
  */
 
 import { supabase } from '../lib/supabase';
+import type { StatBonusEditorValue } from '../components/StatBonusEditor';
 
 export type ItemCategory = '裝備' | '藥水' | 'MH素材' | '雜項';
 
@@ -24,13 +25,13 @@ export type ItemCategory = '裝備' | '藥水' | 'MH素材' | '雜項';
 export interface DecorationSocket {
   decoration_name: string;
   note: string;
-  stat_bonuses?: GlobalItem['stat_bonuses'];
+  stat_bonuses?: StatBonusEditorValue;
 }
 
 /** 素材鑲入某一種裝備類型（武器／護甲）時的效果；note 與 stat_bonuses 皆可留空（純無效果） */
 export interface DecorationEffect {
   note: string;
-  stat_bonuses?: GlobalItem['stat_bonuses'];
+  stat_bonuses?: StatBonusEditorValue;
 }
 
 /** 素材依鑲入的裝備類型分別設定的效果；鑲嵌時只套用「目標裝備實際類型」對應的那一份，兩者互不影響 */
@@ -41,61 +42,10 @@ export interface DecorationEffects {
 
 export type DecorationKind = 'weapon' | 'armor';
 
-// 全域物品（global_items 表）
-export interface GlobalItem {
-  id: string;
-  name: string;
-  name_en?: string;
-  description: string;
-  category: ItemCategory;
-  is_magic: boolean;
-  /** 是否影響角色數值 */
-  affects_stats?: boolean;
-  /** 裝備類專用：此物品是否無須裝備中即可套用加值（預設 false，維持「需裝備才生效」） */
-  applies_unequipped?: boolean;
-  /** 此物品提供的數值加成定義（存入 global_items.stat_bonuses） */
-  stat_bonuses?: {
-    abilityModifiers?: Record<string, number>;
-    savingThrows?: Record<string, number>;
-    skills?: Record<string, number>;
-    savingThrowAdvantage?: string[];
-    savingThrowDisadvantage?: string[];
-    skillAdvantage?: string[];
-    skillDisadvantage?: string[];
-    /** 純數字為一般加值；字串為骰子記法（如 "1d8"），供攻擊傷害等額外骰子加成使用 */
-    combatStats?: {
-      ac?: number | string;
-      initiative?: number | string;
-      maxHp?: number | string;
-      speed?: number | string;
-      attackHit?: number | string;
-      attackDamage?: number | string;
-      spellHit?: number | string;
-      spellDc?: number | string;
-    };
-    /** 「其他效果」自由文字說明（非數值加成） */
-    other?: string;
-  };
-  /** 裝備類型（僅裝備類有值）：face, head, neck, shoulders, body, torso, arms, hands, waist, feet, ring, melee_weapon, ranged_weapon, shield */
-  equipment_kind?: string | null;
-  /** 鑲嵌插槽數（0~5，比照武器稀有度規則；0 或未設定＝一般裝備、無插槽） */
-  decoration_slots?: number | null;
-  /** MH素材：是否可鑲入武器插槽（與 armor_decoration 互不排斥） */
-  weapon_decoration?: boolean;
-  /** MH素材：是否可鑲入護甲插槽（與 weapon_decoration 互不排斥） */
-  armor_decoration?: boolean;
-  /** MH素材：依鑲入武器／護甲分別設定的效果（見 DecorationEffects） */
-  decoration_effects?: DecorationEffects | null;
-  created_at: string;
-  updated_at: string;
-}
-
-// 角色物品（character_items 表）
-// item_id 可為 null：純個人物品（未上傳至 global_items）
+// 角色物品（character_items 表）：每筆都是角色自己的獨立資料，不再關聯共用物品庫
 export interface CharacterItem {
   id: string;
   character_id: string;
-  item_id: string | null;
   quantity: number;
   is_magic: boolean;
   is_magic_override?: boolean | null;
@@ -108,9 +58,9 @@ export interface CharacterItem {
   affects_stats?: boolean;
   /** 覆寫：裝備類專用，此物品是否無須裝備中即可套用加值 */
   applies_unequipped?: boolean;
-  /** 覆寫：此角色版物品的數值加成（存入 character_items.stat_bonuses） */
-  stat_bonuses?: GlobalItem['stat_bonuses'];
-  /** 裝備類型覆寫（優先於 global_items.equipment_kind） */
+  /** 此角色版物品的數值加成（存入 character_items.stat_bonuses） */
+  stat_bonuses?: StatBonusEditorValue;
+  /** 裝備類型 */
   equipment_kind_override?: string | null;
   /** 穿戴的具體槽位，裝備類必填 */
   equipment_slot?: string | null;
@@ -132,8 +82,6 @@ export interface CharacterItem {
   sort_order?: number | null;
   created_at: string;
   updated_at: string;
-  // JOIN 的物品資料
-  item?: GlobalItem;
 }
 
 // 帶有 display helper 的 CharacterItem 類型
@@ -142,7 +90,7 @@ export interface CharacterItemWithDetails extends CharacterItem {
   displayDescription: string;
   displayCategory: ItemCategory;
   displayIsMagic: boolean;
-  /** 顯示用鑲嵌插槽數（override 優先於 global_items） */
+  /** 顯示用鑲嵌插槽數 */
   displayDecorationSlots: number;
   /** 顯示用：是否可鑲入武器插槽 */
   displayWeaponDecoration: boolean;
@@ -150,7 +98,7 @@ export interface CharacterItemWithDetails extends CharacterItem {
   displayArmorDecoration: boolean;
   /** 顯示用：是否已加入★列表 */
   displayIsFavorite: boolean;
-  /** 顯示用（override 優先於 global_items）：裝備類專用，是否無須裝備中即可套用加值 */
+  /** 顯示用：裝備類專用，是否無須裝備中即可套用加值 */
   displayAppliesUnequipped: boolean;
   /** 顯示用：依鑲入武器／護甲分別設定的效果 */
   displayDecorationEffects: DecorationEffects;
@@ -167,8 +115,8 @@ export interface UpdateCharacterItemData {
   affects_stats?: boolean;
   /** 覆寫：裝備類專用，此物品是否無須裝備中即可套用加值 */
   applies_unequipped?: boolean;
-  /** 覆寫：此角色版物品的數值加成（與 StatBonusEditorValue 結構一致） */
-  stat_bonuses?: any;
+  /** 覆寫：此角色版物品的數值加成 */
+  stat_bonuses?: StatBonusEditorValue;
   equipment_kind_override?: string | null;
   equipment_slot?: string | null;
   is_equipped?: boolean;
@@ -184,7 +132,7 @@ export interface UpdateCharacterItemData {
   sockets?: (DecorationSocket | null)[] | null;
 }
 
-/** 新增個人物品（直接寫入 character_items，不經 global_items） */
+/** 新增個人物品（直接寫入 character_items） */
 export interface CreateCharacterItemData {
   name: string;
   category: ItemCategory;
@@ -195,8 +143,8 @@ export interface CreateCharacterItemData {
   affects_stats?: boolean;
   /** 裝備類專用：此物品是否無須裝備中即可套用加值 */
   applies_unequipped?: boolean;
-  /** 此個人物品的數值加成（與 StatBonusEditorValue 結構一致） */
-  stat_bonuses?: any;
+  /** 此個人物品的數值加成 */
+  stat_bonuses?: StatBonusEditorValue;
   /** 裝備類可選：裝備類型（由裝備頁決定實際槽位與穿戴狀態） */
   equipment_kind_override?: string | null;
   /** 鑲嵌插槽數（0~5） */
@@ -210,75 +158,7 @@ export interface CreateCharacterItemData {
 }
 
 /**
- * 取得全域物品庫（所有 global_items）
- * 用於 LearnItemModal 讓用戶選擇要獲得的物品
- */
-export async function getGlobalItems(): Promise<{
-  success: boolean;
-  items?: GlobalItem[];
-  error?: string;
-}> {
-  try {
-    const { data, error } = await supabase
-      .from('global_items')
-      .select('*')
-      .order('name', { ascending: true })
-      .limit(5000);
-
-    if (error) {
-      console.error('❌ 取得全域物品失敗:', error);
-      return { success: false, error: error.message };
-    }
-
-    return { success: true, items: data || [] };
-  } catch (error) {
-    console.error('❌ 取得全域物品異常:', error);
-    return { success: false, error: '取得全域物品時發生錯誤' };
-  }
-}
-
-/** Escape % and _ for literal match in ilike; use * as alias of % (PostgREST) to avoid URL encoding */
-function escapeIlikePattern(s: string): string {
-  return s.replace(/\\/g, '\\\\').replace(/%/g, '\\%').replace(/_/g, '\\_');
-}
-
-/**
- * 依關鍵字搜尋全域物品（name / name_en / description ilike）
- * 用於 LearnItemModal 輸入時由後端過濾，避免前端載入不全或編碼問題
- */
-export async function searchGlobalItems(query: string): Promise<{
-  success: boolean;
-  items?: GlobalItem[];
-  error?: string;
-}> {
-  const trimmed = query.trim();
-  if (!trimmed) {
-    return { success: true, items: [] };
-  }
-  try {
-    const escaped = escapeIlikePattern(trimmed);
-    const pattern = `*${escaped}*`;
-    const { data, error } = await supabase
-      .from('global_items')
-      .select('*')
-      .or(`name.ilike.${pattern},name_en.ilike.${pattern},description.ilike.${pattern}`)
-      .order('name', { ascending: true })
-      .limit(500);
-
-    if (error) {
-      console.error('❌ 搜尋全域物品失敗:', error);
-      return { success: false, error: error.message };
-    }
-
-    return { success: true, items: data || [] };
-  } catch (error) {
-    console.error('❌ 搜尋全域物品異常:', error);
-    return { success: false, error: '搜尋物品時發生錯誤' };
-  }
-}
-
-/**
- * 取得角色所有物品（包含 override 欄位和全域物品資料）
+ * 取得角色所有物品
  */
 export async function getCharacterItems(characterId: string): Promise<{
   success: boolean;
@@ -292,10 +172,7 @@ export async function getCharacterItems(characterId: string): Promise<{
 
     const { data, error } = await supabase
       .from('character_items')
-      .select(`
-        *,
-        item:global_items(*)
-      `)
+      .select('*')
       .eq('character_id', characterId)
       .order('sort_order', { ascending: true, nullsFirst: false })
       .order('created_at', { ascending: false });
@@ -305,79 +182,16 @@ export async function getCharacterItems(characterId: string): Promise<{
       return { success: false, error: error.message };
     }
 
-    // 處理 JOIN 返回的數據結構
-    const items = data?.map(row => ({
-      ...row,
-      item: Array.isArray(row.item) && row.item.length > 0 
-        ? row.item[0] 
-        : (typeof row.item === 'object' ? row.item : undefined)
-    })) || [];
-
-    return { success: true, items };
+    return { success: true, items: data || [] };
   } catch (error) {
     console.error('❌ 取得角色物品異常:', error);
     return { success: false, error: '取得角色物品時發生錯誤' };
   }
 }
 
-/** 獲得物品時可一併設定的裝備欄位（裝備類時由呼叫端傳入） */
-export interface LearnItemEquipmentOptions {
-  equipment_slot?: string | null;
-  is_equipped?: boolean;
-}
-
 /**
- * 獲得物品（從全域庫添加到角色）
- * 若為裝備類，可傳入 equipmentOptions 設定槽位與是否穿戴
- */
-export async function learnItem(
-  characterId: string,
-  itemId: string,
-  equipmentOptions?: LearnItemEquipmentOptions
-): Promise<{
-  success: boolean;
-  error?: string;
-}> {
-  try {
-    if (!characterId || !itemId) {
-      return { success: false, error: '角色 ID 或物品 ID 無效' };
-    }
-
-    const payload: Record<string, unknown> = {
-      character_id: characterId,
-      item_id: itemId,
-      quantity: 1,
-      // 讓新物品排在列表最上面：越晚新增的值越小，永遠排在既有物品與更早新增的物品之前
-      sort_order: -Date.now(),
-    };
-    if (equipmentOptions) {
-      if (equipmentOptions.equipment_slot !== undefined) payload.equipment_slot = equipmentOptions.equipment_slot;
-      if (equipmentOptions.is_equipped !== undefined) payload.is_equipped = equipmentOptions.is_equipped;
-    }
-
-    const { error } = await supabase
-      .from('character_items')
-      .insert(payload);
-
-    if (error) {
-      // 檢查是否是重複獲得
-      if (error.code === '23505') {
-        return { success: false, error: '已經擁有此物品' };
-      }
-      console.error('❌ 獲得物品失敗:', error);
-      return { success: false, error: error.message };
-    }
-
-    return { success: true };
-  } catch (error) {
-    console.error('❌ 獲得物品異常:', error);
-    return { success: false, error: '獲得物品時發生錯誤' };
-  }
-}
-
-/**
- * 新增個人物品（直接寫入 character_items，不建立 global_items）
- * 必填：name、category；選填：description、quantity（預設 1）
+ * 新增個人物品（直接寫入 character_items）；必填：name、category；選填：description、quantity（預設 1）。
+ * 「獲得物品」（從本地目錄選取）與「新增個人物品」（手動輸入）都是呼叫這支函式。
  */
 export async function createCharacterItem(
   characterId: string,
@@ -397,7 +211,6 @@ export async function createCharacterItem(
 
     const payload: Record<string, unknown> = {
       character_id: characterId,
-      item_id: null,
       quantity: data.quantity ?? 1,
       is_magic: data.is_magic ?? false,
       name_override: data.name.trim(),
@@ -561,7 +374,7 @@ export async function deleteCharacterItem(characterItemId: string): Promise<{
 /** 格式化單一效果為摘要行；無文字說明也無數值加成時回傳 null（代表「沒有效果，不顯示」） */
 function formatEffectSummaryLine(
   label: string,
-  effect: { note?: string; stat_bonuses?: GlobalItem['stat_bonuses'] } | null | undefined
+  effect: { note?: string; stat_bonuses?: StatBonusEditorValue } | null | undefined
 ): string | null {
   if (!effect) return null;
   const note = (effect.note ?? '').trim();
@@ -603,17 +416,14 @@ function buildSocketedEffectSummary(sockets: (DecorationSocket | null)[] | null 
 }
 
 /**
- * 獲取物品的顯示值（優先使用 override 值，否則使用原始值）
+ * 獲取物品的顯示值
  */
 export function getDisplayValues(characterItem: CharacterItem): CharacterItemWithDetails {
-  const displayIsMagic = characterItem.item_id
-    ? (characterItem.is_magic_override ?? characterItem.item?.is_magic ?? false)
-    : !!characterItem.is_magic;
-  const displayWeaponDecoration = characterItem.weapon_decoration ?? characterItem.item?.weapon_decoration ?? false;
-  const displayArmorDecoration = characterItem.armor_decoration ?? characterItem.item?.armor_decoration ?? false;
-  const displayAppliesUnequipped = characterItem.applies_unequipped ?? characterItem.item?.applies_unequipped ?? false;
-  const displayDecorationEffects = characterItem.decoration_effects ?? characterItem.item?.decoration_effects ?? {};
-  const rawDescription = characterItem.description_override ?? characterItem.item?.description ?? '';
+  const displayWeaponDecoration = characterItem.weapon_decoration ?? false;
+  const displayArmorDecoration = characterItem.armor_decoration ?? false;
+  const displayAppliesUnequipped = characterItem.applies_unequipped ?? false;
+  const displayDecorationEffects = characterItem.decoration_effects ?? {};
+  const rawDescription = characterItem.description_override ?? '';
 
   const effectSummary = [
     buildMaterialEffectSummary(displayWeaponDecoration, displayArmorDecoration, displayDecorationEffects),
@@ -624,13 +434,13 @@ export function getDisplayValues(characterItem: CharacterItem): CharacterItemWit
 
   return {
     ...characterItem,
-    displayName: characterItem.name_override ?? characterItem.item?.name ?? '',
+    displayName: characterItem.name_override ?? '',
     displayDescription: effectSummary
       ? (rawDescription ? `${effectSummary}\n\n${rawDescription}` : effectSummary)
       : rawDescription,
-    displayCategory: (characterItem.category_override ?? characterItem.item?.category ?? '雜項') as ItemCategory,
-    displayIsMagic,
-    displayDecorationSlots: characterItem.decoration_slots ?? characterItem.item?.decoration_slots ?? 0,
+    displayCategory: (characterItem.category_override ?? '雜項') as ItemCategory,
+    displayIsMagic: !!characterItem.is_magic,
+    displayDecorationSlots: characterItem.decoration_slots ?? 0,
     displayWeaponDecoration,
     displayArmorDecoration,
     displayIsFavorite: characterItem.is_favorite ?? false,
@@ -639,21 +449,14 @@ export function getDisplayValues(characterItem: CharacterItem): CharacterItemWit
   };
 }
 
-/** 取得角色物品的顯示用裝備類型（override 優先於 global_items.equipment_kind） */
+/** 取得角色物品的顯示用裝備類型 */
 export function getDisplayEquipmentKind(characterItem: CharacterItem): string | null {
-  if (characterItem.equipment_kind_override != null && characterItem.equipment_kind_override !== '') {
-    return characterItem.equipment_kind_override;
-  }
-  return characterItem.item?.equipment_kind ?? null;
+  return characterItem.equipment_kind_override || null;
 }
 
-/** 依裝備類型覆寫／global_items.equipment_kind 判斷「鑲入武器」或「鑲入護甲」（非武器一律視為護甲，與插槽候選素材篩選邏輯一致） */
-function resolveDecorationKind(
-  equipmentKindOverride: string | null | undefined,
-  itemEquipmentKind: string | null | undefined
-): DecorationKind {
-  const kind = equipmentKindOverride ?? itemEquipmentKind ?? null;
-  return kind === 'melee_weapon' || kind === 'ranged_weapon' ? 'weapon' : 'armor';
+/** 依裝備類型判斷「鑲入武器」或「鑲入護甲」（非武器一律視為護甲，與插槽候選素材篩選邏輯一致） */
+function resolveDecorationKind(equipmentKindOverride: string | null | undefined): DecorationKind {
+  return equipmentKindOverride === 'melee_weapon' || equipmentKindOverride === 'ranged_weapon' ? 'weapon' : 'armor';
 }
 
 /** 將一份效果合併進既有的 DecorationEffects（只更新指定 kind 那一份；effect 為 undefined 時移除該 kind） */
@@ -672,7 +475,7 @@ function mergeDecorationEffect(
 }
 
 /** note/statBonuses 皆為空時視為「無效果」，回傳 undefined（該 kind 不寫入任何效果） */
-function toDecorationEffect(note: string, statBonuses: GlobalItem['stat_bonuses'] | undefined): DecorationEffect | undefined {
+function toDecorationEffect(note: string, statBonuses: StatBonusEditorValue | undefined): DecorationEffect | undefined {
   const trimmedNote = (note ?? '').trim();
   const hasBonus = !!statBonuses && Object.keys(statBonuses).length > 0;
   if (!trimmedNote && !hasBonus) return undefined;
@@ -693,15 +496,14 @@ async function syncMaterialInventoryByName(
 ): Promise<void> {
   const { data: rows, error } = await supabase
     .from('character_items')
-    .select('id, name_override, category_override, decoration_effects, item:global_items(name, category)')
+    .select('id, name_override, category_override, decoration_effects')
     .eq('character_id', characterId);
   if (error || !Array.isArray(rows)) return;
 
   const matchingRows = rows.filter((row: any) => {
     if (excludeId && row.id === excludeId) return false;
-    const itemRaw = Array.isArray(row.item) ? row.item[0] : row.item;
-    const displayCategory = row.category_override ?? itemRaw?.category ?? '雜項';
-    const displayName = row.name_override ?? itemRaw?.name ?? '';
+    const displayCategory = row.category_override ?? '雜項';
+    const displayName = row.name_override ?? '';
     return displayCategory === 'MH素材' && displayName === materialName;
   });
   if (matchingRows.length === 0) return;
@@ -733,7 +535,7 @@ export async function socketDecoration(
   slotIndex: number,
   materialItemId: string,
   note: string,
-  statBonuses?: GlobalItem['stat_bonuses']
+  statBonuses?: StatBonusEditorValue
 ): Promise<{ success: boolean; error?: string }> {
   try {
     if (!targetItemId || !materialItemId) {
@@ -744,8 +546,8 @@ export async function socketDecoration(
     }
 
     const [{ data: material, error: materialError }, { data: target, error: targetError }] = await Promise.all([
-      supabase.from('character_items').select('*, item:global_items(*)').eq('id', materialItemId).single(),
-      supabase.from('character_items').select('*, item:global_items(*)').eq('id', targetItemId).single(),
+      supabase.from('character_items').select('*').eq('id', materialItemId).single(),
+      supabase.from('character_items').select('*').eq('id', targetItemId).single(),
     ]);
 
     if (materialError || !material) {
@@ -755,10 +557,8 @@ export async function socketDecoration(
       return { success: false, error: targetError?.message ?? '找不到裝備' };
     }
 
-    const materialItem = Array.isArray(material.item) ? material.item[0] : material.item;
-    const materialName = material.name_override ?? materialItem?.name ?? '素材';
-    const targetItemRaw = Array.isArray(target.item) ? target.item[0] : target.item;
-    const targetKind = resolveDecorationKind(target.equipment_kind_override, targetItemRaw?.equipment_kind);
+    const materialName = material.name_override ?? '素材';
+    const targetKind = resolveDecorationKind(target.equipment_kind_override);
     const effect = toDecorationEffect(note, statBonuses);
     const trimmedNote = (note ?? '').trim();
     const hasBonus = !!effect?.stat_bonuses;
@@ -826,7 +626,7 @@ export async function updateSocketedDecoration(
   targetItemId: string,
   slotIndex: number,
   note: string,
-  statBonuses?: GlobalItem['stat_bonuses']
+  statBonuses?: StatBonusEditorValue
 ): Promise<{ success: boolean; error?: string }> {
   try {
     if (!targetItemId) {
@@ -835,7 +635,7 @@ export async function updateSocketedDecoration(
 
     const { data: target, error: targetError } = await supabase
       .from('character_items')
-      .select('character_id, sockets, equipment_kind_override, item:global_items(equipment_kind)')
+      .select('character_id, sockets, equipment_kind_override')
       .eq('id', targetItemId)
       .single();
     if (targetError || !target) {
@@ -866,8 +666,7 @@ export async function updateSocketedDecoration(
       return { success: false, error: error.message };
     }
 
-    const targetItemRaw = Array.isArray((target as any).item) ? (target as any).item[0] : (target as any).item;
-    const targetKind = resolveDecorationKind((target as any).equipment_kind_override, targetItemRaw?.equipment_kind);
+    const targetKind = resolveDecorationKind(target.equipment_kind_override);
     await syncMaterialInventoryByName(target.character_id, existing.decoration_name, targetKind, effect);
 
     return { success: true };

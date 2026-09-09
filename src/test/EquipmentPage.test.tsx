@@ -5,7 +5,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import EquipmentPage from '../../components/EquipmentPage';
 import * as ItemService from '../../services/itemService';
-import type { CharacterItem, GlobalItem } from '../../services/itemService';
+import type { CharacterItem } from '../../services/itemService';
 
 vi.mock('../../hooks/useToast', () => ({
   useToast: () => ({
@@ -24,30 +24,17 @@ vi.mock('../../services/itemService', async (importOriginal) => {
 
 const mockGetCharacterItems = vi.mocked(ItemService.getCharacterItems);
 
-function buildGlobalItem(overrides: Partial<GlobalItem> = {}): GlobalItem {
-  return {
-    id: 'global-1',
-    name: '幸運石',
-    name_en: '',
-    description: '',
-    category: '裝備',
-    is_magic: false,
-    created_at: '',
-    updated_at: '',
-    ...overrides,
-  };
-}
-
 function buildCharacterItem(overrides: Partial<CharacterItem> = {}): CharacterItem {
   return {
     id: 'ci-1',
     character_id: 'char-1',
-    item_id: 'global-1',
     quantity: 1,
     is_magic: false,
+    name_override: '幸運石',
+    description_override: '',
+    category_override: '裝備',
     created_at: '',
     updated_at: '',
-    item: buildGlobalItem(),
     ...overrides,
   };
 }
@@ -77,7 +64,7 @@ describe('EquipmentPage - 裝飾 section 與飾品槽位', () => {
     const accessoryItem = buildCharacterItem({
       id: 'ci-accessory',
       name_override: '幸運護符',
-      item: buildGlobalItem({ id: 'global-accessory', name: '幸運護符', equipment_kind: 'accessory' } as any),
+      equipment_kind_override: 'accessory',
     });
     mockGetCharacterItems.mockResolvedValue({ success: true, items: [accessoryItem] });
 

@@ -1,5 +1,5 @@
 /**
- * AddPersonalItemModal - 新增個人物品（只存在於該角色，不寫入 global_items）
+ * AddPersonalItemModal - 新增個人物品（只存在於該角色）
  * 必填：名稱、類別；選填：描述、數量
  */
 

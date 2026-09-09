@@ -60,9 +60,9 @@ export class CharacterBonusAggregationService {
   // === 能力／物品數值加成統計（stat_bonuses 聚合） ===
 
   /**
-   * 從角色擁有的能力與物品（global_items）上，聚合所有 stat_bonuses。
+   * 從角色擁有的能力與物品上，聚合所有 stat_bonuses。
    * - abilities.stat_bonuses：透過 character_abilities -> abilities 關聯取得
-   * - global_items.stat_bonuses：透過 character_items -> global_items 關聯取得
+   * - character_items.stat_bonuses：每筆角色物品自帶的數值加成（不再有共用的 global_items 可關聯）
    * - 特殊能力（依 name_en 對應）：需傳入 context（level、classes），計算後併入 bySource 與 totals
    */
   static async collectSourceBonusesForCharacter(
@@ -431,29 +431,21 @@ export class CharacterBonusAggregationService {
         }
       }
 
-      // 2. 角色物品 -> global_items（僅「穿戴中」is_equipped 的裝備計入數值；優先使用 character_items 的 affects_stats / stat_bonuses 覆寫）
+      // 2. 角色物品（僅「穿戴中」is_equipped 的裝備計入數值；每筆物品都是角色自己的獨立資料，
+      //    不再有共用的 global_items 可以關聯或覆寫）
       //    插槽鑲嵌素材的效果獨立於裝備本身是否有 affects_stats，只要裝備穿戴中且插槽有鑲嵌就套用
       const { data: characterItems, error: ciError } = await supabase
         .from('character_items')
         .select(`
           id,
           character_id,
-          item_id,
           name_override,
           category_override,
           affects_stats,
           stat_bonuses,
           applies_unequipped,
           is_equipped,
-          sockets,
-          item:global_items(
-            id,
-            name,
-            category,
-            affects_stats,
-            stat_bonuses,
-            applies_unequipped
-          )
+          sockets
         `)
         .eq('character_id', characterId)
 
@@ -461,22 +453,16 @@ export class CharacterBonusAggregationService {
         console.error('collectSourceBonusesForCharacter: 讀取角色物品失敗:', ciError)
       } else if (Array.isArray(characterItems)) {
         for (const row of characterItems as any[]) {
-          const itemRaw = Array.isArray(row.item) ? row.item[0] : row.item
           // 裝備類物品預設需穿戴中才生效；applies_unequipped 為 true 時例外，即使未裝備也套用。
           // 非裝備類物品（藥水、雜項）本來就沒有裝備概念，一律不受此限制。
-          const effectiveCategory = row.category_override ?? itemRaw?.category
-          const appliesUnequipped = row.applies_unequipped ?? itemRaw?.applies_unequipped ?? false
+          const effectiveCategory = row.category_override
+          const appliesUnequipped = row.applies_unequipped ?? false
           const requiresEquip = effectiveCategory === '裝備' && !appliesUnequipped
           if (requiresEquip && row.is_equipped !== true) continue
-          const hasOverride =
-            (typeof row.affects_stats === 'boolean' && row.affects_stats) ||
-            (row.stat_bonuses && typeof row.stat_bonuses === 'object' && Object.keys(row.stat_bonuses).length > 0)
-          const effectiveAffectsStats = hasOverride ? !!row.affects_stats : !!itemRaw?.affects_stats
-          const itemName = (row.name_override || itemRaw.name || '').toString()
+          const itemName = (row.name_override || '').toString()
 
-          if (effectiveAffectsStats) {
-            const bonuses = (hasOverride ? row.stat_bonuses : itemRaw?.stat_bonuses) as any
-            applyItemBonusSource(row.id, itemName, bonuses)
+          if (row.affects_stats) {
+            applyItemBonusSource(row.id, itemName, row.stat_bonuses as any)
           }
 
           const sockets = Array.isArray(row.sockets) ? row.sockets : []

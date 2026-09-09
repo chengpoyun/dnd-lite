@@ -1,13 +1,12 @@
 /**
  * ItemsPage - 道具管理頁面（重構版）
- * 
+ *
  * 功能：
  * - 顯示角色所有物品（從 character_items 表）
  * - 類別篩選
- * - 從全域物品庫獲得物品
+ * - 從本地目錄（MH素材/通用道具）獲得物品
  * - 編輯角色專屬物品（override 欄位）
  * - 刪除角色物品
- * - 新增到全域物品庫
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
@@ -34,6 +33,7 @@ import { FilterBar } from './ui/FilterBar';
 import { SearchInput } from './ui/SearchInput';
 import { ItemCard } from './ItemCard';
 import { LearnItemModal } from './LearnItemModal';
+import { catalogItemToCreateData, type CatalogItem } from '../services/itemCatalog';
 import { AddPersonalItemModal } from './AddPersonalItemModal';
 import { CharacterItemEditModal } from './CharacterItemEditModal';
 import ItemDetailModal from './ItemDetailModal';
@@ -205,9 +205,10 @@ export default function ItemsPage({ characterId, onCharacterDataChanged, initial
     setSocketSlotIndex(null);
   }, []);
 
-  // 獲得物品（從全域庫）：直接獲得，不在此指定槽位或穿戴狀態
-  const handleLearnItem = async (itemId: string) => {
-    const result = await ItemService.learnItem(characterId, itemId);
+  // 獲得物品（從本地目錄選取）：直接以目錄資料建立個人物品，不在此指定槽位或穿戴狀態
+  const handleLearnItem = async (catalogItem: CatalogItem) => {
+    const data = catalogItemToCreateData(catalogItem);
+    const result = await ItemService.createCharacterItem(characterId, data);
 
     if (result.success) {
       showSuccess('已獲得物品');
@@ -219,7 +220,7 @@ export default function ItemsPage({ characterId, onCharacterDataChanged, initial
     }
   };
 
-  // 新增個人物品（不寫入 global_items）；若已有同名稱物品則改為數量+1
+  // 新增個人物品；若已有同名稱物品則改為數量+1
   const handleAddPersonalItem = async (data: CreateCharacterItemData) => {
     const name = data.name.trim();
     const existing = items.find(
@@ -433,8 +434,8 @@ export default function ItemsPage({ characterId, onCharacterDataChanged, initial
     setIsDeleteModalOpen(true);
   };
 
-  // 已獲得的全域物品 ID 列表（僅有 item_id 的才算）
-  const learnedItemIds = items.map(item => item.item_id).filter((id): id is string => id != null);
+  // 已擁有的物品名稱（本地目錄改依名稱比對，不再有共用的物品 id 可用）
+  const learnedItemNames = items.map(item => ItemService.getDisplayValues(item).displayName);
 
   return (
     <div className="min-h-screen bg-slate-900 text-slate-100">
@@ -528,7 +529,7 @@ export default function ItemsPage({ characterId, onCharacterDataChanged, initial
           setAddPersonalInitialName(initialName ?? '');
           setIsAddPersonalModalOpen(true);
         }}
-        learnedItemIds={learnedItemIds}
+        learnedNames={learnedItemNames}
       />
 
       <AddPersonalItemModal

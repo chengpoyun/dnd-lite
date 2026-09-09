@@ -7,7 +7,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import ItemsPage from '../../components/ItemsPage';
 import * as ItemService from '../../services/itemService';
-import type { CharacterItem, GlobalItem } from '../../services/itemService';
+import type { CharacterItem } from '../../services/itemService';
 
 vi.mock('../../hooks/useToast', () => ({
   useToast: () => ({
@@ -26,31 +26,16 @@ vi.mock('../../services/itemService', async (importOriginal) => {
 
 const mockGetCharacterItems = vi.mocked(ItemService.getCharacterItems);
 
-function buildGlobalItem(overrides: Partial<GlobalItem> = {}): GlobalItem {
-  return {
-    id: `global-${Math.random()}`,
-    name: '未命名',
-    name_en: '',
-    description: '',
-    category: '雜項',
-    is_magic: false,
-    created_at: '',
-    updated_at: '',
-    ...overrides,
-  };
-}
-
 function buildCharacterItem(overrides: Partial<CharacterItem> = {}): CharacterItem {
   return {
     id: `ci-${Math.random()}`,
     character_id: 'char-1',
-    item_id: 'global-1',
     quantity: 1,
     is_magic: false,
     is_favorite: true,
+    category_override: '雜項',
     created_at: '',
     updated_at: '',
-    item: buildGlobalItem(),
     ...overrides,
   };
 }
@@ -66,14 +51,12 @@ describe('ItemsPage - 搜尋列', () => {
       id: 'ci-1',
       name_override: '長劍',
       description_override: '',
-      item: buildGlobalItem({ name: '長劍', description: '' }),
     }),
     buildCharacterItem({
       id: 'ci-2',
       name_override: '治療藥水',
       category_override: '藥水',
       description_override: '恢復生命值',
-      item: buildGlobalItem({ name: '治療藥水', category: '藥水' }),
     }),
     buildCharacterItem({
       id: 'ci-3',
@@ -81,7 +64,6 @@ describe('ItemsPage - 搜尋列', () => {
       decoration_slots: 1,
       armor_decoration: true,
       sockets: [{ decoration_name: '力量結晶', note: '力量+2的護甲鑲嵌石' }],
-      item: buildGlobalItem({ name: '重甲' }),
     }),
   ];
 
@@ -194,7 +176,6 @@ describe('ItemsPage - 搜尋列', () => {
         buildCharacterItem({
           id: 'ci-en',
           name_override: 'Ring of Power',
-          item: buildGlobalItem({ name: 'Ring of Power' }),
         }),
       ],
     });

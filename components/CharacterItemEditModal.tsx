@@ -54,38 +54,23 @@ export const CharacterItemEditModal: React.FC<CharacterItemEditModalProps> = ({
 
   useEffect(() => {
     if (characterItem) {
-      const display = {
-        name: characterItem.name_override ?? characterItem.item?.name ?? '',
-        description: characterItem.description_override ?? characterItem.item?.description ?? '',
-        category: characterItem.category_override ?? characterItem.item?.category ?? null,
-        is_magic: characterItem.item_id
-          ? (characterItem.is_magic_override ?? characterItem.item?.is_magic ?? false)
-          : characterItem.is_magic,
-      };
-      const ci = characterItem as any;
-      const itemRaw = characterItem.item;
-      const overrideBonuses = ci.stat_bonuses;
-      const hasOverrideStats =
-        (typeof ci.affects_stats === 'boolean' && ci.affects_stats) ||
-        (overrideBonuses && typeof overrideBonuses === 'object' && Object.keys(overrideBonuses).length > 0);
       setFormData({
         quantity: characterItem.quantity,
-        name_override: display.name,
-        description_override: display.description,
-        category_override: display.category,
-        is_magic: display.is_magic,
-        affects_stats: hasOverrideStats ? (ci.affects_stats ?? false) : (itemRaw?.affects_stats ?? false),
-        stat_bonuses: hasOverrideStats ? (overrideBonuses ?? {}) : ((itemRaw?.stat_bonuses ?? {}) || {}),
-        applies_unequipped: ci.applies_unequipped ?? itemRaw?.applies_unequipped ?? false,
-        equipment_kind_override: characterItem.equipment_kind_override ?? characterItem.item?.equipment_kind ?? null,
+        name_override: characterItem.name_override ?? '',
+        description_override: characterItem.description_override ?? '',
+        category_override: characterItem.category_override ?? null,
+        is_magic: characterItem.is_magic,
+        affects_stats: characterItem.affects_stats ?? false,
+        stat_bonuses: characterItem.stat_bonuses ?? {},
+        applies_unequipped: characterItem.applies_unequipped ?? false,
+        equipment_kind_override: characterItem.equipment_kind_override ?? null,
         equipment_slot: characterItem.equipment_slot ?? null,
         is_equipped: characterItem.is_equipped ?? false,
-        decoration_slots: characterItem.decoration_slots ?? characterItem.item?.decoration_slots ?? 0,
-        weapon_decoration: characterItem.weapon_decoration ?? characterItem.item?.weapon_decoration ?? false,
-        armor_decoration: characterItem.armor_decoration ?? characterItem.item?.armor_decoration ?? false,
+        decoration_slots: characterItem.decoration_slots ?? 0,
+        weapon_decoration: characterItem.weapon_decoration ?? false,
+        armor_decoration: characterItem.armor_decoration ?? false,
       });
-      const decorationEffects: DecorationEffects =
-        characterItem.decoration_effects ?? characterItem.item?.decoration_effects ?? {};
+      const decorationEffects: DecorationEffects = characterItem.decoration_effects ?? {};
       const weaponBonus = decorationEffects.weapon?.stat_bonuses as StatBonusEditorValue | undefined;
       const weaponHasBonus = !!weaponBonus && Object.keys(weaponBonus).length > 0;
       setWeaponEffectNote(decorationEffects.weapon?.note ?? '');
@@ -110,7 +95,7 @@ export const CharacterItemEditModal: React.FC<CharacterItemEditModalProps> = ({
     e.preventDefault();
 
     if (!characterItem) return;
-    const effectiveCategory = formData.category_override ?? characterItem.item?.category;
+    const effectiveCategory = formData.category_override ?? characterItem.category_override;
     if (effectiveCategory === '裝備') {
       const effectiveKind = formData.equipment_kind_override ?? getDisplayEquipmentKind(characterItem);
       if (!effectiveKind?.trim()) {
@@ -131,11 +116,7 @@ export const CharacterItemEditModal: React.FC<CharacterItemEditModalProps> = ({
       if (formData.category_override) {
         updates.category_override = formData.category_override;
       }
-      if (characterItem.item_id) {
-        updates.is_magic_override = !!formData.is_magic;
-      } else {
-        updates.is_magic = !!formData.is_magic;
-      }
+      updates.is_magic = !!formData.is_magic;
       if (effectiveCategory !== 'MH素材') {
         if (formData.affects_stats !== undefined) {
           updates.affects_stats = formData.affects_stats;
@@ -194,7 +175,7 @@ export const CharacterItemEditModal: React.FC<CharacterItemEditModalProps> = ({
               value={formData.name_override || ''}
               onChange={(e) => setFormData({ ...formData, name_override: e.target.value })}
               className="flex-1 min-w-0 bg-slate-800 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500"
-              placeholder={characterItem.item?.name || '輸入名稱'}
+              placeholder="輸入名稱"
             />
           </div>
 
@@ -209,7 +190,7 @@ export const CharacterItemEditModal: React.FC<CharacterItemEditModalProps> = ({
               })}
               className="flex-1 min-w-0 bg-slate-800 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500"
             >
-              <option value="">{characterItem.item?.category || '選擇類別'}</option>
+              <option value="">選擇類別</option>
               {CATEGORIES.map((cat) => (
                 <option key={cat} value={cat}>
                   {cat}
@@ -228,7 +209,7 @@ export const CharacterItemEditModal: React.FC<CharacterItemEditModalProps> = ({
           </div>
 
           {/* 裝備類：裝備類型 + 鑲嵌插槽數（槽位與穿戴中在裝備頁管理，此處不顯示、不更新） */}
-          {(formData.category_override ?? characterItem.item?.category) === '裝備' && (
+          {(formData.category_override ?? characterItem.category_override) === '裝備' && (
             <div className="flex items-end gap-3">
               <div className="flex-1 min-w-0">
                 <label className="block text-[14px] text-slate-400 mb-2">裝備類型 *</label>
@@ -268,7 +249,7 @@ export const CharacterItemEditModal: React.FC<CharacterItemEditModalProps> = ({
           )}
 
           {/* MH素材類：可鑲入武器／護甲插槽（兩者可同時勾選，都不勾＝純一般素材） */}
-          {(formData.category_override ?? characterItem.item?.category) === 'MH素材' && (
+          {(formData.category_override ?? characterItem.category_override) === 'MH素材' && (
             <div className="space-y-3">
               <label className="flex items-center gap-2 text-[14px] text-slate-300">
                 <input
@@ -346,13 +327,13 @@ export const CharacterItemEditModal: React.FC<CharacterItemEditModalProps> = ({
               value={formData.description_override || ''}
               onChange={(e) => setFormData({ ...formData, description_override: e.target.value })}
               className="w-full bg-slate-800 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500"
-              placeholder={characterItem.item?.description || '輸入描述'}
+              placeholder="輸入描述"
               minRows={6}
             />
           </div>
 
           {/* 影響角色數值設定（MH素材改由武器/護甲插槽效果各自設定，不顯示此區塊） */}
-          {(formData.category_override ?? characterItem.item?.category) !== 'MH素材' && (
+          {(formData.category_override ?? characterItem.category_override) !== 'MH素材' && (
             <div className="border border-slate-800 rounded-lg p-3 bg-slate-900/60 space-y-2">
               <label className="flex items-center gap-2 text-[14px] text-slate-200">
                 <input
@@ -368,7 +349,7 @@ export const CharacterItemEditModal: React.FC<CharacterItemEditModalProps> = ({
                   }
                   className="h-4 w-4 rounded border-slate-600 bg-slate-800 text-amber-500 focus:ring-amber-500"
                 />
-                {(formData.category_override ?? characterItem.item?.category) === '裝備'
+                {(formData.category_override ?? characterItem.category_override) === '裝備'
                   ? '此物品會影響角色數值（需裝備）'
                   : '此物品會直接影響角色數值，無須裝備'}
               </label>
@@ -377,7 +358,7 @@ export const CharacterItemEditModal: React.FC<CharacterItemEditModalProps> = ({
                   <p className="text-xs text-slate-500">
                     設定後，角色持有此物品時，這些加值會自動套用並在角色卡與戰鬥檢視的加值列表中顯示來源。
                   </p>
-                  {(formData.category_override ?? characterItem.item?.category) === '裝備' && (
+                  {(formData.category_override ?? characterItem.category_override) === '裝備' && (
                     <label className="flex items-center gap-2 text-[13px] text-slate-400">
                       <input
                         type="checkbox"

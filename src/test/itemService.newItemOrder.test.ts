@@ -1,19 +1,19 @@
 /**
- * 新增物品（獲得物品 learnItem / 新增個人物品 createCharacterItem）應該出現在列表最上面。
- * getCharacterItems 依 sort_order 升序排序（null 排最後），所以新物品要寫入一個
- * 比目前所有物品都小的 sort_order。做法：sort_order = -Date.now()，越晚新增的值越小
- * （負得越多），永遠排在所有既有的正數 sort_order 之前，也永遠排在更早新增的物品之前。
+ * 新增物品應該出現在列表最上面。「獲得物品」（從本地目錄選取）與「新增個人物品」
+ * 現在都是呼叫同一支 createCharacterItem。getCharacterItems 依 sort_order 升序排序
+ * （null 排最後），所以新物品要寫入一個比目前所有物品都小的 sort_order。
+ * 做法：sort_order = -Date.now()，越晚新增的值越小（負得越多），永遠排在所有既有的
+ * 正數 sort_order 之前，也永遠排在更早新增的物品之前。
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import type { Mock } from 'vitest';
 import { supabase } from '../../lib/supabase';
-import { learnItem, createCharacterItem } from '../../services/itemService';
+import { createCharacterItem } from '../../services/itemService';
 
 function createChainable(finalResult: { data?: any; error: any }) {
   const builder: any = {
     select: vi.fn(() => builder),
     insert: vi.fn(() => builder),
-    or: vi.fn(() => builder),
     order: vi.fn(() => builder),
     eq: vi.fn(() => builder),
     limit: vi.fn(() => builder),
@@ -29,19 +29,7 @@ describe('新增物品時寫入 sort_order，讓它排在列表最上面', () =>
   beforeEach(() => vi.clearAllMocks());
   afterEach(() => vi.restoreAllMocks());
 
-  it('learnItem（獲得物品）寫入 sort_order = -Date.now()', async () => {
-    vi.spyOn(Date, 'now').mockReturnValue(1_000_000);
-    const builder = createChainable({ data: null, error: null });
-    mockedSupabase.from.mockReturnValue(builder);
-
-    await learnItem('c1', 'g1');
-
-    expect(builder.insert).toHaveBeenCalledWith(
-      expect.objectContaining({ sort_order: -1_000_000 })
-    );
-  });
-
-  it('createCharacterItem（新增個人物品）寫入 sort_order = -Date.now()', async () => {
+  it('createCharacterItem 寫入 sort_order = -Date.now()', async () => {
     vi.spyOn(Date, 'now').mockReturnValue(2_000_000);
     const builder = createChainable({ data: { id: 'ci1' }, error: null });
     mockedSupabase.from.mockReturnValue(builder);

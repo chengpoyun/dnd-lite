@@ -7,7 +7,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import ItemsPage from '../../components/ItemsPage';
 import * as ItemService from '../../services/itemService';
-import type { CharacterItem, GlobalItem } from '../../services/itemService';
+import type { CharacterItem } from '../../services/itemService';
 
 vi.mock('../../hooks/useToast', () => ({
   useToast: () => ({
@@ -21,41 +21,26 @@ vi.mock('../../services/itemService', async (importOriginal) => {
   return {
     ...actual,
     getCharacterItems: vi.fn(),
-    searchGlobalItems: vi.fn(),
     socketDecoration: vi.fn(),
     updateCharacterItemFavorite: vi.fn(),
   };
 });
 
 const mockGetCharacterItems = vi.mocked(ItemService.getCharacterItems);
-const mockSearchGlobalItems = vi.mocked(ItemService.searchGlobalItems);
 const mockSocketDecoration = vi.mocked(ItemService.socketDecoration);
 const mockUpdateCharacterItemFavorite = vi.mocked(ItemService.updateCharacterItemFavorite);
-
-function buildGlobalItem(overrides: Partial<GlobalItem> = {}): GlobalItem {
-  return {
-    id: 'global-1',
-    name: '長劍',
-    name_en: 'Longsword',
-    description: '',
-    category: '裝備',
-    is_magic: false,
-    created_at: '',
-    updated_at: '',
-    ...overrides,
-  };
-}
 
 function buildCharacterItem(overrides: Partial<CharacterItem> = {}): CharacterItem {
   return {
     id: 'ci-1',
     character_id: 'char-1',
-    item_id: 'global-1',
     quantity: 1,
     is_magic: false,
+    name_override: '長劍',
+    description_override: '',
+    category_override: '裝備',
     created_at: '',
     updated_at: '',
-    item: buildGlobalItem(),
     ...overrides,
   };
 }
@@ -64,7 +49,6 @@ describe('ItemsPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockGetCharacterItems.mockResolvedValue({ success: true, items: [] });
-    mockSearchGlobalItems.mockResolvedValue({ success: true, items: [] });
   });
 
   it('載入後無物品時（預設顯示★列表）顯示「尚無收藏的道具」與「獲得第一個物品」按鈕', async () => {
@@ -145,8 +129,6 @@ describe('ItemsPage', () => {
     const weapon = buildCharacterItem({
       id: 'ci-weapon',
       name_override: '大劍',
-      item_id: null,
-      item: undefined,
       category_override: '裝備',
       equipment_kind_override: 'melee_weapon',
       decoration_slots: 1,
@@ -156,8 +138,6 @@ describe('ItemsPage', () => {
     const material = buildCharacterItem({
       id: 'ci-material',
       name_override: '火龍逆鱗',
-      item_id: null,
-      item: undefined,
       category_override: 'MH素材',
       weapon_decoration: true,
       quantity: 1,
@@ -198,8 +178,6 @@ describe('ItemsPage', () => {
     const weapon = buildCharacterItem({
       id: 'ci-weapon3',
       name_override: '雙劍',
-      item_id: null,
-      item: undefined,
       category_override: '裝備',
       equipment_kind_override: 'melee_weapon',
       decoration_slots: 1,
@@ -209,8 +187,6 @@ describe('ItemsPage', () => {
     const material = buildCharacterItem({
       id: 'ci-material3',
       name_override: '雷狼素材',
-      item_id: null,
-      item: undefined,
       category_override: 'MH素材',
       weapon_decoration: true,
       armor_decoration: true,
@@ -260,8 +236,8 @@ describe('ItemsPage', () => {
   });
 
   it('預設進入道具頁面時，只顯示已收藏的物品（不需額外點擊★分類）', async () => {
-    const favorited = buildCharacterItem({ id: 'ci-fav', name_override: '收藏物品', item_id: null, item: undefined, is_favorite: true });
-    const notFavorited = buildCharacterItem({ id: 'ci-normal', name_override: '一般物品', item_id: null, item: undefined, is_favorite: false });
+    const favorited = buildCharacterItem({ id: 'ci-fav', name_override: '收藏物品', is_favorite: true });
+    const notFavorited = buildCharacterItem({ id: 'ci-normal', name_override: '一般物品', is_favorite: false });
     mockGetCharacterItems.mockResolvedValue({ success: true, items: [favorited, notFavorited] });
 
     render(<ItemsPage characterId="char-1" />);
@@ -273,8 +249,8 @@ describe('ItemsPage', () => {
   });
 
   it('切到「全部」再切回★分類時，只顯示已收藏的物品', async () => {
-    const favorited = buildCharacterItem({ id: 'ci-fav', name_override: '收藏物品', item_id: null, item: undefined, is_favorite: true });
-    const notFavorited = buildCharacterItem({ id: 'ci-normal', name_override: '一般物品', item_id: null, item: undefined, is_favorite: false });
+    const favorited = buildCharacterItem({ id: 'ci-fav', name_override: '收藏物品', is_favorite: true });
+    const notFavorited = buildCharacterItem({ id: 'ci-normal', name_override: '一般物品', is_favorite: false });
     mockGetCharacterItems.mockResolvedValue({ success: true, items: [favorited, notFavorited] });
 
     render(<ItemsPage characterId="char-1" />);
@@ -295,7 +271,7 @@ describe('ItemsPage', () => {
   });
 
   it('在道具詳情彈窗點擊★收藏切換鈕，會呼叫 ItemService.updateCharacterItemFavorite', async () => {
-    const item = buildCharacterItem({ id: 'ci-star', name_override: '測試物品', item_id: null, item: undefined, is_favorite: false });
+    const item = buildCharacterItem({ id: 'ci-star', name_override: '測試物品', is_favorite: false });
     mockGetCharacterItems.mockResolvedValue({ success: true, items: [item] });
     mockUpdateCharacterItemFavorite.mockResolvedValue({ success: true });
 
@@ -321,7 +297,7 @@ describe('ItemsPage', () => {
   });
 
   it('已收藏物品的卡片，★顯示在名稱左側且沒有外框', async () => {
-    const item = buildCharacterItem({ id: 'ci-star2', name_override: '收藏卡片', item_id: null, item: undefined, is_favorite: true });
+    const item = buildCharacterItem({ id: 'ci-star2', name_override: '收藏卡片', is_favorite: true });
     mockGetCharacterItems.mockResolvedValue({ success: true, items: [item] });
 
     render(<ItemsPage characterId="char-1" />);
