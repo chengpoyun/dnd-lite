@@ -4,6 +4,10 @@
 
 ---
 
+## 2.4.11
+
+- 整理：`types/ability.ts` 的 `AbilityDef.recoveryType` 原本自己重複宣告一次 `'常駐' | '短休' | '長休'` 字面聯合型別，沒有引用 `services/abilityService.ts` 剛整理好的 `AbilityRecoveryType`。改成直接引用，避免以後兩邊漏改而悄悄不同步（`source: AbilitySource`／`school: Spell['school']` 這兩個欄位本來就已經正確引用來源型別，沒有這個問題）。
+
 ## 2.4.10
 
 - 整理：`utils/helpers.ts` 的 `evaluateValue`（整數）與 `evaluateDecimalValue`（小數）內部的「依 tokens 累加」迴圈幾乎逐字重複，只差 `parseInt`/`parseFloat`。抽出共用的 `accumulateTokens` 內部函式，行為不變。
