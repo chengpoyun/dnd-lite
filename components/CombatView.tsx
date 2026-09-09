@@ -33,7 +33,7 @@ import {
   mapRecoveryToDb,
   convertDbItemToLocal,
   type CombatItem,
-  type ItemCategory,
+  type CombatActionCategory,
 } from '../utils/combatItemMapping';
 
 const STORAGE_KEYS = {
@@ -204,10 +204,10 @@ export const CombatView: React.FC<CombatViewProps> = ({
   const [pendingPortentUseIndex, setPendingPortentUseIndex] = useState<number | null>(null);
   const [isPortentRerollOpen, setIsPortentRerollOpen] = useState(false);
 
-  const [activeCategory, setActiveCategory] = useState<ItemCategory>('action');
+  const [activeCategory, setActiveCategory] = useState<CombatActionCategory>('action');
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
   /** 有 description 的項目點擊時先顯示說明，確認後才執行消耗 */
-  const [descriptionConfirmPending, setDescriptionConfirmPending] = useState<{ category: ItemCategory; id: string; name: string; description: string } | null>(null);
+  const [descriptionConfirmPending, setDescriptionConfirmPending] = useState<{ category: CombatActionCategory; id: string; name: string; description: string } | null>(null);
 
   // 攻擊命中 modal 開啟時，同步目前選擇的屬性以正確顯示加值
   useEffect(() => {
@@ -291,7 +291,7 @@ export const CombatView: React.FC<CombatViewProps> = ({
   }, [combatSeconds]);
 
   /** 實際執行消耗（減少次數並同步 DB），不含編輯模式與說明確認判斷 */
-  const doConsumeItem = async (category: ItemCategory, id: string) => {
+  const doConsumeItem = async (category: CombatActionCategory, id: string) => {
     const list = category === 'action' ? actions : category === 'bonus' ? bonusActions : category === 'reaction' ? reactions : resources;
     const item = list.find(i => i.id === id);
     if (!item) return;
@@ -314,7 +314,7 @@ export const CombatView: React.FC<CombatViewProps> = ({
     }
   };
 
-  const useItem = async (category: ItemCategory, id: string) => {
+  const useItem = async (category: CombatActionCategory, id: string) => {
     const list = category === 'action' ? actions : category === 'bonus' ? bonusActions : category === 'reaction' ? reactions : resources;
     const item = list.find(i => i.id === id);
     if (!item) return;
@@ -364,7 +364,7 @@ export const CombatView: React.FC<CombatViewProps> = ({
     }
   };
 
-  const handleOpenAddModal = (category: ItemCategory) => {
+  const handleOpenAddModal = (category: CombatActionCategory) => {
     setEditingItemId(null);
     setActiveCategory(category);
     setIsItemEditModalOpen(true);
@@ -456,7 +456,7 @@ export const CombatView: React.FC<CombatViewProps> = ({
     setIsItemEditModalOpen(false);
   };
 
-  const removeItem = async (category: ItemCategory, id: string) => {
+  const removeItem = async (category: CombatActionCategory, id: string) => {
     const list = category === 'action' ? actions : category === 'bonus' ? bonusActions : category === 'reaction' ? reactions : resources;
     const setter = category === 'action' ? setActions : category === 'bonus' ? setBonusActions : category === 'reaction' ? setReactions : setResources;
 

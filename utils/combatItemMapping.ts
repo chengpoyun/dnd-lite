@@ -7,7 +7,8 @@ import type { CharacterCombatAction as DatabaseCombatItem } from '../lib/supabas
  * round vs turn），原本這幾支對照函式寫在元件內部無法單獨測試。
  */
 
-export type ItemCategory = 'action' | 'bonus' | 'reaction' | 'resource';
+/** 戰鬥動作分類（非道具分類——道具分類請見 services/itemService.ts 的 ItemCategory，兩者曾同名造成混淆） */
+export type CombatActionCategory = 'action' | 'bonus' | 'reaction' | 'resource';
 
 export interface CombatItem {
   id: string;
@@ -31,8 +32,8 @@ export interface CombatItem {
 }
 
 // 分類映射 - 前端到資料庫
-export const mapCategoryToDb = (category: ItemCategory): DatabaseCombatItem['category'] => {
-  const mapping: Record<ItemCategory, DatabaseCombatItem['category']> = {
+export const mapCategoryToDb = (category: CombatActionCategory): DatabaseCombatItem['category'] => {
+  const mapping: Record<CombatActionCategory, DatabaseCombatItem['category']> = {
     'action': 'action',
     'bonus': 'bonus_action',
     'reaction': 'reaction',
@@ -42,8 +43,8 @@ export const mapCategoryToDb = (category: ItemCategory): DatabaseCombatItem['cat
 };
 
 // 分類映射 - 資料庫到前端
-export const mapCategoryFromDb = (dbCategory: string): ItemCategory => {
-  const mapping: Record<string, ItemCategory> = {
+export const mapCategoryFromDb = (dbCategory: string): CombatActionCategory => {
+  const mapping: Record<string, CombatActionCategory> = {
     'action': 'action',
     'bonus_action': 'bonus',
     'reaction': 'reaction',

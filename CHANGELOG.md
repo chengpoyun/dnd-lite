@@ -4,6 +4,10 @@
 
 ---
 
+## 2.4.4
+
+- 整理：`utils/combatItemMapping.ts` 的 `ItemCategory`（戰鬥動作分類：action/bonus/reaction/resource）跟 `services/itemService.ts` 的 `ItemCategory`（道具分類：裝備/藥水/MH素材/雜項）同名但完全不相關，容易在 import 時不小心拿錯。前者改名為 `CombatActionCategory`（唯一使用者 `CombatView.tsx` 一併更新），道具分類的 `ItemCategory` 維持不變。
+
 ## 2.4.3
 
 - 修正：`utils/spellUtils.ts` 判斷「是否為施法職業」「合併施法者等級」的邏輯，跟 `utils/spellSlots.ts` 的法術位計算規則各自維護一套名單，兩邊互相矛盾——`spellUtils.ts` 誤把**武僧**列為施法職業（武僧不會法術），且 `getSpellcasterLevel` 用「取多職業中最高等級」計算可準備法術數量，但 D&D 5E 規則其實是「依全/半/1/3施法者分別加權後加總」（例如法師3級+牧師7級的合併施法等級應該是 10 級，不是 7 級）。這兩個函式的實際影響：`isSpellcaster` 決定「法術」分頁是否顯示、`getSpellcasterLevel` 決定可準備法術數量上限，武僧角色之前會被誤判為施法者而顯示法術分頁，多職法術角色的可準備法術數量也可能被低估。改成直接沿用 `spellSlots.ts` 已經正確實作的分類與合併算法，不再各自維護一套規則。
