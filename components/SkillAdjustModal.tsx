@@ -58,30 +58,55 @@ export const SkillAdjustModal: React.FC<SkillAdjustModalProps> = ({
 
   const [localProfLevel, setLocalProfLevel] = useState<SkillProficiencyLevel>(currentProfLevel);
   const [basicInput, setBasicInput] = useState<string>(initialBasic.toString());
+  // 追蹤使用者是否手動編輯過「基礎值」（含已有覆寫值時，一開始就視為手動）；
+  // 手動編輯後，切換熟練度不再自動疊加熟練加值，完全以使用者輸入的數字為準
+  const [basicManuallyEdited, setBasicManuallyEdited] = useState<boolean>(
+    typeof overrideBasic === 'number',
+  );
+  // 「基礎值」目前對應的熟練度基準：切換熟練度時用來計算即時的熟練加值差額，
+  // 按「重置」後會更新成當時的熟練度，讓後續切換的差額從新的基準重新算起
+  const [basicBaselineLevel, setBasicBaselineLevel] = useState<SkillProficiencyLevel>(currentProfLevel);
 
   if (!isOpen) return null;
 
   const parsedBasic = parseInt(basicInput, 10);
   const defaultBasicForLocalProf = computeDefaultBasic(localProfLevel);
   const safeBasic = Number.isFinite(parsedBasic) ? parsedBasic : defaultBasicForLocalProf;
-  const finalTotal = safeBasic + miscBonus;
+  // 切換熟練度的即時效果：不覆寫「基礎值」輸入框本身，只反映在加值列表與最終總計；
+  // 一旦手動編輯過基礎值（或本來就是覆寫值），使用者輸入的數字自己說了算，不再自動疊加
+  const profSupplementValue = basicManuallyEdited
+    ? 0
+    : (localProfLevel - basicBaselineLevel) * profBonusForLevel;
+  const finalTotal = safeBasic + profSupplementValue + miscBonus;
 
-  const bonusSources =
-    skillBonusSources.length > 0 || miscBonus !== 0 ? skillBonusSources : [];
+  const profSupplementLabel =
+    localProfLevel === 2 ? '專精加值' : localProfLevel === 1 ? '熟練加值' : '取消熟練加值';
+  const bonusSources = [
+    ...skillBonusSources,
+    ...(profSupplementValue !== 0 ? [{ label: profSupplementLabel, value: profSupplementValue }] : []),
+  ];
 
   const description = `基礎值為 ${abilityLabel} 調整值 + 熟練/專精加值 + 調整值加成`;
 
   const handleReset = () => {
     const nextDefault = computeDefaultBasic(localProfLevel);
     setBasicInput(nextDefault.toString());
+    setBasicManuallyEdited(false);
+    setBasicBaselineLevel(localProfLevel);
+  };
+
+  const handleBasicChange = (value: string) => {
+    setBasicInput(value);
+    setBasicManuallyEdited(true);
   };
 
   const handleSave = async () => {
     const nextParsed = parseInt(basicInput, 10);
-    const hasValidOverride = Number.isFinite(nextParsed);
     const defaultForProf = computeDefaultBasic(localProfLevel);
     const nextOverride =
-      hasValidOverride && nextParsed !== defaultForProf ? (nextParsed as number) : null;
+      basicManuallyEdited && Number.isFinite(nextParsed) && nextParsed !== defaultForProf
+        ? (nextParsed as number)
+        : null;
 
     setIsSubmitting(true);
     try {
@@ -105,7 +130,7 @@ export const SkillAdjustModal: React.FC<SkillAdjustModalProps> = ({
 
       <SkillBonusBreakdown
         basicInput={basicInput}
-        onBasicChange={setBasicInput}
+        onBasicChange={handleBasicChange}
         description={description}
         bonusSources={bonusSources}
         finalTotal={finalTotal}
