@@ -4,6 +4,10 @@
 
 ---
 
+## 2.4.14
+
+- 整理：`AddPersonalAbilityModal`（新增個人能力，無英文名/無數值加成）與 `AbilityFormModal`（編輯能力，含英文名與 `StatBonusEditor`）的名稱/來源/恢復類型/描述/最大使用次數欄位約 70% 逐字重複。抽出共用元件 `components/ui/AbilityFormFields`，英文名稱欄位與「影響角色數值」勾選＋`StatBonusEditor` 區塊透過 props/children 選擇性插入，兩邊各自的送出按鈕樣式、`maxUses` 狀態管理（含 `AddPersonalAbilityModal` 恢復類型切為常駐時歸零的 effect）不變、未合併。兩個檔案原本都沒有測試覆蓋，這次一併補上 `AddPersonalAbilityModal.test.tsx`（5 案例）與 `AbilityFormModal.test.tsx`（5 案例）再動手改。行為不變：`npm run t` 1364/1364 通過，並經瀏覽器實測兩個彈窗（新增個人能力、編輯既有能力含 StatBonusEditor）。
+
 ## 2.4.13
 
 - 整理：`LearnAbilityModal`、`LearnSpellModal`、`LearnItemModal` 三個「搜尋目錄→學習/獲得」彈窗的樣板逐字重複：(1) 依關鍵字（法術另含環位）非同步查詢＋用 cancelled flag 避免競態＋寫回 state，抽出共用 hook `hooks/useCatalogSearch`；(2) 標籤＋搜尋輸入框，抽出 `components/ui/CatalogSearchInput`；(3) 標題＋關閉按鈕＋可選的新增按鈕，抽出 `components/ui/CatalogModalHeader`（三者按鈕樣式/文字不同處以 className/label props 覆寫，未強行統一視覺）。三個彈窗真正歧異的部分（能力的兩段式確認流程、法術/物品的卡片渲染與即時獲得按鈕）刻意保留，未合併。LearnSpellModal 原本沒有任何測試覆蓋，這次一併補上 `src/test/LearnSpellModal.test.tsx`（5 個案例）再動手改。行為不變：`npm run t` 1348/1348 通過，並經瀏覽器實測三個彈窗（能力/法術/物品搜尋與清單顯示）確認畫面與互動一致。

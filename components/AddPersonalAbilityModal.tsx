@@ -7,11 +7,9 @@ import React, { useEffect, useState } from 'react';
 import { Modal } from './ui/Modal';
 import { ModalSaveButton } from './ui/ModalSaveButton';
 import { LoadingOverlay } from './ui/LoadingOverlay';
-import { AutoResizeTextarea } from './ui/AutoResizeTextarea';
-import { ABILITY_SOURCE_ORDER, RECOVERY_TYPES, type CreateCharacterAbilityData } from '../services/abilityService';
+import { AbilityFormFields } from './ui/AbilityFormFields';
+import type { AbilitySource, AbilityRecoveryType, CreateCharacterAbilityData } from '../services/abilityService';
 import { MODAL_CONTAINER_CLASS } from '../styles/modalStyles';
-
-const SOURCES = [...ABILITY_SOURCE_ORDER];
 
 interface AddPersonalAbilityModalProps {
   isOpen: boolean;
@@ -28,8 +26,8 @@ export const AddPersonalAbilityModal: React.FC<AddPersonalAbilityModalProps> = (
   initialName,
 }) => {
   const [name, setName] = useState('');
-  const [source, setSource] = useState<typeof SOURCES[number]>('職業');
-  const [recoveryType, setRecoveryType] = useState<typeof RECOVERY_TYPES[number]>('常駐');
+  const [source, setSource] = useState<AbilitySource>('職業');
+  const [recoveryType, setRecoveryType] = useState<AbilityRecoveryType>('常駐');
   const [description, setDescription] = useState('');
   const [maxUses, setMaxUses] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -73,76 +71,28 @@ export const AddPersonalAbilityModal: React.FC<AddPersonalAbilityModalProps> = (
     }
   };
 
-  const showMaxUses = recoveryType !== '常駐';
-
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="2xl" disableBackdropClose={isSubmitting}>
       <div className={`${MODAL_CONTAINER_CLASS} relative`}>
         <LoadingOverlay visible={isSubmitting} />
         <form onSubmit={handleSubmit} className="space-y-3">
-          <div>
-            <label className="block text-[14px] text-slate-400 mb-2">名稱 *</label>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="w-full bg-slate-800 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500"
-              placeholder="輸入能力名稱"
-              required
-              maxLength={100}
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-[14px] text-slate-400 mb-2">來源 *</label>
-              <select
-                value={source}
-                onChange={(e) => setSource(e.target.value as typeof SOURCES[number])}
-                className="w-full bg-slate-800 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500"
-              >
-                {SOURCES.map((value) => (
-                  <option key={value} value={value}>{value}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-[14px] text-slate-400 mb-2">恢復類型 *</label>
-              <select
-                value={recoveryType}
-                onChange={(e) => setRecoveryType(e.target.value as typeof RECOVERY_TYPES[number])}
-                className="w-full bg-slate-800 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500"
-              >
-                {RECOVERY_TYPES.map((value) => (
-                  <option key={value} value={value}>{value}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-          <div>
-            <label className="block text-[14px] text-slate-400 mb-2">描述（選填）</label>
-            <AutoResizeTextarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="w-full bg-slate-800 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500"
-              placeholder="輸入能力描述"
-              minRows={4}
-            />
-          </div>
-          {showMaxUses && (
-            <div>
-              <label className="block text-[14px] text-slate-400 mb-2">
-                最大使用次數（選填）
-                <span className="text-slate-500 ml-2 text-[12px]">（設為 0 表示無限次）</span>
-              </label>
-              <input
-                type="number"
-                min={0}
-                value={maxUses}
-                onChange={(e) => setMaxUses(parseInt(e.target.value, 10) || 0)}
-                className="w-full bg-slate-800 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500"
-              />
-            </div>
-          )}
+          <AbilityFormFields
+            name={name}
+            onNameChange={setName}
+            namePlaceholder="輸入能力名稱"
+            nameRequired
+            source={source}
+            onSourceChange={setSource}
+            recoveryType={recoveryType}
+            onRecoveryTypeChange={setRecoveryType}
+            description={description}
+            onDescriptionChange={setDescription}
+            descriptionLabel="描述（選填）"
+            descriptionPlaceholder="輸入能力描述"
+            maxUses={maxUses}
+            onMaxUsesChange={setMaxUses}
+            maxUsesLabel="最大使用次數（選填）"
+          />
           <div className="flex gap-3 pt-2">
             <button
               type="button"
