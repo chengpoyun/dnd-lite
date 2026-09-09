@@ -106,5 +106,50 @@ describe('SpellService - 個人法術', () => {
     expect(insertArg).not.toHaveProperty('spell_id');
     expect(insertArg.character_id).toBe(characterId);
   });
+
+  // 回歸測試：從本地法術目錄「學習」時直接呼叫 createCharacterSpell（見 spellCatalog.spellToCreateData）。
+  // 534 筆官方法術裡有近一半（253 筆）material 是空字串（無材料成分，如純 V/S 施法的法術），
+  // 若 material 被當成必填，這些法術點「學習」時會靜默失敗（成功回傳 false，UI 只 console.error，畫面上完全沒反應）。
+  it('material 為空字串（無材料成分的法術，如純 V/S 施法）時仍應成功新增，不視為必填', async () => {
+    const characterId = 'char-1';
+
+    const insertBuilder: SupabaseBuilder = {
+      insert: vi.fn().mockReturnValue({
+        select: vi.fn().mockReturnValue({
+          single: vi.fn().mockResolvedValue({
+            data: { id: 'cs-2', character_id: characterId, is_prepared: false },
+            error: null
+          })
+        })
+      })
+    };
+
+    mockedSupabase.from.mockImplementation((table: string) => {
+      if (table === 'character_spells') return insertBuilder as any;
+      throw new Error(`Unexpected table: ${table}`);
+    });
+
+    const data: SpellService.CreateCharacterSpellData = {
+      name: '光亮術',
+      name_en: 'Light',
+      level: 0,
+      casting_time: '動作',
+      school: '塑能',
+      concentration: false,
+      ritual: false,
+      duration: '1小時',
+      range: '觸碰',
+      source: "PHB'24",
+      verbal: true,
+      somatic: false,
+      material: '',
+      description: 'desc'
+    };
+
+    const result = await SpellService.createCharacterSpell(characterId, data);
+
+    expect(result.success).toBe(true);
+    expect(result.error).toBeUndefined();
+  });
 });
 

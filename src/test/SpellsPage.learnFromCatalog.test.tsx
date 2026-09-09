@@ -30,6 +30,14 @@ vi.mock('../../services/spellCatalog', async (importOriginal) => {
   };
 });
 
+const showErrorMock = vi.fn();
+vi.mock('../../hooks/useToast', () => ({
+  useToast: () => ({
+    showSuccess: vi.fn(),
+    showError: showErrorMock,
+  }),
+}));
+
 const mockGetCharacterSpells = vi.mocked(spellService.getCharacterSpells);
 const mockGetPreparedSpellsCount = vi.mocked(spellService.getPreparedSpellsCount);
 const mockGetPreparedCantripsCount = vi.mocked(spellService.getPreparedCantripsCount);
@@ -45,6 +53,7 @@ const defaultProps = {
 describe('SpellsPage - 從本地法術目錄學習', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    showErrorMock.mockClear();
     mockGetCharacterSpells.mockResolvedValue([]);
     mockGetPreparedSpellsCount.mockResolvedValue(0);
     mockGetPreparedCantripsCount.mockResolvedValue(0);
@@ -95,6 +104,45 @@ describe('SpellsPage - 從本地法術目錄學習', () => {
           school: '塑能',
         })
       );
+    });
+  });
+
+  // 回歸測試：對應「按下學習後沒有任何反應」的臭蟲——createCharacterSpell 失敗時
+  // （例如舊版把 material 誤判為必填），使用者應該看到錯誤提示，而不是畫面上什麼都沒發生。
+  it('學習失敗時應顯示錯誤提示，而不是靜默無反應', async () => {
+    const spell: SpellDef = {
+      name: '亡者喪鐘',
+      nameEn: 'Toll the Dead',
+      level: 0,
+      castingTime: '動作',
+      school: '死靈',
+      concentration: false,
+      ritual: false,
+      duration: '即效',
+      range: '60尺',
+      source: "PHB'24",
+      verbal: true,
+      somatic: true,
+      material: '',
+      description: '...',
+    };
+    mockSearchSpells.mockResolvedValue([spell]);
+    mockCreateCharacterSpell.mockResolvedValue({ success: false, error: '所有欄位皆為必填' });
+
+    render(<SpellsPage {...defaultProps} />);
+
+    await waitFor(() => {
+      expect(screen.getByText('+ 學習新法術')).toBeInTheDocument();
+    });
+    fireEvent.click(screen.getByText('+ 學習新法術'));
+
+    await waitFor(() => {
+      expect(screen.getByText('亡者喪鐘')).toBeInTheDocument();
+    });
+    fireEvent.click(screen.getByText('學習'));
+
+    await waitFor(() => {
+      expect(showErrorMock).toHaveBeenCalledWith('所有欄位皆為必填');
     });
   });
 });

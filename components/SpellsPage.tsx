@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { useToast } from '../hooks/useToast';
 import { SpellCard } from './SpellCard';
 import { SpellDetailModal } from './SpellDetailModal';
 import { LearnSpellModal } from './LearnSpellModal';
@@ -39,6 +40,7 @@ export const SpellsPage: React.FC<SpellsPageProps> = ({
   characterClasses,
   intelligenceModifier
 }) => {
+  const { showError } = useToast();
   const [characterSpells, setCharacterSpells] = useState<CharacterSpell[]>([]);
   const [isLearnModalOpen, setIsLearnModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -111,6 +113,7 @@ export const SpellsPage: React.FC<SpellsPageProps> = ({
       setIsLearnModalOpen(false);
     } catch (error) {
       console.error('學習法術失敗:', error);
+      showError(error instanceof Error ? error.message : '學習法術失敗');
       throw error;
     }
   };

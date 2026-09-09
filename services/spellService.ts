@@ -92,6 +92,8 @@ export async function createCharacterSpell(
       return { success: false, error: '角色 ID 無效' };
     }
 
+    // material（材料成分）不列入必填：許多法術本來就沒有材料成分（純 V/S 施法），
+    // 空字串是合法值，不是漏填。
     const requiredFields = [
       data.name,
       data.name_en,
@@ -99,7 +101,6 @@ export async function createCharacterSpell(
       data.duration,
       data.range,
       data.source,
-      data.material,
       data.description,
     ];
 
