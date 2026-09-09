@@ -39,15 +39,17 @@ describe('SkillAdjustModal', () => {
     expect(screen.getByText('最終總計')).toBeInTheDocument();
   });
 
-  it('切換熟練度時，在尚未手動編輯基礎值時應自動更新基礎值', () => {
+  it('切換熟練度時，基礎值不會自動改變（維持使用者目前看到的數字，不會被覆寫）', () => {
     renderModal();
-    // abilityModifier 3 + profLevel 1 * getProfBonus(5)=3 => 6；切到專精 => 3 + 2*3 = 9
+    // abilityModifier 3 + profLevel 1 * getProfBonus(5)=3 => 6（依 currentProfLevel 算出的初始值）
     expect(screen.getByDisplayValue('6')).toBeInTheDocument();
     fireEvent.click(screen.getByText('專精'));
-    expect(screen.getByDisplayValue('9')).toBeInTheDocument();
+    // 切到專精後基礎值仍維持 6，不會自動變成 3 + 2*3 = 9
+    expect(screen.getByDisplayValue('6')).toBeInTheDocument();
+    expect(screen.queryByDisplayValue('9')).not.toBeInTheDocument();
   });
 
-  it('點擊重置會恢復為當前熟練度計算的基礎值並且之後切換會繼續跟著變動', () => {
+  it('點擊重置會恢復為當前熟練度計算的基礎值，之後切換也不會再自動變動', () => {
     renderModal();
 
     const input = screen.getByRole('textbox', { name: '' });
@@ -56,6 +58,10 @@ describe('SkillAdjustModal', () => {
     fireEvent.click(screen.getByText('重置'));
 
     expect((input as HTMLInputElement).value).not.toBe('99');
+
+    const afterReset = (input as HTMLInputElement).value;
+    fireEvent.click(screen.getByText('專精'));
+    expect((input as HTMLInputElement).value).toBe(afterReset);
   });
 
   it('點擊儲存時會帶入目前熟練度與對應的 overrideBasic', () => {

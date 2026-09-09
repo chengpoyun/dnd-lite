@@ -58,9 +58,6 @@ export const SkillAdjustModal: React.FC<SkillAdjustModalProps> = ({
 
   const [localProfLevel, setLocalProfLevel] = useState<SkillProficiencyLevel>(currentProfLevel);
   const [basicInput, setBasicInput] = useState<string>(initialBasic.toString());
-  const [basicManuallyEdited, setBasicManuallyEdited] = useState<boolean>(
-    typeof overrideBasic === 'number',
-  );
 
   if (!isOpen) return null;
 
@@ -77,7 +74,6 @@ export const SkillAdjustModal: React.FC<SkillAdjustModalProps> = ({
   const handleReset = () => {
     const nextDefault = computeDefaultBasic(localProfLevel);
     setBasicInput(nextDefault.toString());
-    setBasicManuallyEdited(false);
   };
 
   const handleSave = async () => {
@@ -103,23 +99,13 @@ export const SkillAdjustModal: React.FC<SkillAdjustModalProps> = ({
 
       <SkillProficiencySegmentBar
         value={localProfLevel}
-        onChange={(level) => {
-          setLocalProfLevel(level);
-
-          if (!basicManuallyEdited) {
-            const nextDefault = computeDefaultBasic(level);
-            setBasicInput(nextDefault.toString());
-          }
-        }}
+        onChange={setLocalProfLevel}
         className="mb-4"
       />
 
       <SkillBonusBreakdown
         basicInput={basicInput}
-        onBasicChange={(value) => {
-          setBasicInput(value);
-          setBasicManuallyEdited(true);
-        }}
+        onBasicChange={setBasicInput}
         description={description}
         bonusSources={bonusSources}
         finalTotal={finalTotal}
