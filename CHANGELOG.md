@@ -4,6 +4,10 @@
 
 ---
 
+## 2.4.13
+
+- 整理：`LearnAbilityModal`、`LearnSpellModal`、`LearnItemModal` 三個「搜尋目錄→學習/獲得」彈窗的樣板逐字重複：(1) 依關鍵字（法術另含環位）非同步查詢＋用 cancelled flag 避免競態＋寫回 state，抽出共用 hook `hooks/useCatalogSearch`；(2) 標籤＋搜尋輸入框，抽出 `components/ui/CatalogSearchInput`；(3) 標題＋關閉按鈕＋可選的新增按鈕，抽出 `components/ui/CatalogModalHeader`（三者按鈕樣式/文字不同處以 className/label props 覆寫，未強行統一視覺）。三個彈窗真正歧異的部分（能力的兩段式確認流程、法術/物品的卡片渲染與即時獲得按鈕）刻意保留，未合併。LearnSpellModal 原本沒有任何測試覆蓋，這次一併補上 `src/test/LearnSpellModal.test.tsx`（5 個案例）再動手改。行為不變：`npm run t` 1348/1348 通過，並經瀏覽器實測三個彈窗（能力/法術/物品搜尋與清單顯示）確認畫面與互動一致。
+
 ## 2.4.12
 
 - 整理：`NumberEditModal`、`CombatStatEditModal` 兩個彈窗的「基礎值輸入＋說明＋加值來源＋最終總計/數值預覽＋重置/取消/套用」內容區塊逐字重複，只差 state 由誰管理（前者受控於父層、後者自己管理，含 segment bar 重新開啟時的重置行為）。抽出純呈現、不含任何計算邏輯的共用元件 `components/ui/BasicBonusEditorBody`，兩邊各自的計算公式（`handleValueInput`/`handleDecimalInput` vs `parseInt`+`Number.isFinite`）刻意保留、未合併，僅共用畫面呈現。行為不變，經瀏覽器實測（攻擊命中 modal、金幣 modal）確認畫面與互動一致。

@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Modal } from './ui/Modal';
+import { CatalogModalHeader } from './ui/CatalogModalHeader';
+import { CatalogSearchInput } from './ui/CatalogSearchInput';
+import { useCatalogSearch } from '../hooks/useCatalogSearch';
 import type { AbilityDef } from '../types/ability';
 import { searchAbilities } from '../services/abilityCatalog';
 import { getAbilitySourceBadgeClass, getAbilityRecoveryBadgeClass } from '../utils/abilityColors';
@@ -21,7 +24,6 @@ export const LearnAbilityModal: React.FC<LearnAbilityModalProps> = ({
   onCreateNew,
   learnedAbilityNames
 }) => {
-  const [filteredAbilities, setFilteredAbilities] = useState<AbilityDef[]>([]);
   const [searchText, setSearchText] = useState('');
 
   // 選擇能力並詢問次數
@@ -32,29 +34,20 @@ export const LearnAbilityModal: React.FC<LearnAbilityModalProps> = ({
   useEffect(() => {
     if (isOpen) {
       setSearchText('');
-      setFilteredAbilities([]);
       setIsConfirming(false);
       setSelectedAbility(null);
     }
   }, [isOpen]);
 
-  useEffect(() => {
-    // 已學習的能力不整個濾掉（避免使用者以為能力消失搜尋不到）；
-    // 改為在列表中顯示並標記「已學習」、不可點選。
-    const query = searchText.trim();
-    if (!query) {
-      setFilteredAbilities([]);
-      return;
-    }
-    let cancelled = false;
-    searchAbilities(query).then((result) => {
-      if (cancelled) return;
-      setFilteredAbilities(result);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [searchText]);
+  // 已學習的能力不整個濾掉（避免使用者以為能力消失搜尋不到）；
+  // 改為在列表中顯示並標記「已學習」、不可點選。
+  const filteredAbilities = useCatalogSearch(
+    () => {
+      const query = searchText.trim();
+      return query ? searchAbilities(query) : null;
+    },
+    [searchText]
+  );
 
   const handleSelectAbility = (ability: AbilityDef) => {
     // 已學習的能力不可再次學習
@@ -174,40 +167,24 @@ export const LearnAbilityModal: React.FC<LearnAbilityModalProps> = ({
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="3xl">
       <div className={`${MODAL_CONTAINER_CLASS} flex flex-col`} style={{ maxHeight: '80vh' }}>
-        <div className="flex flex-wrap items-center justify-between gap-2 mb-5">
-          <h2 className="text-xl font-bold">學習特殊能力</h2>
-          <div className="flex gap-2">
-            <button
-              onClick={onClose}
-              className="px-4 py-2 rounded-lg bg-slate-700 text-white hover:bg-slate-600 transition-colors font-medium whitespace-nowrap"
-            >
-              取消
-            </button>
-            <button
-              onClick={() => {
-                onClose();
-                onCreateNew(searchText.trim() || undefined);
-              }}
-              className="px-4 py-2 rounded-lg bg-amber-600 text-white hover:bg-amber-700 transition-colors font-medium whitespace-nowrap"
-            >
-              新增個人能力
-            </button>
-          </div>
-        </div>
+        <CatalogModalHeader
+          title="學習特殊能力"
+          onClose={onClose}
+          onCreateNew={() => {
+            onClose();
+            onCreateNew(searchText.trim() || undefined);
+          }}
+          createLabel="新增個人能力"
+        />
 
         {/* 篩選區 */}
         <div className="space-y-3 mb-4">
-          {/* 搜尋框 */}
-          <div>
-            <label className="block text-[14px] text-slate-400 mb-2">搜尋能力</label>
-            <input
-              type="text"
-              value={searchText}
-              onChange={(e) => setSearchText(e.target.value)}
-              placeholder="輸入能力名稱（中文或英文）..."
-              className="w-full bg-slate-800 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500"
-            />
-          </div>
+          <CatalogSearchInput
+            label="搜尋能力"
+            value={searchText}
+            onChange={setSearchText}
+            placeholder="輸入能力名稱（中文或英文）..."
+          />
         </div>
 
         {/* 能力列表 */}

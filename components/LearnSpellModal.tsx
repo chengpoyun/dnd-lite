@@ -1,9 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Modal } from './ui/Modal';
+import { CatalogModalHeader } from './ui/CatalogModalHeader';
+import { CatalogSearchInput } from './ui/CatalogSearchInput';
+import { useCatalogSearch } from '../hooks/useCatalogSearch';
 import type { SpellDef } from '../types/spell';
 import { searchSpells } from '../services/spellCatalog';
 import { getSpellLevelText, getSchoolColor } from '../utils/spellUtils';
 import { MODAL_CONTAINER_CLASS } from '../styles/modalStyles';
+
+const CLOSE_BUTTON_CLASS = 'px-4 py-2 rounded-lg bg-slate-700 text-slate-300 font-bold active:bg-slate-600 whitespace-nowrap';
+const CREATE_BUTTON_CLASS = 'px-4 py-2 rounded-lg bg-amber-600 text-white font-bold active:bg-amber-700 whitespace-nowrap';
 
 interface LearnSpellModalProps {
   isOpen: boolean;
@@ -21,37 +27,35 @@ export const LearnSpellModal: React.FC<LearnSpellModalProps> = ({
   onCreateNew,
   learnedSpellNameEns
 }) => {
-  const [filteredSpells, setFilteredSpells] = useState<SpellDef[]>([]);
   const [selectedLevel, setSelectedLevel] = useState<number>(0);
   const [searchText, setSearchText] = useState('');
+  const [justLearnedNameEns, setJustLearnedNameEns] = useState<string[]>([]);
 
   useEffect(() => {
     if (isOpen) {
       setSearchText('');
       setSelectedLevel(0);
-      setFilteredSpells([]);
+      setJustLearnedNameEns([]);
     }
   }, [isOpen]);
 
-  useEffect(() => {
-    const query = searchText.trim();
-    // 有輸入搜尋文字時忽略環階篩選、全域搜尋 534 筆；沒有文字時依環階瀏覽
-    const levelFilter = query ? undefined : selectedLevel;
-    let cancelled = false;
-    searchSpells(query, levelFilter).then((result) => {
-      if (cancelled) return;
-      const notLearned = result.filter((spell) => !learnedSpellNameEns.includes(spell.nameEn));
-      setFilteredSpells(notLearned);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [searchText, selectedLevel, learnedSpellNameEns]);
+  // 有輸入搜尋文字時忽略環階篩選、全域搜尋 534 筆；沒有文字時依環階瀏覽
+  const searchResults = useCatalogSearch(
+    () => searchSpells(searchText.trim(), searchText.trim() ? undefined : selectedLevel),
+    [searchText, selectedLevel]
+  );
+  const filteredSpells = useMemo(
+    () =>
+      searchResults.filter(
+        (spell) => !learnedSpellNameEns.includes(spell.nameEn) && !justLearnedNameEns.includes(spell.nameEn)
+      ),
+    [searchResults, learnedSpellNameEns, justLearnedNameEns]
+  );
 
   const handleLearnSpell = async (spell: SpellDef) => {
     try {
       await onLearnSpell(spell);
-      setFilteredSpells((prev) => prev.filter((s) => s.nameEn !== spell.nameEn));
+      setJustLearnedNameEns((prev) => [...prev, spell.nameEn]);
     } catch (error) {
       console.error('學習法術失敗:', error);
     }
@@ -60,26 +64,18 @@ export const LearnSpellModal: React.FC<LearnSpellModalProps> = ({
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="3xl" className="flex flex-col">
       <div className={`${MODAL_CONTAINER_CLASS} flex flex-col`}>
-        <div className="flex flex-wrap items-center justify-between gap-2 mb-5">
-          <h2 className="text-xl font-bold">學習法術</h2>
-          <div className="flex gap-2">
-            <button
-              onClick={onClose}
-              className="px-4 py-2 rounded-lg bg-slate-700 text-slate-300 font-bold active:bg-slate-600 whitespace-nowrap"
-            >
-              關閉
-            </button>
-            <button
-              onClick={() => {
-                onClose();
-                onCreateNew();
-              }}
-              className="px-4 py-2 rounded-lg bg-amber-600 text-white font-bold active:bg-amber-700 whitespace-nowrap"
-            >
-              新增個人法術
-            </button>
-          </div>
-        </div>
+        <CatalogModalHeader
+          title="學習法術"
+          onClose={onClose}
+          closeLabel="關閉"
+          closeButtonClassName={CLOSE_BUTTON_CLASS}
+          onCreateNew={() => {
+            onClose();
+            onCreateNew();
+          }}
+          createLabel="新增個人法術"
+          createButtonClassName={CREATE_BUTTON_CLASS}
+        />
 
         {/* 篩選區 */}
         <div className="space-y-3 mb-4">
@@ -100,17 +96,12 @@ export const LearnSpellModal: React.FC<LearnSpellModalProps> = ({
             </select>
           </div>
 
-          {/* 搜尋框 */}
-          <div>
-            <label className="block text-[14px] text-slate-400 mb-2">搜尋法術（支援中英文）</label>
-            <input
-              type="text"
-              value={searchText}
-              onChange={(e) => setSearchText(e.target.value)}
-              placeholder="輸入中文或英文名稱..."
-              className="w-full bg-slate-800 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500"
-            />
-          </div>
+          <CatalogSearchInput
+            label="搜尋法術（支援中英文）"
+            value={searchText}
+            onChange={setSearchText}
+            placeholder="輸入中文或英文名稱..."
+          />
         </div>
 
         {/* 法術列表 */}

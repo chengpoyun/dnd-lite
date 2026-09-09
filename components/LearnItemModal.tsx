@@ -1,8 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Modal } from './ui/Modal';
+import { CatalogModalHeader } from './ui/CatalogModalHeader';
+import { CatalogSearchInput } from './ui/CatalogSearchInput';
+import { useCatalogSearch } from '../hooks/useCatalogSearch';
 import { searchLocalCatalog, type CatalogItem } from '../services/itemCatalog';
 import { MODAL_CONTAINER_CLASS } from '../styles/modalStyles';
 import { getRarityBadge } from '../utils/itemRarity';
+
+const CLOSE_BUTTON_CLASS = 'px-4 py-2 rounded-lg bg-slate-700 text-slate-300 font-bold active:bg-slate-600 whitespace-nowrap';
+const CREATE_BUTTON_CLASS = 'px-4 py-2 rounded-lg bg-amber-600 text-white font-bold active:bg-amber-700 whitespace-nowrap';
 
 interface LearnItemModalProps {
   isOpen: boolean;
@@ -43,38 +49,29 @@ export const LearnItemModal: React.FC<LearnItemModalProps> = ({
   onCreateNew,
   learnedNames
 }) => {
-  const [items, setItems] = useState<CatalogItem[]>([]);
   const [searchText, setSearchText] = useState('');
+  const [justLearnedKeys, setJustLearnedKeys] = useState<string[]>([]);
 
   useEffect(() => {
     if (isOpen) {
       setSearchText('');
-      setItems([]);
+      setJustLearnedKeys([]);
     }
   }, [isOpen]);
 
-  useEffect(() => {
-    const query = searchText.trim();
-    if (!query) {
-      setItems([]);
-      return;
-    }
-    let cancelled = false;
-    searchLocalCatalog(query).then((result) => {
-      if (cancelled) return;
-      setItems(result);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [searchText]);
-
-  const filteredItems = items;
+  const searchResults = useCatalogSearch(
+    () => {
+      const query = searchText.trim();
+      return query ? searchLocalCatalog(query) : null;
+    },
+    [searchText]
+  );
+  const filteredItems = searchResults.filter((item) => !justLearnedKeys.includes(getItemView(item).key));
 
   const handleLearnItem = async (item: CatalogItem) => {
     try {
       await onLearnItem(item);
-      setItems((prev) => prev.filter((i) => i.entry.name !== item.entry.name));
+      setJustLearnedKeys((prev) => [...prev, getItemView(item).key]);
     } catch (error) {
       console.error('獲得物品失敗:', error);
     }
@@ -83,37 +80,23 @@ export const LearnItemModal: React.FC<LearnItemModalProps> = ({
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="3xl" className="flex flex-col">
       <div className={`${MODAL_CONTAINER_CLASS} relative flex flex-col`}>
-        <div className="flex flex-wrap items-center justify-between gap-2 mb-5">
-          <h2 className="text-xl font-bold">獲得物品</h2>
-          <div className="flex gap-2">
-            <button
-              onClick={onClose}
-              className="px-4 py-2 rounded-lg bg-slate-700 text-slate-300 font-bold active:bg-slate-600 whitespace-nowrap"
-            >
-              取消
-            </button>
-            <button
-              onClick={() => onCreateNew(searchText.trim() || undefined)}
-              className="px-4 py-2 rounded-lg bg-amber-600 text-white font-bold active:bg-amber-700 whitespace-nowrap"
-            >
-              新增個人物品
-            </button>
-          </div>
-        </div>
+        <CatalogModalHeader
+          title="獲得物品"
+          onClose={onClose}
+          closeButtonClassName={CLOSE_BUTTON_CLASS}
+          onCreateNew={() => onCreateNew(searchText.trim() || undefined)}
+          createLabel="新增個人物品"
+          createButtonClassName={CREATE_BUTTON_CLASS}
+        />
 
         {/* 篩選區 */}
         <div className="space-y-3 mb-4">
-          {/* 文字搜尋 */}
-          <div>
-            <label className="block text-[14px] text-slate-400 mb-2">搜尋物品</label>
-            <input
-              type="text"
-              value={searchText}
-              onChange={(e) => setSearchText(e.target.value)}
-              placeholder="輸入名稱或描述..."
-              className="w-full bg-slate-800 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500"
-            />
-          </div>
+          <CatalogSearchInput
+            label="搜尋物品"
+            value={searchText}
+            onChange={setSearchText}
+            placeholder="輸入名稱或描述..."
+          />
         </div>
 
         {/* 物品列表 */}
