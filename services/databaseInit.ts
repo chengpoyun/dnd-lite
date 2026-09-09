@@ -1,5 +1,5 @@
 import { supabase } from '../lib/supabase'
-import { getErrorMessage, getRawErrorMessage } from '../utils/common'
+import { getErrorMessage, getRawErrorMessage, isRetryableNetworkError } from '../utils/common'
 
 /**
  * 確保資料庫表結構正確的初始化服務
@@ -38,16 +38,7 @@ export class DatabaseInitService {
           lastError = error
           // 用 getRawErrorMessage：這裡是拿訊息做重試判斷，不可用會退回 JSON 的版本
           const errorMessage = getRawErrorMessage(error)
-          // 檢測值得重試的錯誤（網路問題、伺服器錯誤、冷啟動）
-          if (attempt < maxRetries && (
-            errorMessage.includes('CORS') || 
-            errorMessage.includes('520') || 
-            errorMessage.includes('502') || 
-            errorMessage.includes('503') ||
-            errorMessage.includes('Failed to fetch') ||
-            errorMessage.includes('連接超時') ||
-            errorMessage.includes('timeout')
-          )) {
+          if (attempt < maxRetries && isRetryableNetworkError(errorMessage)) {
             console.warn(`⚠️ 資料庫初始化失敗，將重試: ${errorMessage}`)
             continue
           }

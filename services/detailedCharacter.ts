@@ -1,6 +1,6 @@
 import { supabase } from '../lib/supabase'
 import { AnonymousService } from './anonymous'
-import { getErrorMessage, getRawErrorMessage } from '../utils/common'
+import { getErrorMessage, getRawErrorMessage, isRetryableNetworkError } from '../utils/common'
 import {
   CharacterBonusAggregationService,
   type AggregatedStatBonuses,
@@ -107,15 +107,10 @@ export class DetailedCharacterService {
         
         if (error) {
           // 檢查是否為網路/伺服器錯誤（值得重試）
-          if (attempt < maxRetries) {
-            const errorMessage = error.message || ''
-            if (errorMessage.includes('CORS') || errorMessage.includes('520') || 
-                errorMessage.includes('502') || errorMessage.includes('503') ||
-                errorMessage.includes('Failed to fetch')) {
-              console.warn(`⚠️ 網路錯誤，將重試`)
-              lastError = error
-              continue
-            }
+          if (attempt < maxRetries && isRetryableNetworkError(error.message || '')) {
+            console.warn(`⚠️ 網路錯誤，將重試`)
+            lastError = error
+            continue
           }
           console.warn('⚠️ 載入角色列表失敗:', error.message)
           return []
@@ -126,15 +121,10 @@ export class DetailedCharacterService {
       } catch (error) {
         lastError = error
         // 檢查是否為網路錯誤（值得重試）
-        if (attempt < maxRetries) {
-          // 用 getRawErrorMessage：這裡是拿訊息做重試判斷，不可用會退回 JSON 的版本
-          const errorMessage = getRawErrorMessage(error)
-          if (errorMessage.includes('CORS') || errorMessage.includes('520') || 
-              errorMessage.includes('502') || errorMessage.includes('503') ||
-              errorMessage.includes('Failed to fetch')) {
-            console.warn(`⚠️ 網路錯誤，將重試`)
-            continue
-          }
+        // 用 getRawErrorMessage：這裡是拿訊息做重試判斷，不可用會退回 JSON 的版本
+        if (attempt < maxRetries && isRetryableNetworkError(getRawErrorMessage(error))) {
+          console.warn(`⚠️ 網路錯誤，將重試`)
+          continue
         }
       }
     }
@@ -202,16 +192,10 @@ export class DetailedCharacterService {
         
         if (characterResult.error || !characterResult.data) {
           // 檢查是否為網路/伺服器錯誤（值得重試）
-          if (characterResult.error && attempt < maxRetries) {
-            const errorMessage = characterResult.error.message || ''
-            // CORS, 520, 502, 503 等錯誤值得重試
-            if (errorMessage.includes('CORS') || errorMessage.includes('520') || 
-                errorMessage.includes('502') || errorMessage.includes('503') ||
-                errorMessage.includes('Failed to fetch')) {
-              console.warn(`⚠️ 網路錯誤，將重試`)
-              lastError = characterResult.error
-              continue // 進入下一次循環重試
-            }
+          if (characterResult.error && attempt < maxRetries && isRetryableNetworkError(characterResult.error.message || '')) {
+            console.warn(`⚠️ 網路錯誤，將重試`)
+            lastError = characterResult.error
+            continue // 進入下一次循環重試
           }
           console.error('角色不存在或無權限訪問')
           return null

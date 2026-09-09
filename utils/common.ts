@@ -49,6 +49,24 @@ export const getErrorMessage = (error: unknown, defaultValue = '未知錯誤'): 
   }
 }
 
+/**
+ * 判斷錯誤訊息是否為「值得重試」的網路/伺服器錯誤（CORS、520/502/503、逾時、Failed to fetch）。
+ * 供帶重試邏輯的服務呼叫共用（處理 Supabase 冷啟動問題），避免各處各自重寫一次同樣的字串比對。
+ * 訊息請用 [getRawErrorMessage] 取得（不可用會退回 JSON 的 [getErrorMessage]，
+ * 否則「數字剛好長得像狀態碼」的錯誤物件會被誤判成值得重試）。
+ */
+export const isRetryableNetworkError = (message: string): boolean => {
+  return (
+    message.includes('CORS') ||
+    message.includes('520') ||
+    message.includes('502') ||
+    message.includes('503') ||
+    message.includes('Failed to fetch') ||
+    message.includes('timeout') ||
+    message.includes('連接超時')
+  )
+}
+
 // 格式化日期
 export const formatDate = (date: string | Date, locale = 'zh-TW'): string => {
   try {

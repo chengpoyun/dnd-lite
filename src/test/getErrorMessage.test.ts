@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { getErrorMessage, getRawErrorMessage } from '../../utils/common'
+import { getErrorMessage, getRawErrorMessage, isRetryableNetworkError } from '../../utils/common'
 
 /**
  * 開啟 TypeScript strict 後 catch 到的變數型別是 unknown，
@@ -98,5 +98,26 @@ describe('getRawErrorMessage', () => {
 
     expect(() => getRawErrorMessage(circular)).not.toThrow()
     expect(getRawErrorMessage(circular)).toBe('')
+  })
+})
+
+/**
+ * 判斷是否為「值得重試」的網路/伺服器錯誤（CORS、520/502/503、Failed to fetch）。
+ * 原本在 detailedCharacter.ts（3 處）、databaseInit.ts 各自重寫一次同樣的字串比對。
+ */
+describe('isRetryableNetworkError', () => {
+  it.each(['CORS', '520', '502', '503', 'Failed to fetch', 'timeout', '連接超時'])(
+    '訊息包含 "%s" 時視為值得重試',
+    (keyword) => {
+      expect(isRetryableNetworkError(`some error: ${keyword} occurred`)).toBe(true)
+    },
+  )
+
+  it('不含任何關鍵字時視為不值得重試', () => {
+    expect(isRetryableNetworkError('duplicate key value violates unique constraint')).toBe(false)
+  })
+
+  it('空字串視為不值得重試', () => {
+    expect(isRetryableNetworkError('')).toBe(false)
   })
 })
