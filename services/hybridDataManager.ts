@@ -3,6 +3,7 @@ import { CombatItemService } from './database'
 import { supabase } from '../lib/supabase'
 import { getErrorMessage } from '../utils/common'
 import type { FullCharacterData, CreatedCharacterData, Character, CharacterCombatAction, CharacterCurrentStats, CharacterUpdateData } from '../lib/supabase'
+import type { UserContext } from '../types'
 
 /**
  * 資料管理器 (原 HybridDataManager)
@@ -31,7 +32,7 @@ export class HybridDataManager {
    */
   static async getCharacter(
     characterId: string,
-    userContext?: { isAuthenticated: boolean, userId?: string, anonymousId?: string }
+    userContext?: UserContext
   ): Promise<FullCharacterData | null> {
     try {
       const dbData = await DetailedCharacterService.getFullCharacter(characterId, userContext)
@@ -83,11 +84,7 @@ export class HybridDataManager {
   /**
    * 獲取用戶所有角色（直接從 DB 讀取，帶緩存）
    */
-  static async getUserCharacters(userContext?: {
-    isAuthenticated: boolean,
-    userId?: string,
-    anonymousId?: string
-  }): Promise<Character[]> {
+  static async getUserCharacters(userContext?: UserContext): Promise<Character[]> {
     const startTime = performance.now()
     console.log('⏱️ HybridDataManager.getUserCharacters() 開始')
     

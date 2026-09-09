@@ -4,6 +4,10 @@
 
 ---
 
+## 2.4.6
+
+- 整理：「目前使用者的登入狀態（認證或匿名）」這個形狀在 `detailedCharacter.ts`、`hybridDataManager.ts`、`combatService.ts` 各自內聯宣告好幾次，`infoLinks.ts` 則另外取名 `InfoLinkUserContext` 匯出。統一成 `types/index.ts` 匯出的 `UserContext`，各處改為匯入使用，避免同一個概念散落各處、日後修改容易漏掉某一份。
+
 ## 2.4.5
 
 - 整理：「取得角色有效職業列表（已有 classes 就用，否則依舊版單一 class/level 建立單一職業陣列）」這段 fallback 邏輯，原本在 `characterAttributes.ts`、`sneakAttack.ts`、`portentDice.ts`、`CombatView.tsx` 各自重寫一次（`sneakAttack.ts`／`CombatView.tsx` 的版本甚至把生命骰類型寫死成 `d8`，跟其他處用 `getClassHitDie` 推算不一致）。統一成 `utils/classUtils.ts` 匯出的 `getEffectiveClasses(stats)`，各處呼叫端改為呼叫它。

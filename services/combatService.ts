@@ -1,10 +1,11 @@
 import { supabase } from '../lib/supabase';
-import type { 
-  CombatSession, 
-  CombatMonster, 
+import type {
+  CombatSession,
+  CombatMonster,
   CombatMonsterWithLogs,
-  ResistanceType 
+  ResistanceType
 } from '../lib/supabase';
+import type { UserContext } from '../types';
 
 /**
  * 戰鬥追蹤服務
@@ -21,11 +22,7 @@ export class CombatService {
   /**
    * 創建新戰鬥會話
    */
-  static async createSession(userContext: { 
-    isAuthenticated: boolean; 
-    userId?: string;
-    anonymousId?: string;
-  }): Promise<{ success: boolean; sessionCode?: string; error?: string }> {
+  static async createSession(userContext: UserContext): Promise<{ success: boolean; sessionCode?: string; error?: string }> {
     try {
       // 生成唯一代碼（最多嘗試 10 次）
       let sessionCode = this.generateSessionCode();

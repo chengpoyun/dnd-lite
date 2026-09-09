@@ -4,15 +4,15 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useToast } from '../hooks/useToast';
 import * as InfoLinkService from '../services/infoLinks';
-import type { InfoLinkUserContext } from '../services/infoLinks';
 import * as InfoDocumentService from '../services/infoDocuments';
 import type { InfoLink, InfoDocument } from '../lib/supabase';
+import type { UserContext } from '../types';
 import { PageContainer, Title, Loading, ListCard, ListCardTitleRow } from './ui';
 import InfoLinkFormModal from './InfoLinkFormModal';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 
 interface InfoPageProps {
-  userContext: InfoLinkUserContext;
+  userContext: UserContext;
 }
 
 /** 網址顯示用：去掉協定字首，避免佔用太多空間 */

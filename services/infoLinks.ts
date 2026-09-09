@@ -5,12 +5,7 @@
 
 import { supabase } from '../lib/supabase';
 import type { InfoLink } from '../lib/supabase';
-
-export interface InfoLinkUserContext {
-  isAuthenticated: boolean;
-  userId?: string;
-  anonymousId?: string;
-}
+import type { UserContext } from '../types';
 
 /**
  * 全站共用的預設連結：帳號第一次使用、一筆連結都沒有時整組補上。
@@ -23,7 +18,7 @@ const DEFAULT_INFO_LINKS = [
 ];
 
 async function insertDefaultInfoLinks(
-  userContext: InfoLinkUserContext
+  userContext: UserContext
 ): Promise<{ success: boolean; links?: InfoLink[]; error?: string }> {
   const scope = userContext.isAuthenticated && userContext.userId
     ? { user_id: userContext.userId, is_anonymous: false }
@@ -42,7 +37,7 @@ async function insertDefaultInfoLinks(
 }
 
 export async function getInfoLinks(
-  userContext: InfoLinkUserContext
+  userContext: UserContext
 ): Promise<{ success: boolean; links?: InfoLink[]; error?: string }> {
   try {
     const query = supabase.from('info_links').select('*');
@@ -73,7 +68,7 @@ export async function getInfoLinks(
 }
 
 export async function createInfoLink(
-  userContext: InfoLinkUserContext,
+  userContext: UserContext,
   data: { title: string; url: string }
 ): Promise<{ success: boolean; link?: InfoLink; error?: string }> {
   try {

@@ -1,4 +1,15 @@
 
+/**
+ * 目前使用者的登入狀態（認證或匿名），供依 user_id / anonymous_id 篩選資料的服務共用。
+ * 曾經在 detailedCharacter.ts／hybridDataManager.ts／combatService.ts 各自內聯宣告，
+ * infoLinks.ts 則另外取名 InfoLinkUserContext——同一個概念散落各處容易悄悄長歪。
+ */
+export interface UserContext {
+  isAuthenticated: boolean;
+  userId?: string;
+  anonymousId?: string;
+}
+
 export interface WeaponAttack {
   name: string;
   bonus: number;

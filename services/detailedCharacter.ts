@@ -15,7 +15,7 @@ import type {
   FullCharacterData,
   CreatedCharacterData
 } from '../lib/supabase'
-import type { CharacterStats } from '../types'
+import type { CharacterStats, UserContext } from '../types'
 import { ABILITY_KEYS, ABILITY_STR_TO_FULL, type AbilityDbKey } from '../utils/characterConstants'
 import { type SpecialEffectContext } from '../utils/specialEffects'
 
@@ -41,11 +41,7 @@ export class DetailedCharacterService {
   }
   
   // 檢查當前用戶狀態（認證或匿名）
-  private static async getCurrentUserContext(): Promise<{
-    isAuthenticated: boolean,
-    userId?: string,
-    anonymousId?: string
-  }> {
+  private static async getCurrentUserContext(): Promise<UserContext> {
     const startTime = performance.now()
     console.log('⏱️ getCurrentUserContext() 開始')
     
@@ -81,11 +77,7 @@ export class DetailedCharacterService {
   }
 
   // 獲取用戶的角色列表
-  static async getUserCharacters(userContext?: {
-    isAuthenticated: boolean,
-    userId?: string,
-    anonymousId?: string
-  }): Promise<Character[]> {
+  static async getUserCharacters(userContext?: UserContext): Promise<Character[]> {
     // 重試邏輯：處理 Supabase 冷啟動問題
     const maxRetries = 2
     let lastError: any = null
@@ -155,7 +147,7 @@ export class DetailedCharacterService {
   // 獲取完整的角色資料
   static async getFullCharacter(
     characterId: string,
-    userContext?: { isAuthenticated: boolean, userId?: string, anonymousId?: string }
+    userContext?: UserContext
   ): Promise<FullCharacterData | null> {
     // 重試邏輯：處理 Supabase 冷啟動問題（520 錯誤）
     const maxRetries = 2
