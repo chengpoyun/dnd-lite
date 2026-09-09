@@ -60,7 +60,7 @@ describe('ItemsPage - 獲得物品挑到已擁有的物品', () => {
     vi.clearAllMocks();
   });
 
-  it('搜尋結果包含已擁有的物品，點「獲得」會關閉獲得物品 modal、開啟該物品的詳情，不會另外建立新物品', async () => {
+  it('搜尋結果包含已擁有的物品，按鈕文字顯示「已持有」；點下去會關閉獲得物品 modal、開啟該物品的詳情，不會另外建立新物品', async () => {
     const existing = buildCharacterItem();
     mockGetCharacterItems.mockResolvedValue({ success: true, items: [existing] });
     const catalogItem: CatalogItem = {
@@ -83,8 +83,9 @@ describe('ItemsPage - 獲得物品挑到已擁有的物品', () => {
       target: { value: '藥草' },
     });
 
-    await waitFor(() => screen.getByText('獲得'));
-    fireEvent.click(screen.getByText('獲得'));
+    await waitFor(() => screen.getByText('已持有'));
+    expect(screen.queryByText('獲得')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByText('已持有'));
 
     // 獲得物品 modal 關閉、詳情 modal 開啟（可見數量調整按鈕）
     await waitFor(() => {

@@ -37,6 +37,7 @@ describe('LearnItemModal - keyword gating', () => {
         onClose={vi.fn()}
         onLearnItem={vi.fn()}
         onCreateNew={vi.fn()}
+        learnedNames={[]}
       />
     );
 
@@ -71,6 +72,7 @@ describe('LearnItemModal - keyword gating', () => {
         onClose={vi.fn()}
         onLearnItem={vi.fn()}
         onCreateNew={vi.fn()}
+        learnedNames={[]}
       />
     );
 
@@ -100,6 +102,7 @@ describe('LearnItemModal - keyword gating', () => {
         onClose={vi.fn()}
         onLearnItem={vi.fn()}
         onCreateNew={vi.fn()}
+        learnedNames={['藥草']}
       />
     );
 
@@ -110,6 +113,54 @@ describe('LearnItemModal - keyword gating', () => {
     await waitFor(() => {
       expect(screen.getByText('藥草')).toBeInTheDocument();
     });
+  });
+
+  it('未擁有的物品，按鈕文字顯示「獲得」', async () => {
+    const item: CatalogItem = { source: 'material', entry: { name: '藥草', nameEn: 'Herb', rarity: null } };
+    mockedSearchLocalCatalog.mockResolvedValue([item]);
+
+    render(
+      <LearnItemModal
+        isOpen
+        onClose={vi.fn()}
+        onLearnItem={vi.fn()}
+        onCreateNew={vi.fn()}
+        learnedNames={[]}
+      />
+    );
+
+    fireEvent.change(screen.getByPlaceholderText('輸入名稱或描述...'), {
+      target: { value: '藥草' },
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('獲得')).toBeInTheDocument();
+    });
+    expect(screen.queryByText('已持有')).not.toBeInTheDocument();
+  });
+
+  it('已擁有的物品（依名稱比對），按鈕文字改顯示「已持有」', async () => {
+    const item: CatalogItem = { source: 'material', entry: { name: '藥草', nameEn: 'Herb', rarity: null } };
+    mockedSearchLocalCatalog.mockResolvedValue([item]);
+
+    render(
+      <LearnItemModal
+        isOpen
+        onClose={vi.fn()}
+        onLearnItem={vi.fn()}
+        onCreateNew={vi.fn()}
+        learnedNames={['藥草']}
+      />
+    );
+
+    fireEvent.change(screen.getByPlaceholderText('輸入名稱或描述...'), {
+      target: { value: '藥草' },
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('已持有')).toBeInTheDocument();
+    });
+    expect(screen.queryByText('獲得')).not.toBeInTheDocument();
   });
 
   it('點「獲得」時把整筆 CatalogItem 傳給 onLearnItem（是否已擁有交由呼叫端判斷）', async () => {
@@ -123,6 +174,7 @@ describe('LearnItemModal - keyword gating', () => {
         onClose={vi.fn()}
         onLearnItem={onLearnItem}
         onCreateNew={vi.fn()}
+        learnedNames={[]}
       />
     );
 
@@ -131,6 +183,32 @@ describe('LearnItemModal - keyword gating', () => {
     });
     await waitFor(() => screen.getByText('獲得'));
     fireEvent.click(screen.getByText('獲得'));
+
+    await waitFor(() => {
+      expect(onLearnItem).toHaveBeenCalledWith(item);
+    });
+  });
+
+  it('已擁有的物品點「已持有」按鈕，一樣把整筆 CatalogItem 傳給 onLearnItem', async () => {
+    const item: CatalogItem = { source: 'material', entry: { name: '藥草', nameEn: 'Herb', rarity: null } };
+    mockedSearchLocalCatalog.mockResolvedValue([item]);
+    const onLearnItem = vi.fn().mockResolvedValue(undefined);
+
+    render(
+      <LearnItemModal
+        isOpen
+        onClose={vi.fn()}
+        onLearnItem={onLearnItem}
+        onCreateNew={vi.fn()}
+        learnedNames={['藥草']}
+      />
+    );
+
+    fireEvent.change(screen.getByPlaceholderText('輸入名稱或描述...'), {
+      target: { value: '藥草' },
+    });
+    await waitFor(() => screen.getByText('已持有'));
+    fireEvent.click(screen.getByText('已持有'));
 
     await waitFor(() => {
       expect(onLearnItem).toHaveBeenCalledWith(item);

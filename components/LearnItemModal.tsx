@@ -8,6 +8,8 @@ interface LearnItemModalProps {
   onClose: () => void;
   onLearnItem: (item: CatalogItem) => Promise<void>;
   onCreateNew: (initialName?: string) => void;
+  /** 已擁有的物品名稱（本地目錄以名稱去重）：只用來把按鈕文字改成「已持有」，不影響是否顯示 */
+  learnedNames: string[];
 }
 
 /** 目錄條目的顯示欄位（MH素材／通用道具兩種來源統一成同一組欄位渲染） */
@@ -21,7 +23,8 @@ export const LearnItemModal: React.FC<LearnItemModalProps> = ({
   isOpen,
   onClose,
   onLearnItem,
-  onCreateNew
+  onCreateNew,
+  learnedNames
 }) => {
   const [items, setItems] = useState<CatalogItem[]>([]);
   const [searchText, setSearchText] = useState('');
@@ -105,6 +108,7 @@ export const LearnItemModal: React.FC<LearnItemModalProps> = ({
           ) : (
             filteredItems.map((item) => {
               const view = getItemView(item);
+              const isOwned = learnedNames.includes(view.name);
               return (
                 <div
                   key={view.key}
@@ -129,7 +133,7 @@ export const LearnItemModal: React.FC<LearnItemModalProps> = ({
                       onClick={() => handleLearnItem(item)}
                       className="shrink-0 px-4 py-2 rounded-lg bg-green-600 text-white text-[14px] font-bold active:bg-green-700 whitespace-nowrap"
                     >
-                      獲得
+                      {isOwned ? '已持有' : '獲得'}
                     </button>
                   </div>
                 </div>

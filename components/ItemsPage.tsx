@@ -444,6 +444,9 @@ export default function ItemsPage({ characterId, onCharacterDataChanged, initial
     setIsDeleteModalOpen(true);
   };
 
+  // 已擁有的物品名稱（本地目錄改依名稱比對）：僅供獲得物品 modal 把按鈕文字改成「已持有」
+  const learnedItemNames = items.map(item => ItemService.getDisplayValues(item).displayName);
+
   return (
     <div className="min-h-screen bg-slate-900 text-slate-100">
       <div className="max-w-4xl mx-auto p-4">
@@ -536,6 +539,7 @@ export default function ItemsPage({ characterId, onCharacterDataChanged, initial
           setAddPersonalInitialName(initialName ?? '');
           setIsAddPersonalModalOpen(true);
         }}
+        learnedNames={learnedItemNames}
       />
 
       <AddPersonalItemModal
