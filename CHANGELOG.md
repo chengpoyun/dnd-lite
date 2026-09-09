@@ -4,6 +4,10 @@
 
 ---
 
+## 2.4.1
+
+- 清理：移除全專案掃描後確認沒有任何呼叫端的死代碼——`services/database.ts` 的 `CacheService`（localStorage 快取，已被 hybridDataManager 的純 DB 策略取代但沒刪乾淨）與 `CombatItemService.getDefaultCombatItems`；`services/combatService.ts` 的 `addMonster`（單數，已被 `addMonsters` 取代）；`services/detailedCharacter.ts` 的 `fullDataToCharacterStats`（`utils/appInit.ts` 的 `buildCharacterStats` 才是實際在用、且更完整的版本）；`utils/common.ts` 內 13 個從未被使用的工具函式（`throttle`／`generateId`／`isValidEmail`／`groupBy`／`unique`／`removeEmpty`／`safeJsonParse`／`deepClone`／`capitalize`／`safeString`／`safeNumber`／`truncateString`／`formatDateTime`）；`utils/migrationHelpers.ts` 的 `validateMulticlassData`、`utils/spellUtils.ts` 的 `canPrepareMoreSpells`、`utils/terrainReward.ts` 的 `getRewardSummaryNames`（三者皆只有自己的測試在呼叫，沒有任何正式程式碼路徑會用到，一併移除對應測試）；`components/CombatItemEditModal.tsx` 匯出但沒人 import 的 `ItemEditCategory` 型別。純刪除，不影響任何現有功能。
+
 ## 2.4.0
 
 - 新增：能力／物品「影響角色數值」的豁免、技能欄位，除了填數字加值，現在也可以直接輸入「熟練」（豁免/技能皆可）或「專精」（技能限定），賦予角色該項豁免/技能熟練（如「適應力」專長：賦予某項豁免熟練）。輸入時該欄位會切換成填色的「熟練/專精」徽章，跟一般數字加值的空心樣式明顯區分；改回輸入數字即恢復一般加值。

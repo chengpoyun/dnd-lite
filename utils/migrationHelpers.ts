@@ -1,5 +1,5 @@
 // Migration helpers for converting legacy character data to multiclass system
-import { CharacterStats, ClassInfo, HitDicePools } from '../types';
+import { CharacterStats, ClassInfo } from '../types';
 import { getClassHitDie, calculateHitDiceTotals } from './classUtils';
 
 /**
@@ -58,54 +58,6 @@ export const needsMulticlassMigration = (stats: CharacterStats): boolean => {
   
   // 只有完全沒有 classes 資料時才需要遷移
   return !stats.classes;
-};
-
-/**
- * Validate multiclass character data integrity
- */
-export const validateMulticlassData = (stats: CharacterStats): {
-  isValid: boolean;
-  errors: string[];
-} => {
-  const errors: string[] = [];
-
-  if (!stats.classes || stats.classes.length === 0) {
-    errors.push('No classes found');
-  }
-
-  if (!stats.hitDicePools) {
-    errors.push('No hit dice pools found');
-  }
-
-  if (stats.classes) {
-    const primaryClasses = stats.classes.filter(c => c.isPrimary);
-    if (primaryClasses.length !== 1) {
-      errors.push(`Expected exactly 1 primary class, found ${primaryClasses.length}`);
-    }
-
-    const totalLevel = stats.classes.reduce((sum, c) => sum + c.level, 0);
-    if (totalLevel !== stats.level) {
-      errors.push(`Total class levels (${totalLevel}) don't match character level (${stats.level})`);
-    }
-  }
-
-  if (stats.hitDicePools) {
-    // Verify hit dice pools match class levels
-    const expectedPools = stats.classes ? calculateHitDiceTotals(stats.classes) : null;
-    if (expectedPools) {
-      Object.keys(expectedPools).forEach(dieType => {
-        const key = dieType as keyof HitDicePools;
-        if (stats.hitDicePools![key].total !== expectedPools[key].total) {
-          errors.push(`Hit dice total mismatch for ${key}: expected ${expectedPools[key].total}, got ${stats.hitDicePools![key].total}`);
-        }
-      });
-    }
-  }
-
-  return {
-    isValid: errors.length === 0,
-    errors
-  };
 };
 
 /**

@@ -94,17 +94,3 @@ export function getRewardsForCategoryInTier(
   }
   return results;
 }
-
-/** 取得該階表所有可獲取物資名稱（去重，供地形卡簡表顯示） */
-export function getRewardSummaryNames(table: TierTable): string[] {
-  const names = new Set<string>();
-  for (const col of Object.values(table.columns)) {
-    for (const cell of col ?? []) {
-      if (cell && cell.trim()) {
-        const p = parseRewardCell(cell);
-        if (p.name) names.add(p.name);
-      }
-    }
-  }
-  return Array.from(names).sort();
-}

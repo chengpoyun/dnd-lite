@@ -16,7 +16,7 @@ import type {
   CreatedCharacterData
 } from '../lib/supabase'
 import type { CharacterStats } from '../types'
-import { ABILITY_KEYS, ABILITY_STR_TO_FULL, ABILITY_FULL_TO_STR, type AbilityDbKey } from '../utils/characterConstants'
+import { ABILITY_KEYS, ABILITY_STR_TO_FULL, type AbilityDbKey } from '../utils/characterConstants'
 import { type SpecialEffectContext } from '../utils/specialEffects'
 
 // AggregatedStatBonuses 原本定義在本檔，實作搬到 characterBonusAggregation.ts 後
@@ -954,84 +954,6 @@ export class DetailedCharacterService {
 
   static async updateSavingThrowProficiencies(characterId: string, proficiencies: string[]): Promise<boolean> {
     return CharacterProficiencyService.updateSavingThrowProficiencies(characterId, proficiencies)
-  }
-
-  // 轉換新格式到舊格式 CharacterStats（向後相容）
-  static fullDataToCharacterStats(fullData: FullCharacterData): CharacterStats {
-    const savingProficienciesArray: string[] = []
-    fullData.savingThrows.forEach(st => {
-      if (st.is_proficient) {
-        savingProficienciesArray.push(st.ability)
-      }
-    })
-
-    const proficienciesRecord: Record<string, number> = {}
-    fullData.skillProficiencies.forEach(sp => {
-      proficienciesRecord[sp.skill_name] = sp.proficiency_level
-    })
-
-    const cs = fullData.currentStats
-    const hpMax = (cs.max_hp_basic ?? 1) + (cs.max_hp_bonus ?? 0)
-
-    return {
-      name: fullData.character.name,
-      class: fullData.character.character_class || (fullData.character as any).class || '戰士',
-      level: fullData.character.level,
-      exp: fullData.character.experience,
-      hp: {
-        current: fullData.currentStats.current_hp,
-        max: hpMax,
-        temp: fullData.currentStats.temporary_hp
-      },
-      hitDice: {
-        current: fullData.currentStats.current_hit_dice,
-        total: fullData.currentStats.total_hit_dice,
-        die: fullData.currentStats.hit_die_type
-      },
-      ac: { basic: cs.ac_basic ?? 10, bonus: cs.ac_bonus ?? 0 },
-      initiative: { basic: cs.initiative_basic ?? 0, bonus: cs.initiative_bonus ?? 0 },
-      speed: { basic: cs.speed_basic ?? 30, bonus: cs.speed_bonus ?? 0 },
-      maxHp: { basic: cs.max_hp_basic ?? 1, bonus: cs.max_hp_bonus ?? 0 },
-      attackHit: { basic: cs.attack_hit_basic ?? 0, bonus: cs.attack_hit_bonus ?? 0 },
-      attackDamage: { basic: cs.attack_damage_basic ?? 0, bonus: cs.attack_damage_bonus ?? 0 },
-      spellHit: { basic: cs.spell_hit_basic ?? 2, bonus: cs.spell_hit_bonus ?? 0 },
-      spellDc: { basic: cs.spell_dc_basic ?? 10, bonus: cs.spell_dc_bonus ?? 0 },
-      abilityScores: {
-        str: fullData.abilityScores.strength,
-        dex: fullData.abilityScores.dexterity,
-        con: fullData.abilityScores.constitution,
-        int: fullData.abilityScores.intelligence,
-        wis: fullData.abilityScores.wisdom,
-        cha: fullData.abilityScores.charisma
-      },
-      savingProficiencies: savingProficienciesArray as any,
-      proficiencies: proficienciesRecord,
-      skillBonuses: (() => {
-        const out: Record<string, number> = {}
-        fullData.skillProficiencies.forEach((p: any) => {
-          if (p?.skill_name != null && typeof p.misc_bonus === 'number') out[p.skill_name] = p.misc_bonus
-        })
-        return Object.keys(out).length ? out : undefined
-      })(),
-      saveBonuses: (() => {
-        const out: Record<string, number> = {}
-        fullData.savingThrows.forEach((s: any) => {
-          if (s?.ability != null && typeof s.misc_bonus === 'number') out[ABILITY_FULL_TO_STR[s.ability as keyof typeof ABILITY_FULL_TO_STR] ?? s.ability] = s.misc_bonus
-        })
-        return Object.keys(out).length ? out : undefined
-      })(),
-      downtime: 0,
-      renown: { used: 0, total: 0 },
-      attacks: [],
-      currency: {
-        cp: fullData.currency.copper,
-        sp: fullData.currency.silver,
-        ep: fullData.currency.electrum,
-        gp: fullData.currency.gp,
-        pp: fullData.currency.platinum
-      },
-      customRecords: []
-    }
   }
 
   // === 私有輔助方法 ===

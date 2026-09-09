@@ -292,21 +292,6 @@ export class CombatService {
   }
 
   /**
-   * 新增單隻怪物（向後兼容）
-   */
-  static async addMonster(sessionCode: string): Promise<{ 
-    success: boolean; 
-    monster?: CombatMonster;
-    error?: string 
-  }> {
-    const result = await this.addMonsters(sessionCode, '怪物', 1, null, null, {});
-    if (result.success && result.monsters && result.monsters.length > 0) {
-      return { success: true, monster: result.monsters[0] };
-    }
-    return { success: false, error: result.error };
-  }
-
-  /**
    * 刪除怪物（標記為死亡）
    */
   static async deleteMonster(monsterId: string): Promise<{ 

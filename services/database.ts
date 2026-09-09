@@ -1,4 +1,4 @@
-import { supabase, type Character, type CharacterCombatAction as CombatItem, type DefaultCombatAction } from '../lib/supabase'
+import { supabase, type CharacterCombatAction as CombatItem, type DefaultCombatAction } from '../lib/supabase'
 import { getSpellSlotsForCasterLevel } from '../utils/spellSlots'
 import { getSneakAttackDice } from '../utils/sneakAttack'
 
@@ -8,27 +8,6 @@ const SNEAK_ATTACK_TEMPLATE_NAME = '偷襲傷害'
 
 // 戰鬥項目服務
 export class CombatItemService {
-  // 獲取預設戰鬥項目
-  static async getDefaultCombatItems(): Promise<DefaultCombatAction[]> {
-    try {
-      const { data, error } = await supabase
-        .from('default_combat_actions')
-        .select('*')
-        .order('category', { ascending: true })
-        .order('name', { ascending: true })
-
-      if (error) {
-        console.error('獲取預設戰鬥項目失敗:', error)
-        throw new Error(`獲取失敗：${error.message}`)
-      }
-
-      return data || []
-    } catch (error) {
-      console.error('獲取預設戰鬥項目失敗:', error)
-      throw error
-    }
-  }
-
   // 取得角色的戰鬥項目（合併預設項目和角色自定義項目）
   static async getCombatItems(characterId: string): Promise<CombatItem[]> {
     try {
@@ -506,58 +485,5 @@ export class CombatItemService {
       console.error('批量更新使用次數失敗:', error)
       return false
     }
-  }
-}
-
-// 離線快取服務
-export class CacheService {
-  private static CACHE_PREFIX = 'dnd_cache_'
-  
-  // 快取角色資料
-  static cacheCharacter(character: Character): void {
-    localStorage.setItem(
-      `${this.CACHE_PREFIX}character_${character.id}`, 
-      JSON.stringify(character)
-    )
-  }
-  
-  // 取得快取的角色資料
-  static getCachedCharacter(id: string): Character | null {
-    try {
-      const cached = localStorage.getItem(`${this.CACHE_PREFIX}character_${id}`)
-      return cached ? JSON.parse(cached) : null
-    } catch {
-      return null
-    }
-  }
-  
-  // 快取戰鬥項目
-  static cacheCombatItems(characterId: string, items: CombatItem[]): void {
-    localStorage.setItem(
-      `${this.CACHE_PREFIX}items_${characterId}`, 
-      JSON.stringify(items)
-    )
-  }
-  
-  // 取得快取的戰鬥項目
-  static getCachedCombatItems(characterId: string): CombatItem[] {
-    try {
-      const cached = localStorage.getItem(`${this.CACHE_PREFIX}items_${characterId}`)
-      return cached ? JSON.parse(cached) : []
-    } catch {
-      return []
-    }
-  }
-  
-  // 清除快取
-  static clearCache(pattern?: string): void {
-    const keys = Object.keys(localStorage)
-    keys.forEach(key => {
-      if (key.startsWith(this.CACHE_PREFIX)) {
-        if (!pattern || key.includes(pattern)) {
-          localStorage.removeItem(key)
-        }
-      }
-    })
   }
 }

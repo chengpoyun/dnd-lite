@@ -23,7 +23,7 @@ import {
   SUBCLASS_MIN_LEVEL_BY_CLASS,
   DEFAULT_SUBCLASS_MIN_LEVEL
 } from '../../utils/classUtils'
-import { migrateLegacyCharacterStats, needsMulticlassMigration, validateMulticlassData, ensureDisplayClass } from '../../utils/migrationHelpers'
+import { migrateLegacyCharacterStats, needsMulticlassMigration, ensureDisplayClass } from '../../utils/migrationHelpers'
 import { DND_CLASSES, SUBCLASSES_BY_CLASS } from '../../types'
 import type { ClassInfo, HitDicePools, CharacterStats } from '../../types'
 
@@ -598,27 +598,6 @@ describe('classUtils - D&D 5E 職業工具函數', () => {
         expect(migrated.hitDicePools!.d8).toEqual({ current: 0, total: 0 })
         expect(migrated.hitDicePools!.d10).toEqual({ current: 0, total: 0 })
         expect(migrated.hitDicePools!.d12).toEqual({ current: 0, total: 0 })
-      })
-    })
-
-    describe('validateMulticlassData', () => {
-      it('有效的兼職資料應該通過驗證', () => {
-        const validStats: CharacterStats = {
-          ...legacyCharacterStats,
-          level: 8,
-          classes: [
-            { name: "戰士", level: 5, hitDie: "d10", isPrimary: true },
-            { name: "法師", level: 3, hitDie: "d6", isPrimary: false }
-          ],
-          hitDicePools: {
-            d12: { current: 0, total: 0 },
-            d10: { current: 3, total: 5 },
-            d8: { current: 0, total: 0 },
-            d6: { current: 2, total: 3 }
-          }
-        }
-        
-        expect(validateMulticlassData(validStats)).toEqual({ isValid: true, errors: [] })
       })
     })
 

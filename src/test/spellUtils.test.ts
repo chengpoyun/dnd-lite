@@ -4,7 +4,6 @@ import {
   getSchoolColor,
   isSpellcaster,
   calculateMaxPrepared,
-  canPrepareMoreSpells,
   getSpellcasterLevel,
   calculateMaxCantrips,
 } from '../../utils/spellUtils';
@@ -62,20 +61,6 @@ describe('calculateMaxPrepared', () => {
 
   it('負的調整值仍可正確計算（只要總和 > 1）', () => {
     expect(calculateMaxPrepared(-1, 5)).toBe(4);
-  });
-});
-
-describe('canPrepareMoreSpells', () => {
-  it('目前已準備數量小於上限時回傳 true', () => {
-    expect(canPrepareMoreSpells(3, 5)).toBe(true);
-  });
-
-  it('目前已準備數量等於上限時回傳 false（邊界）', () => {
-    expect(canPrepareMoreSpells(5, 5)).toBe(false);
-  });
-
-  it('目前已準備數量超過上限時回傳 false', () => {
-    expect(canPrepareMoreSpells(6, 5)).toBe(false);
   });
 });
 

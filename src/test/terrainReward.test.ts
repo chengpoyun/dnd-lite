@@ -10,7 +10,6 @@ import {
   getBackupSkillsForCategory,
   getColumnKeys,
   getRewardsForCategoryInTier,
-  getRewardSummaryNames,
 } from '../../utils/terrainReward';
 import type { TerrainDef, TierTable } from '../../types/terrainReward';
 
@@ -211,27 +210,5 @@ describe('terrainReward - getRewardsForCategoryInTier', () => {
 
   it('categoryIndex 越界回傳空陣列', () => {
     expect(getRewardsForCategoryInTier(table, 5)).toEqual([]);
-  });
-});
-
-describe('terrainReward - getRewardSummaryNames', () => {
-  const table: TierTable = {
-    levelMin: 1,
-    levelMax: 5,
-    xDie: 6,
-    categories: [],
-    columns: {
-      '1': ['骨', '藥草', '骨'],
-      '2': ['藥草', '刺身魚', '藥草 x 2'],
-    },
-  };
-
-  it('收集所有欄位獎勵名稱並去重、排序', () => {
-    const names = getRewardSummaryNames(table);
-    expect(names).toHaveLength(3);
-    expect(names).toContain('刺身魚');
-    expect(names).toContain('骨');
-    expect(names).toContain('藥草');
-    expect(names).toEqual([...names].sort());
   });
 });

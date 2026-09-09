@@ -114,16 +114,6 @@ export function calculateMaxPrepared(intelligenceModifier: number, spellcasterLe
 }
 
 /**
- * 判斷角色是否還能準備更多法術
- * @param currentPrepared 目前已準備的法術數量
- * @param maxPrepared 最大可準備數量
- * @returns 是否還能準備更多
- */
-export function canPrepareMoreSpells(currentPrepared: number, maxPrepared: number): boolean {
-  return currentPrepared < maxPrepared;
-}
-
-/**
  * 取得施法職業的總等級（用於計算可準備數量）
  * @param classes 角色的職業列表
  * @returns 施法職業的總等級

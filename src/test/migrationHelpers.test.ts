@@ -2,7 +2,6 @@ import { describe, it, expect } from 'vitest';
 import {
   migrateLegacyCharacterStats,
   needsMulticlassMigration,
-  validateMulticlassData,
   ensureDisplayClass,
 } from '../../utils/migrationHelpers';
 import type { CharacterStats, ClassInfo, HitDicePools } from '../../types';
@@ -100,80 +99,6 @@ describe('needsMulticlassMigration', () => {
     const stats = makeStats({ classes, hitDicePools: undefined });
 
     expect(needsMulticlassMigration(stats)).toBe(false);
-  });
-});
-
-describe('validateMulticlassData', () => {
-  it('缺少 classes 時回報錯誤', () => {
-    const result = validateMulticlassData(makeStats({ classes: undefined, hitDicePools: emptyPools() }));
-    expect(result.isValid).toBe(false);
-    expect(result.errors).toContain('No classes found');
-  });
-
-  it('缺少 hitDicePools 時回報錯誤', () => {
-    const classes: ClassInfo[] = [{ name: '法師', level: 5, hitDie: 'd6', isPrimary: true }];
-    const result = validateMulticlassData(makeStats({ classes, hitDicePools: undefined }));
-    expect(result.isValid).toBe(false);
-    expect(result.errors).toContain('No hit dice pools found');
-  });
-
-  it('主職業數量不是剛好 1 個時回報錯誤（0 個或 2 個都算錯）', () => {
-    const noPrimary: ClassInfo[] = [{ name: '法師', level: 5, hitDie: 'd6', isPrimary: false }];
-    const resultNone = validateMulticlassData(
-      makeStats({ classes: noPrimary, hitDicePools: { ...emptyPools(), d6: { current: 5, total: 5 } } })
-    );
-    expect(resultNone.errors).toContain('Expected exactly 1 primary class, found 0');
-
-    const twoPrimary: ClassInfo[] = [
-      { name: '法師', level: 3, hitDie: 'd6', isPrimary: true },
-      { name: '戰士', level: 2, hitDie: 'd10', isPrimary: true },
-    ];
-    const resultTwo = validateMulticlassData(
-      makeStats({
-        classes: twoPrimary,
-        hitDicePools: { ...emptyPools(), d6: { current: 3, total: 3 }, d10: { current: 2, total: 2 } },
-      })
-    );
-    expect(resultTwo.errors).toContain('Expected exactly 1 primary class, found 2');
-  });
-
-  it('職業等級加總與角色總等級不一致時回報錯誤', () => {
-    const classes: ClassInfo[] = [{ name: '法師', level: 5, hitDie: 'd6', isPrimary: true }];
-    const result = validateMulticlassData(
-      makeStats({
-        level: 10,
-        classes,
-        hitDicePools: { ...emptyPools(), d6: { current: 5, total: 5 } },
-      })
-    );
-    expect(result.errors).toContain('Total class levels (5) don\'t match character level (10)');
-  });
-
-  it('hitDicePools 總量與職業實際應有的生命骰總量不符時回報錯誤', () => {
-    const classes: ClassInfo[] = [{ name: '法師', level: 5, hitDie: 'd6', isPrimary: true }];
-    const result = validateMulticlassData(
-      makeStats({
-        level: 5,
-        classes,
-        hitDicePools: { ...emptyPools(), d6: { current: 5, total: 99 } },
-      })
-    );
-    expect(result.errors.some((e) => e.includes('Hit dice total mismatch for d6'))).toBe(true);
-  });
-
-  it('完全合法的多職業資料應該回傳 isValid: true 且沒有任何錯誤', () => {
-    const classes: ClassInfo[] = [
-      { name: '法師', level: 3, hitDie: 'd6', isPrimary: true },
-      { name: '戰士', level: 2, hitDie: 'd10', isPrimary: false },
-    ];
-    const result = validateMulticlassData(
-      makeStats({
-        level: 5,
-        classes,
-        hitDicePools: { ...emptyPools(), d6: { current: 3, total: 3 }, d10: { current: 2, total: 2 } },
-      })
-    );
-    expect(result).toEqual({ isValid: true, errors: [] });
   });
 });
 

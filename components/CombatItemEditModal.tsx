@@ -11,8 +11,6 @@ import { MODAL_CONTAINER_CLASS, MODAL_BUTTON_CANCEL_CLASS, MODAL_FOOTER_BUTTONS_
 
 export type ItemEditRecovery = 'round' | 'short' | 'long';
 
-export type ItemEditCategory = 'action' | 'bonus' | 'reaction' | 'resource';
-
 export interface ItemEditValues {
   name: string;
   icon: string;
