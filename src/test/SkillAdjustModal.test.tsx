@@ -3,6 +3,12 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { SkillAdjustModal } from '../../components/SkillAdjustModal';
 
+/**
+ * 「基礎值」永遠只代表屬性調整值本身（本測試預設 abilityModifier=3），
+ * 不論目前熟練度為何、也不論是第一次開啟還是重新開啟；熟練/專精加值
+ * （profLevel * profBonus，本測試 characterLevel=5 → profBonus=3）一律
+ * 另外顯示成獨立的加值來源列，跟著目前選擇的熟練度即時反映。
+ */
 describe('SkillAdjustModal', () => {
   const onClose = vi.fn();
   const onSave = vi.fn();
@@ -39,33 +45,43 @@ describe('SkillAdjustModal', () => {
     expect(screen.getByText('最終總計')).toBeInTheDocument();
   });
 
-  it('切換熟練度時，基礎值不會自動改變（維持使用者目前看到的數字，不會被覆寫）', () => {
-    renderModal();
-    // abilityModifier 3 + profLevel 1 * getProfBonus(5)=3 => 6（依 currentProfLevel 算出的初始值）
-    expect(screen.getByDisplayValue('6')).toBeInTheDocument();
-    fireEvent.click(screen.getByText('專精'));
-    // 切到專精後基礎值仍維持 6，不會自動變成 3 + 2*3 = 9
-    expect(screen.getByDisplayValue('6')).toBeInTheDocument();
-    expect(screen.queryByDisplayValue('9')).not.toBeInTheDocument();
+  it('開啟時基礎值一律只顯示屬性調整值本身，熟練加值另外顯示（不論目前已存的熟練度為何）', () => {
+    renderModal({ currentProfLevel: 1 });
+    // 基礎值 = abilityModifier(3)，不因目前已是熟練(1)而把 profBonus(3) 併進去
+    expect(screen.getByDisplayValue('3')).toBeInTheDocument();
+    expect(screen.getByText('熟練加值')).toBeInTheDocument();
+    const row = screen.getByText('最終總計').closest('div') as HTMLElement;
+    // 3 + 1*3 + miscBonus(2) = 8
+    expect(row.textContent).toContain('+8');
   });
 
-  it('切換到專精時，顯示「專精加值」且最終總計即時反映（基礎值不變）', () => {
-    renderModal();
-    // profBonus(lvl5)=3；currentProfLevel=1 → 2 時多出 (2-1)*3=3
-    fireEvent.click(screen.getByText('專精'));
-    expect(screen.getByDisplayValue('6')).toBeInTheDocument();
+  it('重新開啟時若目前熟練度已是專精，基礎值仍只顯示屬性調整值，專精加值正確顯示（不會像「基礎值」被烘進 10 那樣跑掉）', () => {
+    renderModal({ currentProfLevel: 2 });
+    expect(screen.getByDisplayValue('3')).toBeInTheDocument();
     expect(screen.getByText('專精加值')).toBeInTheDocument();
     const row = screen.getByText('最終總計').closest('div') as HTMLElement;
-    // 基礎值 6 + 專精加值 3 + miscBonus 2 = 11
+    // 3 + 2*3 + miscBonus(2) = 11
     expect(row.textContent).toContain('+11');
   });
 
-  it('切換回「無」時，顯示負值的熟練加值（移除原本已計入的熟練加成）', () => {
+  it('切換熟練度時，基礎值不會自動改變，加值來源列表與最終總計即時反映新的熟練度', () => {
+    renderModal();
+    fireEvent.click(screen.getByText('專精'));
+    // 基礎值仍是 3，不會變成 3+2*3=9
+    expect(screen.getByDisplayValue('3')).toBeInTheDocument();
+    expect(screen.getByText('專精加值')).toBeInTheDocument();
+    const row = screen.getByText('最終總計').closest('div') as HTMLElement;
+    // 3 + 2*3 + 2 = 11
+    expect(row.textContent).toContain('+11');
+  });
+
+  it('切換為「無」時，不顯示熟練加值，最終總計只剩基礎值與其他加值', () => {
     renderModal();
     fireEvent.click(screen.getByText('無'));
-    expect(screen.getByDisplayValue('6')).toBeInTheDocument();
-    // 6 + (0-1)*3 + 2 = 5
+    expect(screen.queryByText('熟練加值')).not.toBeInTheDocument();
+    expect(screen.queryByText('專精加值')).not.toBeInTheDocument();
     const row = screen.getByText('最終總計').closest('div') as HTMLElement;
+    // 3 + 0 + 2 = 5
     expect(row.textContent).toContain('+5');
   });
 
@@ -81,8 +97,9 @@ describe('SkillAdjustModal', () => {
     expect(row.textContent).toContain('+22');
   });
 
-  it('已有基礎值覆寫時（overrideBasic 非 null），切換熟練度不顯示熟練加值', () => {
+  it('已有基礎值覆寫時（overrideBasic 非 null），不顯示熟練加值，基礎值直接顯示覆寫值', () => {
     renderModal({ overrideBasic: 10 });
+    expect(screen.getByDisplayValue('10')).toBeInTheDocument();
     fireEvent.click(screen.getByText('專精'));
     expect(screen.queryByText('專精加值')).not.toBeInTheDocument();
     const row = screen.getByText('最終總計').closest('div') as HTMLElement;
@@ -99,22 +116,21 @@ describe('SkillAdjustModal', () => {
     expect(onSave).toHaveBeenCalledWith(2, null);
   });
 
-  it('點擊重置會恢復為當前熟練度計算的基礎值，之後切換也不會再自動變動', () => {
+  it('點擊重置會恢復為屬性調整值本身，並清除手動編輯狀態（之後切換會重新顯示熟練加值）', () => {
     renderModal();
 
     const input = screen.getByRole('textbox', { name: '' });
     fireEvent.change(input, { target: { value: '99' } });
-
     fireEvent.click(screen.getByText('重置'));
 
-    expect((input as HTMLInputElement).value).not.toBe('99');
+    expect((input as HTMLInputElement).value).toBe('3');
 
-    const afterReset = (input as HTMLInputElement).value;
     fireEvent.click(screen.getByText('專精'));
-    expect((input as HTMLInputElement).value).toBe(afterReset);
+    expect(screen.getByText('專精加值')).toBeInTheDocument();
   });
 
   it('點擊儲存時會帶入目前熟練度與對應的 overrideBasic', () => {
+    onSave.mockClear();
     renderModal();
 
     const input = screen.getByRole('textbox', { name: '' });
@@ -123,7 +139,6 @@ describe('SkillAdjustModal', () => {
 
     fireEvent.click(screen.getByText('儲存'));
 
-    expect(onSave).toHaveBeenCalled();
+    expect(onSave).toHaveBeenCalledWith(2, 10);
   });
 });
-
