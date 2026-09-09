@@ -8,6 +8,7 @@ import { Modal } from './ui/Modal';
 import type { CharacterAbilityWithDetails } from '../lib/supabase';
 import { getDisplayValues } from '../services/abilityService';
 import { getSpecialEffectId } from '../utils/specialEffects';
+import { getAbilitySourceBadgeClass, getAbilityRecoveryBadgeClass } from '../utils/abilityColors';
 import { MODAL_CONTAINER_CLASS, MODAL_DESCRIPTION_CLASS } from '../styles/modalStyles';
 
 interface AbilityDetailModalProps {
@@ -37,20 +38,6 @@ export default function AbilityDetailModal({
   const canUse = !isPassive && current_uses > 0;
   const isSpecial = !!getSpecialEffectId(characterAbility.stat_bonuses);
 
-  const sourceColors: Record<string, string> = {
-    '種族': 'bg-green-900/30 border-green-700 text-green-400',
-    '職業': 'bg-blue-900/30 border-blue-700 text-blue-400',
-    '專長': 'bg-purple-900/30 border-purple-700 text-purple-400',
-    '背景': 'bg-amber-900/30 border-amber-700 text-amber-400',
-    '其他': 'bg-slate-700/50 border-slate-600 text-slate-400'
-  };
-
-  const recoveryColors: Record<string, string> = {
-    '常駐': 'bg-emerald-900/30 border-emerald-700 text-emerald-400',
-    '短休': 'bg-cyan-900/30 border-cyan-700 text-cyan-400',
-    '長休': 'bg-rose-900/30 border-rose-700 text-rose-400'
-  };
-
   return (
     <Modal isOpen={isOpen} onClose={onClose} bodyClassName="px-3 pt-3 pb-6">
       <div className={MODAL_CONTAINER_CLASS}>
@@ -61,10 +48,10 @@ export default function AbilityDetailModal({
             {display.name_en && (
               <span className="text-sm text-slate-400 min-w-0 truncate">{display.name_en}</span>
             )}
-            <div className={`px-2 py-1 border rounded-md text-sm font-medium flex-shrink-0 ${sourceColors[source]}`}>
+            <div className={`px-2 py-1 border rounded-md text-sm font-medium flex-shrink-0 ${getAbilitySourceBadgeClass(source, 'bordered')}`}>
               {source}
             </div>
-            <div className={`px-2 py-1 border rounded-md text-sm font-medium flex-shrink-0 ${recoveryColors[recoveryType]}`}>
+            <div className={`px-2 py-1 border rounded-md text-sm font-medium flex-shrink-0 ${getAbilityRecoveryBadgeClass(recoveryType, 'bordered')}`}>
               {recoveryType}
             </div>
             {!isPassive && max_uses > 0 && (

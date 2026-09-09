@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Modal } from './ui/Modal';
 import type { AbilityDef } from '../types/ability';
 import { searchAbilities } from '../services/abilityCatalog';
+import { getAbilitySourceBadgeClass, getAbilityRecoveryBadgeClass } from '../utils/abilityColors';
 import { MODAL_CONTAINER_CLASS } from '../styles/modalStyles';
 
 interface LearnAbilityModalProps {
@@ -87,21 +88,6 @@ export const LearnAbilityModal: React.FC<LearnAbilityModalProps> = ({
     setSelectedAbility(null);
   };
 
-  const sourceColors: Record<string, string> = {
-    '職業': 'bg-blue-500/20 text-blue-400',
-    '種族': 'bg-green-500/20 text-green-400',
-    '裝備': 'bg-indigo-500/20 text-indigo-400',
-    '專長': 'bg-purple-500/20 text-purple-400',
-    '背景': 'bg-amber-500/20 text-amber-400',
-    '其他': 'bg-slate-500/20 text-slate-400'
-  };
-
-  const recoveryTypeColors: Record<string, string> = {
-    '常駐': 'bg-emerald-500/20 text-emerald-400',
-    '短休': 'bg-cyan-500/20 text-cyan-400',
-    '長休': 'bg-rose-500/20 text-rose-400'
-  };
-
   // 確認學習畫面
   if (isConfirming && selectedAbility) {
     const isPassive = selectedAbility.recoveryType === '常駐';
@@ -121,10 +107,10 @@ export const LearnAbilityModal: React.FC<LearnAbilityModalProps> = ({
                 )}
               </p>
               <div className="flex gap-2 mb-2">
-                <span className={`px-2 py-0.5 rounded text-[12px] font-bold ${sourceColors[selectedAbility.source]}`}>
+                <span className={`px-2 py-0.5 rounded text-[12px] font-bold ${getAbilitySourceBadgeClass(selectedAbility.source)}`}>
                   {selectedAbility.source}
                 </span>
-                <span className={`px-2 py-0.5 rounded text-[12px] font-bold ${recoveryTypeColors[selectedAbility.recoveryType]}`}>
+                <span className={`px-2 py-0.5 rounded text-[12px] font-bold ${getAbilityRecoveryBadgeClass(selectedAbility.recoveryType)}`}>
                   {selectedAbility.recoveryType}
                 </span>
               </div>
@@ -255,10 +241,10 @@ export const LearnAbilityModal: React.FC<LearnAbilityModalProps> = ({
                       )}
                     </div>
                     <div className="flex gap-2 mb-1">
-                      <span className={`px-2 py-0.5 rounded text-[12px] font-bold ${sourceColors[ability.source]}`}>
+                      <span className={`px-2 py-0.5 rounded text-[12px] font-bold ${getAbilitySourceBadgeClass(ability.source)}`}>
                         {ability.source}
                       </span>
-                      <span className={`px-2 py-0.5 rounded text-[12px] font-bold ${recoveryTypeColors[ability.recoveryType]}`}>
+                      <span className={`px-2 py-0.5 rounded text-[12px] font-bold ${getAbilityRecoveryBadgeClass(ability.recoveryType)}`}>
                         {ability.recoveryType}
                       </span>
                     </div>

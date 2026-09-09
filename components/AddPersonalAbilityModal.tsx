@@ -8,11 +8,10 @@ import { Modal } from './ui/Modal';
 import { ModalSaveButton } from './ui/ModalSaveButton';
 import { LoadingOverlay } from './ui/LoadingOverlay';
 import { AutoResizeTextarea } from './ui/AutoResizeTextarea';
-import { ABILITY_SOURCE_ORDER, type CreateCharacterAbilityData } from '../services/abilityService';
+import { ABILITY_SOURCE_ORDER, RECOVERY_TYPES, type CreateCharacterAbilityData } from '../services/abilityService';
 import { MODAL_CONTAINER_CLASS } from '../styles/modalStyles';
 
 const SOURCES = [...ABILITY_SOURCE_ORDER];
-const RECOVERY_TYPES = ['常駐', '短休', '長休'] as const;
 
 interface AddPersonalAbilityModalProps {
   isOpen: boolean;

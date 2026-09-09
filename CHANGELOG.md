@@ -4,6 +4,11 @@
 
 ---
 
+## 2.4.2
+
+- 修正：特殊能力來源標籤在 `AbilityDetailModal`（能力詳情彈窗）漏了「裝備」這個來源的配色，來源是「裝備」的能力在詳情彈窗會顯示成沒有顏色的空白徽章（className 含 `undefined`）。原因是來源/恢復規則的配色對照表在 `AbilityDetailModal`、`AbilityCard`、`LearnAbilityModal` 三個檔案各自維護一份，這份漏掉了「裝備」。統一成 `utils/abilityColors.ts` 共用一份，之後新增來源只需要改一個地方。
+- 整理：「常駐/短休/長休」恢復規則清單原本在 `AddPersonalAbilityModal`、`AbilityFormModal` 各自宣告一份一模一樣的常數，改成統一從 `services/abilityService.ts` 匯出的 `RECOVERY_TYPES` 匯入。
+
 ## 2.4.1
 
 - 清理：移除全專案掃描後確認沒有任何呼叫端的死代碼——`services/database.ts` 的 `CacheService`（localStorage 快取，已被 hybridDataManager 的純 DB 策略取代但沒刪乾淨）與 `CombatItemService.getDefaultCombatItems`；`services/combatService.ts` 的 `addMonster`（單數，已被 `addMonsters` 取代）；`services/detailedCharacter.ts` 的 `fullDataToCharacterStats`（`utils/appInit.ts` 的 `buildCharacterStats` 才是實際在用、且更完整的版本）；`utils/common.ts` 內 13 個從未被使用的工具函式（`throttle`／`generateId`／`isValidEmail`／`groupBy`／`unique`／`removeEmpty`／`safeJsonParse`／`deepClone`／`capitalize`／`safeString`／`safeNumber`／`truncateString`／`formatDateTime`）；`utils/migrationHelpers.ts` 的 `validateMulticlassData`、`utils/spellUtils.ts` 的 `canPrepareMoreSpells`、`utils/terrainReward.ts` 的 `getRewardSummaryNames`（三者皆只有自己的測試在呼叫，沒有任何正式程式碼路徑會用到，一併移除對應測試）；`components/CombatItemEditModal.tsx` 匯出但沒人 import 的 `ItemEditCategory` 型別。純刪除，不影響任何現有功能。

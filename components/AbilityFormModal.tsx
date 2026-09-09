@@ -3,7 +3,7 @@ import { Modal } from './ui/Modal';
 import { ModalSaveButton } from './ui/ModalSaveButton';
 import { LoadingOverlay } from './ui/LoadingOverlay';
 import { AutoResizeTextarea } from './ui/AutoResizeTextarea';
-import { CreateAbilityData, getDisplayValues, ABILITY_SOURCE_ORDER } from '../services/abilityService';
+import { CreateAbilityData, getDisplayValues, ABILITY_SOURCE_ORDER, RECOVERY_TYPES } from '../services/abilityService';
 import type { CharacterAbilityWithDetails } from '../lib/supabase';
 import { MODAL_CONTAINER_CLASS } from '../styles/modalStyles';
 import { StatBonusEditor, type StatBonusEditorValue } from './StatBonusEditor';
@@ -16,7 +16,6 @@ interface AbilityFormModalProps {
 }
 
 const SOURCES = [...ABILITY_SOURCE_ORDER];
-const RECOVERY_TYPES = ['常駐', '短休', '長休'] as const;
 
 export const AbilityFormModal: React.FC<AbilityFormModalProps> = ({
   isOpen,

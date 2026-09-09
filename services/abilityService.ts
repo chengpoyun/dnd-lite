@@ -6,6 +6,11 @@ export const ABILITY_SOURCE_ORDER = ['職業', '種族', '裝備', '專長', '�
 
 export type AbilitySource = (typeof ABILITY_SOURCE_ORDER)[number];
 
+/** 能力恢復規則（表單選單依此順序） */
+export const RECOVERY_TYPES = ['常駐', '短休', '長休'] as const;
+
+export type AbilityRecoveryType = (typeof RECOVERY_TYPES)[number];
+
 export interface CreateAbilityData {
   name: string;
   name_en: string;  // 可以是空字串

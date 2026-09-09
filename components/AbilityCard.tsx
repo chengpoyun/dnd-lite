@@ -3,6 +3,7 @@ import type { CharacterAbilityWithDetails } from '../lib/supabase';
 import { getDisplayValues } from '../services/abilityService';
 import { ListCard, ListCardTitleRow } from './ui';
 import { combineStyles, conditionalStyle } from '../styles/common';
+import { getAbilitySourceBadgeClass, getAbilityRecoveryBadgeClass } from '../utils/abilityColors';
 
 interface AbilityCardProps {
   characterAbility: CharacterAbilityWithDetails;
@@ -13,21 +14,6 @@ interface AbilityCardProps {
   isDragging?: boolean;
 }
 
-const sourceColors: Record<string, { bgLight: string; text: string }> = {
-  '職業': { bgLight: 'bg-blue-500/20', text: 'text-blue-400' },
-  '種族': { bgLight: 'bg-green-500/20', text: 'text-green-400' },
-  '裝備': { bgLight: 'bg-indigo-500/20', text: 'text-indigo-400' },
-  '專長': { bgLight: 'bg-purple-500/20', text: 'text-purple-400' },
-  '背景': { bgLight: 'bg-amber-500/20', text: 'text-amber-400' },
-  '其他': { bgLight: 'bg-slate-500/20', text: 'text-slate-400' }
-};
-
-const recoveryTypeColors: Record<string, { bgLight: string; text: string }> = {
-  '常駐': { bgLight: 'bg-emerald-500/20', text: 'text-emerald-400' },
-  '短休': { bgLight: 'bg-cyan-500/20', text: 'text-cyan-400' },
-  '長休': { bgLight: 'bg-rose-500/20', text: 'text-rose-400' }
-};
-
 export const AbilityCard: React.FC<AbilityCardProps> = ({
   characterAbility,
   onClick,
@@ -36,8 +22,8 @@ export const AbilityCard: React.FC<AbilityCardProps> = ({
 }) => {
   const { current_uses, max_uses } = characterAbility;
   const display = getDisplayValues(characterAbility);
-  const sourceColor = sourceColors[display.source] || sourceColors['其他'];
-  const recoveryColor = recoveryTypeColors[display.recovery_type] || recoveryTypeColors['常駐'];
+  const sourceColorClass = getAbilitySourceBadgeClass(display.source);
+  const recoveryColorClass = getAbilityRecoveryBadgeClass(display.recovery_type);
 
   const isPassive = display.recovery_type === '常駐';
   const hasUses = !isPassive && max_uses > 0;
@@ -58,10 +44,10 @@ export const AbilityCard: React.FC<AbilityCardProps> = ({
                 title={<h3 className="text-[20px] font-bold text-slate-200">{display.name}</h3>}
                 tags={
                   <>
-                    <span className={`text-[12px] px-1.5 py-0.5 rounded ${sourceColor.bgLight} ${sourceColor.text} font-bold whitespace-nowrap`}>
+                    <span className={`text-[12px] px-1.5 py-0.5 rounded ${sourceColorClass} font-bold whitespace-nowrap`}>
                       {display.source}
                     </span>
-                    <span className={`text-[12px] px-1.5 py-0.5 rounded ${recoveryColor.bgLight} ${recoveryColor.text} font-bold whitespace-nowrap`}>
+                    <span className={`text-[12px] px-1.5 py-0.5 rounded ${recoveryColorClass} font-bold whitespace-nowrap`}>
                       {display.recovery_type}
                     </span>
                     {hasUses && (
