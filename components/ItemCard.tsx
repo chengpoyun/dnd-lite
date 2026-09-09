@@ -9,6 +9,7 @@ import { getDisplayValues } from '../services/itemService';
 import { ListCard, ListCardTitleRow } from './ui';
 import { DecorationSlots } from './ui/DecorationSlots';
 import { conditionalStyle } from '../styles/common';
+import { getRarityBadge } from '../utils/itemRarity';
 
 interface ItemCardProps {
   item: CharacterItem;
@@ -33,6 +34,7 @@ const TAG_BASE_CLASS = 'px-2 py-1 border text-xs rounded font-medium whitespace-
 
 export const ItemCard: React.FC<ItemCardProps> = ({ item, onClick, dragHandle, isDragging = false }) => {
   const display = getDisplayValues(item);
+  const rarityBadge = getRarityBadge(display.displayCategory, display.displayRarity);
 
   return (
     <ListCard
@@ -45,11 +47,14 @@ export const ItemCard: React.FC<ItemCardProps> = ({ item, onClick, dragHandle, i
           <ListCardTitleRow
             className="mb-2"
             title={
-              <h3 className="text-lg font-bold text-slate-100 flex items-center gap-1">
+              <h3 className="text-lg font-bold text-slate-100 flex items-center gap-1 flex-wrap">
                 {display.displayIsFavorite && (
                   <span className="text-amber-400" title="已加入★列表">★</span>
                 )}
                 {display.displayName}
+                {display.displayNameEn && (
+                  <span className="text-sm font-normal text-slate-400">{display.displayNameEn}</span>
+                )}
               </h3>
             }
             tags={
@@ -57,6 +62,11 @@ export const ItemCard: React.FC<ItemCardProps> = ({ item, onClick, dragHandle, i
                 <span className={`${TAG_BASE_CLASS} ${CATEGORY_TAG_CLASS[display.displayCategory]}`}>
                   {display.displayCategory}
                 </span>
+                {rarityBadge && (
+                  <span className={`${TAG_BASE_CLASS} ${rarityBadge.className}`}>
+                    {rarityBadge.label}
+                  </span>
+                )}
                 {display.displayIsMagic && (
                   <span className={`${TAG_BASE_CLASS} ${MAGIC_TAG_CLASS}`}>
                     魔法

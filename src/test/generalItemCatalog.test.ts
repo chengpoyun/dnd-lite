@@ -64,5 +64,29 @@ describe('generalItemCatalog', () => {
       expect(data.equipment_kind_override).toBe('hands');
       expect(data.stat_bonuses).toEqual({ abilityScoreFloors: { str: 19 } });
     });
+
+    it('nameEn／rarity 會原樣帶入 payload', () => {
+      const entry: GeneralItemDef = {
+        name: '強效治療藥水',
+        category: '藥水',
+        rarity: '非常見',
+        nameEn: 'Potion of Superior Healing',
+        isMagic: true,
+      };
+      const data = generalItemToCreateData(entry);
+      expect(data.name_en).toBe('Potion of Superior Healing');
+      expect(data.rarity).toBe('非常見');
+    });
+
+    it('沒有 rarity 時，payload 的 rarity 為 null', () => {
+      const entry: GeneralItemDef = {
+        name: '強效治療藥水',
+        category: '藥水',
+        rarity: null,
+        isMagic: true,
+      };
+      const data = generalItemToCreateData(entry);
+      expect(data.rarity).toBeNull();
+    });
   });
 });

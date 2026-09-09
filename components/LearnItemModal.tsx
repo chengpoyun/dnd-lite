@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Modal } from './ui/Modal';
 import { searchLocalCatalog, type CatalogItem } from '../services/itemCatalog';
 import { MODAL_CONTAINER_CLASS } from '../styles/modalStyles';
+import { getRarityBadge } from '../utils/itemRarity';
 
 interface LearnItemModalProps {
   isOpen: boolean;
@@ -15,8 +16,24 @@ interface LearnItemModalProps {
 /** 目錄條目的顯示欄位（MH素材／通用道具兩種來源統一成同一組欄位渲染） */
 function getItemView(item: CatalogItem) {
   return item.source === 'material'
-    ? { key: `material:${item.entry.name}`, name: item.entry.name, category: 'MH素材', isMagic: false, description: item.entry.description ?? '' }
-    : { key: `general:${item.entry.name}`, name: item.entry.name, category: item.entry.category, isMagic: !!item.entry.isMagic, description: item.entry.description ?? '' };
+    ? {
+        key: `material:${item.entry.name}`,
+        name: item.entry.name,
+        nameEn: item.entry.nameEn || null,
+        category: 'MH素材',
+        rarity: item.entry.rarity != null ? String(item.entry.rarity) : null,
+        isMagic: false,
+        description: item.entry.description ?? '',
+      }
+    : {
+        key: `general:${item.entry.name}`,
+        name: item.entry.name,
+        nameEn: item.entry.nameEn || null,
+        category: item.entry.category,
+        rarity: item.entry.rarity,
+        isMagic: !!item.entry.isMagic,
+        description: item.entry.description ?? '',
+      };
 }
 
 export const LearnItemModal: React.FC<LearnItemModalProps> = ({
@@ -109,6 +126,7 @@ export const LearnItemModal: React.FC<LearnItemModalProps> = ({
             filteredItems.map((item) => {
               const view = getItemView(item);
               const isOwned = learnedNames.includes(view.name);
+              const rarityBadge = getRarityBadge(view.category, view.rarity);
               return (
                 <div
                   key={view.key}
@@ -118,9 +136,17 @@ export const LearnItemModal: React.FC<LearnItemModalProps> = ({
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1 flex-wrap">
                         <h3 className="text-[16px] font-bold text-amber-400">{view.name}</h3>
+                        {view.nameEn && (
+                          <span className="text-[13px] text-slate-400">{view.nameEn}</span>
+                        )}
                         <span className="px-2 py-0.5 rounded text-[12px] bg-slate-600 text-slate-300">
                           {view.category}
                         </span>
+                        {rarityBadge && (
+                          <span className={`px-2 py-0.5 rounded text-[12px] border ${rarityBadge.className}`}>
+                            {rarityBadge.label}
+                          </span>
+                        )}
                         {view.isMagic && (
                           <span className="px-2 py-0.5 rounded text-[12px] bg-amber-900/40 text-amber-300 border border-amber-700/60">
                             魔法

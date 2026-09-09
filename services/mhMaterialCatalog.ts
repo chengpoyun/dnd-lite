@@ -52,6 +52,8 @@ export function mhMaterialToCreateData(entry: MHMaterialDef, quantity = 1): Crea
     description: entry.description,
     quantity,
     is_magic: false,
+    name_en: entry.nameEn,
+    rarity: entry.rarity != null ? String(entry.rarity) : null,
     weapon_decoration: entry.weaponDecoration,
     armor_decoration: entry.armorDecoration,
     decoration_effects: decorationEffects,

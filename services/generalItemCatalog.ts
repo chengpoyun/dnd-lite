@@ -29,6 +29,8 @@ export function generalItemToCreateData(entry: GeneralItemDef, quantity = 1): Cr
     description: entry.description,
     quantity,
     is_magic: entry.isMagic ?? false,
+    name_en: entry.nameEn ?? null,
+    rarity: entry.rarity ?? null,
     affects_stats: entry.affectsStats,
     applies_unequipped: entry.appliesUnequipped,
     stat_bonuses: entry.statBonuses,

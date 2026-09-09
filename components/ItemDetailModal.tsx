@@ -10,6 +10,7 @@ import { Modal } from './ui/Modal';
 import { DecorationSlots } from './ui/DecorationSlots';
 import { CharacterItem, getDisplayValues } from '../services/itemService';
 import { MODAL_CONTAINER_CLASS } from '../styles/modalStyles';
+import { getRarityBadge } from '../utils/itemRarity';
 
 interface ItemDetailModalProps {
   isOpen: boolean;
@@ -50,6 +51,7 @@ export default function ItemDetailModal({
 
   const display = getDisplayValues(characterItem);
   const qty = characterItem.quantity;
+  const rarityBadge = getRarityBadge(display.displayCategory, display.displayRarity);
 
   const commitQuantity = async (next: number) => {
     if (!onQuantityChange) return;
@@ -85,7 +87,12 @@ export default function ItemDetailModal({
         <div className="space-y-3">
           {/* 第一列：名稱 + ★收藏切換 */}
           <div className="flex items-start justify-between gap-2">
-            <div className="text-lg font-bold text-white">{display.displayName}</div>
+            <div className="flex items-baseline gap-2 flex-wrap">
+              <span className="text-lg font-bold text-white">{display.displayName}</span>
+              {display.displayNameEn && (
+                <span className="text-sm text-slate-400">{display.displayNameEn}</span>
+              )}
+            </div>
             {onToggleFavorite && (
               <button
                 type="button"
@@ -105,6 +112,11 @@ export default function ItemDetailModal({
             <div className="px-2 py-1 bg-amber-900/30 border border-amber-700 text-amber-400 rounded-md text-sm font-medium flex-shrink-0">
               {display.displayCategory}
             </div>
+            {rarityBadge && (
+              <div className={`px-2 py-1 border rounded-md text-sm font-medium flex-shrink-0 ${rarityBadge.className}`}>
+                {rarityBadge.label}
+              </div>
+            )}
             {display.displayIsMagic && (
               <div className="px-2 py-1 bg-amber-900/40 border border-amber-700/60 text-amber-300 rounded-md text-sm font-medium flex-shrink-0">
                 魔法

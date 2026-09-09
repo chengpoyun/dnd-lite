@@ -65,6 +65,22 @@ describe('getDisplayValues', () => {
 
     expect(result.displayName).toBe('');
   });
+
+  it('有 name_en_override／rarity_override 時，displayNameEn／displayRarity 直接取用', () => {
+    const result = getDisplayValues(
+      makeCharacterItem({ name_en_override: 'Longsword', rarity_override: '稀有' })
+    );
+
+    expect(result.displayNameEn).toBe('Longsword');
+    expect(result.displayRarity).toBe('稀有');
+  });
+
+  it('沒有 name_en_override／rarity_override 時，displayNameEn／displayRarity 為 null', () => {
+    const result = getDisplayValues(makeCharacterItem());
+
+    expect(result.displayNameEn).toBeNull();
+    expect(result.displayRarity).toBeNull();
+  });
 });
 
 describe('getDisplayEquipmentKind', () => {
@@ -114,6 +130,37 @@ describe('createCharacterItem', () => {
       })
     );
     expect(builder.insert.mock.calls[0][0]).not.toHaveProperty('item_id');
+  });
+
+  it('有傳入 name_en／rarity 時，會寫入 name_en_override／rarity_override', async () => {
+    const builder = createChainable({ data: { id: 'ci1' }, error: null });
+    mockedSupabase.from.mockReturnValue(builder);
+
+    await createCharacterItem('c1', {
+      name: '長劍',
+      category: '裝備',
+      is_magic: false,
+      name_en: 'Longsword',
+      rarity: '稀有',
+    });
+
+    expect(builder.insert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name_en_override: 'Longsword',
+        rarity_override: '稀有',
+      })
+    );
+  });
+
+  it('沒有傳入 name_en／rarity 時，不會寫入這兩個欄位（沿用資料庫預設值 null）', async () => {
+    const builder = createChainable({ data: { id: 'ci1' }, error: null });
+    mockedSupabase.from.mockReturnValue(builder);
+
+    await createCharacterItem('c1', { name: '筆記', category: '雜項', is_magic: false });
+
+    const insertArg = builder.insert.mock.calls[0][0];
+    expect(insertArg).not.toHaveProperty('name_en_override');
+    expect(insertArg).not.toHaveProperty('rarity_override');
   });
 });
 

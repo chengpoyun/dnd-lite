@@ -13,6 +13,7 @@ import { getDisplayEquipmentKind } from '../services/itemService';
 import { EQUIPMENT_KINDS, EQUIPMENT_KIND_LABELS } from '../utils/equipmentConstants';
 import { MODAL_CONTAINER_CLASS, SELECT_CLASS } from '../styles/modalStyles';
 import { StatBonusEditor, type StatBonusEditorValue } from './StatBonusEditor';
+import { RARITY_TIERS } from '../utils/itemRarity';
 
 interface CharacterItemEditModalProps {
   isOpen: boolean;
@@ -32,6 +33,8 @@ export const CharacterItemEditModal: React.FC<CharacterItemEditModalProps> = ({
   const [formData, setFormData] = useState<UpdateCharacterItemData & { stat_bonuses?: StatBonusEditorValue }>({
     quantity: 1,
     name_override: '',
+    name_en_override: '',
+    rarity_override: '',
     description_override: '',
     category_override: null,
     is_magic: false,
@@ -57,6 +60,8 @@ export const CharacterItemEditModal: React.FC<CharacterItemEditModalProps> = ({
       setFormData({
         quantity: characterItem.quantity,
         name_override: characterItem.name_override ?? '',
+        name_en_override: characterItem.name_en_override ?? '',
+        rarity_override: characterItem.rarity_override ?? '',
         description_override: characterItem.description_override ?? '',
         category_override: characterItem.category_override ?? null,
         is_magic: characterItem.is_magic,
@@ -111,6 +116,8 @@ export const CharacterItemEditModal: React.FC<CharacterItemEditModalProps> = ({
       if (formData.name_override?.trim()) {
         updates.name_override = formData.name_override;
       }
+      updates.name_en_override = formData.name_en_override?.trim() || null;
+      updates.rarity_override = formData.rarity_override?.trim() || null;
       // 一律傳送 description_override（含清空），否則使用者刪除內容後儲存不會更新
       updates.description_override = formData.description_override?.trim() ?? null;
       if (formData.category_override) {
@@ -177,6 +184,38 @@ export const CharacterItemEditModal: React.FC<CharacterItemEditModalProps> = ({
               className="flex-1 min-w-0 bg-slate-800 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500"
               placeholder="輸入名稱"
             />
+          </div>
+
+          {/* 英文名稱 + 稀有度：共用一列 */}
+          <div className="flex items-center gap-3">
+            <label className="text-[14px] text-slate-400 flex-shrink-0">英文名稱</label>
+            <input
+              type="text"
+              value={formData.name_en_override || ''}
+              onChange={(e) => setFormData({ ...formData, name_en_override: e.target.value })}
+              className="flex-1 min-w-0 bg-slate-800 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500"
+              placeholder="輸入英文名稱"
+            />
+            {(formData.category_override ?? characterItem.category_override) === 'MH素材' ? (
+              <input
+                type="number"
+                value={formData.rarity_override ?? ''}
+                onChange={(e) => setFormData({ ...formData, rarity_override: e.target.value })}
+                className="w-20 flex-shrink-0 bg-slate-800 rounded-lg border border-slate-700 p-3 text-slate-200 text-center focus:outline-none focus:border-amber-500"
+                placeholder="CR"
+              />
+            ) : (
+              <select
+                value={formData.rarity_override || ''}
+                onChange={(e) => setFormData({ ...formData, rarity_override: e.target.value })}
+                className="w-28 flex-shrink-0 bg-slate-800 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500"
+              >
+                <option value="">稀有度</option>
+                {RARITY_TIERS.map((tier) => (
+                  <option key={tier} value={tier}>{tier}</option>
+                ))}
+              </select>
+            )}
           </div>
 
           {/* 類別 + 魔法物品 */}

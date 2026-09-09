@@ -11,7 +11,8 @@ export interface MHMaterialDef {
   /** 中文名稱，目錄內唯一鍵 */
   name: string;
   nameEn: string;
-  rarity: string | null;
+  /** 稀有度：MH素材是素材來源怪物的 CR，數字沒有固定範圍上限 */
+  rarity: number | null;
   description?: string;
   weaponDecoration?: boolean;
   armorDecoration?: boolean;

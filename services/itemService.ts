@@ -52,6 +52,10 @@ export interface CharacterItem {
   
   // Override 欄位
   name_override?: string | null;
+  /** 英文名稱（純顯示用） */
+  name_en_override?: string | null;
+  /** 稀有度：MH素材存 CR 數字（以文字存），其他類別存 D&D 標準稀有度文字 */
+  rarity_override?: string | null;
   description_override?: string | null;
   category_override?: ItemCategory | null;
   /** 覆寫：此角色版物品是否影響角色數值 */
@@ -87,6 +91,10 @@ export interface CharacterItem {
 // 帶有 display helper 的 CharacterItem 類型
 export interface CharacterItemWithDetails extends CharacterItem {
   displayName: string;
+  /** 顯示用英文名稱，沒有時為 null */
+  displayNameEn: string | null;
+  /** 顯示用稀有度，沒有時為 null */
+  displayRarity: string | null;
   displayDescription: string;
   displayCategory: ItemCategory;
   displayIsMagic: boolean;
@@ -107,6 +115,8 @@ export interface CharacterItemWithDetails extends CharacterItem {
 export interface UpdateCharacterItemData {
   quantity?: number;
   name_override?: string | null;
+  name_en_override?: string | null;
+  rarity_override?: string | null;
   description_override?: string | null;
   category_override?: ItemCategory | null;
   is_magic?: boolean;
@@ -139,6 +149,10 @@ export interface CreateCharacterItemData {
   description?: string;
   quantity?: number;
   is_magic: boolean;
+  /** 英文名稱（純顯示用） */
+  name_en?: string | null;
+  /** 稀有度：MH素材傳 CR 數字轉成的文字，其他類別傳 D&D 標準稀有度文字 */
+  rarity?: string | null;
   /** 是否影響角色數值（個人物品直接帶入 character_items） */
   affects_stats?: boolean;
   /** 裝備類專用：此物品是否無須裝備中即可套用加值 */
@@ -227,6 +241,8 @@ export async function createCharacterItem(
     if (data.weapon_decoration !== undefined) payload.weapon_decoration = data.weapon_decoration;
     if (data.armor_decoration !== undefined) payload.armor_decoration = data.armor_decoration;
     if (data.decoration_effects !== undefined) payload.decoration_effects = data.decoration_effects;
+    if (data.name_en !== undefined) payload.name_en_override = data.name_en;
+    if (data.rarity !== undefined) payload.rarity_override = data.rarity;
 
     const { data: row, error } = await supabase
       .from('character_items')
@@ -435,6 +451,8 @@ export function getDisplayValues(characterItem: CharacterItem): CharacterItemWit
   return {
     ...characterItem,
     displayName: characterItem.name_override ?? '',
+    displayNameEn: characterItem.name_en_override ?? null,
+    displayRarity: characterItem.rarity_override ?? null,
     displayDescription: effectSummary
       ? (rawDescription ? `${effectSummary}\n\n${rawDescription}` : effectSummary)
       : rawDescription,

@@ -12,6 +12,7 @@ import type { ItemCategory, CreateCharacterItemData, DecorationEffects } from '.
 import { EQUIPMENT_KINDS, EQUIPMENT_KIND_LABELS } from '../utils/equipmentConstants';
 import { MODAL_CONTAINER_CLASS, SELECT_CLASS } from '../styles/modalStyles';
 import { StatBonusEditor, type StatBonusEditorValue } from './StatBonusEditor';
+import { RARITY_TIERS } from '../utils/itemRarity';
 
 const CATEGORIES: ItemCategory[] = ['裝備', '藥水', 'MH素材', '雜項'];
 
@@ -36,6 +37,8 @@ export const AddPersonalItemModal: React.FC<AddPersonalItemModalProps> = ({
   gatherMultiplier = 1,
 }) => {
   const [name, setName] = useState('');
+  const [nameEn, setNameEn] = useState('');
+  const [rarity, setRarity] = useState('');
   const [category, setCategory] = useState<ItemCategory>('裝備');
   const [description, setDescription] = useState('');
   const [quantity, setQuantity] = useState('1');
@@ -60,6 +63,8 @@ export const AddPersonalItemModal: React.FC<AddPersonalItemModalProps> = ({
   useEffect(() => {
     if (isOpen) {
       setName(initialName ?? '');
+      setNameEn('');
+      setRarity('');
       if (initialCategory) {
         setCategory(initialCategory);
         setEquipmentKind(initialCategory === '裝備' ? EQUIPMENT_KINDS[0] : '');
@@ -110,6 +115,12 @@ export const AddPersonalItemModal: React.FC<AddPersonalItemModalProps> = ({
         quantity: showMultiplier && applyMultiplier ? baseQty * gatherMultiplier : baseQty,
         is_magic: isMagic,
       };
+      if (nameEn.trim()) {
+        data.name_en = nameEn.trim();
+      }
+      if (rarity.trim()) {
+        data.rarity = rarity.trim();
+      }
       if (category === '裝備') {
         data.equipment_kind_override = equipmentKind || null;
         data.decoration_slots = decorationSlots;
@@ -136,6 +147,8 @@ export const AddPersonalItemModal: React.FC<AddPersonalItemModalProps> = ({
       }
       await onSubmit(data);
       setName('');
+      setNameEn('');
+      setRarity('');
       setDescription('');
       setCategory('裝備');
       setIsMagic(false);
@@ -176,6 +189,37 @@ export const AddPersonalItemModal: React.FC<AddPersonalItemModalProps> = ({
               required
               maxLength={100}
             />
+          </div>
+          {/* 英文名稱 + 稀有度：共用一列 */}
+          <div className="flex items-center gap-3">
+            <label className="text-[14px] text-slate-400 flex-shrink-0">英文名稱</label>
+            <input
+              type="text"
+              value={nameEn}
+              onChange={(e) => setNameEn(e.target.value)}
+              className="flex-1 min-w-0 bg-slate-800 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500"
+              placeholder="輸入英文名稱"
+            />
+            {category === 'MH素材' ? (
+              <input
+                type="number"
+                value={rarity}
+                onChange={(e) => setRarity(e.target.value)}
+                className="w-20 flex-shrink-0 bg-slate-800 rounded-lg border border-slate-700 p-3 text-slate-200 text-center focus:outline-none focus:border-amber-500"
+                placeholder="CR"
+              />
+            ) : (
+              <select
+                value={rarity}
+                onChange={(e) => setRarity(e.target.value)}
+                className="w-28 flex-shrink-0 bg-slate-800 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500"
+              >
+                <option value="">稀有度</option>
+                {RARITY_TIERS.map((tier) => (
+                  <option key={tier} value={tier}>{tier}</option>
+                ))}
+              </select>
+            )}
           </div>
           <div className="flex items-center gap-3">
             <label className="text-[14px] text-slate-400 flex-shrink-0">類別 *</label>

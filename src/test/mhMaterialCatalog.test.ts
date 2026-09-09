@@ -70,6 +70,24 @@ describe('mhMaterialCatalog', () => {
       const data = mhMaterialToCreateData(entry, 5);
       expect(data.quantity).toBe(5);
     });
+
+    it('nameEn 會帶入 payload 的 name_en', () => {
+      const entry: MHMaterialDef = { name: '藥草', nameEn: 'Herb', rarity: null };
+      const data = mhMaterialToCreateData(entry);
+      expect(data.name_en).toBe('Herb');
+    });
+
+    it('rarity（CR 數字）會轉成文字帶入 payload 的 rarity', () => {
+      const entry: MHMaterialDef = { name: '藥草', nameEn: 'Herb', rarity: 35 };
+      const data = mhMaterialToCreateData(entry);
+      expect(data.rarity).toBe('35');
+    });
+
+    it('rarity 為 null 時，payload 的 rarity 也是 null', () => {
+      const entry: MHMaterialDef = { name: '藥草', nameEn: 'Herb', rarity: null };
+      const data = mhMaterialToCreateData(entry);
+      expect(data.rarity).toBeNull();
+    });
   });
 
   describe('resolveGatheredMaterialCreateData（地形採集自動加入物品時用）', () => {
