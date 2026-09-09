@@ -71,6 +71,7 @@ export const AbilityEditModal: React.FC<AbilityEditModalProps> = ({
     finalModifier,
     saveBasic,
     finalSave,
+    combinedSaveBonusSources,
   } = useMemo(() => {
     const parsed = parseInt(localScore, 10);
     const safeScoreValue = Number.isFinite(parsed) ? parsed : scoreBasic;
@@ -92,9 +93,16 @@ export const AbilityEditModal: React.FC<AbilityEditModalProps> = ({
     const abilityMod = getModifier(abilityFinalScore);
     const modifierFinal = abilityMod + modifierBonusTotal;
 
+    // 「基礎豁免」永遠只代表能力調整值本身，不論目前是否熟練，都不烘進熟練加值；
+    // 熟練加值另外顯示成獨立的加值來源列，跟著「無/熟練」切換即時反映（比照技能詳細彈窗的做法）
     const prof = getProfBonus(level || 1);
-    const saveBasicValue = modifierFinal + (localSaveProf ? prof : 0);
-    const saveFinal = saveBasicValue + saveBonusTotal;
+    const saveBasicValue = modifierFinal;
+    const saveProfSupplementValue = localSaveProf ? prof : 0;
+    const saveFinal = saveBasicValue + saveProfSupplementValue + saveBonusTotal;
+    const combinedSaveSources = [
+      ...saveBonusSources,
+      ...(saveProfSupplementValue !== 0 ? [{ label: '熟練加值', value: saveProfSupplementValue }] : []),
+    ];
 
     return {
       safeScore: safeScoreValue,
@@ -103,6 +111,7 @@ export const AbilityEditModal: React.FC<AbilityEditModalProps> = ({
       finalModifier: modifierFinal,
       saveBasic: saveBasicValue,
       finalSave: saveFinal,
+      combinedSaveBonusSources: combinedSaveSources,
       totalScoreBonus: scoreBonusTotal,
       totalModifierBonus: modifierBonusTotal,
       totalSaveBonus: saveBonusTotal,
@@ -252,9 +261,9 @@ export const AbilityEditModal: React.FC<AbilityEditModalProps> = ({
             </span>
           </div>
 
-          {saveBonusSources.length > 0 && (
+          {combinedSaveBonusSources.length > 0 && (
             <div className={`${MODAL_BODY_TEXT_CLASS} text-sm space-y-0.5`}>
-              {saveBonusSources.map((b) => (
+              {combinedSaveBonusSources.map((b) => (
                 <div
                   key={b.label}
                   className="flex items-center justify-between"

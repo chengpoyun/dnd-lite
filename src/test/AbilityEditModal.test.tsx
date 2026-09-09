@@ -79,5 +79,41 @@ describe('AbilityEditModal', () => {
     fireEvent.click(screen.getByText('儲存'));
     expect(onSave).toHaveBeenCalledWith(10, false);
   });
+
+  it('「基礎豁免」永遠只代表能力調整值本身，熟練加值另外顯示，不論一開始就是熟練還是切換後才熟練', () => {
+    // str 16+2(物品加值)=18 → mod +4；+1(職業能力) → 調整值 +5；profBonus(lvl5)=3
+    render(<AbilityEditModal {...defaultProps} isSaveProficient />);
+
+    // 基礎豁免只顯示調整值 +5，不烘入 profBonus（不會顯示 +8）
+    expect(screen.getByText('基礎豁免')).toBeInTheDocument();
+    const baseRow = screen.getByText('基礎豁免').closest('div') as HTMLElement;
+    expect(baseRow.textContent).toContain('+5');
+    expect(baseRow.textContent).not.toContain('+8');
+
+    // 熟練加值 +3 另外顯示，最終豁免 = 5+3+1(其他效果)=9
+    expect(screen.getByText('熟練加值')).toBeInTheDocument();
+    const finalRow = screen.getAllByText('最終豁免')[0].closest('div') as HTMLElement;
+    expect(finalRow.textContent).toContain('+9');
+  });
+
+  it('重新開啟已是熟練狀態的豁免時，基礎豁免仍只顯示調整值，不會被烘進熟練加值（比照技能詳細彈窗的修法）', () => {
+    const { unmount } = render(<AbilityEditModal {...defaultProps} isSaveProficient={false} />);
+    unmount();
+
+    render(<AbilityEditModal {...defaultProps} isSaveProficient />);
+    const baseRow = screen.getByText('基礎豁免').closest('div') as HTMLElement;
+    expect(baseRow.textContent).toContain('+5');
+    expect(screen.getByText('熟練加值')).toBeInTheDocument();
+  });
+
+  it('切換「無」時不顯示熟練加值，最終豁免只剩基礎豁免與其他來源', () => {
+    render(<AbilityEditModal {...defaultProps} isSaveProficient />);
+    fireEvent.click(screen.getByText('無'));
+
+    expect(screen.queryByText('熟練加值')).not.toBeInTheDocument();
+    const finalRow = screen.getAllByText('最終豁免')[0].closest('div') as HTMLElement;
+    // 5 + 0 + 1(其他效果) = 6
+    expect(finalRow.textContent).toContain('+6');
+  });
 });
 
