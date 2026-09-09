@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { Modal } from './ui/Modal';
-import { Spell, getAllSpells } from '../services/spellService';
+import type { SpellDef } from '../types/spell';
+import { searchSpells } from '../services/spellCatalog';
 import { getSpellLevelText, getSchoolColor } from '../utils/spellUtils';
 import { MODAL_CONTAINER_CLASS } from '../styles/modalStyles';
 
 interface LearnSpellModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onLearnSpell: (spellId: string) => Promise<void>;
+  onLearnSpell: (spell: SpellDef) => Promise<void>;
   onCreateNew: () => void;
-  learnedSpellIds: string[];
+  /** 已擁有的法術英文名（本地目錄以英文名去重，中文譯名偶有撞名） */
+  learnedSpellNameEns: string[];
 }
 
 export const LearnSpellModal: React.FC<LearnSpellModalProps> = ({
@@ -17,56 +19,39 @@ export const LearnSpellModal: React.FC<LearnSpellModalProps> = ({
   onClose,
   onLearnSpell,
   onCreateNew,
-  learnedSpellIds
+  learnedSpellNameEns
 }) => {
-  const [spells, setSpells] = useState<Spell[]>([]);
-  const [filteredSpells, setFilteredSpells] = useState<Spell[]>([]);
+  const [filteredSpells, setFilteredSpells] = useState<SpellDef[]>([]);
   const [selectedLevel, setSelectedLevel] = useState<number>(0);
   const [searchText, setSearchText] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
       setSearchText('');
       setSelectedLevel(0);
-      setSpells([]);
-      setIsLoading(false);
-      loadSpells();
+      setFilteredSpells([]);
     }
   }, [isOpen]);
 
   useEffect(() => {
-    let filtered = spells;
-    filtered = filtered.filter(spell => !learnedSpellIds.includes(spell.id));
-    filtered = filtered.filter(spell => spell.level === selectedLevel);
-    if (searchText) {
-      const search = searchText.toLowerCase();
-      filtered = filtered.filter(spell =>
-        spell.name.toLowerCase().includes(search) ||
-        (spell.name_en?.toLowerCase().includes(search)) ||
-        spell.description.toLowerCase().includes(search)
-      );
-    }
-    setFilteredSpells(filtered);
-  }, [spells, searchText, selectedLevel, learnedSpellIds]);
+    const query = searchText.trim();
+    // 有輸入搜尋文字時忽略環階篩選、全域搜尋 534 筆；沒有文字時依環階瀏覽
+    const levelFilter = query ? undefined : selectedLevel;
+    let cancelled = false;
+    searchSpells(query, levelFilter).then((result) => {
+      if (cancelled) return;
+      const notLearned = result.filter((spell) => !learnedSpellNameEns.includes(spell.nameEn));
+      setFilteredSpells(notLearned);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [searchText, selectedLevel, learnedSpellNameEns]);
 
-  const loadSpells = async () => {
-    setIsLoading(true);
+  const handleLearnSpell = async (spell: SpellDef) => {
     try {
-      const data = await getAllSpells();
-      setSpells(data);
-    } catch (error) {
-      console.error('載入法術列表失敗:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleLearnSpell = async (spellId: string) => {
-    try {
-      await onLearnSpell(spellId);
-      // 從列表中移除已學習的法術
-      setSpells(prev => prev.filter(s => s.id !== spellId));
+      await onLearnSpell(spell);
+      setFilteredSpells((prev) => prev.filter((s) => s.nameEn !== spell.nameEn));
     } catch (error) {
       console.error('學習法術失敗:', error);
     }
@@ -98,13 +83,14 @@ export const LearnSpellModal: React.FC<LearnSpellModalProps> = ({
 
         {/* 篩選區 */}
         <div className="space-y-3 mb-4">
-          {/* 環位篩選 */}
+          {/* 環位篩選（有輸入搜尋文字時忽略此篩選，全域搜尋） */}
           <div>
             <label className="block text-[14px] text-slate-400 mb-2">環位篩選</label>
             <select
               value={selectedLevel}
               onChange={(e) => setSelectedLevel(parseInt(e.target.value))}
               className="w-full bg-slate-800 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500"
+              disabled={!!searchText.trim()}
             >
               {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map(level => (
                 <option key={level} value={level}>
@@ -129,12 +115,7 @@ export const LearnSpellModal: React.FC<LearnSpellModalProps> = ({
 
         {/* 法術列表 */}
         <div className="flex-1 overflow-y-auto space-y-2 mb-4 min-h-0">
-          {isLoading ? (
-            <div className="flex flex-col items-center justify-center gap-3 py-8 text-slate-400">
-              <div className="h-6 w-6 animate-spin rounded-full border-2 border-slate-500 border-t-transparent" />
-              <div>載入中...</div>
-            </div>
-          ) : filteredSpells.length === 0 ? (
+          {filteredSpells.length === 0 ? (
             <div className="text-center text-slate-500 py-8">
               {searchText ? '找不到符合條件的法術' : '沒有可學習的法術'}
             </div>
@@ -143,7 +124,7 @@ export const LearnSpellModal: React.FC<LearnSpellModalProps> = ({
               const schoolColor = getSchoolColor(spell.school);
               return (
                 <div
-                  key={spell.id}
+                  key={spell.nameEn}
                   className="bg-slate-800/50 rounded-lg p-3 border border-slate-700 hover:border-amber-500/50 transition-colors"
                 >
                   <div className="flex items-center justify-between gap-3">
@@ -158,14 +139,14 @@ export const LearnSpellModal: React.FC<LearnSpellModalProps> = ({
                         )}
                       </div>
                       <div className="text-[14px] text-slate-400">
-                        {getSpellLevelText(spell.level)} • {spell.casting_time} • {spell.range}
+                        {getSpellLevelText(spell.level)} • {spell.castingTime} • {spell.range}
                       </div>
                       <div className="text-[14px] text-slate-500 mt-1 line-clamp-2">
                         {spell.description}
                       </div>
                     </div>
                     <button
-                      onClick={() => handleLearnSpell(spell.id)}
+                      onClick={() => handleLearnSpell(spell)}
                       className="px-4 py-2 rounded-lg bg-amber-600 text-white font-bold text-[14px] active:bg-amber-700 flex-shrink-0"
                     >
                       學習

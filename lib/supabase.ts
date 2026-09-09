@@ -293,46 +293,30 @@ export interface CombatDamageLog {
   created_at: string
 }
 
-// 特殊能力系統類型定義
-export interface Ability {
-  id: string
-  name: string
-  name_en: string | null  // 修改：英文名稱改為可選
-  description: string
-  source: '職業' | '種族' | '裝備' | '專長' | '背景' | '其他'
-  recovery_type: '常駐' | '短休' | '長休'
-  created_at?: string
-  updated_at?: string
-}
-
+// 特殊能力系統類型定義（每列自足，名稱/描述等一律存在 xxx_override 欄位，
+// 不再有 ability_id 外鍵指向全域 abilities 表——目錄改為本地 data/abilities.json 維護）
 export interface CharacterAbility {
   id: string
   character_id: string
-  ability_id: string | null
   current_uses: number
   max_uses: number
   /** 顯示順序（愈小愈前面）；null 時依 created_at 排 */
   sort_order?: number | null
-  // 覆蓋欄位（可選，用於客製化）
   name_override?: string | null
   name_en_override?: string | null
   description_override?: string | null
   source_override?: '職業' | '種族' | '裝備' | '專長' | '背景' | '其他' | null
   recovery_type_override?: '常駐' | '短休' | '長休' | null
+  /** 此能力是否影響角色數值 */
+  affects_stats?: boolean
+  /** 此能力提供的數值加成定義 */
+  stat_bonuses?: Record<string, unknown>
   created_at?: string
   updated_at?: string
 }
 
-// 組合類型：包含能力詳情的角色能力
-export interface CharacterAbilityWithDetails extends CharacterAbility {
-  ability: Ability | null
-  // 便利方法：取得實際顯示的值（優先使用 override）
-  displayName?: string
-  displayNameEn?: string | null
-  displayDescription?: string
-  displaySource?: '職業' | '種族' | '裝備' | '專長' | '背景' | '其他'
-  displayRecoveryType?: '常駐' | '短休' | '長休'
-}
+// 保留此別名以維持既有 import 相容；現在與 CharacterAbility 完全相同（不再有額外的 join 詳情）
+export type CharacterAbilityWithDetails = CharacterAbility
 
 // 組合類型：包含傷害記錄的怪物
 export interface CombatMonsterWithLogs extends CombatMonster {

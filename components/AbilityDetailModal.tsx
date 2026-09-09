@@ -35,19 +35,7 @@ export default function AbilityDetailModal({
   const recoveryType = display.recovery_type || '常駐';
   const isPassive = recoveryType === '常駐';
   const canUse = !isPassive && current_uses > 0;
-  // 取得關聯的 ability（Supabase 有時回傳 ability 或 abilities，且可能為陣列）
-  const abilityRef = characterAbility.ability ?? (characterAbility as { abilities?: unknown }).abilities;
-  const abilityObj = Array.isArray(abilityRef) ? abilityRef[0] : abilityRef;
-  const raw = abilityObj as { stat_bonuses?: unknown; statBonuses?: unknown } | null | undefined;
-  const fromAbility = raw?.stat_bonuses ?? raw?.statBonuses;
-  const fromCharacter = (characterAbility as { stat_bonuses?: unknown }).stat_bonuses;
-  // character_abilities.stat_bonuses 預設為 {}，若為空則應採用全域 abilities.stat_bonuses
-  const hasCharacterOverride =
-    fromCharacter != null &&
-    typeof fromCharacter === 'object' &&
-    Object.keys(fromCharacter as object).length > 0;
-  const effectiveStatBonuses = hasCharacterOverride ? fromCharacter : fromAbility;
-  const isSpecial = !!getSpecialEffectId(effectiveStatBonuses);
+  const isSpecial = !!getSpecialEffectId(characterAbility.stat_bonuses);
 
   const sourceColors: Record<string, string> = {
     '種族': 'bg-green-900/30 border-green-700 text-green-400',

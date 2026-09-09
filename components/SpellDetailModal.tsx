@@ -11,7 +11,7 @@ interface SpellDetailModalProps {
   onClose: () => void;
   characterSpell: CharacterSpell | null;
   onEdit: (characterSpell: CharacterSpell) => void;
-  onForget: (spellId: string | null, characterSpellId?: string) => void;
+  onForget: (characterSpellId: string) => void;
 }
 
 export const SpellDetailModal: React.FC<SpellDetailModalProps> = ({
@@ -100,7 +100,7 @@ export const SpellDetailModal: React.FC<SpellDetailModalProps> = ({
             </button>
             <button
               onClick={() => {
-                onForget(characterSpell.spell?.id || characterSpell.spell_id, characterSpell.id);
+                onForget(characterSpell.id);
                 onClose();
               }}
               className="flex-1 px-6 py-3 rounded-lg bg-rose-600 text-white text-[16px] font-bold active:bg-rose-700"

@@ -61,7 +61,7 @@ export class CharacterBonusAggregationService {
 
   /**
    * 從角色擁有的能力與物品上，聚合所有 stat_bonuses。
-   * - abilities.stat_bonuses：透過 character_abilities -> abilities 關聯取得
+   * - character_abilities.stat_bonuses：每筆角色能力自帶的數值加成（不再有共用的 abilities 可關聯）
    * - character_items.stat_bonuses：每筆角色物品自帶的數值加成（不再有共用的 global_items 可關聯）
    * - 特殊能力（依 name_en 對應）：需傳入 context（level、classes），計算後併入 bySource 與 totals
    */
@@ -149,23 +149,15 @@ export class CharacterBonusAggregationService {
       // 因此先收集，待能力／物品兩個迴圈跑完再依「base + 其他加值」計算補足差額。
       const pendingFloors: { perSource: any; ability: string; floor: number }[] = []
 
-      // 1. 角色能力 -> abilities（優先使用 character_abilities 的 affects_stats / stat_bonuses 覆寫；個人能力 ability_id 為 null 時只用 row）
+      // 1. 角色能力（每列自足，直接讀 character_abilities 自己的 affects_stats / stat_bonuses）
       const { data: characterAbilities, error: caError } = await supabase
         .from('character_abilities')
         .select(`
           id,
           character_id,
-          ability_id,
           name_override,
           affects_stats,
-          stat_bonuses,
-          ability:abilities(
-            id,
-            name,
-            name_en,
-            affects_stats,
-            stat_bonuses
-          )
+          stat_bonuses
         `)
         .eq('character_id', characterId)
 
@@ -173,14 +165,10 @@ export class CharacterBonusAggregationService {
         console.error('collectSourceBonusesForCharacter: 讀取角色能力失敗:', caError)
       } else if (Array.isArray(characterAbilities)) {
         for (const row of characterAbilities as any[]) {
-          const abilityRaw = Array.isArray(row.ability) ? row.ability[0] : row.ability
-          const hasOverride =
-            (typeof row.affects_stats === 'boolean' && row.affects_stats) ||
-            (row.stat_bonuses && typeof row.stat_bonuses === 'object' && Object.keys(row.stat_bonuses).length > 0)
-          const bonuses = (hasOverride ? row.stat_bonuses : abilityRaw?.stat_bonuses) as any
+          const bonuses = row.stat_bonuses as any
           const effectId = getSpecialEffectId(bonuses)
           const isSpecial = !!(effectId && context)
-          const effectiveAffectsStats = hasOverride ? !!row.affects_stats : !!abilityRaw?.affects_stats
+          const effectiveAffectsStats = !!row.affects_stats
           if (!effectiveAffectsStats && !isSpecial) continue
 
           const hasBonuses = bonuses && typeof bonuses === 'object'
@@ -215,7 +203,7 @@ export class CharacterBonusAggregationService {
           } = {
             id: row.id,
             type: 'ability',
-            name: (row.name_override || abilityRaw.name || '').toString()
+            name: (row.name_override || '').toString()
           }
 
           if (abilityScores && typeof abilityScores === 'object') {

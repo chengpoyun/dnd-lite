@@ -4,6 +4,14 @@
 
 ---
 
+## 2.2.0
+
+- 重構：**特殊能力與法術目錄比照道具（2.0.0）的做法，全面本地化，`abilities`、`spells` 兩張全域資料表整個移除**。「學習特殊能力」「學習法術」不再查詢 DB，改成搜尋兩個本地 JSON 檔：`data/abilities.json`（10 筆能力）、`data/spells.json`（534 筆官方法術，直接整批匯出，未經人工整理）。之後要調整能力/法術目錄，直接改這兩個 JSON 檔、`git push` 後靠 GitHub Actions 自動部署即可。
+- 重構：`character_abilities`、`character_spells` 每一列改成完全自足——移除 `ability_id`／`spell_id` 欄位與對應的 join，原本「DB 目錄能力/法術（可被覆蓋）vs. 純個人能力/法術」的雙軌模式收斂成單一模式，所有欄位一律存在該列自己身上。相關的 `AbilityService`／`SpellService` 函式簽章同步簡化（`unlearnAbility`、`useAbility`、`updateCharacterAbility`、`forgetSpell`、`togglePrepared` 等都改成只認角色列自己的 id，不再需要額外傳 `characterId`/`abilityId`/`spellId` 組合鍵）。
+- 新增：法術搜尋比照道具/能力的既有慣例——輸入搜尋文字時忽略環位篩選，直接在全部 534 筆法術中搜尋（不用先選對環階才找得到）。
+- 遷移：刪表前，先把當時 DB 裡全部（含測試角色）透過 `ability_id`/`spell_id` 外鍵連到 `abilities`/`spells` 的角色資料（9 筆能力 + 57 筆法術，橫跨 3 位真實角色），依它們原本顯示的有效值逐一寫回自己身上、外鍵清成 `null`，並將完整的遷移前備份（含全域目錄表原始內容）存在本機（不進版控，因為 repo 是 public）。確認前後顯示值完全一致後才執行 `DROP TABLE abilities`、`DROP TABLE spells`，角色資料皆完整保留、無遺失。
+- 修正（附帶）：「新增個人能力」原本會靜默丟棄使用者填寫的英文名稱（`name_en_override` 從未被寫入），這次補上寫入邏輯。
+
 ## 2.1.1
 
 - 調整：獲得物品清單裡，已擁有的物品按鈕文字從「獲得」改為「已持有」，讓使用者一眼就能分辨點下去會開啟該物品的詳情、而不是新增一筆物品。行為不變（2.1.0 已改成點下去開啟詳情），這次只是把已擁有/未擁有的按鈕文字區分開來。

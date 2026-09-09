@@ -33,35 +33,33 @@ describe('SpellService - 個人法術', () => {
     vi.clearAllMocks();
   });
 
-  describe('by 組合鍵（未傳 characterSpellId 時，改用 characterId + spellId）', () => {
-    it('forgetSpell：依 character_id + spell_id 刪除', async () => {
+  describe('依 characterSpellId 單一路徑操作（不再有 characterId/spellId 組合鍵）', () => {
+    it('forgetSpell：依 id 刪除', async () => {
       const builder = createChainable({ error: null });
       mockedSupabase.from.mockImplementation((table: string) => {
         if (table === 'character_spells') return builder;
         throw new Error(`Unexpected table: ${table}`);
       });
 
-      await SpellService.forgetSpell('char-1', 'spell-1');
+      await SpellService.forgetSpell('cs-1');
 
-      expect(builder.eq).toHaveBeenNthCalledWith(1, 'character_id', 'char-1');
-      expect(builder.eq).toHaveBeenNthCalledWith(2, 'spell_id', 'spell-1');
+      expect(builder.eq).toHaveBeenCalledWith('id', 'cs-1');
     });
 
-    it('togglePrepared：依 character_id + spell_id 更新準備狀態', async () => {
+    it('togglePrepared：依 id 更新準備狀態', async () => {
       const builder = createChainable({ error: null });
       mockedSupabase.from.mockImplementation((table: string) => {
         if (table === 'character_spells') return builder;
         throw new Error(`Unexpected table: ${table}`);
       });
 
-      await SpellService.togglePrepared('char-1', 'spell-1', true);
+      await SpellService.togglePrepared('cs-1', true);
 
-      expect(builder.eq).toHaveBeenNthCalledWith(1, 'character_id', 'char-1');
-      expect(builder.eq).toHaveBeenNthCalledWith(2, 'spell_id', 'spell-1');
+      expect(builder.eq).toHaveBeenCalledWith('id', 'cs-1');
     });
   });
 
-  it('新增個人法術時，應寫入 character_spells 且 spell_id 為 null', async () => {
+  it('新增個人法術時，應寫入 character_spells，不含 spell_id 欄位（已無此外鍵）', async () => {
     const characterId = 'char-1';
 
     const insertBuilder: SupabaseBuilder = {
@@ -71,7 +69,6 @@ describe('SpellService - 個人法術', () => {
             data: {
               id: 'cs-1',
               character_id: characterId,
-              spell_id: null,
               is_prepared: false
             },
             error: null
@@ -106,7 +103,8 @@ describe('SpellService - 個人法術', () => {
 
     expect(result.success).toBe(true);
     const insertArg = (insertBuilder.insert as Mock).mock.calls[0][0][0];
-    expect(insertArg.spell_id).toBeNull();
+    expect(insertArg).not.toHaveProperty('spell_id');
+    expect(insertArg.character_id).toBe(characterId);
   });
 });
 

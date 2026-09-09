@@ -40,17 +40,12 @@ function buildCharacterAbility(
   return {
     id,
     character_id: 'char-1',
-    ability_id: `ability-${id}`,
     current_uses: 0,
     max_uses: 0,
-    ability: {
-      id: `ability-${id}`,
-      name,
-      name_en: null,
-      description: '',
-      source,
-      recovery_type: '常駐',
-    },
+    name_override: name,
+    description_override: '',
+    source_override: source,
+    recovery_type_override: '常駐',
   };
 }
 

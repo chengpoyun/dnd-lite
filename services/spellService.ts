@@ -1,8 +1,7 @@
 import { supabase } from '../lib/supabase';
-import { byRowIdOrComposite } from './supabaseQueryHelpers';
 
+/** 法術欄位型別（本地目錄 data/spells.json 沿用此欄位命名，見 school） */
 export interface Spell {
-  id: string;
   name: string;
   name_en?: string;
   level: number;
@@ -17,17 +16,14 @@ export interface Spell {
   somatic: boolean;
   material: string;
   description: string;
-  created_at: string;
-  updated_at: string;
 }
 
+/** 角色法術：每列自足，名稱/環階等一律存在 xxx_override 欄位，不再有 spell_id 外鍵指向全域 spells 表 */
 export interface CharacterSpell {
   id: string;
   character_id: string;
-  spell_id: string | null;
   is_prepared: boolean;
   created_at: string;
-  // Override 欄位（角色專屬客製化）
   name_override?: string | null;
   name_en_override?: string | null;
   level_override?: number | null;
@@ -42,8 +38,6 @@ export interface CharacterSpell {
   somatic_override?: boolean | null;
   material_override?: string | null;
   description_override?: string | null;
-  // JOIN 查詢時會包含完整法術資料
-  spell?: Spell | null;
 }
 
 // 帶有 display helper 的 CharacterSpell 類型
@@ -62,12 +56,6 @@ export interface CharacterSpellWithDetails extends CharacterSpell {
   displaySomatic: boolean;
   displayMaterial: string;
   displayDescription: string;
-}
-
-export interface SpellFilters {
-  level?: number;
-  school?: string;
-  searchText?: string;
 }
 
 /** 新增個人法術（直接寫入 character_spells，不經 spells） */
@@ -89,39 +77,7 @@ export interface CreateCharacterSpellData {
 }
 
 /**
- * 取得所有法術（可選篩選條件）
- */
-export async function getAllSpells(filters?: SpellFilters): Promise<Spell[]> {
-  let query = supabase
-    .from('spells')
-    .select('*')
-    .order('level', { ascending: true })
-    .order('name', { ascending: true });
-
-  if (filters?.level !== undefined) {
-    query = query.eq('level', filters.level);
-  }
-
-  if (filters?.school) {
-    query = query.eq('school', filters.school);
-  }
-
-  if (filters?.searchText) {
-    query = query.or(`name.ilike.%${filters.searchText}%,name_en.ilike.%${filters.searchText}%`);
-  }
-
-  const { data, error } = await query;
-
-  if (error) {
-    console.error('取得法術列表失敗:', error);
-    throw error;
-  }
-
-  return data || [];
-}
-
-/**
- * 新增個人法術（直接寫入 character_spells，不建立 spells）
+ * 新增個人法術／從本地法術目錄獲得法術（皆直接寫入 character_spells）
  */
 export async function createCharacterSpell(
   characterId: string,
@@ -155,7 +111,6 @@ export async function createCharacterSpell(
       .from('character_spells')
       .insert([{
         character_id: characterId,
-        spell_id: null,
         is_prepared: false,
         name_override: data.name.trim(),
         name_en_override: data.name_en.trim(),
@@ -193,10 +148,7 @@ export async function createCharacterSpell(
 export async function getCharacterSpells(characterId: string): Promise<CharacterSpell[]> {
   const { data, error } = await supabase
     .from('character_spells')
-    .select(`
-      *,
-      spell:spells(*)
-    `)
+    .select('*')
     .eq('character_id', characterId);
 
   if (error) {
@@ -208,50 +160,13 @@ export async function getCharacterSpells(characterId: string): Promise<Character
 }
 
 /**
- * 角色學習法術
- */
-export async function learnSpell(characterId: string, spellId: string): Promise<CharacterSpell> {
-  const { data, error } = await supabase
-    .from('character_spells')
-    .insert([{
-      character_id: characterId,
-      spell_id: spellId,
-      is_prepared: false
-    }])
-    .select(`
-      *,
-      spell:spells(*)
-    `)
-    .single();
-
-  if (error) {
-    console.error('學習法術失敗:', error);
-    throw error;
-  }
-
-  return data;
-}
-
-/**
  * 角色遺忘法術
  */
-export async function forgetSpell(
-  characterId: string,
-  spellId: string | null,
-  characterSpellId?: string
-): Promise<void> {
-  if (!spellId && !characterSpellId) {
-    throw new Error('角色法術 ID 無效');
-  }
-
-  const query = supabase
+export async function forgetSpell(characterSpellId: string): Promise<void> {
+  const { error } = await supabase
     .from('character_spells')
-    .delete();
-
-  const { error } = await byRowIdOrComposite(query, characterSpellId, [
-    ['character_id', characterId],
-    ['spell_id', spellId],
-  ]);
+    .delete()
+    .eq('id', characterSpellId);
 
   if (error) {
     console.error('遺忘法術失敗:', error);
@@ -262,24 +177,11 @@ export async function forgetSpell(
 /**
  * 切換法術的準備狀態
  */
-export async function togglePrepared(
-  characterId: string,
-  spellId: string | null,
-  isPrepared: boolean,
-  characterSpellId?: string
-): Promise<void> {
-  if (!spellId && !characterSpellId) {
-    throw new Error('角色法術 ID 無效');
-  }
-
-  const query = supabase
+export async function togglePrepared(characterSpellId: string, isPrepared: boolean): Promise<void> {
+  const { error } = await supabase
     .from('character_spells')
-    .update({ is_prepared: isPrepared });
-
-  const { error } = await byRowIdOrComposite(query, characterSpellId, [
-    ['character_id', characterId],
-    ['spell_id', spellId],
-  ]);
+    .update({ is_prepared: isPrepared })
+    .eq('id', characterSpellId);
 
   if (error) {
     console.error('切換準備狀態失敗:', error);
@@ -293,13 +195,10 @@ export async function togglePrepared(
 export async function getPreparedSpellsCount(characterId: string): Promise<number> {
   const { data, error } = await supabase
     .from('character_spells')
-    .select(`
-      is_prepared,
-      spell:spells!inner(level)
-    `)
+    .select('id')
     .eq('character_id', characterId)
     .eq('is_prepared', true)
-    .neq('spell.level', 0); // 排除戲法
+    .neq('level_override', 0); // 排除戲法
 
   if (error) {
     console.error('取得已準備法術數量失敗:', error);
@@ -315,13 +214,10 @@ export async function getPreparedSpellsCount(characterId: string): Promise<numbe
 export async function getPreparedCantripsCount(characterId: string): Promise<number> {
   const { data, error } = await supabase
     .from('character_spells')
-    .select(`
-      is_prepared,
-      spell:spells!inner(level)
-    `)
+    .select('id')
     .eq('character_id', characterId)
     .eq('is_prepared', true)
-    .eq('spell.level', 0); // 只計算戲法
+    .eq('level_override', 0); // 只計算戲法
 
   if (error) {
     console.error('取得已準備戲法數量失敗:', error);
@@ -337,7 +233,7 @@ export async function getPreparedCantripsCount(characterId: string): Promise<num
  */
 export async function updateCharacterSpell(
   characterSpellId: string,
-  updates: Partial<Omit<CharacterSpell, 'id' | 'character_id' | 'spell_id' | 'created_at' | 'spell'>>
+  updates: Partial<Omit<CharacterSpell, 'id' | 'character_id' | 'created_at'>>
 ): Promise<{success: boolean; error?: string}> {
   try {
     const { error } = await supabase
@@ -358,26 +254,24 @@ export async function updateCharacterSpell(
 }
 
 /**
- * 獲取法術的顯示值（優先使用 override 值，否則使用原始值）
+ * 獲取法術的顯示值
  */
 export function getDisplayValues(characterSpell: CharacterSpell): CharacterSpellWithDetails {
-  const spell = characterSpell.spell;
-  
   return {
     ...characterSpell,
-    displayName: characterSpell.name_override ?? spell?.name ?? '',
-    displayNameEn: characterSpell.name_en_override ?? spell?.name_en ?? '',
-    displayLevel: characterSpell.level_override ?? spell?.level ?? 0,
-    displayCastingTime: characterSpell.casting_time_override ?? spell?.casting_time ?? '',
-    displaySchool: characterSpell.school_override ?? spell?.school ?? '塑能',
-    displayConcentration: characterSpell.concentration_override ?? spell?.concentration ?? false,
-    displayRitual: characterSpell.ritual_override ?? spell?.ritual ?? false,
-    displayDuration: characterSpell.duration_override ?? spell?.duration ?? '',
-    displayRange: characterSpell.range_override ?? spell?.range ?? '',
-    displaySource: characterSpell.source_override ?? spell?.source ?? '',
-    displayVerbal: characterSpell.verbal_override ?? spell?.verbal ?? false,
-    displaySomatic: characterSpell.somatic_override ?? spell?.somatic ?? false,
-    displayMaterial: characterSpell.material_override ?? spell?.material ?? '',
-    displayDescription: characterSpell.description_override ?? spell?.description ?? ''
+    displayName: characterSpell.name_override ?? '',
+    displayNameEn: characterSpell.name_en_override ?? '',
+    displayLevel: characterSpell.level_override ?? 0,
+    displayCastingTime: characterSpell.casting_time_override ?? '',
+    displaySchool: characterSpell.school_override ?? '塑能',
+    displayConcentration: characterSpell.concentration_override ?? false,
+    displayRitual: characterSpell.ritual_override ?? false,
+    displayDuration: characterSpell.duration_override ?? '',
+    displayRange: characterSpell.range_override ?? '',
+    displaySource: characterSpell.source_override ?? '',
+    displayVerbal: characterSpell.verbal_override ?? false,
+    displaySomatic: characterSpell.somatic_override ?? false,
+    displayMaterial: characterSpell.material_override ?? '',
+    displayDescription: characterSpell.description_override ?? ''
   };
 }

@@ -13,19 +13,11 @@ const mockCharacterAbilitiesWithStrAdvantage = [
   {
     id: 'ca-1',
     character_id: CHARACTER_ID,
-    ability_id: 'ab-1',
-    name_override: null,
+    name_override: '警覺',
     affects_stats: true,
     stat_bonuses: {
       savingThrowAdvantage: ['str'],
       skillAdvantage: ['察覺'],
-    },
-    ability: {
-      id: 'ab-1',
-      name: '警覺',
-      name_en: 'Alert',
-      affects_stats: true,
-      stat_bonuses: { savingThrowAdvantage: ['str'], skillAdvantage: ['察覺'] },
     },
   },
 ];
@@ -34,19 +26,11 @@ const mockCharacterAbilitiesWithStrDisadvantage = [
   {
     id: 'ca-2',
     character_id: CHARACTER_ID,
-    ability_id: 'ab-2',
-    name_override: null,
+    name_override: '詛咒',
     affects_stats: true,
     stat_bonuses: {
       savingThrowDisadvantage: ['str'],
       skillDisadvantage: ['隱匿'],
-    },
-    ability: {
-      id: 'ab-2',
-      name: '詛咒',
-      name_en: 'Curse',
-      affects_stats: true,
-      stat_bonuses: { savingThrowDisadvantage: ['str'], skillDisadvantage: ['隱匿'] },
     },
   },
 ];

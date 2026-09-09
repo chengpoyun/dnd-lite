@@ -11,13 +11,11 @@ function buildCharacterSpell(description: string): CharacterSpell {
   return {
     id: 'cs-1',
     character_id: 'char-1',
-    spell_id: null,
     is_prepared: true,
     created_at: new Date().toISOString(),
     name_override: '測試法術',
     description_override: description,
-    spell: null,
-  } as any;
+  };
 }
 
 describe('SpellDetailModal - 描述欄位 Markdown 超連結樣式與開新分頁', () => {

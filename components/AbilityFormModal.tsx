@@ -39,25 +39,14 @@ export const AbilityFormModal: React.FC<AbilityFormModalProps> = ({
   useEffect(() => {
     if (editingAbility) {
       const display = getDisplayValues(editingAbility);
-      const ca: any = editingAbility as any;
-      const abilityRaw: any = (editingAbility as any).ability;
-      const overrideBonuses = ca.stat_bonuses;
-      const hasOverrideStats =
-        (typeof ca.affects_stats === 'boolean' && ca.affects_stats) ||
-        (overrideBonuses && typeof overrideBonuses === 'object' && Object.keys(overrideBonuses).length > 0);
       setFormData({
         name: display.name,
         name_en: display.name_en || '',
         description: display.description,
         source: display.source,
         recovery_type: display.recovery_type,
-        // 有角色專屬覆寫時，優先使用 character_abilities 上的欄位；否則回退到 abilities 表
-        affects_stats: hasOverrideStats
-          ? (ca.affects_stats ?? false)
-          : (abilityRaw?.affects_stats ?? false),
-        stat_bonuses: hasOverrideStats
-          ? (overrideBonuses ?? {})
-          : ((abilityRaw?.stat_bonuses ?? {}) || {}),
+        affects_stats: editingAbility.affects_stats ?? false,
+        stat_bonuses: (editingAbility.stat_bonuses as CreateAbilityData['stat_bonuses']) ?? {},
       });
       setMaxUses(editingAbility.max_uses);
     } else {

@@ -20,12 +20,10 @@ vi.mock('../../services/abilityService', async (importOriginal) => {
   return {
     ...actual,
     getCharacterAbilities: vi.fn(),
-    getAllAbilities: vi.fn(),
   };
 });
 
 const mockGetCharacterAbilities = vi.mocked(AbilityService.getCharacterAbilities);
-const mockGetAllAbilities = vi.mocked(AbilityService.getAllAbilities);
 
 function buildCharacterAbility(
   id: string,
@@ -36,24 +34,18 @@ function buildCharacterAbility(
   return {
     id,
     character_id: 'char-1',
-    ability_id: `ability-${id}`,
     current_uses: 0,
     max_uses: 0,
-    ability: {
-      id: `ability-${id}`,
-      name,
-      name_en: null,
-      description,
-      source,
-      recovery_type: '常駐',
-    },
+    name_override: name,
+    description_override: description,
+    source_override: source,
+    recovery_type_override: '常駐',
   };
 }
 
 describe('AbilitiesPage - 搜尋列', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockGetAllAbilities.mockResolvedValue([]);
   });
 
   const abilities: CharacterAbilityWithDetails[] = [

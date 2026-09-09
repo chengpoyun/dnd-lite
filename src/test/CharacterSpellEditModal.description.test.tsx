@@ -4,7 +4,7 @@
  */
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import type { CharacterSpell, Spell } from '../../services/spellService';
+import type { CharacterSpell } from '../../services/spellService';
 
 const updateCharacterSpellMock = vi.fn().mockResolvedValue({ success: true });
 
@@ -18,34 +18,25 @@ vi.mock('../../services/spellService', async (importOriginal) => {
 
 import { CharacterSpellEditModal } from '../../components/CharacterSpellEditModal';
 
-const mockSpell: Spell = {
-  id: 'spell-1',
-  name: '火球術',
-  name_en: 'Fireball',
-  level: 3,
-  casting_time: '1 動作',
-  school: '塑能',
-  concentration: false,
-  ritual: false,
-  duration: '即時',
-  range: '150 呎',
-  source: '法師',
-  verbal: true,
-  somatic: true,
-  material: '蝙蝠糞與硫磺',
-  description: '爆炸範圍內造成傷害',
-  created_at: '',
-  updated_at: '',
-};
-
 const mockCharacterSpell: CharacterSpell = {
   id: 'cs-1',
   character_id: 'c1',
-  spell_id: 'spell-1',
   is_prepared: true,
   created_at: '',
+  name_override: '火球術',
+  name_en_override: 'Fireball',
+  level_override: 3,
+  casting_time_override: '1 動作',
+  school_override: '塑能',
+  concentration_override: false,
+  ritual_override: false,
+  duration_override: '即時',
+  range_override: '150 呎',
+  source_override: '法師',
+  verbal_override: true,
+  somatic_override: true,
+  material_override: '蝙蝠糞與硫磺',
   description_override: '原本的法術效果',
-  spell: mockSpell,
 };
 
 describe('CharacterSpellEditModal - description 清空儲存', () => {

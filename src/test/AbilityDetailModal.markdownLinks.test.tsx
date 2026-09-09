@@ -11,17 +11,14 @@ function buildCharacterAbility(description: string): CharacterAbilityWithDetails
   return {
     id: 'ca-1',
     character_id: 'char-1',
-    ability_id: 'abil-1',
     current_uses: 0,
     max_uses: 0,
-    ability: {
-      name: '一般能力',
-      name_en: 'other',
-      description,
-      source: '其他',
-      recovery_type: '常駐',
-    },
-  } as any;
+    name_override: '一般能力',
+    name_en_override: 'other',
+    description_override: description,
+    source_override: '其他',
+    recovery_type_override: '常駐',
+  };
 }
 
 describe('AbilityDetailModal - 描述欄位 Markdown 超連結樣式與開新分頁', () => {

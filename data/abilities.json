@@ -1,0 +1,94 @@
+[
+  {
+    "name": "健壯",
+    "nameEn": "tough",
+    "description": "額外增加 總等級*2 的最大生命值。",
+    "source": "專長",
+    "recoveryType": "常駐",
+    "affectsStats": true,
+    "statBonuses": {
+      "specialEffectId": "tough"
+    }
+  },
+  {
+    "name": "傷害抗性",
+    "nameEn": "Damage Resistance",
+    "description": "選擇一種傷害抗性",
+    "source": "種族",
+    "recoveryType": "常駐",
+    "affectsStats": false,
+    "statBonuses": {}
+  },
+  {
+    "name": "劍歌",
+    "nameEn": "Bladesong",
+    "description": "你可咒喚一種名喚\"劍歌\"的精靈魔法，前提是你必須未著裝中甲、重甲，也未使用盾牌。這一魔法將使你獲得超乎尋常的速度、敏捷與專注。\n\n你可以用一個附贈動作啟動劍歌，並使之維持1分鐘。當你陷入無力或完成中甲、重甲、盾牌的著裝，又或者用雙手發動一次攻擊時，你的劍歌將提前終止。你也可以隨時隨意的解除劍歌（不需要動作）。\n\n在劍歌激活期間，你獲得下列好處：\n- 你的AC獲得等同於你智力調整值的加值（最少+1）。\n- 你的步行速度增加10尺。\n- 你在敏捷（體操）檢定上具有優勢。\n- 你在用以維持法術專注時所進行的任何體質豁免中獲得加值。這個加值等同於你的智力調整值（最少+1）。\n你能使用本特性的次數等於你的熟練加值。你在完成一次長休後恢復所有消耗掉的使用次數。",
+    "source": "職業",
+    "recoveryType": "長休",
+    "affectsStats": false,
+    "statBonuses": {}
+  },
+  {
+    "name": "噴吐武器",
+    "nameEn": "Breath Weapon",
+    "description": "你可以使用你的動作以呼出毀滅性的能量。你的龍族血統決定了這個吐息的尺寸、形狀、以及傷害類型。\n當你使用你的噴吐武器時，每個在吐息範圍內的生物都必須進行一次豁免檢定，其豁免屬行由你的龍族血統決定。這個豁免檢定的DC等同於8 + 你的體質調整值 + 你的熟練加值。一個豁免失敗的生物將受到2d6傷害，豁免成功則只受到一半的傷害。這個傷害將在你的等級升至6級時增加至3d6，11級時4d6，以及16級時5d6。\n\n在你使用你的噴吐武器之後，直到完成一次短休或長休之前，你都不能再使用它。",
+    "source": "種族",
+    "recoveryType": "短休",
+    "affectsStats": false,
+    "statBonuses": {}
+  },
+  {
+    "name": "奧術恢復",
+    "nameEn": "Arcane Recovery",
+    "description": "你學會了通過研讀法術書來恢復失去魔法能量的方法。每天一次，當你完成一次短休時，你可以選擇已消耗的法術位來恢復。這些法術位的環階總和必須小於或等於你法師等級的一半（小數點進位），且每個法術位都不能為6環或更高。\n\n舉例來說，若你是個4級法師，你可以恢復最多共計2個環階的法術位。\n你可以恢復一個2環法術位，或選擇恢復二個1環法術位。",
+    "source": "職業",
+    "recoveryType": "短休",
+    "affectsStats": false,
+    "statBonuses": {}
+  },
+  {
+    "name": "學者",
+    "nameEn": "Scholar",
+    "description": "在學習魔法的同時，你也專攻了另一個領域。請從以下你已熟練的技能中選擇一項：奧術、歷史、調查、醫學、自然或宗教。你擁有所選技能的專精等級。",
+    "source": "職業",
+    "recoveryType": "常駐",
+    "affectsStats": false,
+    "statBonuses": {}
+  },
+  {
+    "name": "屬性提升",
+    "nameEn": "Ability Score Improvement",
+    "description": "任選一項屬性值+2，或兩項屬性值各+1",
+    "source": "職業",
+    "recoveryType": "常駐",
+    "affectsStats": false,
+    "statBonuses": {}
+  },
+  {
+    "name": "強勢存在",
+    "nameEn": "Forceful Presence",
+    "description": "你可以運用你對創意外交或威嚇的理解，引導對話朝著對你有利的方向發展。當你進行魅力（威嚇或說服）檢定時，你可以獲得優勢。一旦你使用此特性，你必須完成一次短暫休息或長休息才能再次使用。",
+    "source": "種族",
+    "recoveryType": "短休",
+    "affectsStats": false,
+    "statBonuses": {}
+  },
+  {
+    "name": "黑暗視覺",
+    "nameEn": "Darkvision",
+    "description": "在60英尺範圍內，即使在昏暗的光線下，你的視力也如同在明亮的光線下一樣；在黑暗中，你的視力也如同在昏暗的光線下一樣。在黑暗中，你無法分辨顏色，只能看到灰色的陰影。",
+    "source": "種族",
+    "recoveryType": "常駐",
+    "affectsStats": false,
+    "statBonuses": {}
+  },
+  {
+    "name": "龍裔（龍國血統）",
+    "nameEn": "Dragonborn(Draconblood)",
+    "description": "智力+2，魅力+1",
+    "source": "種族",
+    "recoveryType": "常駐",
+    "affectsStats": false,
+    "statBonuses": {}
+  }
+]

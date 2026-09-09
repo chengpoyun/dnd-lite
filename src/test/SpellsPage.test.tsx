@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { SpellsPage } from '../../components/SpellsPage';
 import * as spellService from '../../services/spellService';
-import type { CharacterSpell, Spell } from '../../services/spellService';
+import type { CharacterSpell } from '../../services/spellService';
 import type { ClassInfo } from '../../types';
 
 vi.mock('../../services/spellService', async (importOriginal) => {
@@ -12,8 +12,6 @@ vi.mock('../../services/spellService', async (importOriginal) => {
     getCharacterSpells: vi.fn(),
     getPreparedSpellsCount: vi.fn(),
     getPreparedCantripsCount: vi.fn(),
-    getAllSpells: vi.fn(),
-    learnSpell: vi.fn(),
     togglePrepared: vi.fn(),
   };
 });
@@ -21,7 +19,6 @@ vi.mock('../../services/spellService', async (importOriginal) => {
 const mockGetCharacterSpells = vi.mocked(spellService.getCharacterSpells);
 const mockGetPreparedSpellsCount = vi.mocked(spellService.getPreparedSpellsCount);
 const mockGetPreparedCantripsCount = vi.mocked(spellService.getPreparedCantripsCount);
-const mockGetAllSpells = vi.mocked(spellService.getAllSpells);
 const mockTogglePrepared = vi.mocked(spellService.togglePrepared);
 
 const defaultProps = {
@@ -30,34 +27,25 @@ const defaultProps = {
   intelligenceModifier: 2,
 };
 
-const createMockSpell = (overrides?: Partial<Spell>): Spell => ({
-  id: 'spell-1',
-  name: '火球術',
-  name_en: 'Fireball',
-  level: 1,
-  casting_time: '動作',
-  school: '塑能',
-  concentration: false,
-  ritual: false,
-  duration: '即效',
-  range: '150尺',
-  source: 'PHB',
-  verbal: true,
-  somatic: true,
-  material: '',
-  description: '...',
-  created_at: '',
-  updated_at: '',
-  ...overrides,
-});
-
 const createMockCharacterSpell = (overrides?: Partial<CharacterSpell>): CharacterSpell => ({
   id: 'cs-1',
   character_id: 'char-1',
-  spell_id: 'spell-1',
   is_prepared: false,
   created_at: '',
-  spell: createMockSpell(),
+  name_override: '火球術',
+  name_en_override: 'Fireball',
+  level_override: 1,
+  casting_time_override: '動作',
+  school_override: '塑能',
+  concentration_override: false,
+  ritual_override: false,
+  duration_override: '即效',
+  range_override: '150尺',
+  source_override: 'PHB',
+  verbal_override: true,
+  somatic_override: true,
+  material_override: '',
+  description_override: '...',
   ...overrides,
 });
 
@@ -67,7 +55,6 @@ describe('SpellsPage', () => {
     mockGetCharacterSpells.mockResolvedValue([]);
     mockGetPreparedSpellsCount.mockResolvedValue(0);
     mockGetPreparedCantripsCount.mockResolvedValue(0);
-    mockGetAllSpells.mockResolvedValue([]);
   });
 
   it('載入後顯示「我的法術書」與可準備數量（依智力調整值與施法等級）', async () => {
@@ -145,8 +132,7 @@ describe('SpellsPage', () => {
   });
 
   it('已達可準備上限時點準備會打開超出上限警告 modal', async () => {
-    const spell = createMockCharacterSpell({ id: 'cs-1', is_prepared: false });
-    spell.spell = createMockSpell({ level: 1 });
+    const spell = createMockCharacterSpell({ id: 'cs-1', is_prepared: false, level_override: 1 });
     mockGetCharacterSpells.mockResolvedValue([spell]);
     mockGetPreparedSpellsCount.mockResolvedValue(1);
     mockGetPreparedCantripsCount.mockResolvedValue(0);
@@ -175,8 +161,7 @@ describe('SpellsPage', () => {
   });
 
   it('超出上限警告 modal 點取消會關閉', async () => {
-    const spell = createMockCharacterSpell({ is_prepared: false });
-    spell.spell = createMockSpell({ level: 1 });
+    const spell = createMockCharacterSpell({ is_prepared: false, level_override: 1 });
     mockGetCharacterSpells.mockResolvedValue([spell]);
     mockGetPreparedSpellsCount.mockResolvedValue(1);
     mockGetPreparedCantripsCount.mockResolvedValue(0);
@@ -205,8 +190,7 @@ describe('SpellsPage', () => {
 
   it('超出上限警告 modal 點確定會呼叫 togglePrepared 並關閉', async () => {
     mockTogglePrepared.mockResolvedValue(undefined);
-    const spell = createMockCharacterSpell({ is_prepared: false });
-    spell.spell = createMockSpell({ level: 1 });
+    const spell = createMockCharacterSpell({ is_prepared: false, level_override: 1 });
     mockGetCharacterSpells.mockResolvedValue([spell]);
     mockGetPreparedSpellsCount.mockResolvedValue(1);
     mockGetPreparedCantripsCount.mockResolvedValue(0);
@@ -229,7 +213,7 @@ describe('SpellsPage', () => {
     fireEvent.click(screen.getByText('確定'));
 
     await waitFor(() => {
-      expect(mockTogglePrepared).toHaveBeenCalledWith('char-1', 'spell-1', true, 'cs-1');
+      expect(mockTogglePrepared).toHaveBeenCalledWith('cs-1', true);
     });
   });
 });

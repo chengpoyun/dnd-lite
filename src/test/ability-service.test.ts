@@ -35,64 +35,59 @@ describe('AbilityService - 個人能力', () => {
     vi.clearAllMocks();
   });
 
-  describe('by 組合鍵（未傳 characterAbilityId 時，改用 characterId + abilityId）', () => {
-    it('unlearnAbility：依 character_id + ability_id 刪除', async () => {
+  describe('依 characterAbilityId 單一路徑操作（不再有 characterId/abilityId 組合鍵）', () => {
+    it('unlearnAbility：依 id 刪除', async () => {
       const builder = createChainable({ error: null });
       mockedSupabase.from.mockImplementation((table: string) => {
         if (table === 'character_abilities') return builder;
         throw new Error(`Unexpected table: ${table}`);
       });
 
-      await AbilityService.unlearnAbility('char-1', 'ability-1');
+      await AbilityService.unlearnAbility('ca-1');
 
-      expect(builder.eq).toHaveBeenNthCalledWith(1, 'character_id', 'char-1');
-      expect(builder.eq).toHaveBeenNthCalledWith(2, 'ability_id', 'ability-1');
+      expect(builder.eq).toHaveBeenCalledWith('id', 'ca-1');
     });
 
-    it('useAbility：依 character_id + ability_id 查詢並扣除次數', async () => {
+    it('useAbility：依 id 查詢並扣除次數', async () => {
       const fetchBuilder = createChainable({ data: { current_uses: 2 }, error: null });
       const updateBuilder = createChainable({ data: { id: 'ca-1', current_uses: 1 }, error: null });
       mockedSupabase.from
         .mockImplementationOnce(() => fetchBuilder)
         .mockImplementationOnce(() => updateBuilder);
 
-      const result = await AbilityService.useAbility('char-1', 'ability-1');
+      const result = await AbilityService.useAbility('ca-1');
 
-      expect(fetchBuilder.eq).toHaveBeenNthCalledWith(1, 'character_id', 'char-1');
-      expect(fetchBuilder.eq).toHaveBeenNthCalledWith(2, 'ability_id', 'ability-1');
-      expect(updateBuilder.eq).toHaveBeenNthCalledWith(1, 'character_id', 'char-1');
-      expect(updateBuilder.eq).toHaveBeenNthCalledWith(2, 'ability_id', 'ability-1');
+      expect(fetchBuilder.eq).toHaveBeenCalledWith('id', 'ca-1');
+      expect(updateBuilder.eq).toHaveBeenCalledWith('id', 'ca-1');
       expect(result.current_uses).toBe(1);
     });
 
-    it('updateAbilityMaxUses：依 character_id + ability_id 更新最大次數', async () => {
+    it('updateAbilityMaxUses：依 id 更新最大次數', async () => {
       const builder = createChainable({ data: { id: 'ca-1', max_uses: 5 }, error: null });
       mockedSupabase.from.mockImplementation((table: string) => {
         if (table === 'character_abilities') return builder;
         throw new Error(`Unexpected table: ${table}`);
       });
 
-      await AbilityService.updateAbilityMaxUses('char-1', 'ability-1', 5);
+      await AbilityService.updateAbilityMaxUses('ca-1', 5);
 
-      expect(builder.eq).toHaveBeenNthCalledWith(1, 'character_id', 'char-1');
-      expect(builder.eq).toHaveBeenNthCalledWith(2, 'ability_id', 'ability-1');
+      expect(builder.eq).toHaveBeenCalledWith('id', 'ca-1');
     });
 
-    it('updateCharacterAbility：未傳 characterAbilityId 時依 character_id + ability_id 更新', async () => {
+    it('updateCharacterAbility：依 id 更新', async () => {
       const builder = createChainable({ data: { id: 'ca-1' }, error: null });
       mockedSupabase.from.mockImplementation((table: string) => {
         if (table === 'character_abilities') return builder;
         throw new Error(`Unexpected table: ${table}`);
       });
 
-      await AbilityService.updateCharacterAbility('char-1', 'ability-1', { max_uses: 3 });
+      await AbilityService.updateCharacterAbility('ca-1', { max_uses: 3 });
 
-      expect(builder.eq).toHaveBeenNthCalledWith(1, 'character_id', 'char-1');
-      expect(builder.eq).toHaveBeenNthCalledWith(2, 'ability_id', 'ability-1');
+      expect(builder.eq).toHaveBeenCalledWith('id', 'ca-1');
     });
   });
 
-  it('新增個人能力時，應寫入 character_abilities 且 ability_id 為 null', async () => {
+  it('新增個人能力時，應寫入 character_abilities，不含 ability_id 欄位（已無此外鍵）', async () => {
     const characterId = 'char-1';
 
     const insertBuilder: SupabaseBuilder = {
@@ -102,7 +97,6 @@ describe('AbilityService - 個人能力', () => {
             data: {
               id: 'ca-1',
               character_id: characterId,
-              ability_id: null,
               current_uses: 1,
               max_uses: 1
             },
@@ -129,7 +123,8 @@ describe('AbilityService - 個人能力', () => {
     expect(result.success).toBe(true);
     expect((insertBuilder.insert as Mock)).toHaveBeenCalled();
     const insertArg = (insertBuilder.insert as Mock).mock.calls[0][0][0];
-    expect(insertArg.ability_id).toBeNull();
+    expect(insertArg).not.toHaveProperty('ability_id');
+    expect(insertArg.character_id).toBe(characterId);
   });
 
   describe('updateCharacterAbilityOrder（共用 utils/fractionalOrder 的排序對照表寫入）', () => {
@@ -184,39 +179,28 @@ describe('AbilityService - 個人能力', () => {
   });
 
   describe('getDisplayValues', () => {
-    it('當 description_override 為空字串時，顯示值應為空字串而非能力原始描述', () => {
+    it('當 description_override 為空字串時，顯示值為空字串', () => {
       const charAbility = {
         id: 'ca-1',
         character_id: 'c1',
-        ability_id: 'a1',
-        name_override: null,
-        name_en_override: null,
+        name_override: '偷襲',
+        name_en_override: 'Sneak Attack',
         description_override: '',
-        source_override: null,
-        recovery_type_override: null,
-        ability: {
-          id: 'a1',
-          name: '偷襲',
-          name_en: 'Sneak Attack',
-          description: '造成額外傷害',
-          source: '職業',
-          recovery_type: '常駐',
-        },
+        source_override: '職業',
+        recovery_type_override: '常駐',
       } as any;
       const display = AbilityService.getDisplayValues(charAbility);
       expect(display.description).toBe('');
     });
 
-    it('當 description_override 為 null 時，顯示能力原始描述', () => {
+    it('當 description_override 為 null 時，顯示值為空字串（不再有全域能力可回退）', () => {
       const charAbility = {
         id: 'ca-1',
         character_id: 'c1',
-        ability_id: 'a1',
         description_override: null,
-        ability: { id: 'a1', name: '偷襲', description: '造成額外傷害', source: '職業', recovery_type: '常駐' },
       } as any;
       const display = AbilityService.getDisplayValues(charAbility);
-      expect(display.description).toBe('造成額外傷害');
+      expect(display.description).toBe('');
     });
   });
 
@@ -239,12 +223,7 @@ describe('AbilityService - 個人能力', () => {
         throw new Error(`Unexpected table: ${table}`);
       });
 
-      await AbilityService.updateCharacterAbility(
-        'char-1',
-        'ability-1',
-        { description: '' },
-        'ca-1'
-      );
+      await AbilityService.updateCharacterAbility('ca-1', { description: '' });
 
       expect((updateBuilder.update as Mock)).toHaveBeenCalledWith(
         expect.objectContaining({ description_override: '' })

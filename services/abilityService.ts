@@ -1,17 +1,10 @@
 import { supabase } from '../lib/supabase';
-import type { Ability, CharacterAbility, CharacterAbilityWithDetails } from '../lib/supabase';
-import { byRowIdOrComposite } from './supabaseQueryHelpers';
+import type { CharacterAbility, CharacterAbilityWithDetails } from '../lib/supabase';
 
 /** 能力來源顯示順序（篩選、表單選單、標籤等依此順序） */
 export const ABILITY_SOURCE_ORDER = ['職業', '種族', '裝備', '專長', '背景', '其他'] as const;
 
 export type AbilitySource = (typeof ABILITY_SOURCE_ORDER)[number];
-
-export interface AbilityFilters {
-  source?: AbilitySource;
-  recoveryType?: '常駐' | '短休' | '長休';
-  searchText?: string;
-}
 
 export interface CreateAbilityData {
   name: string;
@@ -46,7 +39,7 @@ export interface CreateAbilityData {
   };
 }
 
-/** 新增個人能力（直接寫入 character_abilities，不經 abilities） */
+/** 新增個人能力（直接寫入 character_abilities） */
 export interface CreateCharacterAbilityData {
   name: string;
   name_en: string;
@@ -54,42 +47,14 @@ export interface CreateCharacterAbilityData {
   recovery_type: '常駐' | '短休' | '長休';
   description?: string;
   max_uses?: number;
+  /** 此能力是否影響角色數值（從本地能力目錄「獲得」時可能帶入） */
+  affects_stats?: boolean;
+  /** 此能力提供的數值加成定義（從本地能力目錄「獲得」時可能帶入） */
+  stat_bonuses?: CreateAbilityData['stat_bonuses'];
 }
 
 /**
- * 取得所有特殊能力（可選篩選條件）
- */
-export async function getAllAbilities(filters?: AbilityFilters): Promise<Ability[]> {
-  let query = supabase
-    .from('abilities')
-    .select('*')
-    .order('name', { ascending: true });
-
-  if (filters?.source) {
-    query = query.eq('source', filters.source);
-  }
-
-  if (filters?.recoveryType) {
-    query = query.eq('recovery_type', filters.recoveryType);
-  }
-
-  if (filters?.searchText) {
-    // 搜尋中英文名稱
-    query = query.or(`name.ilike.%${filters.searchText}%,name_en.ilike.%${filters.searchText}%`);
-  }
-
-  const { data, error } = await query;
-
-  if (error) {
-    console.error('取得特殊能力列表失敗:', error);
-    throw error;
-  }
-
-  return data || [];
-}
-
-/**
- * 新增個人能力（直接寫入 character_abilities，不建立 abilities）
+ * 新增個人能力／從本地能力目錄獲得能力（皆直接寫入 character_abilities）
  * 必填：name、source、recovery_type；選填：description、max_uses（預設依 recovery_type）
  */
 export async function createCharacterAbility(
@@ -111,18 +76,22 @@ export async function createCharacterAbility(
     const defaultMaxUses = data.recovery_type === '常駐' ? 0 : 1;
     const maxUses = data.max_uses ?? defaultMaxUses;
 
-    const { data: row, error } = await supabase
+    const row: Record<string, unknown> = {
+      character_id: characterId,
+      current_uses: maxUses,
+      max_uses: maxUses,
+      name_override: data.name.trim(),
+      name_en_override: data.name_en?.trim() || null,
+      description_override: data.description?.trim() ?? '',
+      source_override: data.source,
+      recovery_type_override: data.recovery_type,
+    };
+    if (data.affects_stats !== undefined) row.affects_stats = data.affects_stats;
+    if (data.stat_bonuses !== undefined) row.stat_bonuses = data.stat_bonuses;
+
+    const { data: insertedRow, error } = await supabase
       .from('character_abilities')
-      .insert([{
-        character_id: characterId,
-        ability_id: null,
-        current_uses: maxUses,
-        max_uses: maxUses,
-        name_override: data.name.trim(),
-        description_override: data.description?.trim() ?? '',
-        source_override: data.source,
-        recovery_type_override: data.recovery_type
-      }])
+      .insert([row])
       .select()
       .single();
 
@@ -131,7 +100,7 @@ export async function createCharacterAbility(
       return { success: false, error: error.message };
     }
 
-    return { success: true, item: row };
+    return { success: true, item: insertedRow };
   } catch (error) {
     console.error('新增個人能力異常:', error);
     return { success: false, error: '新增個人能力時發生錯誤' };
@@ -140,49 +109,12 @@ export async function createCharacterAbility(
 
 
 /**
- * 更新特殊能力
- */
-export async function updateAbility(abilityId: string, updates: Partial<CreateAbilityData>): Promise<Ability> {
-  const { data, error } = await supabase
-    .from('abilities')
-    .update(updates)
-    .eq('id', abilityId)
-    .select()
-    .single();
-
-  if (error) {
-    console.error('更新特殊能力失敗:', error);
-    throw error;
-  }
-
-  return data;
-}
-
-/**
- * 刪除特殊能力
- */
-export async function deleteAbility(abilityId: string): Promise<void> {
-  const { error } = await supabase
-    .from('abilities')
-    .delete()
-    .eq('id', abilityId);
-
-  if (error) {
-    console.error('刪除特殊能力失敗:', error);
-    throw error;
-  }
-}
-
-/**
- * 取得角色已學習的特殊能力（含能力詳情），依 sort_order 升序，無值則依 created_at 降序
+ * 取得角色已學習的特殊能力，依 sort_order 升序，無值則依 created_at 降序
  */
 export async function getCharacterAbilities(characterId: string): Promise<CharacterAbilityWithDetails[]> {
   const { data, error } = await supabase
     .from('character_abilities')
-    .select(`
-      *,
-      ability:abilities(id, name, name_en, description, source, recovery_type, affects_stats, stat_bonuses, created_at, updated_at)
-    `)
+    .select('*')
     .eq('character_id', characterId)
     .order('sort_order', { ascending: true, nullsFirst: false })
     .order('created_at', { ascending: false });
@@ -192,85 +124,17 @@ export async function getCharacterAbilities(characterId: string): Promise<Charac
     throw error;
   }
 
-  // 處理 JOIN 返回的數據結構
-  const result = (data || []).map(item => {
-    const ability = Array.isArray(item.ability) ? item.ability[0] : item.ability;
-    return {
-      ...item,
-      ability: ability ?? null
-    };
-  });
-
-  return result;
-}
-
-/**
- * 角色學習特殊能力：先從 abilities 取得全域資料，再寫入 character_abilities（含覆寫欄位初始值）
- */
-export async function learnAbility(
-  characterId: string,
-  abilityId: string,
-  maxUses: number = 0
-): Promise<CharacterAbility> {
-  const { data: ability, error: fetchError } = await supabase
-    .from('abilities')
-    .select('id, name, name_en, description, source, recovery_type, affects_stats, stat_bonuses')
-    .eq('id', abilityId)
-    .single();
-
-  if (fetchError || !ability) {
-    console.error('學習特殊能力：取得能力資料失敗', fetchError);
-    throw fetchError ?? new Error('找不到該能力');
-  }
-
-  const row: Record<string, unknown> = {
-    character_id: characterId,
-    ability_id: abilityId,
-    current_uses: maxUses,
-    max_uses: maxUses,
-    name_override: ability.name ?? null,
-    name_en_override: ability.name_en ?? null,
-    description_override: ability.description ?? null,
-    source_override: ability.source ?? null,
-    recovery_type_override: ability.recovery_type ?? null,
-    affects_stats: ability.affects_stats ?? false,
-    stat_bonuses: ability.stat_bonuses ?? {},
-  };
-
-  const { data, error } = await supabase
-    .from('character_abilities')
-    .insert([row])
-    .select()
-    .single();
-
-  if (error) {
-    console.error('學習特殊能力失敗:', error);
-    throw error;
-  }
-
-  return data;
+  return data || [];
 }
 
 /**
  * 角色移除特殊能力
  */
-export async function unlearnAbility(
-  characterId: string,
-  abilityId: string | null,
-  characterAbilityId?: string
-): Promise<void> {
-  if (!abilityId && !characterAbilityId) {
-    throw new Error('角色能力 ID 無效');
-  }
-
-  const query = supabase
+export async function unlearnAbility(characterAbilityId: string): Promise<void> {
+  const { error } = await supabase
     .from('character_abilities')
-    .delete();
-
-  const { error } = await byRowIdOrComposite(query, characterAbilityId, [
-    ['character_id', characterId],
-    ['ability_id', abilityId],
-  ]);
+    .delete()
+    .eq('id', characterAbilityId);
 
   if (error) {
     console.error('移除特殊能力失敗:', error);
@@ -281,23 +145,12 @@ export async function unlearnAbility(
 /**
  * 使用特殊能力（扣除次數）
  */
-export async function useAbility(
-  characterId: string,
-  abilityId: string | null,
-  characterAbilityId?: string
-): Promise<CharacterAbility> {
-  if (!abilityId && !characterAbilityId) {
-    throw new Error('角色能力 ID 無效');
-  }
-
-  const fetchQuery = supabase
+export async function useAbility(characterAbilityId: string): Promise<CharacterAbility> {
+  const { data: current, error: fetchError } = await supabase
     .from('character_abilities')
-    .select('*');
-
-  const { data: current, error: fetchError } = await byRowIdOrComposite(fetchQuery, characterAbilityId, [
-    ['character_id', characterId],
-    ['ability_id', abilityId],
-  ]).single();
+    .select('*')
+    .eq('id', characterAbilityId)
+    .single();
 
   if (fetchError || !current) {
     console.error('取得特殊能力使用記錄失敗:', fetchError);
@@ -308,15 +161,12 @@ export async function useAbility(
     throw new Error('特殊能力使用次數已用盡');
   }
 
-  // 扣除次數
-  const updateQuery = supabase
+  const { data, error } = await supabase
     .from('character_abilities')
-    .update({ current_uses: current.current_uses - 1 });
-
-  const { data, error } = await byRowIdOrComposite(updateQuery, characterAbilityId, [
-    ['character_id', characterId],
-    ['ability_id', abilityId],
-  ]).select().single();
+    .update({ current_uses: current.current_uses - 1 })
+    .eq('id', characterAbilityId)
+    .select()
+    .single();
 
   if (error) {
     console.error('使用特殊能力失敗:', error);
@@ -333,13 +183,9 @@ export async function resetAbilityUses(
   characterId: string,
   recoveryType: '短休' | '長休'
 ): Promise<void> {
-  // 取得該角色所有符合恢復條件的能力
   const { data: characterAbilities, error: fetchError } = await supabase
     .from('character_abilities')
-    .select(`
-      *,
-      ability:abilities(*)
-    `)
+    .select('*')
     .eq('character_id', characterId);
 
   if (fetchError) {
@@ -351,67 +197,29 @@ export async function resetAbilityUses(
     return; // 沒有能力需要恢復
   }
 
-  // 過濾需要恢復的能力
+  // 過濾需要恢復的能力：長休恢復所有非常駐能力，短休只恢復短休能力
   const toReset = characterAbilities.filter(ca => {
-    const ability = Array.isArray(ca.ability) ? ca.ability[0] : ca.ability;
-    const effectiveRecoveryType = ca.recovery_type_override || ability?.recovery_type;
+    const effectiveRecoveryType = ca.recovery_type_override;
     if (!effectiveRecoveryType) return false;
-    
-    // 長休恢復所有非常駐能力，短休只恢復短休能力
     if (recoveryType === '長休') {
       return effectiveRecoveryType === '短休' || effectiveRecoveryType === '長休';
     }
     return effectiveRecoveryType === '短休';
   });
 
-  // 批量更新
-  const updates = toReset
-    .filter(ca => ca.ability_id)
-    .map(ca => ({
-      character_id: characterId,
-      ability_id: ca.ability_id,
-      current_uses: ca.max_uses
-    }));
-
-  const personalUpdates = toReset
-    .filter(ca => !ca.ability_id)
-    .map(ca => ({
-      id: ca.id,
-      current_uses: ca.max_uses
-    }));
-
-  if (updates.length === 0 && personalUpdates.length === 0) {
-    return; // 沒有能力需要恢復
+  if (toReset.length === 0) {
+    return;
   }
 
-  // 使用 upsert 批量更新
-  if (updates.length > 0) {
+  for (const ca of toReset) {
     const { error: updateError } = await supabase
       .from('character_abilities')
-      .upsert(updates, {
-        onConflict: 'character_id,ability_id',
-        ignoreDuplicates: false
-      });
+      .update({ current_uses: ca.max_uses })
+      .eq('id', ca.id);
 
     if (updateError) {
       console.error('重設特殊能力使用次數失敗:', updateError);
       throw updateError;
-    }
-  }
-
-  if (personalUpdates.length > 0) {
-    for (const update of personalUpdates) {
-      const { error: personalUpdateError } = await supabase
-        .from('character_abilities')
-        .update({ current_uses: update.current_uses })
-        .eq('id', update.id);
-
-      if (personalUpdateError) {
-        console.error('重設個人特殊能力使用次數失敗:', personalUpdateError);
-        throw personalUpdateError;
-      }
-      
-      console.log('重設個人特殊能力使用次數:', update.id, update.current_uses);
     }
   }
 }
@@ -420,26 +228,18 @@ export async function resetAbilityUses(
  * 更新角色特殊能力的最大使用次數
  */
 export async function updateAbilityMaxUses(
-  characterId: string,
-  abilityId: string | null,
-  maxUses: number,
-  characterAbilityId?: string
+  characterAbilityId: string,
+  maxUses: number
 ): Promise<CharacterAbility> {
-  if (!abilityId && !characterAbilityId) {
-    throw new Error('角色能力 ID 無效');
-  }
-
-  const updateQuery = supabase
+  const { data, error } = await supabase
     .from('character_abilities')
     .update({
       max_uses: maxUses,
       current_uses: maxUses // 同時重設當前次數
-    });
-
-  const { data, error } = await byRowIdOrComposite(updateQuery, characterAbilityId, [
-    ['character_id', characterId],
-    ['ability_id', abilityId],
-  ]).select().single();
+    })
+    .eq('id', characterAbilityId)
+    .select()
+    .single();
 
   if (error) {
     console.error('更新特殊能力最大次數失敗:', error);
@@ -450,11 +250,10 @@ export async function updateAbilityMaxUses(
 }
 
 /**
- * 更新角色的特殊能力（客製化，不影響全域資料）
+ * 更新角色的特殊能力
  */
 export async function updateCharacterAbility(
-  characterId: string,
-  abilityId: string | null,
+  characterAbilityId: string,
   updates: {
     name?: string;
     name_en?: string;
@@ -462,19 +261,14 @@ export async function updateCharacterAbility(
     source?: AbilitySource;
     recovery_type?: '常駐' | '短休' | '長休';
     max_uses?: number;
-    /** 覆寫：此角色版能力是否影響角色數值 */
+    /** 此角色版能力是否影響角色數值 */
     affects_stats?: boolean;
-    /** 覆寫：此角色版能力的數值加成定義（存入 character_abilities.stat_bonuses） */
+    /** 此角色版能力的數值加成定義（存入 character_abilities.stat_bonuses） */
     stat_bonuses?: any;
-  },
-  characterAbilityId?: string
-): Promise<CharacterAbility> {
-  if (!abilityId && !characterAbilityId) {
-    throw new Error('角色能力 ID 無效');
   }
-
+): Promise<CharacterAbility> {
   const updateData: any = {};
-  
+
   // 將更新轉換為 override 欄位
   if (updates.name !== undefined) updateData.name_override = updates.name;
   if (updates.name_en !== undefined) updateData.name_en_override = updates.name_en || null;
@@ -485,14 +279,12 @@ export async function updateCharacterAbility(
   if (updates.affects_stats !== undefined) updateData.affects_stats = updates.affects_stats;
   if (updates.stat_bonuses !== undefined) updateData.stat_bonuses = updates.stat_bonuses;
 
-  const updateQuery = supabase
+  const { data, error } = await supabase
     .from('character_abilities')
-    .update(updateData);
-
-  const { data, error } = await byRowIdOrComposite(updateQuery, characterAbilityId, [
-    ['character_id', characterId],
-    ['ability_id', abilityId],
-  ]).select().single();
+    .update(updateData)
+    .eq('id', characterAbilityId)
+    .select()
+    .single();
 
   if (error) {
     console.error('更新角色特殊能力失敗:', error);
@@ -539,16 +331,14 @@ export async function updateCharacterAbilityOrder(
 }
 
 /**
- * 取得角色能力的顯示值（優先使用 override）
+ * 取得角色能力的顯示值
  */
 export function getDisplayValues(charAbility: CharacterAbilityWithDetails) {
   return {
-    name: charAbility.name_override || charAbility.ability?.name || '',
-    name_en: charAbility.name_en_override !== undefined
-      ? charAbility.name_en_override
-      : (charAbility.ability?.name_en ?? null),
-    description: (charAbility.description_override != null ? charAbility.description_override : charAbility.ability?.description) ?? '',
-    source: charAbility.source_override || charAbility.ability?.source || '其他',
-    recovery_type: charAbility.recovery_type_override || charAbility.ability?.recovery_type || '常駐'
+    name: charAbility.name_override || '',
+    name_en: charAbility.name_en_override ?? null,
+    description: charAbility.description_override ?? '',
+    source: charAbility.source_override || '其他',
+    recovery_type: charAbility.recovery_type_override || '常駐'
   };
 }

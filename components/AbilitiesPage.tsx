@@ -27,6 +27,8 @@ import { CSS } from '@dnd-kit/utilities';
 import { useToast } from '../hooks/useToast';
 import * as AbilityService from '../services/abilityService';
 import { ABILITY_SOURCE_ORDER } from '../services/abilityService';
+import { abilityToCreateData } from '../services/abilityCatalog';
+import type { AbilityDef } from '../types/ability';
 import { planReorder } from '../utils/fractionalOrder';
 import { matchesSearch } from '../utils/common';
 import type { CharacterAbilityWithDetails } from '../lib/supabase';
@@ -231,28 +233,22 @@ export default function AbilitiesPage({ characterId, onCharacterDataChanged }: A
     }
   };
 
-  // 更新能力（更新角色的客製化資料，不影響全域）
+  // 更新能力（更新角色的客製化資料）
   const handleUpdate = async (data: AbilityService.CreateAbilityData & { maxUses?: number }) => {
     if (!editingCharacterAbility) return;
 
     try {
-      // 更新角色的特殊能力（使用 override 欄位）
-      await AbilityService.updateCharacterAbility(
-        characterId,
-        editingCharacterAbility.ability_id,
-        {
-          name: data.name,
-          name_en: data.name_en,
-          description: data.description,
-          source: data.source,
-          recovery_type: data.recovery_type,
-          max_uses: data.maxUses,
-          affects_stats: data.affects_stats,
-          stat_bonuses: data.stat_bonuses,
-        },
-        editingCharacterAbility.id
-      );
-      
+      await AbilityService.updateCharacterAbility(editingCharacterAbility.id, {
+        name: data.name,
+        name_en: data.name_en,
+        description: data.description,
+        source: data.source,
+        recovery_type: data.recovery_type,
+        max_uses: data.maxUses,
+        affects_stats: data.affects_stats,
+        stat_bonuses: data.stat_bonuses,
+      });
+
       showSuccess('特殊能力已更新');
       setIsFormModalOpen(false);
       setEditingCharacterAbility(null);
@@ -269,11 +265,7 @@ export default function AbilitiesPage({ characterId, onCharacterDataChanged }: A
     if (!selectedCharacterAbility) return;
 
     try {
-      await AbilityService.unlearnAbility(
-        characterId,
-        selectedCharacterAbility.ability_id,
-        selectedCharacterAbility.id
-      );
+      await AbilityService.unlearnAbility(selectedCharacterAbility.id);
       showSuccess('已移除此能力');
       setIsDeleteModalOpen(false);
       setIsDetailModalOpen(false);
@@ -291,11 +283,7 @@ export default function AbilitiesPage({ characterId, onCharacterDataChanged }: A
     if (!selectedCharacterAbility) return;
 
     try {
-      await AbilityService.useAbility(
-        characterId,
-        selectedCharacterAbility.ability_id,
-        selectedCharacterAbility.id
-      );
+      await AbilityService.useAbility(selectedCharacterAbility.id);
       showSuccess(`已使用 ${AbilityService.getDisplayValues(selectedCharacterAbility).name}`);
       loadData();
       // 保持 modal 開啟，只更新資料
@@ -317,10 +305,17 @@ export default function AbilitiesPage({ characterId, onCharacterDataChanged }: A
     setIsDetailModalOpen(true);
   };
 
-  // 學習能力（從 learn modal 呼叫）
-  const handleLearn = async (abilityId: string, maxUses: number) => {
+  // 學習能力（從本地能力目錄選取，直接以目錄資料建立角色能力）
+  const handleLearn = async (ability: AbilityDef, maxUses: number) => {
     try {
-      await AbilityService.learnAbility(characterId, abilityId, maxUses);
+      const result = await AbilityService.createCharacterAbility(
+        characterId,
+        abilityToCreateData(ability, maxUses)
+      );
+      if (!result.success) {
+        showError(result.error || '學習特殊能力失敗');
+        return;
+      }
       showSuccess('已學習此能力');
       loadData();
       onCharacterDataChanged?.();
@@ -473,7 +468,7 @@ export default function AbilitiesPage({ characterId, onCharacterDataChanged }: A
         onClose={closeLearnModal}
         onLearnAbility={handleLearn}
         onCreateNew={handleOpenCreateModal}
-        learnedAbilityIds={characterAbilities.map(ca => ca.ability_id).filter((id): id is string => id != null)}
+        learnedAbilityNames={characterAbilities.map(ca => AbilityService.getDisplayValues(ca).name)}
       />
     </div>
   );
