@@ -240,22 +240,6 @@
     "rarity": null
   },
   {
-    "name": "冰人魚龍冰玉",
-    "nameEn": "",
-    "rarity": null,
-    "description": "護甲：免疫寒冷\n武器：爆擊-1，額外+1d6（效果挑戰者）",
-    "weaponDecoration": true,
-    "armorDecoration": true,
-    "decorationEffects": {
-      "weapon": {
-        "note": "爆擊-1，額外+1d6（效果挑戰者，不可與效果看破一起用）"
-      },
-      "armor": {
-        "note": "免疫寒冷傷害"
-      }
-    }
-  },
-  {
     "name": "冰人魚龍的重殼",
     "nameEn": "Auroracanth Icecortex",
     "rarity": null,
@@ -521,7 +505,12 @@
     "armorDecoration": true,
     "decorationEffects": {
       "weapon": {
-        "note": "額外1d6寒冷傷害"
+        "note": "額外1d6寒冷傷害",
+        "statBonuses": {
+          "combatStats": {
+            "attackDamage": "1d6"
+          }
+        }
       },
       "armor": {
         "note": "寒冷抗性"
@@ -692,7 +681,12 @@
     "weaponDecoration": true,
     "decorationEffects": {
       "weapon": {
-        "note": "法術豁免 DC +1, 寒冷或閃電法術則 +2"
+        "note": "法術豁免 DC +1, 寒冷或閃電法術則 +2",
+        "statBonuses": {
+          "combatStats": {
+            "spellDc": 1
+          }
+        }
       }
     }
   },
@@ -800,10 +794,20 @@
     "armorDecoration": true,
     "decorationEffects": {
       "weapon": {
-        "note": "武器攻擊額外造成1d8閃電傷害。"
+        "note": "武器攻擊額外造成1d8閃電傷害。",
+        "statBonuses": {
+          "combatStats": {
+            "attackDamage": "1d8"
+          }
+        }
       },
       "armor": {
-        "note": "馬拉松跑者+：步行速度增加10呎，並可以無視非魔法效應造成的困難地形。"
+        "note": "馬拉松跑者+：步行速度增加10呎，並可以無視非魔法效應造成的困難地形。",
+        "statBonuses": {
+          "combatStats": {
+            "speed": 10
+          }
+        }
       }
     }
   },
@@ -987,7 +991,12 @@
     "armorDecoration": true,
     "decorationEffects": {
       "weapon": {
-        "note": "挑戰者：武器攻擊造成爆擊的範圍增加1，且額外造成1d6武器傷害。（此素材同時被視為看破素材與「武器額外造成傷害」素材）"
+        "note": "挑戰者：武器攻擊造成爆擊的範圍增加1，且額外造成1d6武器傷害。（此素材同時被視為看破素材與「武器額外造成傷害」素材）",
+        "statBonuses": {
+          "combatStats": {
+            "attackDamage": "1d6"
+          }
+        }
       },
       "armor": {
         "note": "穿戴此防具時，你對寒冷傷害免疫。"
