@@ -30,6 +30,10 @@ export interface StatBonusEditorValue {
   /** 此來源給予優勢的技能（技能名稱） */
   skillAdvantage?: string[];
   skillDisadvantage?: string[];
+  /** 此來源賦予熟練的豁免（能力 key，如「適應力」專長）；與角色本身熟練不疊加，OR 判定 */
+  savingThrowProficiency?: string[];
+  /** 此來源賦予的技能熟練度（技能名稱 → 1 熟練／2 專精）；與角色本身熟練度不疊加，取較高者 */
+  skillProficiency?: Record<string, 1 | 2>;
   /**
    * 純數字為一般加值；字串為骰子記法（如 "1d8"、"-2d4"，單一項，不支援混合運算式），
    * 供攻擊傷害等額外骰子加成使用，顯示時與其他來源的骰子加成合併呈現
@@ -119,6 +123,13 @@ export function summarizeStatBonusEditorValue(value: StatBonusEditorValue | unde
   });
   (value.skillAdvantage ?? []).forEach((skill) => out.push({ label: skill, text: '優勢' }));
   (value.skillDisadvantage ?? []).forEach((skill) => out.push({ label: skill, text: '劣勢' }));
+  (value.savingThrowProficiency ?? []).forEach((key) => {
+    const label = SAVE_LABELS.find((s) => s.key === key)?.label ?? key;
+    out.push({ label, text: '熟練' });
+  });
+  Object.entries(value.skillProficiency ?? {}).forEach(([skill, level]) => {
+    out.push({ label: skill, text: level === 2 ? '專精' : '熟練' });
+  });
 
   if (value.other?.trim()) out.push({ label: '其他', text: value.other.trim() });
 
@@ -131,6 +142,9 @@ const rightColClass = 'w-[9.5rem] shrink-0 flex gap-1 items-center justify-cente
 const slotWidthClass = 'w-10 shrink-0';
 const numberInputClass =
   'w-12 h-8 bg-slate-900 border border-slate-700 rounded-lg px-1 py-1 text-center text-sm text-amber-300 font-mono focus:outline-none focus:ring-1 focus:ring-amber-500 box-border';
+/** 賦予熟練/專精時的輸入框樣式：填色徽章，與一般數字加值的空心樣式明顯區分 */
+const proficientInputClass =
+  'w-12 h-8 bg-amber-500 border border-amber-400 rounded-lg px-1 py-1 text-center text-xs text-slate-900 font-bold focus:outline-none focus:ring-1 focus:ring-amber-300 box-border';
 const rowClass = 'flex items-center gap-1 py-1 min-h-9';
 
 export const StatBonusEditor: React.FC<StatBonusEditorProps> = ({ value, onChange }) => {
@@ -148,6 +162,8 @@ export const StatBonusEditor: React.FC<StatBonusEditorProps> = ({ value, onChang
     savingThrowDisadvantage: [...(value.savingThrowDisadvantage ?? [])],
     skillAdvantage: [...(value.skillAdvantage ?? [])],
     skillDisadvantage: [...(value.skillDisadvantage ?? [])],
+    savingThrowProficiency: [...(value.savingThrowProficiency ?? [])],
+    skillProficiency: { ...(value.skillProficiency ?? {}) },
     combatStats: { ...(value.combatStats ?? {}) },
     other: value.other,
   });
@@ -160,16 +176,29 @@ export const StatBonusEditor: React.FC<StatBonusEditorProps> = ({ value, onChang
     const parsed = parseInt(raw, 10);
     const num = Number.isFinite(parsed) ? parsed : 0;
     const next = nextBase();
+    const trimmed = raw.trim();
 
     switch (path) {
       case 'abilityModifiers':
         next.abilityModifiers![key] = num;
         break;
       case 'savingThrows':
-        next.savingThrows![key] = num;
+        if (trimmed === '熟練') {
+          if (!next.savingThrowProficiency!.includes(key)) next.savingThrowProficiency!.push(key);
+          delete next.savingThrows![key];
+        } else {
+          next.savingThrowProficiency = next.savingThrowProficiency!.filter((k) => k !== key);
+          next.savingThrows![key] = num;
+        }
         break;
       case 'skills':
-        next.skills![key] = num;
+        if (trimmed === '熟練' || trimmed === '專精') {
+          next.skillProficiency![key] = trimmed === '專精' ? 2 : 1;
+          delete next.skills![key];
+        } else {
+          delete next.skillProficiency![key];
+          next.skills![key] = num;
+        }
         break;
       case 'combat_ac':
       case 'combat_initiative':
@@ -313,6 +342,8 @@ export const StatBonusEditor: React.FC<StatBonusEditorProps> = ({ value, onChang
     const num = value.savingThrows?.[key] ?? 0;
     const isDis = (value.savingThrowDisadvantage ?? []).includes(key);
     const isAdv = (value.savingThrowAdvantage ?? []).includes(key);
+    const isProficient = (value.savingThrowProficiency ?? []).includes(key);
+    const displayValue = isProficient ? '熟練' : (num === 0 ? '' : String(num));
     return (
       <div key={rowKey} className={rowClass}>
         <div className={leftColClass}>
@@ -327,10 +358,10 @@ export const StatBonusEditor: React.FC<StatBonusEditorProps> = ({ value, onChang
             劣勢
           </button>
           <input
-            className={numberInputClass}
-            defaultValue={num === 0 ? '' : String(num)}
+            className={isProficient ? proficientInputClass : numberInputClass}
+            defaultValue={displayValue}
             onBlur={(e) => handleNumberChange('savingThrows', key, e.target.value)}
-            inputMode="numeric"
+            inputMode="text"
           />
           <button
             type="button"
@@ -348,6 +379,8 @@ export const StatBonusEditor: React.FC<StatBonusEditorProps> = ({ value, onChang
     const num = value.skills?.[skillName] ?? 0;
     const isDis = (value.skillDisadvantage ?? []).includes(skillName);
     const isAdv = (value.skillAdvantage ?? []).includes(skillName);
+    const profLevel = value.skillProficiency?.[skillName];
+    const displayValue = profLevel === 2 ? '專精' : profLevel === 1 ? '熟練' : (num === 0 ? '' : String(num));
     return (
       <div key={rowKey} className={rowClass}>
         <div className={leftColClass}>
@@ -362,10 +395,10 @@ export const StatBonusEditor: React.FC<StatBonusEditorProps> = ({ value, onChang
             劣勢
           </button>
           <input
-            className={numberInputClass}
-            defaultValue={num === 0 ? '' : String(num)}
+            className={profLevel ? proficientInputClass : numberInputClass}
+            defaultValue={displayValue}
             onBlur={(e) => handleNumberChange('skills', skillName, e.target.value)}
-            inputMode="numeric"
+            inputMode="text"
           />
           <button
             type="button"

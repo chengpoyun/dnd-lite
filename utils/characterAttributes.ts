@@ -324,7 +324,14 @@ export function getFinalSavingThrow(
   const mod = getFinalAbilityModifier(stats, abilityKey);
   const profBonus = getProfBonus(stats.level ?? 1);
   const saveProfs = stats.savingProficiencies ?? [];
-  const isProf = saveProfs.includes(abilityKey);
+  // 能力／物品可透過 statBonusSources.savingThrowProficiency 賦予豁免熟練（如「適應力」專長）；
+  // 與角色本身的熟練不疊加，任一方熟練即成立（OR，不會拿到兩份熟練加值）
+  const grantedFromSources = (stats.extraData?.statBonusSources ?? []).some(
+    (src: any) =>
+      Array.isArray(src.savingThrowProficiency) &&
+      src.savingThrowProficiency.includes(abilityKey)
+  );
+  const isProf = saveProfs.includes(abilityKey) || grantedFromSources;
   const miscBonusFromDb =
     ((stats as any).saveBonuses as Record<string, number>)?.[abilityKey] ?? 0;
   // 來自能力／物品 stat_bonuses.savingThrows 的額外加值（透過 statBonusSources 匯總）
@@ -357,6 +364,12 @@ export function getFinalSkillBonus(
   }
   const mod = getFinalAbilityModifier(stats, skill.base);
   const profBonus = getProfBonus(stats.level ?? 1);
-  const profLevel = (stats.proficiencies ?? {})[skillName] ?? 0;
+  // 能力／物品可透過 statBonusSources.skillProficiency 賦予技能熟練(1)/專精(2)；
+  // 與角色本身的熟練度不疊加，取兩者較高（多個來源之間也是取最高，不會加總）
+  const grantedLevel = (stats.extraData?.statBonusSources ?? []).reduce((max, src: any) => {
+    const lvl = (src.skillProficiency as Record<string, number> | undefined)?.[skillName] ?? 0;
+    return Math.max(max, lvl);
+  }, 0);
+  const profLevel = Math.max((stats.proficiencies ?? {})[skillName] ?? 0, grantedLevel);
   return mod + profLevel * profBonus + miscBonus;
 }

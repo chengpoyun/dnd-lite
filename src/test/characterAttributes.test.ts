@@ -293,6 +293,37 @@ describe('characterAttributes - getFinalSavingThrow', () => {
     });
     expect(getFinalSavingThrow(stats, 'str')).toBe(2);
   });
+
+  it('能力/物品的 statBonusSources 賦予某豁免「熟練」時，應計入熟練加值（如「適應力」專長）', () => {
+    const stats = createMockStats({
+      abilityScores: { str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10 },
+      level: 5,
+      savingProficiencies: [],
+      extraData: {
+        statBonusSources: [
+          { id: 'a1', type: 'ability', name: '適應力（體質）', savingThrowProficiency: ['con'] },
+        ],
+      } as any,
+    });
+    const profBonus = 3;
+    expect(getFinalSavingThrow(stats, 'con')).toBe(profBonus);
+    expect(getFinalSavingThrow(stats, 'str')).toBe(0);
+  });
+
+  it('角色本身已熟練、來源又賦予同一豁免熟練時，不會疊加（只算一次熟練加值）', () => {
+    const stats = createMockStats({
+      abilityScores: { str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10 },
+      level: 5,
+      savingProficiencies: ['con'],
+      extraData: {
+        statBonusSources: [
+          { id: 'a1', type: 'ability', name: '適應力（體質）', savingThrowProficiency: ['con'] },
+        ],
+      } as any,
+    });
+    const profBonus = 3;
+    expect(getFinalSavingThrow(stats, 'con')).toBe(profBonus);
+  });
 });
 
 describe('characterAttributes - getCombatStatBonus', () => {
@@ -376,6 +407,77 @@ describe('characterAttributes - getFinalSkillBonus', () => {
     });
     expect(getFinalSkillBonus(stats, '求生')).toBe(10);
     expect(getFinalSkillBonus(stats, '運動')).toBe(3 + 3);
+  });
+
+  it('能力/物品的 statBonusSources 賦予某技能「熟練」時，本身未熟練也應計入熟練加值', () => {
+    const stats = createMockStats({
+      abilityScores: { str: 16, dex: 10, con: 10, int: 10, wis: 10, cha: 10 },
+      level: 5,
+      proficiencies: {},
+      extraData: {
+        statBonusSources: [
+          { id: 'a1', type: 'ability', name: '運動高手', skillProficiency: { '運動': 1 } },
+        ],
+      } as any,
+    });
+    expect(getFinalSkillBonus(stats, '運動')).toBe(3 + 3);
+  });
+
+  it('能力/物品賦予「專精」時應算 2 倍熟練加值', () => {
+    const stats = createMockStats({
+      abilityScores: { str: 16, dex: 10, con: 10, int: 10, wis: 10, cha: 10 },
+      level: 5,
+      proficiencies: {},
+      extraData: {
+        statBonusSources: [
+          { id: 'a1', type: 'ability', name: '運動大師', skillProficiency: { '運動': 2 } },
+        ],
+      } as any,
+    });
+    expect(getFinalSkillBonus(stats, '運動')).toBe(3 + 3 * 2);
+  });
+
+  it('角色本身已專精，來源只賦予熟練時，不會被降級（取兩者較高）', () => {
+    const stats = createMockStats({
+      abilityScores: { str: 16, dex: 10, con: 10, int: 10, wis: 10, cha: 10 },
+      level: 5,
+      proficiencies: { '運動': 2 },
+      extraData: {
+        statBonusSources: [
+          { id: 'a1', type: 'ability', name: '運動高手', skillProficiency: { '運動': 1 } },
+        ],
+      } as any,
+    });
+    expect(getFinalSkillBonus(stats, '運動')).toBe(3 + 3 * 2);
+  });
+
+  it('角色本身只熟練，來源賦予專精時應升級為專精（取兩者較高，不疊加）', () => {
+    const stats = createMockStats({
+      abilityScores: { str: 16, dex: 10, con: 10, int: 10, wis: 10, cha: 10 },
+      level: 5,
+      proficiencies: { '運動': 1 },
+      extraData: {
+        statBonusSources: [
+          { id: 'a1', type: 'ability', name: '運動大師', skillProficiency: { '運動': 2 } },
+        ],
+      } as any,
+    });
+    expect(getFinalSkillBonus(stats, '運動')).toBe(3 + 3 * 2);
+  });
+
+  it('多個來源賦予同一技能不同等級時，取最高等級（不疊加）', () => {
+    const stats = createMockStats({
+      abilityScores: { str: 16, dex: 10, con: 10, int: 10, wis: 10, cha: 10 },
+      level: 5,
+      proficiencies: {},
+      extraData: {
+        statBonusSources: [
+          { id: 'a1', type: 'ability', name: '來源A', skillProficiency: { '運動': 1 } },
+          { id: 'i1', type: 'item', name: '來源B', skillProficiency: { '運動': 2 } },
+        ],
+      } as any,
+    });
+    expect(getFinalSkillBonus(stats, '運動')).toBe(3 + 3 * 2);
   });
 });
 

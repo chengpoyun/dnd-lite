@@ -141,6 +141,10 @@ export interface CharacterStats {
       skillAdvantage?: string[];
       /** 此來源給予劣勢的技能 */
       skillDisadvantage?: string[];
+      /** 此來源賦予熟練的豁免（能力 key：str/dex/...，如「適應力」專長）；與角色本身熟練不疊加，OR 判定 */
+      savingThrowProficiency?: string[];
+      /** 此來源賦予的技能熟練度（技能名稱 → 1 熟練／2 專精）；與角色本身熟練度不疊加，取較高者 */
+      skillProficiency?: Record<string, number>;
       /**
        * 戰鬥屬性加成；純數字為一般加值，字串為骰子記法（如 "1d8"，供攻擊傷害等額外骰子加成使用，
        * 不計入數字加總，顯示時另外合併呈現，見 utils/characterAttributes.ts 的 getCombatStatDiceSuffix）

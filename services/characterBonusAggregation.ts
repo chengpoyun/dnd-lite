@@ -39,6 +39,10 @@ export interface AggregatedStatBonuses {
     savingThrowDisadvantage?: string[];
     skillAdvantage?: string[];
     skillDisadvantage?: string[];
+    /** 此來源賦予熟練的豁免（能力 key，如「適應力」專長） */
+    savingThrowProficiency?: string[];
+    /** 此來源賦予的技能熟練度（技能名稱 → 1 熟練／2 專精） */
+    skillProficiency?: Record<string, number>;
     combatStats?: AggregatedStatBonuses['combatStats'];
     /** 此來源的「其他效果」自由文字說明 */
     other?: string;
@@ -91,6 +95,23 @@ export class CharacterBonusAggregationService {
         if (!num) continue
         target[k] = (target[k] ?? 0) + num
       }
+    }
+
+    // 驗證後回傳技能熟練度 map（只接受 1 熟練／2 專精，其餘值捨棄）；全空回傳 undefined
+    const sanitizeSkillProficiency = (src: any): Record<string, number> | undefined => {
+      if (!src || typeof src !== 'object') return undefined
+      const out: Record<string, number> = {}
+      for (const [k, v] of Object.entries(src)) {
+        if (v === 1 || v === 2) out[k] = v
+      }
+      return Object.keys(out).length ? out : undefined
+    }
+
+    // 驗證後回傳賦予熟練的豁免 key 陣列；全空回傳 undefined
+    const sanitizeSaveProficiency = (src: any): string[] | undefined => {
+      if (!Array.isArray(src)) return undefined
+      const out = src.filter((k) => typeof k === 'string')
+      return out.length ? out : undefined
     }
 
     const mergeCombatStats = (target: AggregatedStatBonuses['combatStats'], src: any) => {
@@ -184,6 +205,8 @@ export class CharacterBonusAggregationService {
           const savingThrowDisadvantage = hasBonuses && Array.isArray(bonuses.savingThrowDisadvantage) ? bonuses.savingThrowDisadvantage : undefined
           const skillAdvantage = hasBonuses && Array.isArray(bonuses.skillAdvantage) ? bonuses.skillAdvantage : undefined
           const skillDisadvantage = hasBonuses && Array.isArray(bonuses.skillDisadvantage) ? bonuses.skillDisadvantage : undefined
+          const savingThrowProficiency = hasBonuses ? sanitizeSaveProficiency(bonuses.savingThrowProficiency) : undefined
+          const skillProficiency = hasBonuses ? sanitizeSkillProficiency(bonuses.skillProficiency) : undefined
           const otherNote = hasBonuses && typeof bonuses.other === 'string' ? bonuses.other.trim() : ''
 
           const perSource: {
@@ -198,6 +221,8 @@ export class CharacterBonusAggregationService {
             savingThrowDisadvantage?: string[]
             skillAdvantage?: string[]
             skillDisadvantage?: string[]
+            savingThrowProficiency?: string[]
+            skillProficiency?: Record<string, number>
             combatStats?: AggregatedStatBonuses['combatStats']
             other?: string
           } = {
@@ -284,9 +309,12 @@ export class CharacterBonusAggregationService {
           if (savingThrowDisadvantage?.length) perSource.savingThrowDisadvantage = savingThrowDisadvantage
           if (skillAdvantage?.length) perSource.skillAdvantage = skillAdvantage
           if (skillDisadvantage?.length) perSource.skillDisadvantage = skillDisadvantage
+          if (savingThrowProficiency) perSource.savingThrowProficiency = savingThrowProficiency
+          if (skillProficiency) perSource.skillProficiency = skillProficiency
 
           if (perSource.abilityScores || perSource.abilityModifiers || perSource.savingThrows || perSource.skills || perSource.combatStats ||
               perSource.savingThrowAdvantage || perSource.savingThrowDisadvantage || perSource.skillAdvantage || perSource.skillDisadvantage ||
+              perSource.savingThrowProficiency || perSource.skillProficiency ||
               perSource.other) {
             totals.bySource.push(perSource)
           }
@@ -308,6 +336,8 @@ export class CharacterBonusAggregationService {
         const savingThrowDisadvantage = Array.isArray(bonuses.savingThrowDisadvantage) ? bonuses.savingThrowDisadvantage : undefined
         const skillAdvantage = Array.isArray(bonuses.skillAdvantage) ? bonuses.skillAdvantage : undefined
         const skillDisadvantage = Array.isArray(bonuses.skillDisadvantage) ? bonuses.skillDisadvantage : undefined
+        const savingThrowProficiency = sanitizeSaveProficiency(bonuses.savingThrowProficiency)
+        const skillProficiency = sanitizeSkillProficiency(bonuses.skillProficiency)
         const otherNote = typeof bonuses.other === 'string' ? bonuses.other.trim() : ''
 
         const perSource: {
@@ -322,6 +352,8 @@ export class CharacterBonusAggregationService {
           savingThrowDisadvantage?: string[]
           skillAdvantage?: string[]
           skillDisadvantage?: string[]
+          savingThrowProficiency?: string[]
+          skillProficiency?: Record<string, number>
           combatStats?: AggregatedStatBonuses['combatStats']
           other?: string
         } = {
@@ -411,9 +443,12 @@ export class CharacterBonusAggregationService {
         if (savingThrowDisadvantage?.length) perSource.savingThrowDisadvantage = savingThrowDisadvantage
         if (skillAdvantage?.length) perSource.skillAdvantage = skillAdvantage
         if (skillDisadvantage?.length) perSource.skillDisadvantage = skillDisadvantage
+        if (savingThrowProficiency) perSource.savingThrowProficiency = savingThrowProficiency
+        if (skillProficiency) perSource.skillProficiency = skillProficiency
 
         if (perSource.abilityScores || perSource.abilityModifiers || perSource.savingThrows || perSource.skills || perSource.combatStats ||
             perSource.savingThrowAdvantage || perSource.savingThrowDisadvantage || perSource.skillAdvantage || perSource.skillDisadvantage ||
+            perSource.savingThrowProficiency || perSource.skillProficiency ||
             perSource.other) {
           totals.bySource.push(perSource)
         }
