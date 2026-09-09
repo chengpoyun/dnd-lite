@@ -4,6 +4,10 @@
 
 ---
 
+## 2.4.9
+
+- 整理：`abilityCatalog`/`spellCatalog`/`mhMaterialCatalog`/`generalItemCatalog`/`terrainRewardService` 五個本地 JSON 目錄服務，各自重寫一次「模組級快取變數 + 動態 import + 依欄位關鍵字搜尋」的樣板邏輯。抽出 `utils/localCatalog.ts` 的 `createLocalCatalog` 共用實作，五個檔案改為呼叫它，行為不變。
+
 ## 2.4.8
 
 - 整理：判斷「這個錯誤值不值得重試」（CORS、520/502/503、逾時、Failed to fetch）的字串比對，原本在 `detailedCharacter.ts`（3 處）、`databaseInit.ts` 各自重寫一次，`databaseInit.ts` 那份還多判斷了 `timeout`／`連接超時` 兩個關鍵字，其他三處沒有。統一成 `utils/common.ts` 匯出的 `isRetryableNetworkError`，並把這兩個關鍵字一併補進共用版本——這兩者本來就屬於「Supabase 冷啟動」同一類問題，之前只有初始化那段有處理，等於順便補上一個小改善（更容易在冷啟動逾時時自動重試成功，而不是直接顯示失敗）。

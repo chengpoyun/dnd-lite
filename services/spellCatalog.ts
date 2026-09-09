@@ -6,16 +6,11 @@
  */
 import type { SpellDef } from '../types/spell';
 import type { CreateCharacterSpellData } from './spellService';
-import { matchesSearch } from '../utils/common';
+import { createLocalCatalog } from '../utils/localCatalog';
 
-let cached: SpellDef[] | null = null;
+const catalog = createLocalCatalog<SpellDef>(() => import('../data/spells.json'));
 
-export async function getSpells(): Promise<SpellDef[]> {
-  if (cached) return cached;
-  const data = await import('../data/spells.json');
-  cached = (data.default ?? data) as unknown as SpellDef[];
-  return cached;
-}
+export const getSpells = catalog.getAll;
 
 /** 依英文名精準比對（目錄內英文名唯一） */
 export async function findSpellByNameEn(nameEn: string): Promise<SpellDef | undefined> {
@@ -25,9 +20,11 @@ export async function findSpellByNameEn(nameEn: string): Promise<SpellDef | unde
 
 /** 依名稱／英文名／描述關鍵字篩選；可選擇只在指定環階內搜尋。查詢字串為空、未指定環階時回傳全部 */
 export async function searchSpells(query: string, level?: number): Promise<SpellDef[]> {
-  const list = await getSpells();
-  const scoped = level === undefined ? list : list.filter((s) => s.level === level);
-  return scoped.filter((s) => matchesSearch(query, s.name, s.nameEn, s.description));
+  return catalog.search(
+    query,
+    (s) => [s.name, s.nameEn, s.description],
+    level === undefined ? undefined : (list) => list.filter((s) => s.level === level),
+  );
 }
 
 /** 將目錄條目轉成「學習法術」的 payload，供 createCharacterSpell 使用 */

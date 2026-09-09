@@ -4,16 +4,11 @@
  */
 import type { AbilityDef } from '../types/ability';
 import type { CreateCharacterAbilityData } from './abilityService';
-import { matchesSearch } from '../utils/common';
+import { createLocalCatalog } from '../utils/localCatalog';
 
-let cached: AbilityDef[] | null = null;
+const catalog = createLocalCatalog<AbilityDef>(() => import('../data/abilities.json'));
 
-export async function getAbilities(): Promise<AbilityDef[]> {
-  if (cached) return cached;
-  const data = await import('../data/abilities.json');
-  cached = (data.default ?? data) as unknown as AbilityDef[];
-  return cached;
-}
+export const getAbilities = catalog.getAll;
 
 /** 依名稱精準比對（目錄內名稱唯一） */
 export async function findAbilityByName(name: string): Promise<AbilityDef | undefined> {
@@ -23,8 +18,7 @@ export async function findAbilityByName(name: string): Promise<AbilityDef | unde
 
 /** 依名稱／英文名／描述關鍵字篩選；查詢字串為空時回傳全部 */
 export async function searchAbilities(query: string): Promise<AbilityDef[]> {
-  const list = await getAbilities();
-  return list.filter((a) => matchesSearch(query, a.name, a.nameEn, a.description));
+  return catalog.search(query, (a) => [a.name, a.nameEn, a.description]);
 }
 
 /** 將目錄條目轉成「學習特殊能力」的 payload，供 createCharacterAbility 使用 */

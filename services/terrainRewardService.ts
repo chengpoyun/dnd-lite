@@ -2,16 +2,11 @@
  * 地形獎勵資料載入（讀取 data/terrain-rewards.json）
  */
 import type { TerrainDef } from '../types/terrainReward';
+import { createLocalCatalog } from '../utils/localCatalog';
 
-let cached: TerrainDef[] | null = null;
+const catalog = createLocalCatalog<TerrainDef>(() => import('../data/terrain-rewards.json'));
 
-export async function getTerrainRewards(): Promise<TerrainDef[]> {
-  if (cached) return cached;
-  const data = await import('../data/terrain-rewards.json');
-  // JSON 匯入的推導型別與 TerrainDef 不重疊（TS 會擋直接轉型），先過 unknown
-  cached = (data.default ?? data) as unknown as TerrainDef[];
-  return cached;
-}
+export const getTerrainRewards = catalog.getAll;
 
 /** 從所有地形彙整適用地貌選項（去重、排序） */
 export function getAllLandscapes(terrains: TerrainDef[]): string[] {

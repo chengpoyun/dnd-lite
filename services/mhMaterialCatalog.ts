@@ -4,16 +4,11 @@
  */
 import type { MHMaterialDef } from '../types/mhMaterial';
 import type { CreateCharacterItemData, DecorationEffects } from './itemService';
-import { matchesSearch } from '../utils/common';
+import { createLocalCatalog } from '../utils/localCatalog';
 
-let cached: MHMaterialDef[] | null = null;
+const catalog = createLocalCatalog<MHMaterialDef>(() => import('../data/mh-materials.json'));
 
-export async function getMHMaterials(): Promise<MHMaterialDef[]> {
-  if (cached) return cached;
-  const data = await import('../data/mh-materials.json');
-  cached = (data.default ?? data) as unknown as MHMaterialDef[];
-  return cached;
-}
+export const getMHMaterials = catalog.getAll;
 
 /** 依名稱精準比對（目錄內名稱唯一） */
 export async function findMHMaterialByName(name: string): Promise<MHMaterialDef | undefined> {
@@ -23,8 +18,7 @@ export async function findMHMaterialByName(name: string): Promise<MHMaterialDef 
 
 /** 依名稱／英文名／描述關鍵字篩選；查詢字串為空時回傳全部 */
 export async function searchMHMaterials(query: string): Promise<MHMaterialDef[]> {
-  const list = await getMHMaterials();
-  return list.filter((m) => matchesSearch(query, m.name, m.nameEn, m.description));
+  return catalog.search(query, (m) => [m.name, m.nameEn, m.description]);
 }
 
 /** 將目錄條目轉成「新增個人物品」的 payload，供獲得物品／地形採集帶入描述與插槽效果 */

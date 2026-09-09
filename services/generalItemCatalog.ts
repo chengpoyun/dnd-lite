@@ -4,21 +4,15 @@
  */
 import type { GeneralItemDef } from '../types/generalItem';
 import type { CreateCharacterItemData } from './itemService';
-import { matchesSearch } from '../utils/common';
+import { createLocalCatalog } from '../utils/localCatalog';
 
-let cached: GeneralItemDef[] | null = null;
+const catalog = createLocalCatalog<GeneralItemDef>(() => import('../data/general-items.json'));
 
-export async function getGeneralItems(): Promise<GeneralItemDef[]> {
-  if (cached) return cached;
-  const data = await import('../data/general-items.json');
-  cached = (data.default ?? data) as unknown as GeneralItemDef[];
-  return cached;
-}
+export const getGeneralItems = catalog.getAll;
 
 /** 依名稱／英文名／描述關鍵字篩選；查詢字串為空時回傳全部 */
 export async function searchGeneralItems(query: string): Promise<GeneralItemDef[]> {
-  const list = await getGeneralItems();
-  return list.filter((i) => matchesSearch(query, i.name, i.nameEn, i.description));
+  return catalog.search(query, (i) => [i.name, i.nameEn, i.description]);
 }
 
 /** 將目錄條目轉成「新增個人物品」的 payload */
