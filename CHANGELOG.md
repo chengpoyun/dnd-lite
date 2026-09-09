@@ -4,6 +4,10 @@
 
 ---
 
+## 2.4.7
+
+- 整理：`EndCombatConfirmModal`、`LongRestConfirmModal`、`PortentUseConfirmModal` 三個「標題＋說明文字＋取消/確認」二擇一確認彈窗結構逐字相同，只有文字與按鈕樣式不同。抽出共用的 `components/ui/ConfirmActionModal`，三個檔案改成薄薄一層設定檔，行為與畫面不變。
+
 ## 2.4.6
 
 - 整理：「目前使用者的登入狀態（認證或匿名）」這個形狀在 `detailedCharacter.ts`、`hybridDataManager.ts`、`combatService.ts` 各自內聯宣告好幾次，`infoLinks.ts` 則另外取名 `InfoLinkUserContext` 匯出。統一成 `types/index.ts` 匯出的 `UserContext`，各處改為匯入使用，避免同一個概念散落各處、日後修改容易漏掉某一份。

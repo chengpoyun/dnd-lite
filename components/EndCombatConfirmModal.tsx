@@ -1,8 +1,7 @@
 /**
  * EndCombatConfirmModal - 結束戰鬥確認
  */
-import { Modal, ModalButton } from './ui/Modal';
-import { MODAL_CONTAINER_CLASS, MODAL_BUTTON_CANCEL_CLASS, MODAL_FOOTER_BUTTONS_CLASS, MODAL_DESCRIPTION_CLASS } from '../styles/modalStyles';
+import ConfirmActionModal from './ui/ConfirmActionModal';
 
 interface EndCombatConfirmModalProps {
   isOpen: boolean;
@@ -16,20 +15,14 @@ export default function EndCombatConfirmModal({
   onConfirm,
 }: EndCombatConfirmModalProps) {
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="結束戰鬥" size="xs">
-      <div className={MODAL_CONTAINER_CLASS}>
-        <p className={`${MODAL_DESCRIPTION_CLASS} text-center mb-6`}>
-          確定要結束當前戰鬥嗎？這將重置戰鬥計時器並恢復所有每回合資源。
-        </p>
-        <div className={MODAL_FOOTER_BUTTONS_CLASS}>
-          <ModalButton variant="secondary" className={MODAL_BUTTON_CANCEL_CLASS} onClick={onClose}>
-            取消
-          </ModalButton>
-          <ModalButton variant="danger" onClick={onConfirm}>
-            結束戰鬥
-          </ModalButton>
-        </div>
-      </div>
-    </Modal>
+    <ConfirmActionModal
+      isOpen={isOpen}
+      title="結束戰鬥"
+      message="確定要結束當前戰鬥嗎？這將重置戰鬥計時器並恢復所有每回合資源。"
+      confirmLabel="結束戰鬥"
+      confirmVariant="danger"
+      onClose={onClose}
+      onConfirm={onConfirm}
+    />
   );
 }
