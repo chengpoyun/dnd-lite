@@ -156,7 +156,7 @@ describe('collectSourceBonusesForCharacter - 插槽鑲嵌素材效果', () => {
     expect(result.bySource[0].name).toBe('大劍［素材］');
   });
 
-  it('插槽沒有 stat_bonuses（純敘述效果）時，不會產生加值來源', async () => {
+  it('插槽沒有 stat_bonuses（純敘述效果）時，note 文字仍會自動成為「其他效果」來源，不需另外勾選數值加成', async () => {
     const { supabase } = await import('../../lib/supabase');
     (supabase as any).__mockAbilities = [];
     (supabase as any).__mockItems = [
@@ -171,6 +171,75 @@ describe('collectSourceBonusesForCharacter - 插槽鑲嵌素材效果', () => {
       abilityScores: {},
     });
 
+    expect(result.bySource).toHaveLength(1);
+    expect(result.bySource[0].other).toBe('只是好看');
+    expect(result.bySource[0].name).toBe('大劍［純敘述素材］');
+  });
+
+  it('note 與 stat_bonuses.other 都有填且文字不同時，以 stat_bonuses.other 為準', async () => {
+    const { supabase } = await import('../../lib/supabase');
+    (supabase as any).__mockAbilities = [];
+    (supabase as any).__mockItems = [
+      weaponRow({
+        sockets: [
+          {
+            decoration_name: '雙重敘述素材',
+            note: '道具描述用的文字',
+            stat_bonuses: { other: '戰鬥頁刻意顯示的不同文字' },
+          },
+        ],
+      }),
+    ];
+
+    const { DetailedCharacterService } = await import('../../services/detailedCharacter');
+    const result = await DetailedCharacterService.collectSourceBonusesForCharacter(CHARACTER_ID, {
+      level: 5,
+      abilityScores: {},
+    });
+
+    expect(result.bySource[0].other).toBe('戰鬥頁刻意顯示的不同文字');
+  });
+
+  it('note 為空白字串、也沒有其他數值加成時，仍不會產生加值來源', async () => {
+    const { supabase } = await import('../../lib/supabase');
+    (supabase as any).__mockAbilities = [];
+    (supabase as any).__mockItems = [
+      weaponRow({
+        sockets: [{ decoration_name: '空插槽效果素材', note: '   ' }],
+      }),
+    ];
+
+    const { DetailedCharacterService } = await import('../../services/detailedCharacter');
+    const result = await DetailedCharacterService.collectSourceBonusesForCharacter(CHARACTER_ID, {
+      level: 5,
+      abilityScores: {},
+    });
+
     expect(result.bySource).toHaveLength(0);
+  });
+
+  it('note 有文字、同時也有數值加成時，兩者會一起出現在同一筆來源', async () => {
+    const { supabase } = await import('../../lib/supabase');
+    (supabase as any).__mockAbilities = [];
+    (supabase as any).__mockItems = [
+      weaponRow({
+        sockets: [
+          {
+            decoration_name: '附數值的敘述素材',
+            note: '劍身泛著寒光',
+            stat_bonuses: { combatStats: { attackDamage: 1 } },
+          },
+        ],
+      }),
+    ];
+
+    const { DetailedCharacterService } = await import('../../services/detailedCharacter');
+    const result = await DetailedCharacterService.collectSourceBonusesForCharacter(CHARACTER_ID, {
+      level: 5,
+      abilityScores: {},
+    });
+
+    expect(result.bySource[0].other).toBe('劍身泛著寒光');
+    expect(result.bySource[0].combatStats?.attackDamage).toBe(1);
   });
 });
