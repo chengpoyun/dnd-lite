@@ -16,7 +16,7 @@ describe('AddPersonalItemModal - 英文名稱與稀有度', () => {
 
   it('英文名稱與稀有度共用同一列', () => {
     render(<AddPersonalItemModal isOpen onClose={onClose} onSubmit={onSubmit} />);
-    const label = screen.getByText('英文名稱');
+    const label = screen.getByText('En');
     const input = screen.getByPlaceholderText('輸入英文名稱');
     expect(label.parentElement).toContainElement(input);
   });

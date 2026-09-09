@@ -50,7 +50,7 @@ describe('CharacterItemEditModal - 英文名稱與稀有度', () => {
 
   it('英文名稱與稀有度共用同一列', () => {
     render(<CharacterItemEditModal isOpen onClose={onClose} characterItem={baseGeneral} onSubmit={onSubmit} />);
-    const label = screen.getByText('英文名稱');
+    const label = screen.getByText('En');
     const input = screen.getByPlaceholderText('輸入英文名稱');
     expect(label.parentElement).toContainElement(input);
   });

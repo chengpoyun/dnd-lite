@@ -188,7 +188,7 @@ export const CharacterItemEditModal: React.FC<CharacterItemEditModalProps> = ({
 
           {/* 英文名稱 + 稀有度：共用一列 */}
           <div className="flex items-center gap-3">
-            <label className="text-[14px] text-slate-400 flex-shrink-0">英文名稱</label>
+            <label className="text-[14px] text-slate-400 flex-shrink-0">En</label>
             <input
               type="text"
               value={formData.name_en_override || ''}
