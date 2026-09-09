@@ -2,18 +2,12 @@
  * NumberEditModal - 單一數字編輯（basic 值），支援運算式輸入
  * 預留 bonusValue / bonusSources 供之後顯示加值來源
  */
-import { Modal, ModalButton, ModalInput } from './ui/Modal';
+import { Modal } from './ui/Modal';
 import { handleValueInput, handleDecimalInput } from '../utils/helpers';
-import { FinalTotalRow } from './ui/FinalTotalRow';
-import { BonusSourcesList } from './ui/BonusSourcesList';
-import { MODAL_CONTAINER_CLASS, MODAL_BODY_TEXT_CLASS, MODAL_DESCRIPTION_CLASS, MODAL_BUTTON_CANCEL_CLASS, MODAL_BUTTON_RESET_CLASS, MODAL_FOOTER_BUTTONS_CLASS, MODAL_PREVIEW_LABEL_CLASS, MODAL_PREVIEW_ROW_CLASS } from '../styles/modalStyles';
+import { BasicBonusEditorBody, type BonusSourceItem } from './ui/BasicBonusEditorBody';
+import { MODAL_CONTAINER_CLASS, MODAL_BODY_TEXT_CLASS } from '../styles/modalStyles';
 
-export interface BonusSource {
-  label: string;
-  value: number;
-  /** 有值時顯示這段文字取代 +N 格式化的數字（例如骰子加成 "1d8"） */
-  displayText?: string;
-}
+export type { BonusSourceItem as BonusSource };
 
 interface NumberEditModalProps {
   isOpen: boolean;
@@ -28,7 +22,7 @@ interface NumberEditModalProps {
   applyButtonClassName?: string;
   onApply: (numericValue: number) => void;
   bonusValue?: number;
-  bonusSources?: BonusSource[];
+  bonusSources?: BonusSourceItem[];
   /** Optional note (e.g. AC formula: basic + 敏捷調整值 + 其他 bonus) */
   description?: string;
   /** 最終總計（basic + 加值）；有傳則顯示此值，否則由 placeholder + bonusValue 計算 */
@@ -103,51 +97,31 @@ export default function NumberEditModal({
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={title} size={size}>
       <div className={MODAL_CONTAINER_CLASS}>
-        <div className="flex items-center gap-2 mb-4">
-          {inputLabel !== null && (
-            <span className={inputLabelClassName}>{inputLabel}</span>
-          )}
-          <ModalInput
-            value={value}
-            onChange={onChange}
-            placeholder={placeholder}
-            className={inputClassName}
-          />
-        </div>
-        {description && (
-          <p className={`${MODAL_DESCRIPTION_CLASS} text-center mb-3`}>{description}</p>
-        )}
-        {bonusSources && bonusSources.length > 0 && (
-          <BonusSourcesList title="加值來源" sources={bonusSources} className="mb-3" />
-        )}
-        {(finalValue !== undefined || bonusValue !== undefined) && (
-          <FinalTotalRow label="最終總計" value={displayTotal} suffix={finalValueSuffix} className="mb-3" />
-        )}
-        {showValuePreview && (
-          <div className="text-center mb-3">
-            <span className={MODAL_PREVIEW_LABEL_CLASS}>{previewLabel}</span>
-            <div className={MODAL_PREVIEW_ROW_CLASS}>
-              <span className="text-slate-400">{formatPreviewValue(baseValue)}{valueSuffix}</span>
-              <span className="text-slate-600">→</span>
-              <span className={previewValueClassName}>{formatPreviewValue(previewValue)}{valueSuffix}</span>
-            </div>
-          </div>
-        )}
-        <div className={MODAL_FOOTER_BUTTONS_CLASS}>
-          <ModalButton variant="secondary" className={MODAL_BUTTON_RESET_CLASS} onClick={() => onChange(resetValue !== undefined ? String(resetValue) : placeholder)}>
-            重置
-          </ModalButton>
-          <ModalButton variant="secondary" className={MODAL_BUTTON_CANCEL_CLASS} onClick={onClose}>
-            取消
-          </ModalButton>
-          <ModalButton
-            variant="primary"
-            onClick={handleApply}
-            className={applyButtonClassName}
-          >
-            套用
-          </ModalButton>
-        </div>
+        <BasicBonusEditorBody
+          inputLabel={inputLabel}
+          inputLabelClassName={inputLabelClassName}
+          value={value}
+          onChange={onChange}
+          placeholder={placeholder}
+          inputClassName={inputClassName}
+          description={description}
+          bonusSources={bonusSources}
+          finalValue={finalValue}
+          bonusValue={bonusValue}
+          displayTotal={displayTotal}
+          finalValueSuffix={finalValueSuffix}
+          showValuePreview={showValuePreview}
+          previewLabel={previewLabel}
+          baseValue={baseValue}
+          previewValue={previewValue}
+          formatPreviewValue={formatPreviewValue}
+          valueSuffix={valueSuffix}
+          previewValueClassName={previewValueClassName}
+          onReset={() => onChange(resetValue !== undefined ? String(resetValue) : placeholder)}
+          onClose={onClose}
+          onApply={handleApply}
+          applyButtonClassName={applyButtonClassName}
+        />
       </div>
     </Modal>
   );

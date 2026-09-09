@@ -3,19 +3,13 @@
  * 可選 segment bar（如力量/敏捷）+ 基礎值輸入 + 加值列表 + 公式備註
  */
 import { useState, useEffect } from 'react';
-import { Modal, ModalButton, ModalInput } from './ui/Modal';
+import { Modal } from './ui/Modal';
 import { SegmentBar, type SegmentBarOption } from './ui/SegmentBar';
 import { handleValueInput } from '../utils/helpers';
-import { FinalTotalRow } from './ui/FinalTotalRow';
-import { BonusSourcesList } from './ui/BonusSourcesList';
-import { MODAL_CONTAINER_CLASS, MODAL_BODY_TEXT_CLASS, MODAL_DESCRIPTION_CLASS, MODAL_BUTTON_CANCEL_CLASS, MODAL_BUTTON_RESET_CLASS, MODAL_FOOTER_BUTTONS_CLASS } from '../styles/modalStyles';
+import { BasicBonusEditorBody, type BonusSourceItem } from './ui/BasicBonusEditorBody';
+import { MODAL_CONTAINER_CLASS } from '../styles/modalStyles';
 
-export interface BonusSourceItem {
-  label: string;
-  value: number;
-  /** 有值時顯示這段文字取代 +N 格式化的數字（例如骰子加成 "1d8"） */
-  displayText?: string;
-}
+export type { BonusSourceItem };
 
 interface CombatStatEditModalProps<T extends string = string> {
   title: string;
@@ -108,39 +102,21 @@ export default function CombatStatEditModal<T extends string = string>({
             />
           </div>
         )}
-        <div className="flex items-center gap-2 mb-4">
-          <span className={`${MODAL_BODY_TEXT_CLASS} shrink-0`}>基礎值</span>
-          <ModalInput
-            value={value}
-            onChange={setValue}
-            placeholder={basicValue.toString()}
-            className="text-2xl font-mono flex-1"
-          />
-        </div>
-        {description && (
-          <p className={`${MODAL_DESCRIPTION_CLASS} text-center mb-3`}>{description}</p>
-        )}
-        {bonusSources && bonusSources.length > 0 && (
-          <BonusSourcesList title="加值來源" sources={bonusSources} className="mb-3" />
-        )}
-        {(finalValue !== undefined || bonusValue !== undefined) && (
-          <FinalTotalRow label="最終總計" value={displayTotal} suffix={finalValueSuffix} className="mb-3" />
-        )}
-        <div className={MODAL_FOOTER_BUTTONS_CLASS}>
-          <ModalButton variant="secondary" className={MODAL_BUTTON_RESET_CLASS} onClick={handleReset}>
-            重置
-          </ModalButton>
-          <ModalButton variant="secondary" className={MODAL_BUTTON_CANCEL_CLASS} onClick={onClose}>
-            取消
-          </ModalButton>
-          <ModalButton
-            variant="primary"
-            onClick={handleApply}
-            className={applyButtonClassName}
-          >
-            套用
-          </ModalButton>
-        </div>
+        <BasicBonusEditorBody
+          value={value}
+          onChange={setValue}
+          placeholder={basicValue.toString()}
+          description={description}
+          bonusSources={bonusSources}
+          finalValue={finalValue}
+          bonusValue={bonusValue}
+          displayTotal={displayTotal}
+          finalValueSuffix={finalValueSuffix}
+          onReset={handleReset}
+          onClose={onClose}
+          onApply={handleApply}
+          applyButtonClassName={applyButtonClassName}
+        />
       </div>
     </Modal>
   );

@@ -4,6 +4,10 @@
 
 ---
 
+## 2.4.12
+
+- 整理：`NumberEditModal`、`CombatStatEditModal` 兩個彈窗的「基礎值輸入＋說明＋加值來源＋最終總計/數值預覽＋重置/取消/套用」內容區塊逐字重複，只差 state 由誰管理（前者受控於父層、後者自己管理，含 segment bar 重新開啟時的重置行為）。抽出純呈現、不含任何計算邏輯的共用元件 `components/ui/BasicBonusEditorBody`，兩邊各自的計算公式（`handleValueInput`/`handleDecimalInput` vs `parseInt`+`Number.isFinite`）刻意保留、未合併，僅共用畫面呈現。行為不變，經瀏覽器實測（攻擊命中 modal、金幣 modal）確認畫面與互動一致。
+
 ## 2.4.11
 
 - 整理：`types/ability.ts` 的 `AbilityDef.recoveryType` 原本自己重複宣告一次 `'常駐' | '短休' | '長休'` 字面聯合型別，沒有引用 `services/abilityService.ts` 剛整理好的 `AbilityRecoveryType`。改成直接引用，避免以後兩邊漏改而悄悄不同步（`source: AbilitySource`／`school: Spell['school']` 這兩個欄位本來就已經正確引用來源型別，沒有這個問題）。
