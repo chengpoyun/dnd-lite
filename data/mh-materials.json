@@ -395,7 +395,12 @@
     "name": "泡狐龍的紫毛",
     "nameEn": "Mizutsune Purplefur",
     "rarity": null,
-    "description": "對強酸傷害有抗性"
+    "armorDecoration": true,
+    "decorationEffects": {
+      "armor": {
+        "note": "對強酸傷害有抗性。"
+      }
+    }
   },
   {
     "name": "泡狐龍的錦鰭",
