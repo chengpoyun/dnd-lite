@@ -37,7 +37,6 @@ describe('LearnItemModal - keyword gating', () => {
         onClose={vi.fn()}
         onLearnItem={vi.fn()}
         onCreateNew={vi.fn()}
-        learnedNames={[]}
       />
     );
 
@@ -72,7 +71,6 @@ describe('LearnItemModal - keyword gating', () => {
         onClose={vi.fn()}
         onLearnItem={vi.fn()}
         onCreateNew={vi.fn()}
-        learnedNames={[]}
       />
     );
 
@@ -90,7 +88,7 @@ describe('LearnItemModal - keyword gating', () => {
     expect(mockedSearchLocalCatalog).toHaveBeenCalledWith('誇爾羽符');
   });
 
-  it('已擁有的物品（依名稱比對）不會出現在搜尋結果', async () => {
+  it('已擁有的物品（依名稱比對）也會照樣出現在搜尋結果，不再被排除', async () => {
     const items: CatalogItem[] = [
       { source: 'material', entry: { name: '藥草', nameEn: 'Herb', rarity: null } },
     ];
@@ -102,7 +100,6 @@ describe('LearnItemModal - keyword gating', () => {
         onClose={vi.fn()}
         onLearnItem={vi.fn()}
         onCreateNew={vi.fn()}
-        learnedNames={['藥草']}
       />
     );
 
@@ -111,12 +108,11 @@ describe('LearnItemModal - keyword gating', () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByText('沒有符合條件的物品')).toBeInTheDocument();
+      expect(screen.getByText('藥草')).toBeInTheDocument();
     });
-    expect(screen.queryByText('藥草')).not.toBeInTheDocument();
   });
 
-  it('點「獲得」時把整筆 CatalogItem 傳給 onLearnItem', async () => {
+  it('點「獲得」時把整筆 CatalogItem 傳給 onLearnItem（是否已擁有交由呼叫端判斷）', async () => {
     const item: CatalogItem = { source: 'material', entry: { name: '藥草', nameEn: 'Herb', rarity: null } };
     mockedSearchLocalCatalog.mockResolvedValue([item]);
     const onLearnItem = vi.fn().mockResolvedValue(undefined);
@@ -127,7 +123,6 @@ describe('LearnItemModal - keyword gating', () => {
         onClose={vi.fn()}
         onLearnItem={onLearnItem}
         onCreateNew={vi.fn()}
-        learnedNames={[]}
       />
     );
 

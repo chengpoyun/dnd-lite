@@ -8,8 +8,6 @@ interface LearnItemModalProps {
   onClose: () => void;
   onLearnItem: (item: CatalogItem) => Promise<void>;
   onCreateNew: (initialName?: string) => void;
-  /** 已擁有的物品名稱（本地目錄以名稱去重，不再有共用的物品 id） */
-  learnedNames: string[];
 }
 
 /** 目錄條目的顯示欄位（MH素材／通用道具兩種來源統一成同一組欄位渲染） */
@@ -23,8 +21,7 @@ export const LearnItemModal: React.FC<LearnItemModalProps> = ({
   isOpen,
   onClose,
   onLearnItem,
-  onCreateNew,
-  learnedNames
+  onCreateNew
 }) => {
   const [items, setItems] = useState<CatalogItem[]>([]);
   const [searchText, setSearchText] = useState('');
@@ -45,12 +42,12 @@ export const LearnItemModal: React.FC<LearnItemModalProps> = ({
     let cancelled = false;
     searchLocalCatalog(query).then((result) => {
       if (cancelled) return;
-      setItems(result.filter((item) => !learnedNames.includes(item.entry.name)));
+      setItems(result);
     });
     return () => {
       cancelled = true;
     };
-  }, [searchText, learnedNames]);
+  }, [searchText]);
 
   const filteredItems = items;
 
@@ -104,9 +101,6 @@ export const LearnItemModal: React.FC<LearnItemModalProps> = ({
           {filteredItems.length === 0 ? (
             <div className="text-center py-8 text-slate-400 space-y-1">
               <div>{searchText.trim() ? '沒有符合條件的物品' : '請輸入關鍵字以搜尋物品'}</div>
-              {searchText.trim() && (
-                <div className="text-[13px] text-slate-500">已擁有的物品不會顯示在此列表中</div>
-              )}
             </div>
           ) : (
             filteredItems.map((item) => {

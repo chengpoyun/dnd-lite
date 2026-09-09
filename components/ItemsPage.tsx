@@ -205,8 +205,18 @@ export default function ItemsPage({ characterId, onCharacterDataChanged, initial
     setSocketSlotIndex(null);
   }, []);
 
-  // 獲得物品（從本地目錄選取）：直接以目錄資料建立個人物品，不在此指定槽位或穿戴狀態
+  // 獲得物品（從本地目錄選取）：已擁有同名物品時改為直接開啟該物品的詳情（等同在列表點擊它），
+  // 不會另外建立一筆重複的物品；未擁有時才以目錄資料建立新的個人物品。
   const handleLearnItem = async (catalogItem: CatalogItem) => {
+    const existing = items.find(
+      (ci) => ItemService.getDisplayValues(ci).displayName === catalogItem.entry.name
+    );
+    if (existing) {
+      setIsLearnModalOpen(false);
+      handleItemClick(existing);
+      return;
+    }
+
     const data = catalogItemToCreateData(catalogItem);
     const result = await ItemService.createCharacterItem(characterId, data);
 
@@ -434,9 +444,6 @@ export default function ItemsPage({ characterId, onCharacterDataChanged, initial
     setIsDeleteModalOpen(true);
   };
 
-  // 已擁有的物品名稱（本地目錄改依名稱比對，不再有共用的物品 id 可用）
-  const learnedItemNames = items.map(item => ItemService.getDisplayValues(item).displayName);
-
   return (
     <div className="min-h-screen bg-slate-900 text-slate-100">
       <div className="max-w-4xl mx-auto p-4">
@@ -529,7 +536,6 @@ export default function ItemsPage({ characterId, onCharacterDataChanged, initial
           setAddPersonalInitialName(initialName ?? '');
           setIsAddPersonalModalOpen(true);
         }}
-        learnedNames={learnedItemNames}
       />
 
       <AddPersonalItemModal
