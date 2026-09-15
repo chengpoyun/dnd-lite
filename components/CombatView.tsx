@@ -538,24 +538,24 @@ export const CombatView: React.FC<CombatViewProps> = ({
       const recoveredPools = recoverHitDiceOnLongRest(stats.hitDicePools);
       setStats(prev => ({
         ...prev,
-        hp: { ...prev.hp, current: newCurrentHP },
+        hp: { ...prev.hp, current: newCurrentHP, temp: 0 },
         hitDicePools: recoveredPools
       }));
     } else {
       // Legacy single hit die recovery
       const recoveredHitDice = Math.max(1, Math.floor(stats.hitDice.total / 2));
       const newHitDice = Math.min(stats.hitDice.total, stats.hitDice.current + recoveredHitDice);
-      
+
       setStats(prev => ({
         ...prev,
-        hp: { ...prev.hp, current: newCurrentHP },
+        hp: { ...prev.hp, current: newCurrentHP, temp: 0 },
         hitDice: { ...prev.hitDice, current: newHitDice }
       }));
     }
 
-    // 保存HP到資料庫
+    // 保存HP到資料庫（長休後暫時生命歸零，一併寫回）
     if (onSaveHP) {
-      onSaveHP(newCurrentHP).catch(error => {
+      onSaveHP(newCurrentHP, 0).catch(error => {
         console.error('❌ 長休後HP保存失敗:', error);
       });
     }

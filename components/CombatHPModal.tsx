@@ -73,8 +73,11 @@ export default function CombatHPModal({
     }
     finalCurrent = Math.min(finalCurrent, effectiveMax);
 
+    // 欄位整個清空視為明確歸零，不是「沒有輸入所以維持原值」
     let finalTemp = temporaryHP;
-    if (tempTemp.trim()) {
+    if (tempTemp.trim() === '') {
+      finalTemp = 0;
+    } else {
       const result = handleValueInput(tempTemp, temporaryHP, {
         minValue: 0,
         allowZero: true,
