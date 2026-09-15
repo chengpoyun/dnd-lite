@@ -51,6 +51,23 @@ enum Tab {
   ABOUT = 'about'
 }
 
+/** 分頁定義：唯一順序來源，導覽列顯示順序與左右滑動切換順序皆由此推導，避免兩處各自維護一份順序而不同步 */
+const TAB_LIST: { id: Tab; label: string; icon: string }[] = [
+  { id: Tab.CHARACTER, label: '角色', icon: '👤' },
+  { id: Tab.ABILITIES, label: '能力', icon: '⚡' },
+  { id: Tab.SPELLS, label: '法術', icon: '✨' },
+  { id: Tab.COMBAT, label: '戰鬥', icon: '⚔️' },
+  { id: Tab.MONSTERS, label: '怪物', icon: '👹' },
+  { id: Tab.ITEMS, label: '道具', icon: '📦' },
+  { id: Tab.EQUIPMENT, label: '裝備', icon: '🛡️' },
+  { id: Tab.NOTES, label: '筆記', icon: '📝' },
+  { id: Tab.MAP, label: '地圖', icon: '📍' },
+  { id: Tab.DICE, label: '骰子', icon: '🎲' },
+  { id: Tab.TERRAIN, label: '採集', icon: '🗺️' },
+  { id: Tab.INFO, label: '資訊', icon: '🔗' },
+  { id: Tab.ABOUT, label: '關於', icon: 'ℹ️' },
+];
+
 type UserMode = 'authenticated' | 'anonymous'
 
 const AuthenticatedApp: React.FC = () => {
@@ -721,22 +738,8 @@ const AuthenticatedApp: React.FC = () => {
 
   // 主應用程式
   if (appState === 'main' && currentCharacter) {
-    // 動態生成可用的 tabs 列表
-    const availableTabs = [
-      Tab.CHARACTER,
-      Tab.ABILITIES,
-      Tab.SPELLS,
-      Tab.COMBAT,
-      Tab.MONSTERS,
-      Tab.ITEMS,
-      Tab.EQUIPMENT,
-      Tab.NOTES,
-      Tab.MAP,
-      Tab.DICE,
-      Tab.TERRAIN,
-      Tab.INFO,
-      Tab.ABOUT
-    ]
+    // 可用的 tabs 順序：與導覽列顯示順序共用同一份 TAB_LIST，避免兩處分開維護而不同步
+    const availableTabs = TAB_LIST.map((tab) => tab.id)
 
     // 滑動處理函數
     const handleTouchStart = (e: React.TouchEvent) => {
@@ -804,21 +807,7 @@ const AuthenticatedApp: React.FC = () => {
         {/* 分頁導航 */}
         <nav className="sticky top-0 z-50 bg-slate-900/95 backdrop-blur-sm border-b border-slate-800 shadow-lg">
           <div ref={navContainerRef} className="flex overflow-x-auto">
-            {[
-              { id: Tab.CHARACTER, label: '角色', icon: '👤' },
-              { id: Tab.ABILITIES, label: '能力', icon: '⚡' },
-              { id: Tab.SPELLS, label: '法術', icon: '✨' },
-              { id: Tab.COMBAT, label: '戰鬥', icon: '⚔️' },
-              { id: Tab.MONSTERS, label: '怪物', icon: '👹' },
-              { id: Tab.ITEMS, label: '道具', icon: '📦' },
-              { id: Tab.EQUIPMENT, label: '裝備', icon: '🛡️' },
-              { id: Tab.NOTES, label: '筆記', icon: '📝' },
-              { id: Tab.MAP, label: '地圖', icon: '📍' },
-              { id: Tab.DICE, label: '骰子', icon: '🎲' },
-              { id: Tab.TERRAIN, label: '採集', icon: '🗺️' },
-              { id: Tab.INFO, label: '資訊', icon: '🔗' },
-              { id: Tab.ABOUT, label: '關於', icon: 'ℹ️' }
-            ].map((tab) => (
+            {TAB_LIST.map((tab) => (
               <button
                 key={tab.id}
                 ref={activeTab === tab.id ? activeTabRef : null}
