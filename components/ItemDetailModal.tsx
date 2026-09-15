@@ -24,6 +24,10 @@ interface ItemDetailModalProps {
   onSlotClick?: (slotIndex: number) => void;
   /** 切換★列表收藏狀態時呼叫（會寫入 DB，呼叫端需負責 refetch 並更新 characterItem） */
   onToggleFavorite?: (characterItemId: string, next: boolean) => void;
+  /** 此 MH素材與目錄資料有差異，可套用更新 */
+  hasCatalogUpdate?: boolean;
+  /** 點擊更新按鈕時呼叫（開啟確認更新的對話框） */
+  onOpenCatalogUpdate?: () => void;
 }
 
 export default function ItemDetailModal({
@@ -35,6 +39,8 @@ export default function ItemDetailModal({
   onQuantityChange,
   onSlotClick,
   onToggleFavorite,
+  hasCatalogUpdate = false,
+  onOpenCatalogUpdate,
 }: ItemDetailModalProps) {
   const [quantityUpdating, setQuantityUpdating] = useState(false);
   // 輸入中的暫存值：打字過程不寫 DB，等失焦或按 Enter 才送出
@@ -93,18 +99,30 @@ export default function ItemDetailModal({
                 <span className="text-sm text-slate-400">{display.displayNameEn}</span>
               )}
             </div>
-            {onToggleFavorite && (
-              <button
-                type="button"
-                onClick={() => onToggleFavorite(characterItem.id, !display.displayIsFavorite)}
-                aria-label={display.displayIsFavorite ? '移除★列表' : '加入★列表'}
-                className={`text-2xl leading-none flex-shrink-0 active:scale-90 transition-transform ${
-                  display.displayIsFavorite ? 'text-amber-400' : 'text-slate-500'
-                }`}
-              >
-                {display.displayIsFavorite ? '★' : '☆'}
-              </button>
-            )}
+            <div className="flex items-center gap-2 flex-shrink-0">
+              {hasCatalogUpdate && onOpenCatalogUpdate && (
+                <button
+                  type="button"
+                  onClick={onOpenCatalogUpdate}
+                  aria-label="套用素材效果更新"
+                  className="w-8 h-8 flex items-center justify-center rounded-full bg-teal-600/20 border border-teal-600 text-teal-400 active:scale-90 transition-transform"
+                >
+                  ↻
+                </button>
+              )}
+              {onToggleFavorite && (
+                <button
+                  type="button"
+                  onClick={() => onToggleFavorite(characterItem.id, !display.displayIsFavorite)}
+                  aria-label={display.displayIsFavorite ? '移除★列表' : '加入★列表'}
+                  className={`text-2xl leading-none active:scale-90 transition-transform ${
+                    display.displayIsFavorite ? 'text-amber-400' : 'text-slate-500'
+                  }`}
+                >
+                  {display.displayIsFavorite ? '★' : '☆'}
+                </button>
+              )}
+            </div>
           </div>
 
           {/* 第二列：tags + 數量調整 */}

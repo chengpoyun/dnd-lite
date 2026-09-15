@@ -18,6 +18,8 @@ interface ItemCardProps {
   dragHandle?: React.ReactNode;
   /** 是否正在被拖曳（用於樣式） */
   isDragging?: boolean;
+  /** 此 MH素材與目錄資料有差異，可套用更新（見 services/mhMaterialCatalog.ts） */
+  hasCatalogUpdate?: boolean;
 }
 
 /** 類別 tag 配色（各類別互不相同，MH素材與鑲嵌用途 tag 共用同一色系） */
@@ -32,7 +34,7 @@ const DECORATION_TAG_CLASS = CATEGORY_TAG_CLASS['MH素材'];
 const MAGIC_TAG_CLASS = 'bg-violet-900/30 border-violet-700 text-violet-300';
 const TAG_BASE_CLASS = 'px-2 py-1 border text-xs rounded font-medium whitespace-nowrap';
 
-export const ItemCard: React.FC<ItemCardProps> = ({ item, onClick, dragHandle, isDragging = false }) => {
+export const ItemCard: React.FC<ItemCardProps> = ({ item, onClick, dragHandle, isDragging = false, hasCatalogUpdate = false }) => {
   const display = getDisplayValues(item);
   const rarityBadge = getRarityBadge(display.displayCategory, display.displayRarity);
 
@@ -62,6 +64,11 @@ export const ItemCard: React.FC<ItemCardProps> = ({ item, onClick, dragHandle, i
                 <span className={`${TAG_BASE_CLASS} ${CATEGORY_TAG_CLASS[display.displayCategory]}`}>
                   {display.displayCategory}
                 </span>
+                {hasCatalogUpdate && (
+                  <span className={`${TAG_BASE_CLASS} bg-teal-900/30 border-teal-700 text-teal-400`}>
+                    可更新
+                  </span>
+                )}
                 {rarityBadge && (
                   <span className={`${TAG_BASE_CLASS} ${rarityBadge.className}`}>
                     {rarityBadge.label}

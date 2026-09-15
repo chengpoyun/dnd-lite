@@ -9,7 +9,7 @@
  * - 刪除角色物品
  */
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
   DndContext,
   DragEndEvent,
@@ -41,6 +41,14 @@ import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 import { InfoModal } from './ui/InfoModal';
 import { DecorationSocketModal } from './DecorationSocketModal';
 import type { StatBonusEditorValue } from './StatBonusEditor';
+import { MHMaterialUpdateModal } from './MHMaterialUpdateModal';
+import {
+  getMHMaterials,
+  getMHMaterialUpdatePreview,
+  buildMHMaterialUpdatePayload,
+  type MHMaterialUpdatePreview,
+} from '../services/mhMaterialCatalog';
+import type { MHMaterialDef } from '../types/mhMaterial';
 
 type ItemFilterValue = ItemCategory | 'all' | 'magic' | 'favorite';
 
@@ -58,9 +66,11 @@ const CATEGORIES: { label: string; value: ItemFilterValue }[] = [
 function SortableItemCard({
   item,
   onClick,
+  hasCatalogUpdate,
 }: {
   item: CharacterItem;
   onClick: () => void;
+  hasCatalogUpdate?: boolean;
 }) {
   const {
     attributes,
@@ -91,7 +101,7 @@ function SortableItemCard({
 
   return (
     <div ref={setNodeRef} style={style}>
-      <ItemCard item={item} onClick={onClick} dragHandle={dragHandle} isDragging={isDragging} />
+      <ItemCard item={item} onClick={onClick} dragHandle={dragHandle} isDragging={isDragging} hasCatalogUpdate={hasCatalogUpdate} />
     </div>
   );
 }
@@ -130,6 +140,32 @@ export default function ItemsPage({ characterId, onCharacterDataChanged, initial
   const [editingItem, setEditingItem] = useState<CharacterItem | null>(null);
   const [isSocketModalOpen, setIsSocketModalOpen] = useState(false);
   const [socketSlotIndex, setSocketSlotIndex] = useState<number | null>(null);
+  const [isMHUpdateModalOpen, setIsMHUpdateModalOpen] = useState(false);
+  const [mhMaterials, setMhMaterials] = useState<MHMaterialDef[]>([]);
+
+  // MH素材目錄（本地 JSON，session 內只需載入一次，見 utils/localCatalog.ts 的快取機制）
+  useEffect(() => {
+    getMHMaterials().then(setMhMaterials);
+  }, []);
+
+  const mhMaterialByName = useMemo(() => {
+    const map = new Map<string, MHMaterialDef>();
+    mhMaterials.forEach((entry) => map.set(entry.name, entry));
+    return map;
+  }, [mhMaterials]);
+
+  // 角色持有的每筆 MH素材與目錄資料的差異（稀有度／鑲嵌效果），供列表標籤與詳情頁更新按鈕判斷
+  const mhMaterialUpdatePreviews = useMemo(() => {
+    const map = new Map<string, MHMaterialUpdatePreview>();
+    for (const item of items) {
+      if (item.category_override !== 'MH素材' || !item.name_override) continue;
+      const entry = mhMaterialByName.get(item.name_override);
+      if (!entry) continue;
+      const preview = getMHMaterialUpdatePreview(item, entry);
+      if (preview) map.set(item.id, preview);
+    }
+    return map;
+  }, [items, mhMaterialByName]);
 
   const loadItems = useCallback(async () => {
     setIsLoading(true);
@@ -385,6 +421,23 @@ export default function ItemsPage({ characterId, onCharacterDataChanged, initial
     setSelectedItem((prev) => (prev && prev.id === characterItemId ? { ...prev, is_favorite: next } : prev));
   };
 
+  // 套用「MH素材與目錄資料的差異」更新（見 services/mhMaterialCatalog.ts）
+  const handleConfirmMHUpdate = async () => {
+    if (!selectedItem?.name_override) return;
+    const entry = mhMaterialByName.get(selectedItem.name_override);
+    if (!entry) return;
+    const patch = buildMHMaterialUpdatePayload(selectedItem, entry);
+    const result = await ItemService.updateCharacterItem(selectedItem.id, patch);
+    if (!result.success) {
+      showError(result.error || '更新素材效果失敗');
+      return;
+    }
+    setItems((prev) => prev.map((i) => (i.id === selectedItem.id ? { ...i, ...patch } : i)));
+    setSelectedItem((prev) => (prev ? { ...prev, ...patch } : prev));
+    setIsMHUpdateModalOpen(false);
+    showSuccess('已更新素材效果');
+  };
+
   // 拖曳排序（任何篩選畫面皆可拖曳，全部分類共用同一份順序，見 utils/fractionalOrder.ts）
   const handleDragEnd = useCallback(
     async (event: DragEndEvent) => {
@@ -521,6 +574,7 @@ export default function ItemsPage({ characterId, onCharacterDataChanged, initial
                     key={item.id}
                     item={item}
                     onClick={() => handleItemClick(item)}
+                    hasCatalogUpdate={mhMaterialUpdatePreviews.has(item.id)}
                   />
                 ))}
               </SortableContext>
@@ -571,6 +625,16 @@ export default function ItemsPage({ characterId, onCharacterDataChanged, initial
         onQuantityChange={handleQuantityChange}
         onSlotClick={handleSlotClick}
         onToggleFavorite={handleToggleFavorite}
+        hasCatalogUpdate={!!selectedItem && mhMaterialUpdatePreviews.has(selectedItem.id)}
+        onOpenCatalogUpdate={() => setIsMHUpdateModalOpen(true)}
+      />
+
+      <MHMaterialUpdateModal
+        isOpen={isMHUpdateModalOpen}
+        onClose={() => setIsMHUpdateModalOpen(false)}
+        onConfirm={handleConfirmMHUpdate}
+        materialName={selectedItem?.name_override ?? ''}
+        preview={selectedItem ? mhMaterialUpdatePreviews.get(selectedItem.id) ?? null : null}
       />
 
       <DecorationSocketModal
