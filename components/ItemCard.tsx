@@ -65,7 +65,7 @@ export const ItemCard: React.FC<ItemCardProps> = ({ item, onClick, dragHandle, i
                   {display.displayCategory}
                 </span>
                 {hasCatalogUpdate && (
-                  <span className={`${TAG_BASE_CLASS} bg-teal-900/30 border-teal-700 text-teal-400`}>
+                  <span className={`${TAG_BASE_CLASS} bg-red-900/30 border-red-700 text-red-400`}>
                     可更新
                   </span>
                 )}

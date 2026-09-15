@@ -136,7 +136,7 @@ export const STYLES = {
     // 標題＋標籤列：空間不足時標籤換到下一行
     titleRow: 'flex flex-wrap items-center gap-2 min-w-0',
     title: 'shrink-0 max-w-full break-words',
-    tags: 'flex items-center gap-1.5 shrink-0 flex-wrap',
+    tags: 'flex items-center gap-1.5 flex-wrap min-w-0 max-w-full',
   },
 
   // 狀態

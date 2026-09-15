@@ -47,6 +47,9 @@ export function MHMaterialUpdateModal({ isOpen, onClose, onConfirm, materialName
         <p className="text-lg font-bold text-white mb-1">更新「{materialName}」</p>
         <p className={`${MODAL_DESCRIPTION_CLASS} mb-3`}>以下欄位將套用目錄最新資料</p>
 
+        {preview.nameEn && (
+          <DiffRow label="英文名稱" oldText={preview.nameEn.old ?? '未填寫'} newText={preview.nameEn.new ?? '未填寫'} />
+        )}
         {preview.rarity && (
           <DiffRow label="稀有度 (CR)" oldText={preview.rarity.old ?? '未填寫'} newText={preview.rarity.new ?? '未填寫'} />
         )}

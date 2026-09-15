@@ -13,6 +13,7 @@ describe('MHMaterialUpdateModal', () => {
 
   it('顯示素材名稱，以及每個有差異欄位的 舊值→新值', () => {
     const preview: MHMaterialUpdatePreview = {
+      nameEn: { old: null, new: 'Seregios Scraper+' },
       rarity: { old: null, new: '17' },
       weapon: { old: undefined, new: { note: '額外造成1d8揮砍傷害。' } },
     };
@@ -20,8 +21,10 @@ describe('MHMaterialUpdateModal', () => {
       <MHMaterialUpdateModal isOpen onClose={vi.fn()} onConfirm={vi.fn()} materialName="千刃龍的斬翼爪+" preview={preview} />
     );
     expect(screen.getByText(/千刃龍的斬翼爪\+/)).toBeInTheDocument();
+    expect(screen.getByText('英文名稱')).toBeInTheDocument();
+    expect(screen.getByText('Seregios Scraper+')).toBeInTheDocument();
     expect(screen.getByText('稀有度 (CR)')).toBeInTheDocument();
-    expect(screen.getByText('未填寫')).toBeInTheDocument();
+    expect(screen.getAllByText('未填寫').length).toBeGreaterThanOrEqual(2);
     expect(screen.getByText('17')).toBeInTheDocument();
     expect(screen.getByText('武器鑲嵌效果')).toBeInTheDocument();
     expect(screen.getByText('無')).toBeInTheDocument();
@@ -34,6 +37,7 @@ describe('MHMaterialUpdateModal', () => {
     render(
       <MHMaterialUpdateModal isOpen onClose={vi.fn()} onConfirm={vi.fn()} materialName="溟波龍的特上皮" preview={preview} />
     );
+    expect(screen.queryByText('英文名稱')).not.toBeInTheDocument();
     expect(screen.queryByText('稀有度 (CR)')).not.toBeInTheDocument();
     expect(screen.queryByText('武器鑲嵌效果')).not.toBeInTheDocument();
     expect(screen.getByText('護甲鑲嵌效果')).toBeInTheDocument();

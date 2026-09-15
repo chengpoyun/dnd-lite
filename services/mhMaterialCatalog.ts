@@ -58,6 +58,7 @@ export function mhMaterialToCreateData(entry: MHMaterialDef, quantity = 1): Crea
 
 /** 角色持有素材與目錄資料的差異：僅列出「有差異」的欄位，完全一致時為 null */
 export interface MHMaterialUpdatePreview {
+  nameEn?: { old: string | null; new: string | null };
   rarity?: { old: string | null; new: string | null };
   weapon?: { old?: DecorationEffect; new?: DecorationEffect };
   armor?: { old?: DecorationEffect; new?: DecorationEffect };
@@ -75,10 +76,16 @@ function decorationEffectEquals(a: DecorationEffect | undefined, b: DecorationEf
  * 完全一致（或目錄沒有更多資訊）時回傳 null。
  */
 export function getMHMaterialUpdatePreview(
-  item: Pick<CharacterItem, 'rarity_override' | 'decoration_effects'>,
+  item: Pick<CharacterItem, 'rarity_override' | 'decoration_effects' | 'name_en_override'>,
   catalogEntry: MHMaterialDef
 ): MHMaterialUpdatePreview | null {
   const preview: MHMaterialUpdatePreview = {};
+
+  const oldNameEn = item.name_en_override ?? null;
+  const newNameEn = catalogEntry.nameEn || null;
+  if (newNameEn !== null && newNameEn !== oldNameEn) {
+    preview.nameEn = { old: oldNameEn, new: newNameEn };
+  }
 
   const oldRarity = item.rarity_override ?? null;
   const newRarity = catalogEntry.rarity != null ? String(catalogEntry.rarity) : null;
@@ -104,7 +111,10 @@ export function getMHMaterialUpdatePreview(
  * 但目錄還沒收錄的資料維持原樣（不會被 null 蓋掉）；鑲嵌旗標同理，只會加開、不會關閉。
  */
 export function buildMHMaterialUpdatePayload(
-  item: Pick<CharacterItem, 'rarity_override' | 'decoration_effects' | 'weapon_decoration' | 'armor_decoration'>,
+  item: Pick<
+    CharacterItem,
+    'rarity_override' | 'decoration_effects' | 'weapon_decoration' | 'armor_decoration' | 'name_en_override'
+  >,
   catalogEntry: MHMaterialDef
 ): UpdateCharacterItemData {
   const catalogEffects = buildDecorationEffectsFromEntry(catalogEntry);
@@ -113,8 +123,10 @@ export function buildMHMaterialUpdatePayload(
   if (catalogEffects?.armor) mergedEffects.armor = catalogEffects.armor;
 
   const newRarity = catalogEntry.rarity != null ? String(catalogEntry.rarity) : null;
+  const newNameEn = catalogEntry.nameEn || null;
 
   return {
+    name_en_override: newNameEn ?? item.name_en_override ?? null,
     rarity_override: newRarity ?? item.rarity_override ?? null,
     weapon_decoration: !!catalogEntry.weaponDecoration || !!item.weapon_decoration,
     armor_decoration: !!catalogEntry.armorDecoration || !!item.armor_decoration,

@@ -105,7 +105,7 @@ export default function ItemDetailModal({
                   type="button"
                   onClick={onOpenCatalogUpdate}
                   aria-label="套用素材效果更新"
-                  className="w-8 h-8 flex items-center justify-center rounded-full bg-teal-600/20 border border-teal-600 text-teal-400 active:scale-90 transition-transform"
+                  className="w-8 h-8 flex items-center justify-center rounded-full bg-red-600/20 border border-red-600 text-red-400 active:scale-90 transition-transform"
                 >
                   ↻
                 </button>

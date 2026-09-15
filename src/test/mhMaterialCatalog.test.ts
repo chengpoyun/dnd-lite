@@ -94,13 +94,24 @@ describe('mhMaterialCatalog', () => {
   });
 
   describe('getMHMaterialUpdatePreview（比對角色持有素材與目錄的差異）', () => {
-    const baseItem = { rarity_override: null, decoration_effects: null } as Pick<
+    const baseItem = { rarity_override: null, decoration_effects: null, name_en_override: null } as Pick<
       CharacterItem,
-      'rarity_override' | 'decoration_effects'
+      'rarity_override' | 'decoration_effects' | 'name_en_override'
     >;
 
     it('完全一致時回傳 null（無需更新）', () => {
-      const entry: MHMaterialDef = { name: '藥草', nameEn: 'Herb', rarity: null };
+      const entry: MHMaterialDef = { name: '藥草', nameEn: '', rarity: null };
+      expect(getMHMaterialUpdatePreview(baseItem, entry)).toBeNull();
+    });
+
+    it('英文名稱不同時，preview.nameEn 顯示 old/new', () => {
+      const entry: MHMaterialDef = { name: '爆鱗龍的鱗', nameEn: 'Bazelgeuse Scale', rarity: null };
+      const preview = getMHMaterialUpdatePreview(baseItem, entry);
+      expect(preview?.nameEn).toEqual({ old: null, new: 'Bazelgeuse Scale' });
+    });
+
+    it('目錄英文名稱為空時，不算差異（即使角色目前沒有英文名稱）', () => {
+      const entry: MHMaterialDef = { name: '測試', nameEn: '', rarity: null };
       expect(getMHMaterialUpdatePreview(baseItem, entry)).toBeNull();
     });
 
@@ -175,8 +186,9 @@ describe('mhMaterialCatalog', () => {
       const item = {
         rarity_override: '5',
         decoration_effects: null,
-      } as Pick<CharacterItem, 'rarity_override' | 'decoration_effects'>;
-      const entry: MHMaterialDef = { name: '小骨殼', nameEn: 'Sm Bone Husk', rarity: null };
+        name_en_override: null,
+      } as Pick<CharacterItem, 'rarity_override' | 'decoration_effects' | 'name_en_override'>;
+      const entry: MHMaterialDef = { name: '小骨殼', nameEn: '', rarity: null };
       expect(getMHMaterialUpdatePreview(item, entry)).toBeNull();
     });
 
@@ -204,9 +216,13 @@ describe('mhMaterialCatalog', () => {
       decoration_effects: null,
       weapon_decoration: false,
       armor_decoration: false,
-    } as Pick<CharacterItem, 'rarity_override' | 'decoration_effects' | 'weapon_decoration' | 'armor_decoration'>;
+      name_en_override: null,
+    } as Pick<
+      CharacterItem,
+      'rarity_override' | 'decoration_effects' | 'weapon_decoration' | 'armor_decoration' | 'name_en_override'
+    >;
 
-    it('組出套用更新用的 payload（稀有度、鑲嵌旗標、鑲嵌效果）', () => {
+    it('組出套用更新用的 payload（英文名稱、稀有度、鑲嵌旗標、鑲嵌效果）', () => {
       const entry: MHMaterialDef = {
         name: '爆鱗龍的尖爪',
         nameEn: 'Bazelgeuse Talon',
@@ -220,6 +236,7 @@ describe('mhMaterialCatalog', () => {
       };
       const payload = buildMHMaterialUpdatePayload(baseItem, entry);
       expect(payload).toEqual({
+        name_en_override: 'Bazelgeuse Talon',
         rarity_override: '17',
         weapon_decoration: true,
         armor_decoration: true,
@@ -240,9 +257,16 @@ describe('mhMaterialCatalog', () => {
 
     it('目錄稀有度為 null 時，維持角色原本已填寫的稀有度（不蓋成 null）', () => {
       const item = { ...baseItem, rarity_override: '5' };
-      const entry: MHMaterialDef = { name: '小骨殼', nameEn: 'Sm Bone Husk', rarity: null };
+      const entry: MHMaterialDef = { name: '小骨殼', nameEn: '', rarity: null };
       const payload = buildMHMaterialUpdatePayload(item, entry);
       expect(payload.rarity_override).toBe('5');
+    });
+
+    it('目錄英文名稱為空時，維持角色原本已填寫的英文名稱（不蓋成 null）', () => {
+      const item = { ...baseItem, name_en_override: 'Sm Bone Husk' };
+      const entry: MHMaterialDef = { name: '小骨殼', nameEn: '', rarity: null };
+      const payload = buildMHMaterialUpdatePayload(item, entry);
+      expect(payload.name_en_override).toBe('Sm Bone Husk');
     });
 
     it('目錄只有武器效果，角色已自訂的護甲效果會保留（merge，不是整個覆蓋）', () => {
