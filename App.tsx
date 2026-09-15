@@ -725,7 +725,7 @@ const AuthenticatedApp: React.FC = () => {
     const availableTabs = [
       Tab.CHARACTER,
       Tab.ABILITIES,
-      ...(isSpellcaster(stats.classes?.map(c => c.name) || [stats.class]) ? [Tab.SPELLS] : []),
+      Tab.SPELLS,
       Tab.COMBAT,
       Tab.MONSTERS,
       Tab.ITEMS,
@@ -807,9 +807,7 @@ const AuthenticatedApp: React.FC = () => {
             {[
               { id: Tab.CHARACTER, label: '角色', icon: '👤' },
               { id: Tab.ABILITIES, label: '能力', icon: '⚡' },
-              ...(isSpellcaster(stats.classes?.map(c => c.name) || [stats.class]) 
-                ? [{ id: Tab.SPELLS, label: '法術', icon: '✨' }] 
-                : []),
+              { id: Tab.SPELLS, label: '法術', icon: '✨' },
               { id: Tab.COMBAT, label: '戰鬥', icon: '⚔️' },
               { id: Tab.MONSTERS, label: '怪物', icon: '👹' },
               { id: Tab.ITEMS, label: '道具', icon: '📦' },
