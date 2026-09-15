@@ -6,13 +6,33 @@
   },
   {
     "name": "千刃龍的伐刀+",
-    "nameEn": "",
-    "rarity": null
+    "nameEn": "Seregios Carver+",
+    "rarity": null,
+    "weaponDecoration": true,
+    "armorDecoration": true,
+    "decorationEffects": {
+      "weapon": {
+        "note": "與此武器同調期間，你可以施放『劍刃障壁』法術。此屬性使用後，直到完成一次長休前無法再次使用。"
+      },
+      "armor": {
+        "note": "(體質) 穿戴此防具時，減速效應（如『緩慢術』或赤銅龍的吐息攻擊）的持續時間減半。"
+      }
+    }
   },
   {
     "name": "千刃龍的飛刃+",
-    "nameEn": "",
-    "rarity": null
+    "nameEn": "Seregios Airblade+",
+    "rarity": null,
+    "weaponDecoration": true,
+    "armorDecoration": true,
+    "decorationEffects": {
+      "weapon": {
+        "note": "剝取鐵人：與此武器同調期間，你對生物進行的第一次剝取檢定具有優勢。"
+      },
+      "armor": {
+        "note": "飛簷走壁：穿戴此防具時，你獲得等同於步行速度的攀爬速度。"
+      }
+    }
   },
   {
     "name": "千刃龍的飛膜+",
@@ -31,13 +51,34 @@
   },
   {
     "name": "千刃龍的破刃+",
-    "nameEn": "",
-    "rarity": null
+    "nameEn": "Seregios Breacher+",
+    "rarity": null,
+    "weaponDecoration": true,
+    "armorDecoration": true,
+    "decorationEffects": {
+      "weapon": {
+        "note": "(僅限遠程武器) 與此武器同調期間，可使用附贈動作說出指令詞，使刃鱗環繞武器。1分鐘內，下次以遠程武器攻擊命中生物時，目標及其周圍5呎內的生物須進行DC16敏捷豁免，失敗受到3d10穿刺傷害，成功則傷害減半。此屬性可使用兩次，長休後恢復。"
+      },
+      "armor": {
+        "note": "迴避性能：此防具具有3個符文，每天黎明時恢復1d3個。當你穿戴它時敏捷豁免失敗，可使用反應消耗1個符文，使該豁免改為成功。"
+      }
+    }
   },
   {
     "name": "千刃龍的斬翼爪+",
-    "nameEn": "",
-    "rarity": null
+    "nameEn": "Seregios Scraper+",
+    "rarity": null,
+    "weaponDecoration": true,
+    "decorationEffects": {
+      "weapon": {
+        "note": "你的武器額外造成1d8揮砍傷害。",
+        "statBonuses": {
+          "combatStats": {
+            "attackDamage": "1d8"
+          }
+        }
+      }
+    }
   },
   {
     "name": "千刃龍的槍尾+",
@@ -341,7 +382,7 @@
     "weaponDecoration": true,
     "decorationEffects": {
       "weapon": {
-        "note": "法術攻擊檢定 +1",
+        "note": "手持此武器時，你的法術攻擊檢定獲得+1加值，且在進行法術攻擊時無視半掩蔽。",
         "statBonuses": {
           "combatStats": {
             "spellHit": 1
@@ -907,6 +948,76 @@
     "rarity": null
   },
   {
+    "name": "爆鱗龍的鱗",
+    "nameEn": "Bazelgeuse Scale",
+    "rarity": null
+  },
+  {
+    "name": "爆鱗龍的堅殼",
+    "nameEn": "Bazelgeuse Carapace",
+    "rarity": null
+  },
+  {
+    "name": "爆鱗龍的爆腺",
+    "nameEn": "Bazelgeuse Fuse",
+    "rarity": null
+  },
+  {
+    "name": "爆鱗龍的尖爪",
+    "nameEn": "Bazelgeuse Talon",
+    "rarity": null,
+    "weaponDecoration": true,
+    "armorDecoration": true,
+    "decorationEffects": {
+      "weapon": {
+        "note": "你的武器額外造成1d8火焰傷害。",
+        "statBonuses": {
+          "combatStats": {
+            "attackDamage": "1d8"
+          }
+        }
+      },
+      "armor": {
+        "note": "(僅限巨劍) 與此防具同調期間，你的防禦AC加值會持續到你的下個回合開始，且你不會被擊倒（倒地）。"
+      }
+    }
+  },
+  {
+    "name": "爆鱗龍的翼",
+    "nameEn": "Bazelgeuse Wing",
+    "rarity": null,
+    "weaponDecoration": true,
+    "armorDecoration": true,
+    "decorationEffects": {
+      "weapon": {
+        "note": "拔刀術+ (Critical Draw+)：在戰鬥的第一回合，你的近戰武器攻擊在擲出15或更高時就能造成爆擊。"
+      },
+      "armor": {
+        "note": "穿戴此防具時，你擁有30呎的飛行速度。"
+      }
+    }
+  },
+  {
+    "name": "爆鱗龍的寶玉",
+    "nameEn": "Bazelgeuse Gem",
+    "rarity": null,
+    "weaponDecoration": true,
+    "armorDecoration": true,
+    "decorationEffects": {
+      "weapon": {
+        "note": "與此武器同調期間，你的力量屬性變為25。如果你的力量已經等於或大於25，則該素材對你沒有影響。",
+        "statBonuses": {
+          "abilityScoreFloors": {
+            "str": 25
+          }
+        }
+      },
+      "armor": {
+        "note": "當你穿戴此防具時，你對火焰傷害免疫。"
+      }
+    }
+  },
+  {
     "name": "爆錘龍的甲殼",
     "nameEn": "",
     "rarity": null,
@@ -1087,7 +1198,17 @@
   {
     "name": "溟波龍的特上皮",
     "nameEn": "Namielle Finehide",
-    "rarity": null
+    "rarity": null,
+    "weaponDecoration": true,
+    "armorDecoration": true,
+    "decorationEffects": {
+      "weapon": {
+        "note": "與此武器同調期間，你可以使用動作隨意對自己施放『浮空術』。"
+      },
+      "armor": {
+        "note": "工具行家：穿戴此防具時，當你使用熟練的工具進行任何屬性檢定時，你的熟練加值翻倍。"
+      }
+    }
   },
   {
     "name": "溟波龍的觸鬚",

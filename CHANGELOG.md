@@ -4,6 +4,10 @@
 
 ---
 
+## 2.4.15
+
+- 資料：`data/mh-materials.json` 新增「爆鱗龍」(Bazelgeuse) 6 筆素材（鱗/堅殼/爆腺/尖爪/翼/寶玉），並補上尖爪/翼/寶玉的鑲嵌效果；同時補齊「千刃龍」系列（伐刀+/飛刃+/破刃+/斬翼爪+）原本缺漏的鑲嵌效果、修正「泡狐龍的爪」效果說明遺漏的無視半掩蔽、新增「溟波龍的特上皮」的鑲嵌效果。資料來源為使用者提供的 MH 5e 工具站截圖，稀有度（CR）欄位尚未提供故維持 `null`。純資料異動，不影響邏輯，`npm run t` 1364/1364 通過。
+
 ## 2.4.14
 
 - 整理：`AddPersonalAbilityModal`（新增個人能力，無英文名/無數值加成）與 `AbilityFormModal`（編輯能力，含英文名與 `StatBonusEditor`）的名稱/來源/恢復類型/描述/最大使用次數欄位約 70% 逐字重複。抽出共用元件 `components/ui/AbilityFormFields`，英文名稱欄位與「影響角色數值」勾選＋`StatBonusEditor` 區塊透過 props/children 選擇性插入，兩邊各自的送出按鈕樣式、`maxUses` 狀態管理（含 `AddPersonalAbilityModal` 恢復類型切為常駐時歸零的 effect）不變、未合併。兩個檔案原本都沒有測試覆蓋，這次一併補上 `AddPersonalAbilityModal.test.tsx`（5 案例）與 `AbilityFormModal.test.tsx`（5 案例）再動手改。行為不變：`npm run t` 1364/1364 通過，並經瀏覽器實測兩個彈窗（新增個人能力、編輯既有能力含 StatBonusEditor）。
