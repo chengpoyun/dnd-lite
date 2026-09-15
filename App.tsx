@@ -730,10 +730,10 @@ const AuthenticatedApp: React.FC = () => {
       Tab.MONSTERS,
       Tab.ITEMS,
       Tab.EQUIPMENT,
-      Tab.DICE,
       Tab.NOTES,
-      Tab.TERRAIN,
       Tab.MAP,
+      Tab.DICE,
+      Tab.TERRAIN,
       Tab.INFO,
       Tab.ABOUT
     ]
