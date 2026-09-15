@@ -950,22 +950,22 @@
   {
     "name": "爆鱗龍的鱗",
     "nameEn": "Bazelgeuse Scale",
-    "rarity": null
+    "rarity": 17
   },
   {
     "name": "爆鱗龍的堅殼",
     "nameEn": "Bazelgeuse Carapace",
-    "rarity": null
+    "rarity": 17
   },
   {
     "name": "爆鱗龍的爆腺",
     "nameEn": "Bazelgeuse Fuse",
-    "rarity": null
+    "rarity": 17
   },
   {
     "name": "爆鱗龍的尖爪",
     "nameEn": "Bazelgeuse Talon",
-    "rarity": null,
+    "rarity": 17,
     "weaponDecoration": true,
     "armorDecoration": true,
     "decorationEffects": {
@@ -985,7 +985,7 @@
   {
     "name": "爆鱗龍的翼",
     "nameEn": "Bazelgeuse Wing",
-    "rarity": null,
+    "rarity": 17,
     "weaponDecoration": true,
     "armorDecoration": true,
     "decorationEffects": {
@@ -1000,7 +1000,7 @@
   {
     "name": "爆鱗龍的寶玉",
     "nameEn": "Bazelgeuse Gem",
-    "rarity": null,
+    "rarity": 17,
     "weaponDecoration": true,
     "armorDecoration": true,
     "decorationEffects": {
