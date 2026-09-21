@@ -711,22 +711,6 @@
     "rarity": null
   },
   {
-    "name": "溟波龍的天麟",
-    "nameEn": "",
-    "rarity": null,
-    "weaponDecoration": true,
-    "decorationEffects": {
-      "weapon": {
-        "note": "法術豁免 DC +1, 寒冷或閃電法術則 +2",
-        "statBonuses": {
-          "combatStats": {
-            "spellDc": 1
-          }
-        }
-      }
-    }
-  },
-  {
     "name": "溟波龍的韌尾",
     "nameEn": "Namielle Lash",
     "rarity": null,
@@ -1193,7 +1177,18 @@
   {
     "name": "溟波龍的天鱗",
     "nameEn": "Namielle Mantle",
-    "rarity": null
+    "rarity": null,
+    "weaponDecoration": true,
+    "decorationEffects": {
+      "weapon": {
+        "note": "法術豁免 DC +1, 寒冷或閃電法術則 +2",
+        "statBonuses": {
+          "combatStats": {
+            "spellDc": 1
+          }
+        }
+      }
+    }
   },
   {
     "name": "溟波龍的剛爪",
