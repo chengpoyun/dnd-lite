@@ -667,22 +667,22 @@
   {
     "name": "黑狼鳥的耳",
     "nameEn": "Garuga Ear",
-    "rarity": null
+    "rarity": 7
   },
   {
     "name": "黑狼鳥的尾巴",
     "nameEn": "Garuga Tail",
-    "rarity": null
+    "rarity": 7
   },
   {
     "name": "黑狼鳥的重殼",
-    "nameEn": "",
-    "rarity": null
+    "nameEn": "Garuga Cortex",
+    "rarity": 16
   },
   {
     "name": "黑狼鳥的銀狼毛",
-    "nameEn": "",
-    "rarity": null,
+    "nameEn": "Garuga Silverpelt",
+    "rarity": 16,
     "weaponDecoration": true,
     "armorDecoration": true,
     "decorationEffects": {
@@ -697,7 +697,7 @@
   {
     "name": "黑狼鳥的翼",
     "nameEn": "Garuga Wing",
-    "rarity": null,
+    "rarity": 7,
     "weaponDecoration": true,
     "armorDecoration": true,
     "decorationEffects": {
@@ -712,7 +712,7 @@
   {
     "name": "黑狼鳥的剛翼",
     "nameEn": "Garuga Fellwing",
-    "rarity": null,
+    "rarity": 16,
     "weaponDecoration": true,
     "armorDecoration": true,
     "decorationEffects": {
@@ -723,11 +723,6 @@
         "note": "每當你針對中毒狀態進行豁免檢定時，你具有優勢。"
       }
     }
-  },
-  {
-    "name": "黑狼鳥復甦的喙",
-    "nameEn": "",
-    "rarity": null
   },
   {
     "name": "溟波龍的韌尾",
@@ -1157,7 +1152,7 @@
   {
     "name": "復甦的喙",
     "nameEn": "Rejuvenated Beak",
-    "rarity": null,
+    "rarity": 7,
     "weaponDecoration": true,
     "armorDecoration": true,
     "decorationEffects": {
@@ -1263,17 +1258,17 @@
   {
     "name": "黑狼鳥的甲殼",
     "nameEn": "Garuga Shell",
-    "rarity": null
+    "rarity": 7
   },
   {
     "name": "黑狼鳥的鬃毛",
     "nameEn": "Garuga Mane",
-    "rarity": null
+    "rarity": 7
   },
   {
     "name": "黑狼鳥的鱗",
     "nameEn": "Garuga Scale",
-    "rarity": null
+    "rarity": 7
   },
   {
     "name": "金獅子的黑毛",

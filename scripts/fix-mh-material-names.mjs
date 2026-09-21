@@ -17,6 +17,7 @@ const FIXES = {
   '爆麟龍的翼': '爆鱗龍的翼',
   '溟淵龍的翼爪': '冥淵龍的翼爪',
   '黑狼鳥的鋼翼': '黑狼鳥的剛翼',
+  '黑狼鳥復甦的喙': '復甦的喙',
 };
 const apply = process.argv.includes('--apply');
 
