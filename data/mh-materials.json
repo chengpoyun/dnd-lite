@@ -36,7 +36,7 @@
   },
   {
     "name": "千刃龍的飛膜+",
-    "nameEn": "",
+    "nameEn": "Seregios Slavescale+",
     "rarity": 15,
     "weaponDecoration": true,
     "armorDecoration": true,
@@ -97,7 +97,7 @@
   },
   {
     "name": "千刃龍的鏡玉",
-    "nameEn": "",
+    "nameEn": "Seregios Lens",
     "rarity": 15
   },
   {
@@ -271,8 +271,27 @@
     "rarity": 4
   },
   {
+    "name": "幼慘爪龍的牙",
+    "nameEn": "Y.Odogaron Fang",
+    "rarity": 4,
+    "weaponDecoration": true,
+    "armorDecoration": true
+  },
+  {
+    "name": "幼慘爪龍的逆鱗",
+    "nameEn": "Y.Odogaron Plate",
+    "rarity": 4,
+    "weaponDecoration": true,
+    "armorDecoration": true
+  },
+  {
     "name": "打消果實",
     "nameEn": "Nullberry",
+    "rarity": null
+  },
+  {
+    "name": "滋養萃取液",
+    "nameEn": "Nourishing Extract",
     "rarity": null
   },
   {
@@ -319,6 +338,13 @@
         "note": "無視由冰雪造成的困難地形。並可以忍受 -45°C 的低溫，若穿著厚重衣物，則可忍受至 -73°C。"
       }
     }
+  },
+  {
+    "name": "冰人魚龍的剛爪",
+    "nameEn": "Auroracanth Iceclaw",
+    "rarity": 14,
+    "weaponDecoration": true,
+    "armorDecoration": true
   },
   {
     "name": "冰凍漿果",
@@ -725,6 +751,20 @@
     }
   },
   {
+    "name": "黑狼鳥的厚鱗",
+    "nameEn": "Garuga Shard",
+    "rarity": 16,
+    "weaponDecoration": true,
+    "armorDecoration": true
+  },
+  {
+    "name": "黑狼鳥的地獄耳",
+    "nameEn": "Garuga Auricle",
+    "rarity": 16,
+    "weaponDecoration": true,
+    "armorDecoration": true
+  },
+  {
     "name": "溟波龍的韌尾",
     "nameEn": "Namielle Lash",
     "rarity": 14,
@@ -816,7 +856,7 @@
   },
   {
     "name": "歷戰煉黑龍的黑焰",
-    "nameEn": "",
+    "nameEn": "T.Miralis Smelter",
     "rarity": 18,
     "weaponDecoration": true,
     "decorationEffects": {
@@ -824,6 +864,51 @@
         "note": "四個符文，每天恢復全部。使用符文打中生物時，感知豁免dc16，失敗的話到下一輪之前打我之外的目標劣勢。"
       }
     }
+  },
+  {
+    "name": "歷戰煉黑龍的黑鱗",
+    "nameEn": "T.Miralis Scale",
+    "rarity": 18,
+    "weaponDecoration": true,
+    "armorDecoration": true
+  },
+  {
+    "name": "歷戰煉黑龍的焦甲",
+    "nameEn": "T.Miralis Fireback",
+    "rarity": 18,
+    "armorDecoration": true
+  },
+  {
+    "name": "歷戰煉黑龍的燃爪",
+    "nameEn": "T.Miralis Fireclaw",
+    "rarity": 18,
+    "weaponDecoration": true
+  },
+  {
+    "name": "歷戰湧出的熔岩",
+    "nameEn": "T.Gushing Magma",
+    "rarity": 18,
+    "armorDecoration": true
+  },
+  {
+    "name": "歷戰煉黑龍的黑翼",
+    "nameEn": "T.Miralis Hellwing",
+    "rarity": 18,
+    "weaponDecoration": true,
+    "armorDecoration": true
+  },
+  {
+    "name": "歷戰煉黑龍的凶眼",
+    "nameEn": "T.Miralis Evil Eye",
+    "rarity": 18,
+    "weaponDecoration": true,
+    "armorDecoration": true
+  },
+  {
+    "name": "歷戰煉黑龍的光玉",
+    "nameEn": "T.Dire Dragongem",
+    "rarity": 18,
+    "weaponDecoration": true
   },
   {
     "name": "歷戰麒麟的皮",
@@ -1054,7 +1139,7 @@
   },
   {
     "name": "爆錘龍的耐熱殼",
-    "nameEn": "",
+    "nameEn": "Uragaan Scute",
     "rarity": 6
   },
   {
@@ -1163,6 +1248,13 @@
         "note": "穿戴此防具時，你的先攻檢定具有優勢。"
       }
     }
+  },
+  {
+    "name": "華麗的喙",
+    "nameEn": "Fancy Beak",
+    "rarity": 16,
+    "weaponDecoration": true,
+    "armorDecoration": true
   },
   {
     "name": "歷戰麒麟的鬃毛",
