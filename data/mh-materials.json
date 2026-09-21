@@ -454,6 +454,12 @@
     "rarity": 11
   },
   {
+    "name": "泡狐龍的毛皮",
+    "nameEn": "Mizutsune Pelt",
+    "rarity": 11,
+    "armorDecoration": true
+  },
+  {
     "name": "泡狐龍的鱗",
     "nameEn": "Mizutsune Scale",
     "rarity": 11,
