@@ -116,18 +116,8 @@
     "rarity": null
   },
   {
-    "name": "大型怪獸骨",
-    "nameEn": "",
-    "rarity": null
-  },
-  {
     "name": "大毒蛛",
     "nameEn": "Large Toxic Kumori",
-    "rarity": null
-  },
-  {
-    "name": "大骨堆",
-    "nameEn": "",
     "rarity": null
   },
   {
@@ -147,11 +137,6 @@
     "rarity": null
   },
   {
-    "name": "小型怪獸骨",
-    "nameEn": "",
-    "rarity": null
-  },
-  {
     "name": "小骨殼",
     "nameEn": "Sm Bone Husk",
     "rarity": null
@@ -164,11 +149,6 @@
   {
     "name": "不死蟲",
     "nameEn": "Godbug",
-    "rarity": null
-  },
-  {
-    "name": "中型怪獸骨",
-    "nameEn": "",
     "rarity": null
   },
   {
@@ -517,7 +497,7 @@
     "rarity": null
   },
   {
-    "name": "皇家鎧玉",
+    "name": "王鎧玉",
     "nameEn": "Royal Armor Sphere",
     "rarity": null
   },
@@ -603,11 +583,6 @@
     "rarity": null
   },
   {
-    "name": "骨",
-    "nameEn": "",
-    "rarity": null
-  },
-  {
     "name": "骨頭",
     "nameEn": "Bone",
     "rarity": null
@@ -638,18 +613,8 @@
     "rarity": null
   },
   {
-    "name": "雪草",
-    "nameEn": "",
-    "rarity": null
-  },
-  {
     "name": "鳥龍種的骨",
     "nameEn": "Bird Wyvern Bone",
-    "rarity": null
-  },
-  {
-    "name": "麻痺菇",
-    "nameEn": "",
     "rarity": null
   },
   {
@@ -660,11 +625,6 @@
   {
     "name": "散彈果",
     "nameEn": "Scatternut",
-    "rarity": null
-  },
-  {
-    "name": "硝化蘑菇",
-    "nameEn": "",
     "rarity": null
   },
   {
@@ -940,11 +900,6 @@
   {
     "name": "龍之種子",
     "nameEn": "Dragon Seed",
-    "rarity": null
-  },
-  {
-    "name": "壓蟲",
-    "nameEn": "Cricket",
     "rarity": null
   },
   {
