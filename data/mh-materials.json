@@ -138,7 +138,8 @@
   {
     "name": "大魔物骨",
     "nameEn": "Lg Monster Bone",
-    "rarity": null
+    "rarity": null,
+    "description": "極稀有防具升級素材。"
   },
   {
     "name": "小金魚",
@@ -148,11 +149,6 @@
   {
     "name": "小型怪獸骨",
     "nameEn": "",
-    "rarity": null
-  },
-  {
-    "name": "小骨堆",
-    "nameEn": "Sm Bone Husk",
     "rarity": null
   },
   {
@@ -233,11 +229,6 @@
   {
     "name": "古代魚",
     "nameEn": "Ancient Fish",
-    "rarity": null
-  },
-  {
-    "name": "古龍血",
-    "nameEn": "Elder Dragon Blood",
     "rarity": null
   },
   {
@@ -354,11 +345,6 @@
   {
     "name": "冰結晶",
     "nameEn": "Ice Crystal",
-    "rarity": null
-  },
-  {
-    "name": "尖鎧玉",
-    "nameEn": "Heavy Armor Sphere",
     "rarity": null
   },
   {
@@ -592,11 +578,6 @@
     "description": "護甲：長修一次，僅限放大\n武器：銃槍限定，每天兩次衝擊砲"
   },
   {
-    "name": "真鎧玉",
-    "nameEn": "Royal Armor Sphere",
-    "rarity": null
-  },
-  {
     "name": "眠魚",
     "nameEn": "Sleepyfish",
     "rarity": null
@@ -652,11 +633,6 @@
     "rarity": null
   },
   {
-    "name": "野獸骨",
-    "nameEn": "Brute Bone",
-    "rarity": null
-  },
-  {
     "name": "雪山草",
     "nameEn": "Snow Herb",
     "rarity": null
@@ -668,11 +644,6 @@
   },
   {
     "name": "鳥龍種的骨",
-    "nameEn": "Bird Wyvern Bone",
-    "rarity": null
-  },
-  {
-    "name": "鳥獸骨",
     "nameEn": "Bird Wyvern Bone",
     "rarity": null
   },
@@ -1233,12 +1204,6 @@
         "note": "道具使用強化+ (Item Prolonger+)：每當你使用具有持續時間的消耗性道具時，其持續時間增加額外的12秒。"
       }
     }
-  },
-  {
-    "name": "大型魔物骨",
-    "nameEn": "Lg Monster Bone",
-    "rarity": null,
-    "description": "極稀有防具升級素材。"
   },
   {
     "name": "復甦的喙",
