@@ -237,7 +237,7 @@
   },
   {
     "name": "古龍血",
-    "nameEn": "",
+    "nameEn": "Elder Dragon Blood",
     "rarity": null
   },
   {
@@ -353,7 +353,7 @@
   {
     "name": "泡狐龍的水玉",
     "nameEn": "Mizutsune Water Gem",
-    "rarity": null,
+    "rarity": 11,
     "weaponDecoration": true,
     "armorDecoration": true,
     "decorationEffects": {
@@ -373,7 +373,7 @@
   {
     "name": "泡狐龍的爪",
     "nameEn": "Mizutsune Claw",
-    "rarity": null,
+    "rarity": 11,
     "weaponDecoration": true,
     "decorationEffects": {
       "weapon": {
@@ -389,12 +389,12 @@
   {
     "name": "泡狐龍的尾巴",
     "nameEn": "Mizutsune Tail",
-    "rarity": null
+    "rarity": 11
   },
   {
     "name": "泡狐龍的逆鱗",
     "nameEn": "Mizutsune Plate",
-    "rarity": null,
+    "rarity": 11,
     "weaponDecoration": true,
     "armorDecoration": true,
     "decorationEffects": {
@@ -414,7 +414,7 @@
   {
     "name": "泡狐龍的紫毛",
     "nameEn": "Mizutsune Purplefur",
-    "rarity": null,
+    "rarity": 11,
     "armorDecoration": true,
     "decorationEffects": {
       "armor": {
@@ -425,12 +425,12 @@
   {
     "name": "泡狐龍的錦鰭",
     "nameEn": "Mizutsune Fin",
-    "rarity": null
+    "rarity": 11
   },
   {
     "name": "泡狐龍的鱗",
     "nameEn": "Mizutsune Scale",
-    "rarity": null,
+    "rarity": 11,
     "armorDecoration": true,
     "decorationEffects": {
       "armor": {
@@ -713,7 +713,7 @@
   {
     "name": "溟波龍的韌尾",
     "nameEn": "Namielle Lash",
-    "rarity": null,
+    "rarity": 14,
     "weaponDecoration": true,
     "armorDecoration": true,
     "decorationEffects": {
@@ -1030,7 +1030,13 @@
     "name": "爆錘龍的紅玉",
     "nameEn": "",
     "rarity": null,
-    "description": "護甲：迴避豁免檢定可以用AC取代n20擲骰，長修可用三次"
+    "description": "護甲：迴避豁免檢定可以用AC取代n20擲骰，長修可用三次",
+    "armorDecoration": true,
+    "decorationEffects": {
+      "armor": {
+        "note": "可以用AC取代迴避的D20檢定。每次長休可以用三次。"
+      }
+    }
   },
   {
     "name": "爆錘龍的耐熱殼",
@@ -1177,7 +1183,7 @@
   {
     "name": "溟波龍的天鱗",
     "nameEn": "Namielle Mantle",
-    "rarity": null,
+    "rarity": 14,
     "weaponDecoration": true,
     "decorationEffects": {
       "weapon": {
@@ -1193,7 +1199,7 @@
   {
     "name": "溟波龍的剛爪",
     "nameEn": "Namielle Hardclaw",
-    "rarity": null,
+    "rarity": 14,
     "weaponDecoration": true,
     "armorDecoration": true,
     "decorationEffects": {
@@ -1208,12 +1214,12 @@
   {
     "name": "溟波龍的剛翼",
     "nameEn": "Namielle Fellwing",
-    "rarity": null
+    "rarity": 14
   },
   {
     "name": "溟波龍的特上皮",
     "nameEn": "Namielle Finehide",
-    "rarity": null,
+    "rarity": 14,
     "weaponDecoration": true,
     "armorDecoration": true,
     "decorationEffects": {
@@ -1228,12 +1234,12 @@
   {
     "name": "溟波龍的觸鬚",
     "nameEn": "Namielle Whisker",
-    "rarity": null
+    "rarity": 14
   },
   {
     "name": "泡狐龍的發泡液",
     "nameEn": "Bubble Fluid",
-    "rarity": null
+    "rarity": 11
   },
   {
     "name": "黑狼鳥的甲殼",
@@ -1249,5 +1255,27 @@
     "name": "黑狼鳥的鱗",
     "nameEn": "Garuga Scale",
     "rarity": null
+  },
+  {
+    "name": "金獅子的黑毛",
+    "nameEn": "",
+    "rarity": null,
+    "armorDecoration": true,
+    "decorationEffects": {
+      "armor": {
+        "note": "閃電傷害免疫"
+      }
+    }
+  },
+  {
+    "name": "爵銀龍的殼",
+    "nameEn": "",
+    "rarity": null,
+    "armorDecoration": true,
+    "decorationEffects": {
+      "armor": {
+        "note": "對除了滑溜和焦油以外的疫病狀態免疫"
+      }
+    }
   }
 ]
