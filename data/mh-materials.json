@@ -7,7 +7,7 @@
   {
     "name": "千刃龍的伐刀+",
     "nameEn": "Seregios Carver+",
-    "rarity": null,
+    "rarity": 15,
     "weaponDecoration": true,
     "armorDecoration": true,
     "decorationEffects": {
@@ -22,7 +22,7 @@
   {
     "name": "千刃龍的飛刃+",
     "nameEn": "Seregios Airblade+",
-    "rarity": null,
+    "rarity": 15,
     "weaponDecoration": true,
     "armorDecoration": true,
     "decorationEffects": {
@@ -37,7 +37,7 @@
   {
     "name": "千刃龍的飛膜+",
     "nameEn": "",
-    "rarity": null,
+    "rarity": 15,
     "weaponDecoration": true,
     "armorDecoration": true,
     "decorationEffects": {
@@ -52,7 +52,7 @@
   {
     "name": "千刃龍的破刃+",
     "nameEn": "Seregios Breacher+",
-    "rarity": null,
+    "rarity": 15,
     "weaponDecoration": true,
     "armorDecoration": true,
     "decorationEffects": {
@@ -67,7 +67,7 @@
   {
     "name": "千刃龍的斬翼爪+",
     "nameEn": "Seregios Scraper+",
-    "rarity": null,
+    "rarity": 15,
     "weaponDecoration": true,
     "decorationEffects": {
       "weapon": {
@@ -82,8 +82,8 @@
   },
   {
     "name": "千刃龍的槍尾+",
-    "nameEn": "",
-    "rarity": null,
+    "nameEn": "Seregios Impaler+",
+    "rarity": 15,
     "weaponDecoration": true,
     "armorDecoration": true,
     "decorationEffects": {
@@ -98,7 +98,7 @@
   {
     "name": "千刃龍的鏡玉",
     "nameEn": "",
-    "rarity": null
+    "rarity": 15
   },
   {
     "name": "土蝗",
@@ -182,13 +182,13 @@
   },
   {
     "name": "天狗獸的毛",
-    "nameEn": "",
-    "rarity": null
+    "nameEn": "Bishaten Fur",
+    "rarity": 7
   },
   {
     "name": "天狗獸的爪",
     "nameEn": "Bishaten Talon",
-    "rarity": null,
+    "rarity": 7,
     "weaponDecoration": true,
     "armorDecoration": true,
     "decorationEffects": {
@@ -202,8 +202,8 @@
   },
   {
     "name": "天狗獸的角",
-    "nameEn": "",
-    "rarity": null
+    "nameEn": "Bishaten Horn",
+    "rarity": 7
   },
   {
     "name": "幻蝶",
@@ -252,8 +252,8 @@
   },
   {
     "name": "幼慘爪龍的爪",
-    "nameEn": "",
-    "rarity": null,
+    "nameEn": "Y.Odogaron Claw",
+    "rarity": 4,
     "weaponDecoration": true,
     "armorDecoration": true,
     "decorationEffects": {
@@ -267,8 +267,8 @@
   },
   {
     "name": "幼慘爪龍的鱗",
-    "nameEn": "",
-    "rarity": null
+    "nameEn": "Y.Odogaron Scale",
+    "rarity": 4
   },
   {
     "name": "打消果實",
@@ -293,7 +293,7 @@
   {
     "name": "冰人魚龍的重殼",
     "nameEn": "Auroracanth Icecortex",
-    "rarity": null,
+    "rarity": 14,
     "weaponDecoration": true,
     "armorDecoration": true,
     "decorationEffects": {
@@ -308,7 +308,7 @@
   {
     "name": "冰人魚龍的凍鱗",
     "nameEn": "Auroracanth Icescale",
-    "rarity": null,
+    "rarity": 14,
     "weaponDecoration": true,
     "armorDecoration": true,
     "decorationEffects": {
@@ -455,8 +455,8 @@
   },
   {
     "name": "金獅子的尖角",
-    "nameEn": "",
-    "rarity": null
+    "nameEn": "Rajang Horn",
+    "rarity": 15
   },
   {
     "name": "青熊獸毛皮",
@@ -520,8 +520,8 @@
   },
   {
     "name": "冥淵龍的翼爪",
-    "nameEn": "",
-    "rarity": null,
+    "nameEn": "Archdemon Wingtalon",
+    "rarity": 28,
     "weaponDecoration": true,
     "armorDecoration": true,
     "decorationEffects": {
@@ -535,8 +535,8 @@
   },
   {
     "name": "凍結袋",
-    "nameEn": "",
-    "rarity": null,
+    "nameEn": "Cryo Sac",
+    "rarity": 14,
     "weaponDecoration": true,
     "armorDecoration": true,
     "decorationEffects": {
@@ -555,8 +555,8 @@
   },
   {
     "name": "浮空龍的寶玉",
-    "nameEn": "",
-    "rarity": null,
+    "nameEn": "Lumu Gem",
+    "rarity": 7,
     "description": "護甲：長修一次，僅限放大\n武器：銃槍限定，每天兩次衝擊砲"
   },
   {
@@ -802,7 +802,7 @@
   {
     "name": "歷戰不滅的交心",
     "nameEn": "T.Immortal Heart",
-    "rarity": null,
+    "rarity": 18,
     "weaponDecoration": true,
     "armorDecoration": true,
     "decorationEffects": {
@@ -817,7 +817,7 @@
   {
     "name": "歷戰煉黑龍的黑焰",
     "nameEn": "",
-    "rarity": null,
+    "rarity": 18,
     "weaponDecoration": true,
     "decorationEffects": {
       "weapon": {
@@ -828,7 +828,7 @@
   {
     "name": "歷戰麒麟的皮",
     "nameEn": "T.Kirin Hide",
-    "rarity": null,
+    "rarity": 19,
     "weaponDecoration": true,
     "armorDecoration": true,
     "decorationEffects": {
@@ -1027,8 +1027,8 @@
   },
   {
     "name": "爆錘龍的甲殼",
-    "nameEn": "",
-    "rarity": null,
+    "nameEn": "Uragaan Carapace",
+    "rarity": 6,
     "weaponDecoration": true,
     "armorDecoration": true,
     "decorationEffects": {
@@ -1042,8 +1042,8 @@
   },
   {
     "name": "爆錘龍的紅玉",
-    "nameEn": "",
-    "rarity": null,
+    "nameEn": "Uragaan Ruby",
+    "rarity": 6,
     "description": "護甲：迴避豁免檢定可以用AC取代n20擲骰，長修可用三次",
     "armorDecoration": true,
     "decorationEffects": {
@@ -1055,12 +1055,12 @@
   {
     "name": "爆錘龍的耐熱殼",
     "nameEn": "",
-    "rarity": null
+    "rarity": 6
   },
   {
     "name": "爆錘龍的骨髓",
-    "nameEn": "",
-    "rarity": null,
+    "nameEn": "Uragaan Marrow",
+    "rarity": 6,
     "armorDecoration": true,
     "decorationEffects": {
       "armor": {
@@ -1111,7 +1111,7 @@
   {
     "name": "冰人魚龍的冰玉",
     "nameEn": "Aurora Gem",
-    "rarity": null,
+    "rarity": 14,
     "weaponDecoration": true,
     "armorDecoration": true,
     "decorationEffects": {
@@ -1131,7 +1131,7 @@
   {
     "name": "冰人魚龍的特上鰭",
     "nameEn": "Auroracanth Fin",
-    "rarity": null,
+    "rarity": 14,
     "weaponDecoration": true,
     "armorDecoration": true,
     "decorationEffects": {
@@ -1167,7 +1167,7 @@
   {
     "name": "歷戰麒麟的鬃毛",
     "nameEn": "T.Kirin Mane",
-    "rarity": null,
+    "rarity": 19,
     "weaponDecoration": true,
     "armorDecoration": true,
     "decorationEffects": {
@@ -1182,17 +1182,17 @@
   {
     "name": "歷戰麒麟的雷尾",
     "nameEn": "T.Kirin Tail",
-    "rarity": null
+    "rarity": 19
   },
   {
     "name": "歷戰麒麟的雷角",
     "nameEn": "T.Kirin Thunderhorn",
-    "rarity": null
+    "rarity": 19
   },
   {
     "name": "歷戰麒麟的蒼角",
     "nameEn": "T.Kirin Azure Horn",
-    "rarity": null
+    "rarity": 19
   },
   {
     "name": "溟波龍的天鱗",
@@ -1272,8 +1272,8 @@
   },
   {
     "name": "金獅子的黑毛",
-    "nameEn": "",
-    "rarity": null,
+    "nameEn": "Rajang Blackfur",
+    "rarity": 15,
     "armorDecoration": true,
     "decorationEffects": {
       "armor": {
@@ -1284,7 +1284,7 @@
   {
     "name": "爵銀龍的殼",
     "nameEn": "",
-    "rarity": null,
+    "rarity": 20,
     "armorDecoration": true,
     "decorationEffects": {
       "armor": {
