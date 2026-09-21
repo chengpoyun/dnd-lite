@@ -1,41 +1,27 @@
-// 修正玩家資料（character_items）中打錯字／缺字的 MH素材名稱，對照正確名稱如下。
-// 用法:
-//   node scripts/fix-mh-material-names.mjs           # 預設只預覽，不寫入
-//   node scripts/fix-mh-material-names.mjs --apply   # 實際寫入
-// 只會動兩個地方，且只比對「完全等於」下方錯誤名稱的資料：
+// 批次修改玩家資料（character_items）中的 MH素材名稱，用於目錄改名／合併重複素材／修正錯字後，
+// 讓玩家已持有的道具跟著改到新名稱（否則對不到目錄，也不會出現「可更新」提示）。
+// 用法（舊名=新名，可一次給多組）:
+//   node scripts/rename-mh-materials.mjs "冰人魚龍重殼=冰人魚龍的重殼" "溟淵龍的翼爪=冥淵龍的翼爪"           # 預覽，不寫入
+//   node scripts/rename-mh-materials.mjs "冰人魚龍重殼=冰人魚龍的重殼" --apply                                  # 實際寫入
+// 只會動兩個地方，且只比對「完全等於」舊名的資料：
 //   1. category_override = 'MH素材' 的道具的 name_override
 //   2. 裝備 sockets 陣列內鑲嵌素材快照的 decoration_name（陣列順序與空插槽 null 都保留）
 import fs from 'node:fs';
 
-const FIXES = {
-  '冰人魚龍涷鱗': '冰人魚龍的凍鱗',
-  '冰人魚龍重殼': '冰人魚龍的重殼',
-  '冰人魚龍特上鰭': '冰人魚龍的特上鰭',
-  '冰人魚龍冰玉': '冰人魚龍的冰玉',
-  '溟波龍的鋼爪': '溟波龍的剛爪',
-  '溟波龍的天麟': '溟波龍的天鱗',
-  '爆麟龍的翼': '爆鱗龍的翼',
-  '溟淵龍的翼爪': '冥淵龍的翼爪',
-  '黑狼鳥的鋼翼': '黑狼鳥的剛翼',
-  '黑狼鳥復甦的喙': '復甦的喙',
-  '古龍血': '古龍的血',
-  '大型魔物骨': '大魔物骨',
-  '野獸骨': '獸骨',
-  '鳥獸骨': '鳥龍種的骨',
-  '小骨堆': '小骨殼',
-  '尖鎧玉': '重鎧玉',
-  '真鎧玉': '王鎧玉',
-  '皇家鎧玉': '王鎧玉',
-  '大骨堆': '大骨殼',
-  '小型怪獸骨': '小魔物骨',
-  '中型怪獸骨': '中魔物骨',
-  '大型怪獸骨': '大魔物骨',
-  '骨': '骨頭',
-  '雪草': '雪山草',
-  '麻痺菇': '麻痺蘑菇',
-  '硝化蘑菇': '爆炸菇',
-  '壓蟲': '蟋蟀',
-};
+const FIXES = Object.fromEntries(
+  process.argv
+    .slice(2)
+    .filter((a) => !a.startsWith('--') && a.includes('='))
+    .map((a) => [a.slice(0, a.indexOf('=')), a.slice(a.indexOf('=') + 1)])
+);
+if (Object.entries(FIXES).some(([oldName, newName]) => !oldName.trim() || !newName.trim() || oldName === newName)) {
+  console.error('❌ 每組「舊名=新名」的兩邊都不可為空，且不能相同');
+  process.exit(1);
+}
+if (Object.keys(FIXES).length === 0) {
+  console.error('❌ 請以「舊名=新名」指定要改的名稱，例如：node scripts/rename-mh-materials.mjs "舊名=新名" [--apply]');
+  process.exit(1);
+}
 const apply = process.argv.includes('--apply');
 
 const env = {};
