@@ -187,8 +187,18 @@
   },
   {
     "name": "天狗獸的爪",
-    "nameEn": "",
-    "rarity": null
+    "nameEn": "Bishaten Talon",
+    "rarity": null,
+    "weaponDecoration": true,
+    "armorDecoration": true,
+    "decorationEffects": {
+      "weapon": {
+        "note": "(僅限德魯伊與遊俠) 與此武器同調期間，你習得『好莓果 (Goodberry)』法術，但生成的莓果顏色隨機，且大小如你的手掌。如果你已經習得了該法術，則生物吃下5顆莓果可以中和其身上的一種毒素。如果生物身受一種以上的毒素，則隨機中和其中一種。"
+      },
+      "armor": {
+        "note": "道具使用強化 (Item Prolonger)：每當你使用具有持續時間的消耗性道具時，其持續時間增加額外的6秒。"
+      }
+    }
   },
   {
     "name": "天狗獸的角",
@@ -813,8 +823,18 @@
   },
   {
     "name": "歷戰不滅的交心",
-    "nameEn": "",
-    "rarity": null
+    "nameEn": "T.Immortal Heart",
+    "rarity": null,
+    "weaponDecoration": true,
+    "armorDecoration": true,
+    "decorationEffects": {
+      "weapon": {
+        "note": "每當你施放1環或更高環階的法術時，熔岩會從你周圍的地面噴發出來。你周圍5呎內的任何生物受到9 (2d8) 點火焰傷害。此外，當你施放造成火焰傷害的法術時，它會額外造成等同於法術環階2倍的火焰傷害。"
+      },
+      "armor": {
+        "note": "當你的生命值低於最大生命值的一半時，你可以使用附贈動作使你的AC增加3，持續1分鐘。此屬性使用後，直到完成一次短休或長休前無法再次使用。"
+      }
+    }
   },
   {
     "name": "歷戰煉黑龍的黑焰",
@@ -950,7 +970,17 @@
   {
     "name": "爆鱗龍的鱗",
     "nameEn": "Bazelgeuse Scale",
-    "rarity": 17
+    "rarity": 17,
+    "weaponDecoration": true,
+    "armorDecoration": true,
+    "decorationEffects": {
+      "weapon": {
+        "note": "(僅限近戰武器) 當你使用此武器擊中生物時，它必須成功通過DC17體質豁免。豁免失敗則該生物陷入燃燒狀態1分鐘。燃燒的生物在其回合開始時受到1d4火焰傷害。生物可以使用其動作提早撲滅火焰。"
+      },
+      "armor": {
+        "note": "你的防具上附有10枚在黎明時會重新生長的爆鱗。當生物使用近戰攻擊命中你時，你可以使用反應引爆其中一枚鱗片，對攻擊者造成2d4火焰傷害。"
+      }
+    }
   },
   {
     "name": "爆鱗龍的堅殼",
@@ -1125,7 +1155,7 @@
         "note": "依鑲嵌的武器種類獲得不同好處：（弓）塗有毒瓶的箭矢擊中生物時可施加冰異常狀態而非中毒狀態。（雙持弩）冰結彈強化時施加冰異常狀態而非水異常狀態。（重弩）毒彈擊中生物時可施加水異常狀態而非中毒狀態。（輕弩）水冷彈擊中生物時，其移動速度減少5呎直到下個回合結束。"
       },
       "armor": {
-        "note": "道具使用強化+：每當你使用具有持續時間的消耗性道具時，其持續時間增加額外的12秒。"
+        "note": "道具使用強化+ (Item Prolonger+)：每當你使用具有持續時間的消耗性道具時，其持續時間增加額外的12秒。"
       }
     }
   },
@@ -1188,7 +1218,17 @@
   {
     "name": "溟波龍的剛爪",
     "nameEn": "Namielle Hardclaw",
-    "rarity": null
+    "rarity": null,
+    "weaponDecoration": true,
+    "armorDecoration": true,
+    "decorationEffects": {
+      "weapon": {
+        "note": "與此武器同調期間，你可以使用附贈動作隨意施放『舞光術 (Dancing Lights)』法術。"
+      },
+      "armor": {
+        "note": "屬性異常狀態無效 (Blightproof)：穿戴此防具時，你對枯萎 (blight) 法術、類法術能力和狀態免疫。"
+      }
+    }
   },
   {
     "name": "溟波龍的剛翼",
