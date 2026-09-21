@@ -699,9 +699,28 @@
     "nameEn": "Garuga Wing",
     "rarity": null,
     "weaponDecoration": true,
+    "armorDecoration": true,
     "decorationEffects": {
       "weapon": {
-        "note": "異常狀態攻擊強化（小）：你對生物或物體施加一分鐘以上的狀態的時候，狀態會多加一輪"
+        "note": "異常狀態攻擊強化（小）(Abnormal Status Atk up (S))：每當你對生物或物體施加持續時間為 1 分鐘或更長的狀態時，該狀態的最大持續時間增加 6 秒。"
+      },
+      "armor": {
+        "note": "每當你針對中毒狀態進行豁免檢定時，你獲得 +2 加值。"
+      }
+    }
+  },
+  {
+    "name": "黑狼鳥的剛翼",
+    "nameEn": "Garuga Fellwing",
+    "rarity": null,
+    "weaponDecoration": true,
+    "armorDecoration": true,
+    "decorationEffects": {
+      "weapon": {
+        "note": "異常狀態攻擊強化（中）(Abnormal Status Atk up (M))：每當你對生物或物體施加持續時間為 1 分鐘或更長的狀態時，該狀態的最大持續時間增加 12 秒。"
+      },
+      "armor": {
+        "note": "每當你針對中毒狀態進行豁免檢定時，你具有優勢。"
       }
     }
   },

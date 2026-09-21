@@ -19,7 +19,7 @@ if (!ref || !env.SUPABASE_ACCESS_TOKEN) {
 
 const SQL = `
   select name_override, name_en_override, rarity_override, description_override,
-         weapon_decoration, armor_decoration, decoration_effects, sockets, category_override, equipment_kind_override
+         weapon_decoration, armor_decoration, decoration_effects, sockets, category_override, equipment_kind_override, (character_id = '61669877-fe13-4b33-ba8a-9bce40c881a2') as is_fixture
   from character_items
   where category_override = 'MH素材' or sockets is not null
 `;
@@ -39,9 +39,9 @@ const materials = new Map();
 const sockets = new Map();
 for (const r of rows) {
   if (r.category_override === 'MH素材' && r.name_override) {
-    const key = JSON.stringify([r.name_override, r.name_en_override, r.rarity_override, r.description_override,
+    const key = JSON.stringify([r.is_fixture, r.name_override, r.name_en_override, r.rarity_override, r.description_override,
       r.weapon_decoration, r.armor_decoration, r.decoration_effects]);
-    const e = materials.get(key) ?? { count: 0, item: {
+    const e = materials.get(key) ?? { count: 0, fixture: r.is_fixture, item: {
       name: r.name_override, nameEn: r.name_en_override, rarity: r.rarity_override,
       description: r.description_override, weaponDecoration: r.weapon_decoration,
       armorDecoration: r.armor_decoration, decorationEffects: r.decoration_effects } };
@@ -51,8 +51,8 @@ for (const r of rows) {
   for (const s of Array.isArray(r.sockets) ? r.sockets : []) {
     if (!s?.decoration_name) continue;
     const kind = r.equipment_kind_override === 'melee_weapon' || r.equipment_kind_override === 'ranged_weapon' ? 'weapon' : 'armor';
-    const key = JSON.stringify([s.decoration_name, s.note, s.stat_bonuses, kind]);
-    const e = sockets.get(key) ?? { count: 0, kind, socket: s };
+    const key = JSON.stringify([r.is_fixture, s.decoration_name, s.note, s.stat_bonuses, kind]);
+    const e = sockets.get(key) ?? { count: 0, kind, fixture: r.is_fixture, socket: s };
     e.count++;
     sockets.set(key, e);
   }
