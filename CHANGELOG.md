@@ -4,6 +4,10 @@
 
 ---
 
+## 2.7.0
+
+- 新功能：角色頁面新增「臨時狀態」區塊（名稱欄位下方、六維屬性上方）。可新增臨時狀態（名稱、持續時間、效果說明，選填是否影響角色數值），顯示為可刪除的標籤；刪除時跳確認視窗，確認後刪除並自動還原對角色數值的影響。新增資料表 `character_temporary_conditions`（含明確 GRANT）與 `services/temporaryConditionService.ts`。`services/characterBonusAggregation.ts` 的 `bySource` 聚合新增第三種來源類型 `temporaryCondition`，與既有的能力／物品共用同一套 `stat_bonuses` 聚合邏輯（`applyItemBonusSource` 泛化為 `applyBonusSource`），因此刪除臨時狀態時數值會透過既有的重新聚合機制自動還原，不需額外的復原邏輯。
+
 ## 2.6.16
 
 - 修正：Supabase 從 2026-10-30 起停止自動把新建資料表授權給 Data API，既有表不受影響，但本專案所有 migration 至今都沒明確下過 `GRANT`。若之後本機執行 `supabase db reset` 或建立新專案／preview branch，重建出來的表格會因缺少授權而連不上 Data API。新增 migration `backfill_data_api_grants`，把目前 21 張表實際已有的權限（用唯讀查詢確認過，`anon`/`authenticated`/`service_role` 三者完全一致：DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE）原封不動補成明確 GRANT，純粹讓現況固化，不改變任何實際權限；已推送並重新查詢比對確認前後一致。新增唯讀腳本 `scripts/dump-table-grants.mjs` 供日後查核。`CLAUDE.md` 補上「新建資料表的 migration 必須明確加 GRANT」的提醒，並記錄本專案的匿名試用是 App 自訂機制（非 Supabase Auth 匿名登入），`anon` role 需要完整 CRUD 而非唯讀。

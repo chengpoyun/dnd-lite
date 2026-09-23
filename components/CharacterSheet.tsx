@@ -16,6 +16,15 @@ import CustomRecordModal from './CustomRecordModal';
 import CharacterInfoModal from './CharacterInfoModal';
 import CombatHPModal from './CombatHPModal';
 import OrganizationModal from './OrganizationModal';
+import { ConfirmDeleteModal } from './ConfirmDeleteModal';
+import { AddTemporaryConditionModal } from './AddTemporaryConditionModal';
+import {
+  getTemporaryConditions,
+  createTemporaryCondition,
+  deleteTemporaryCondition,
+  type CharacterTemporaryCondition,
+  type CreateTemporaryConditionData,
+} from '../services/temporaryConditionService';
 import { Modal, ModalButton } from './ui/Modal';
 import {
   MODAL_CONTAINER_CLASS,
@@ -93,6 +102,53 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
 
   const [newRecord, setNewRecord] = useState({ name: '', value: '', note: '' });
   const [isHPModalOpen, setIsHPModalOpen] = useState(false);
+
+  // === 臨時狀態 ===
+  const [temporaryConditions, setTemporaryConditions] = useState<CharacterTemporaryCondition[]>([]);
+  const [isAddConditionModalOpen, setIsAddConditionModalOpen] = useState(false);
+  /** 正在確認刪除的臨時狀態 id；null 代表沒開確認視窗 */
+  const [deletingConditionId, setDeletingConditionId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!characterId) {
+      setTemporaryConditions([]);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      const result = await getTemporaryConditions(characterId);
+      if (!cancelled && result.success) {
+        setTemporaryConditions(result.conditions ?? []);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [characterId]);
+
+  const handleAddTemporaryCondition = async (data: CreateTemporaryConditionData) => {
+    if (!characterId) return;
+    const result = await createTemporaryCondition(characterId, data);
+    if (!result.success) {
+      throw new Error(result.error || '新增臨時狀態失敗');
+    }
+    const refreshed = await getTemporaryConditions(characterId);
+    if (refreshed.success) setTemporaryConditions(refreshed.conditions ?? []);
+    await onLevelOrClassesSaved?.();
+  };
+
+  const handleDeleteTemporaryCondition = async () => {
+    if (!deletingConditionId) return;
+    const id = deletingConditionId;
+    setDeletingConditionId(null);
+    const result = await deleteTemporaryCondition(id);
+    if (result.success) {
+      setTemporaryConditions(prev => prev.filter(c => c.id !== id));
+      await onLevelOrClassesSaved?.();
+    } else {
+      console.error('❌ 刪除臨時狀態失敗:', result.error);
+    }
+  };
 
   const profBonus = getProfBonus(stats.level);
 
@@ -620,6 +676,61 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
           onSaveHP?.(current, temp, maxBasic)?.catch(e => console.error('❌ HP保存錯誤:', e));
         }}
       />
+
+      <div className="px-2 py-1 space-y-1.5">
+        <div className="flex justify-between items-center">
+          <h3 className="text-base font-black text-slate-400 uppercase tracking-tighter">臨時狀態</h3>
+          <Button
+            variant="secondary"
+            onClick={() => setIsAddConditionModalOpen(true)}
+            aria-label="新增臨時狀態"
+            className="w-8 h-8 min-w-8 min-h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-amber-500 font-bold text-lg p-0"
+          >
+            +
+          </Button>
+        </div>
+        {temporaryConditions.length > 0 && (
+          <div className="flex flex-wrap gap-1.5">
+            {temporaryConditions.map((condition) => (
+              <div
+                key={condition.id}
+                className={`flex items-center gap-1.5 rounded-full pl-3 pr-1.5 py-1 text-sm border ${
+                  condition.affects_stats
+                    ? 'bg-red-950/30 border-red-900/40 text-red-300'
+                    : 'bg-slate-800/60 border-slate-700 text-slate-300'
+                }`}
+              >
+                <span className="font-medium">{condition.name}</span>
+                {condition.duration && <span className="text-xs opacity-70">（{condition.duration}）</span>}
+                <button
+                  type="button"
+                  onClick={() => setDeletingConditionId(condition.id)}
+                  aria-label={`刪除臨時狀態 ${condition.name}`}
+                  className="w-5 h-5 rounded-full flex items-center justify-center hover:bg-black/20 text-xs"
+                >
+                  ✕
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <AddTemporaryConditionModal
+        isOpen={isAddConditionModalOpen}
+        onClose={() => setIsAddConditionModalOpen(false)}
+        onSubmit={handleAddTemporaryCondition}
+      />
+
+      {deletingConditionId && (
+        <ConfirmDeleteModal
+          isOpen
+          title="確認刪除臨時狀態"
+          message={`確定要刪除「${temporaryConditions.find(c => c.id === deletingConditionId)?.name ?? ''}」嗎？此操作無法復原，其影響角色數值的加成也會一併移除。`}
+          onConfirm={handleDeleteTemporaryCondition}
+          onCancel={() => setDeletingConditionId(null)}
+        />
+      )}
 
       <div className="px-2 grid grid-cols-2 gap-1.5">
         {ABILITY_KEYS.map(key => {

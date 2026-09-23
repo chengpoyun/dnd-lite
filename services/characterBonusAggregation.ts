@@ -29,7 +29,7 @@ export interface AggregatedStatBonuses {
   };
   bySource: {
     id: string;
-    type: 'ability' | 'item';
+    type: 'ability' | 'item' | 'temporaryCondition';
     name: string;
     abilityScores?: Record<string, number>;
     abilityModifiers?: Record<string, number>;
@@ -321,9 +321,9 @@ export class CharacterBonusAggregationService {
         }
       }
 
-      // 共用：套用單一來源（裝備本身、或裝備插槽中鑲嵌的素材）的 stat_bonuses 到 totals / bySource
+      // 共用：套用單一來源（裝備本身、裝備插槽中鑲嵌的素材、或臨時狀態）的 stat_bonuses 到 totals / bySource
       // 插槽素材與裝備本身的 affects_stats 無關，只要有鑲嵌就會呼叫本函式套用效果
-      const applyItemBonusSource = (id: string, name: string, bonuses: any) => {
+      const applyBonusSource = (id: string, type: 'item' | 'temporaryCondition', name: string, bonuses: any) => {
         if (!bonuses || typeof bonuses !== 'object') return
 
         const abilityScores = bonuses.abilityScores
@@ -342,7 +342,7 @@ export class CharacterBonusAggregationService {
 
         const perSource: {
           id: string
-          type: 'item'
+          type: 'item' | 'temporaryCondition'
           name: string
           abilityScores?: Record<string, number>
           abilityModifiers?: Record<string, number>
@@ -358,7 +358,7 @@ export class CharacterBonusAggregationService {
           other?: string
         } = {
           id,
-          type: 'item',
+          type,
           name
         }
 
@@ -485,7 +485,7 @@ export class CharacterBonusAggregationService {
           const itemName = (row.name_override || '').toString()
 
           if (row.affects_stats) {
-            applyItemBonusSource(row.id, itemName, row.stat_bonuses as any)
+            applyBonusSource(row.id, 'item', itemName, row.stat_bonuses as any)
           }
 
           const sockets = Array.isArray(row.sockets) ? row.sockets : []
@@ -499,8 +499,29 @@ export class CharacterBonusAggregationService {
             const noteText = typeof socket.note === 'string' ? socket.note.trim() : ''
             const other = [noteText, explicitOther].filter((t, i, arr) => t && arr.indexOf(t) === i).join('\n')
             const bonuses = other ? { ...(socket.stat_bonuses ?? {}), other } : socket.stat_bonuses
-            applyItemBonusSource(`${row.id}-socket-${idx}`, `${itemName}［${decoName}］`, bonuses)
+            applyBonusSource(`${row.id}-socket-${idx}`, 'item', `${itemName}［${decoName}］`, bonuses)
           })
+        }
+      }
+
+      // 3. 角色臨時狀態（角色頁面名稱下方的臨時狀態清單；每列自足，只要 affects_stats 為 true 就套用）
+      const { data: temporaryConditions, error: tcError } = await supabase
+        .from('character_temporary_conditions')
+        .select(`
+          id,
+          character_id,
+          name,
+          affects_stats,
+          stat_bonuses
+        `)
+        .eq('character_id', characterId)
+
+      if (tcError) {
+        console.error('collectSourceBonusesForCharacter: 讀取臨時狀態失敗:', tcError)
+      } else if (Array.isArray(temporaryConditions)) {
+        for (const row of temporaryConditions as any[]) {
+          if (!row.affects_stats) continue
+          applyBonusSource(row.id, 'temporaryCondition', (row.name || '').toString(), row.stat_bonuses as any)
         }
       }
 

@@ -136,7 +136,7 @@ export interface CharacterStats {
      */
     statBonusSources?: {
       id: string;
-      type: 'ability' | 'item';
+      type: 'ability' | 'item' | 'temporaryCondition';
       name: string;
       /** 來自能力／物品的「屬性值」加成（例如：力量值 +1） */
       abilityScores?: Record<string, number>;
