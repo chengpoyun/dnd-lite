@@ -22,6 +22,12 @@ D&D 冒險者助手 — Vite + React 19 + TypeScript 的手機優先角色管理
 - **登入牆**：App 開啟後先要登入（Google OAuth 或「匿名試用」），才會進到角色頁。測試用的既有角色叫「**新**」（Google 帳號登入，Claude 的瀏覽器 preview 連不到，因為那是另一個 OAuth 身分）。
 - **Preview 驗證用的固定匿名測試角色**：Claude 在瀏覽器 preview 驗證功能時，每次開新分頁都要重新走「匿名試用→建立角色」很浪費 token。已建好一個固定角色「開發固定測試角色」（`characters.id = 61669877-fe13-4b33-ba8a-9bce40c881a2`，法師5預言學派 + 遊蕩者5，涵蓋法術位/偷襲傷害等多種測試情境）。要直接跳到這個角色，在 preview 開啟後執行一次：`localStorage.setItem('dnd_anonymous_user_id', 'anon_devfixture'); location.reload();`（匿名模式一個帳號只能有一個角色，重新整理後會自動載入這個角色，不需要另外設定 `current_character_id`）。**這個角色的資料改了就改了，不用還原**——它本來就是拿來被改的，驗證完不需要花額外步驟把數量／HP／裝備等改回原值。使用者的角色「**貝瑞**」則絕對不要碰。
 - **DB migration 一建立就要立刻推送**：新增 migration 後必須馬上 `npm run db:push` 推到遠端，勿累積。
+- **新建資料表的 migration 必須明確加 `GRANT`**：Supabase 從 2026-10-30 起不再自動把新表授權給 Data API（既有表不受影響）。本專案的「匿名試用」是 App 自訂機制、不是 Supabase Auth 匿名登入，匿名玩家全程用 `anon` role 直接讀寫自己的資料，所以 `anon` 需要完整 CRUD，不能只給 SELECT。新表的 migration 裡要加（照現有 21 張表的權限模式）：
+  ```sql
+  grant delete, insert, references, select, trigger, truncate, update
+    on public.<table_name>
+    to anon, authenticated, service_role;
+  ```
 - **`scripts/` 多為 `.sh`**：`db:create` 走 shell script，在 Windows 上要用 Git Bash 執行，不能用 PowerShell/cmd 直接跑。**例外**：`db:push` 是 Node 腳本（`scripts/db-push.mjs`），跨平台可直接 `npm run db:push`。
 - **環境變數**：`.env` 需要 `VITE_SUPABASE_URL`、`VITE_SUPABASE_ANON_KEY`；DB 遷移另需 `SUPABASE_ACCESS_TOKEN`、`SUPABASE_DB_PASSWORD`（皆在 gitignored 的 `.env`）。
 - **先寫測試再實作，不是建議是規則**：動手寫功能碼前，先寫會失敗的對應測試（單元/元件測試）。使用者說「開始實作」只代表設計討論結束，**不代表可以跳過先寫測試這一步**；完整流程見 `docs/ai-workflow.md`。

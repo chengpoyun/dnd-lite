@@ -4,6 +4,10 @@
 
 ---
 
+## 2.6.16
+
+- 修正：Supabase 從 2026-10-30 起停止自動把新建資料表授權給 Data API，既有表不受影響，但本專案所有 migration 至今都沒明確下過 `GRANT`。若之後本機執行 `supabase db reset` 或建立新專案／preview branch，重建出來的表格會因缺少授權而連不上 Data API。新增 migration `backfill_data_api_grants`，把目前 21 張表實際已有的權限（用唯讀查詢確認過，`anon`/`authenticated`/`service_role` 三者完全一致：DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE）原封不動補成明確 GRANT，純粹讓現況固化，不改變任何實際權限；已推送並重新查詢比對確認前後一致。新增唯讀腳本 `scripts/dump-table-grants.mjs` 供日後查核。`CLAUDE.md` 補上「新建資料表的 migration 必須明確加 GRANT」的提醒，並記錄本專案的匿名試用是 App 自訂機制（非 Supabase Auth 匿名登入），`anon` role 需要完整 CRUD 而非唯讀。
+
 ## 2.6.15
 
 - 資料：地形獎勵表（`data/terrain-rewards.json`）與其來源文件（`data/field-selection-bonus.md`）沿用了 MH素材合併重複前的舊名稱，玩家採集抽到時對不到素材目錄。統一改為目錄採用的名稱：`尖鎧玉`→`重鎧玉`、`皇家鎧玉`／`真鎧玉`→`王鎧玉`、`壓蟲`→`蟋蟀`、`小骨堆`→`小骨殼`、`鳥獸骨`→`鳥龍種的骨`、`野獸骨`→`獸骨`。
