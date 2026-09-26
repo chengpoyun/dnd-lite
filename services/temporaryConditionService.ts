@@ -84,6 +84,37 @@ export async function createTemporaryCondition(
   }
 }
 
+export async function updateTemporaryCondition(
+  conditionId: string,
+  updates: Partial<CreateTemporaryConditionData>
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    if (!conditionId) return { success: false, error: '臨時狀態 ID 無效' };
+    if (updates.name !== undefined && !updates.name.trim()) return { success: false, error: '名稱無效' };
+
+    const payload: Record<string, unknown> = { updated_at: new Date().toISOString() };
+    if (updates.name !== undefined) payload.name = updates.name.trim();
+    if (updates.duration !== undefined) payload.duration = updates.duration;
+    if (updates.description !== undefined) payload.description = updates.description;
+    if (updates.affects_stats !== undefined) payload.affects_stats = updates.affects_stats;
+    if (updates.stat_bonuses !== undefined) payload.stat_bonuses = updates.stat_bonuses;
+
+    const { error } = await supabase
+      .from('character_temporary_conditions')
+      .update(payload)
+      .eq('id', conditionId);
+
+    if (error) {
+      console.error('更新臨時狀態失敗:', error);
+      return { success: false, error: error.message };
+    }
+    return { success: true };
+  } catch (e) {
+    console.error('更新臨時狀態異常:', e);
+    return { success: false, error: '更新臨時狀態時發生錯誤' };
+  }
+}
+
 export async function deleteTemporaryCondition(conditionId: string): Promise<{ success: boolean; error?: string }> {
   try {
     if (!conditionId) return { success: false, error: '臨時狀態 ID 無效' };

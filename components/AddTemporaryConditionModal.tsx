@@ -9,19 +9,22 @@ import { ModalSaveButton } from './ui/ModalSaveButton';
 import { LoadingOverlay } from './ui/LoadingOverlay';
 import { AutoResizeTextarea } from './ui/AutoResizeTextarea';
 import { StatBonusEditor, type StatBonusEditorValue } from './StatBonusEditor';
-import type { CreateTemporaryConditionData } from '../services/temporaryConditionService';
+import type { CharacterTemporaryCondition, CreateTemporaryConditionData } from '../services/temporaryConditionService';
 import { MODAL_CONTAINER_CLASS } from '../styles/modalStyles';
 
 interface AddTemporaryConditionModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (data: CreateTemporaryConditionData) => Promise<void>;
+  /** 傳入時為編輯模式：預填既有資料，標題與按鈕文字改為「編輯」／「儲存」 */
+  editingCondition?: CharacterTemporaryCondition | null;
 }
 
 export const AddTemporaryConditionModal: React.FC<AddTemporaryConditionModalProps> = ({
   isOpen,
   onClose,
   onSubmit,
+  editingCondition,
 }) => {
   const [name, setName] = useState('');
   const [duration, setDuration] = useState('');
@@ -32,14 +35,14 @@ export const AddTemporaryConditionModal: React.FC<AddTemporaryConditionModalProp
 
   useEffect(() => {
     if (isOpen) {
-      setName('');
-      setDuration('');
-      setDescription('');
-      setAffectsStats(false);
-      setStatBonuses({});
+      setName(editingCondition?.name ?? '');
+      setDuration(editingCondition?.duration ?? '');
+      setDescription(editingCondition?.description ?? '');
+      setAffectsStats(editingCondition?.affects_stats ?? false);
+      setStatBonuses(editingCondition?.stat_bonuses ?? {});
       setIsSubmitting(false);
     }
-  }, [isOpen]);
+  }, [isOpen, editingCondition]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,7 +59,7 @@ export const AddTemporaryConditionModal: React.FC<AddTemporaryConditionModalProp
       });
       onClose();
     } catch (error) {
-      console.error('新增臨時狀態失敗:', error);
+      console.error(editingCondition ? '編輯臨時狀態失敗:' : '新增臨時狀態失敗:', error);
     } finally {
       setIsSubmitting(false);
     }
@@ -67,7 +70,7 @@ export const AddTemporaryConditionModal: React.FC<AddTemporaryConditionModalProp
       <div className={`${MODAL_CONTAINER_CLASS} relative`}>
         <LoadingOverlay visible={isSubmitting} />
         <form onSubmit={handleSubmit} className="space-y-3">
-          <h2 className="text-xl font-bold text-amber-500">新增臨時狀態</h2>
+          <h2 className="text-xl font-bold text-amber-500">{editingCondition ? '編輯臨時狀態' : '新增臨時狀態'}</h2>
 
           <div className="flex gap-2">
             <div className="flex-1">
@@ -125,7 +128,7 @@ export const AddTemporaryConditionModal: React.FC<AddTemporaryConditionModalProp
               loading={isSubmitting}
               className="flex-1 px-6 py-3 rounded-lg bg-amber-600 hover:bg-amber-500 text-white font-bold"
             >
-              新增
+              {editingCondition ? '儲存' : '新增'}
             </ModalSaveButton>
           </div>
         </form>

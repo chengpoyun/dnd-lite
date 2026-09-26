@@ -21,6 +21,7 @@ import { AddTemporaryConditionModal } from './AddTemporaryConditionModal';
 import {
   getTemporaryConditions,
   createTemporaryCondition,
+  updateTemporaryCondition,
   deleteTemporaryCondition,
   type CharacterTemporaryCondition,
   type CreateTemporaryConditionData,
@@ -105,7 +106,9 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
 
   // === 臨時狀態 ===
   const [temporaryConditions, setTemporaryConditions] = useState<CharacterTemporaryCondition[]>([]);
-  const [isAddConditionModalOpen, setIsAddConditionModalOpen] = useState(false);
+  const [isConditionFormOpen, setIsConditionFormOpen] = useState(false);
+  /** 目前表單開啟時對應的既有臨時狀態；null 代表新增模式 */
+  const [editingCondition, setEditingCondition] = useState<CharacterTemporaryCondition | null>(null);
   /** 正在確認刪除的臨時狀態 id；null 代表沒開確認視窗 */
   const [deletingConditionId, setDeletingConditionId] = useState<string | null>(null);
 
@@ -126,11 +129,13 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
     };
   }, [characterId]);
 
-  const handleAddTemporaryCondition = async (data: CreateTemporaryConditionData) => {
+  const handleSubmitTemporaryCondition = async (data: CreateTemporaryConditionData) => {
     if (!characterId) return;
-    const result = await createTemporaryCondition(characterId, data);
+    const result = editingCondition
+      ? await updateTemporaryCondition(editingCondition.id, data)
+      : await createTemporaryCondition(characterId, data);
     if (!result.success) {
-      throw new Error(result.error || '新增臨時狀態失敗');
+      throw new Error(result.error || (editingCondition ? '編輯臨時狀態失敗' : '新增臨時狀態失敗'));
     }
     const refreshed = await getTemporaryConditions(characterId);
     if (refreshed.success) setTemporaryConditions(refreshed.conditions ?? []);
@@ -682,7 +687,10 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
           <h3 className="text-base font-black text-slate-400 uppercase tracking-tighter">臨時狀態</h3>
           <Button
             variant="secondary"
-            onClick={() => setIsAddConditionModalOpen(true)}
+            onClick={() => {
+              setEditingCondition(null);
+              setIsConditionFormOpen(true);
+            }}
             aria-label="新增臨時狀態"
             className="w-8 h-8 min-w-8 min-h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-amber-500 font-bold text-lg p-0"
           >
@@ -700,8 +708,18 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
                     : 'bg-slate-800/60 border-slate-700 text-slate-300'
                 }`}
               >
-                <span className="font-medium">{condition.name}</span>
-                {condition.duration && <span className="text-xs opacity-70">（{condition.duration}）</span>}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditingCondition(condition);
+                    setIsConditionFormOpen(true);
+                  }}
+                  aria-label={`編輯臨時狀態 ${condition.name}`}
+                  className="flex items-center gap-1.5"
+                >
+                  <span className="font-medium">{condition.name}</span>
+                  {condition.duration && <span className="text-xs opacity-70">（{condition.duration}）</span>}
+                </button>
                 <button
                   type="button"
                   onClick={() => setDeletingConditionId(condition.id)}
@@ -717,9 +735,10 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({
       </div>
 
       <AddTemporaryConditionModal
-        isOpen={isAddConditionModalOpen}
-        onClose={() => setIsAddConditionModalOpen(false)}
-        onSubmit={handleAddTemporaryCondition}
+        isOpen={isConditionFormOpen}
+        onClose={() => setIsConditionFormOpen(false)}
+        onSubmit={handleSubmitTemporaryCondition}
+        editingCondition={editingCondition}
       />
 
       {deletingConditionId && (

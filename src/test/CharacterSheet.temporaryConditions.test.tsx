@@ -152,4 +152,44 @@ describe('角色頁 - 臨時狀態', () => {
     await waitFor(() => expect(screen.queryByText('流血')).not.toBeInTheDocument());
     await waitFor(() => expect(onLevelOrClassesSaved).toHaveBeenCalled());
   });
+
+  it('編輯臨時狀態：點擊 chip 本體開啟預填表單，儲存後呼叫 updateTemporaryCondition 並刷新列表與角色數值', async () => {
+    vi.mocked(TemporaryConditionService.getTemporaryConditions).mockResolvedValue({
+      success: true,
+      conditions: [
+        {
+          id: 'tc-4',
+          character_id: CHARACTER_ID,
+          name: '虛弱',
+          duration: '1 分鐘',
+          description: '力量減弱',
+          affects_stats: true,
+          stat_bonuses: { abilityModifiers: { str: -2 } },
+          created_at: '',
+          updated_at: '',
+        },
+      ],
+    });
+    vi.mocked(TemporaryConditionService.updateTemporaryCondition).mockResolvedValue({ success: true });
+
+    renderSheet();
+    await screen.findByText('虛弱');
+
+    fireEvent.click(screen.getByLabelText('編輯臨時狀態 虛弱'));
+    const dialog = await screen.findByText('編輯臨時狀態', { selector: 'h2' });
+    const modal = dialog.closest('div.fixed') as HTMLElement;
+
+    expect(within(modal).getByPlaceholderText('例：中毒')).toHaveValue('虛弱');
+
+    fireEvent.change(within(modal).getByPlaceholderText('例：1 分鐘'), { target: { value: '2 分鐘' } });
+    fireEvent.click(within(modal).getByText('儲存'));
+
+    await waitFor(() => {
+      expect(TemporaryConditionService.updateTemporaryCondition).toHaveBeenCalledWith(
+        'tc-4',
+        expect.objectContaining({ name: '虛弱', duration: '2 分鐘' })
+      );
+    });
+    await waitFor(() => expect(onLevelOrClassesSaved).toHaveBeenCalled());
+  });
 });

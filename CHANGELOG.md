@@ -4,6 +4,10 @@
 
 ---
 
+## 2.8.0
+
+- 新功能：「臨時狀態」新增編輯功能——點擊標籤本體（非 ✕）會開啟預填既有資料的表單，可編輯名稱、持續時間、效果說明、是否影響角色數值後儲存。`services/temporaryConditionService.ts` 新增 `updateTemporaryCondition`（部分欄位更新，比照 `noteService.updateNote` 的模式）；`AddTemporaryConditionModal` 新增可選的 `editingCondition` prop 以支援新增／編輯共用同一個表單（標題與按鈕文字依模式切換）。
+
 ## 2.7.0
 
 - 新功能：角色頁面新增「臨時狀態」區塊（名稱欄位下方、六維屬性上方）。可新增臨時狀態（名稱、持續時間、效果說明，選填是否影響角色數值），顯示為可刪除的標籤；刪除時跳確認視窗，確認後刪除並自動還原對角色數值的影響。新增資料表 `character_temporary_conditions`（含明確 GRANT）與 `services/temporaryConditionService.ts`。`services/characterBonusAggregation.ts` 的 `bySource` 聚合新增第三種來源類型 `temporaryCondition`，與既有的能力／物品共用同一套 `stat_bonuses` 聚合邏輯（`applyItemBonusSource` 泛化為 `applyBonusSource`），因此刪除臨時狀態時數值會透過既有的重新聚合機制自動還原，不需額外的復原邏輯。

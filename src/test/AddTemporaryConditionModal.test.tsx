@@ -68,4 +68,58 @@ describe('AddTemporaryConditionModal', () => {
     expect(onClose).toHaveBeenCalled();
     expect(onSubmit).not.toHaveBeenCalled();
   });
+
+  describe('編輯模式（傳入 editingCondition）', () => {
+    const editingCondition = {
+      id: 'tc-1',
+      character_id: 'char-1',
+      name: '虛弱',
+      duration: '1 分鐘',
+      description: '力量減弱',
+      affects_stats: true,
+      stat_bonuses: { abilityModifiers: { str: -2 } },
+      created_at: '',
+      updated_at: '',
+    };
+
+    it('標題顯示「編輯臨時狀態」、按鈕顯示「儲存」，且欄位預先帶入既有資料', () => {
+      render(
+        <AddTemporaryConditionModal isOpen onClose={vi.fn()} onSubmit={vi.fn()} editingCondition={editingCondition} />
+      );
+
+      expect(screen.getByText('編輯臨時狀態')).toBeInTheDocument();
+      expect(screen.getByPlaceholderText('例：中毒')).toHaveValue('虛弱');
+      expect(screen.getByPlaceholderText('例：1 分鐘')).toHaveValue('1 分鐘');
+      expect(screen.getByPlaceholderText('描述臨時狀態的效果...')).toHaveValue('力量減弱');
+      expect(screen.getByLabelText(/影響角色數值/)).toBeChecked();
+      expect(screen.getByText('儲存')).toBeInTheDocument();
+    });
+
+    it('編輯後儲存，onSubmit 帶上修改後的資料', async () => {
+      const onSubmit = vi.fn().mockResolvedValue(undefined);
+      const onClose = vi.fn();
+      render(
+        <AddTemporaryConditionModal
+          isOpen
+          onClose={onClose}
+          onSubmit={onSubmit}
+          editingCondition={editingCondition}
+        />
+      );
+
+      fireEvent.change(screen.getByPlaceholderText('例：1 分鐘'), { target: { value: '2 分鐘' } });
+      fireEvent.click(screen.getByText('儲存'));
+
+      await waitFor(() => {
+        expect(onSubmit).toHaveBeenCalledWith({
+          name: '虛弱',
+          duration: '2 分鐘',
+          description: '力量減弱',
+          affects_stats: true,
+          stat_bonuses: { abilityModifiers: { str: -2 } },
+        });
+      });
+      await waitFor(() => expect(onClose).toHaveBeenCalled());
+    });
+  });
 });

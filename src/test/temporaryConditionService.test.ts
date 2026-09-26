@@ -4,6 +4,7 @@ import { supabase } from '../../lib/supabase';
 import {
   getTemporaryConditions,
   createTemporaryCondition,
+  updateTemporaryCondition,
   deleteTemporaryCondition,
 } from '../../services/temporaryConditionService';
 
@@ -11,6 +12,7 @@ function createChainable(finalResult: { data?: any; error: any }) {
   const builder: any = {
     select: vi.fn(() => builder),
     insert: vi.fn(() => builder),
+    update: vi.fn(() => builder),
     delete: vi.fn(() => builder),
     eq: vi.fn(() => builder),
     order: vi.fn(() => builder),
@@ -110,6 +112,65 @@ describe('createTemporaryCondition', () => {
     const result = await createTemporaryCondition('c1', { name: '中毒' });
 
     expect(result).toEqual({ success: false, error: 'insert fail' });
+  });
+});
+
+describe('updateTemporaryCondition', () => {
+  const mockedSupabase = supabase as unknown as { from: Mock };
+  beforeEach(() => vi.clearAllMocks());
+
+  it('conditionId 為空時直接回傳失敗', async () => {
+    const result = await updateTemporaryCondition('', { name: '中毒' });
+    expect(result).toEqual({ success: false, error: '臨時狀態 ID 無效' });
+    expect(mockedSupabase.from).not.toHaveBeenCalled();
+  });
+
+  it('名稱為空字串時直接回傳失敗', async () => {
+    const result = await updateTemporaryCondition('tc1', { name: '  ' });
+    expect(result).toEqual({ success: false, error: '名稱無效' });
+  });
+
+  it('只傳部分欄位時，payload 只包含有傳入的欄位', async () => {
+    const builder = createChainable({ data: null, error: null });
+    mockedSupabase.from.mockReturnValue(builder);
+
+    await updateTemporaryCondition('tc1', { name: '虛弱', duration: '2 分鐘' });
+
+    const payload = builder.update.mock.calls[0][0];
+    expect(payload.name).toBe('虛弱');
+    expect(payload.duration).toBe('2 分鐘');
+    expect('description' in payload).toBe(false);
+    expect('affects_stats' in payload).toBe(false);
+    expect('stat_bonuses' in payload).toBe(false);
+    expect(typeof payload.updated_at).toBe('string');
+    expect(builder.eq).toHaveBeenCalledWith('id', 'tc1');
+  });
+
+  it('affects_stats 改為 false 時仍會寫入（非 undefined 判斷）', async () => {
+    const builder = createChainable({ data: null, error: null });
+    mockedSupabase.from.mockReturnValue(builder);
+
+    await updateTemporaryCondition('tc1', { affects_stats: false, stat_bonuses: {} });
+
+    const payload = builder.update.mock.calls[0][0];
+    expect(payload.affects_stats).toBe(false);
+    expect(payload.stat_bonuses).toEqual({});
+  });
+
+  it('更新失敗時回傳錯誤訊息', async () => {
+    mockedSupabase.from.mockReturnValue(createChainable({ data: null, error: { message: 'update fail' } }));
+
+    const result = await updateTemporaryCondition('tc1', { name: '虛弱' });
+
+    expect(result).toEqual({ success: false, error: 'update fail' });
+  });
+
+  it('更新成功時回傳 success: true', async () => {
+    mockedSupabase.from.mockReturnValue(createChainable({ data: null, error: null }));
+
+    const result = await updateTemporaryCondition('tc1', { name: '虛弱' });
+
+    expect(result).toEqual({ success: true });
   });
 });
 
