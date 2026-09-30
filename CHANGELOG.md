@@ -4,6 +4,10 @@
 
 ---
 
+## 2.8.1
+
+- 資料：MH素材目錄新增 3 隻怪物共 22 筆素材（`data/mh-materials.json`）：幼潛口龍（CR 4，5 筆）、炎妃龍（CR 12，7 筆；古龍的血／古龍骨為既有共用素材，未重複新增）、斬龍（CR 13，10 筆）。依使用者提供的 MH 5e 工具站截圖，武器/防具鑲嵌適用性（⚔️/🛡️ 圖示）對應為 `weaponDecoration`/`armorDecoration` 布林值，未提供具體效果文字者不加 `decorationEffects`。
+
 ## 2.8.0
 
 - 新功能：「臨時狀態」新增編輯功能——點擊標籤本體（非 ✕）會開啟預填既有資料的表單，可編輯名稱、持續時間、效果說明、是否影響角色數值後儲存。`services/temporaryConditionService.ts` 新增 `updateTemporaryCondition`（部分欄位更新，比照 `noteService.updateNote` 的模式）；`AddTemporaryConditionModal` 新增可選的 `editingCondition` prop 以支援新增／編輯共用同一個表單（標題與按鈕文字依模式切換）。

@@ -1309,5 +1309,151 @@
         "note": "對除了滑溜和焦油以外的疫病狀態免疫"
       }
     }
+  },
+  {
+    "name": "幼潛口龍的皮",
+    "nameEn": "Y.Nibelsnarf Hide",
+    "rarity": 4,
+    "armorDecoration": true
+  },
+  {
+    "name": "幼潛口龍的甲殼",
+    "nameEn": "Y.Nibel Shell",
+    "rarity": 4,
+    "armorDecoration": true
+  },
+  {
+    "name": "幼潛口龍的爪",
+    "nameEn": "Y.Nibelsnarf Claw",
+    "rarity": 4,
+    "weaponDecoration": true,
+    "armorDecoration": true
+  },
+  {
+    "name": "發光的體液",
+    "nameEn": "Gleaming Fluid",
+    "rarity": 4,
+    "weaponDecoration": true,
+    "armorDecoration": true
+  },
+  {
+    "name": "幼潛口龍的頭殼",
+    "nameEn": "Y.Nibelsnarf Scalp",
+    "rarity": 4,
+    "weaponDecoration": true,
+    "armorDecoration": true
+  },
+  {
+    "name": "炎妃龍的鱗",
+    "nameEn": "Lunastra Scale",
+    "rarity": 12,
+    "weaponDecoration": true,
+    "armorDecoration": true
+  },
+  {
+    "name": "炎妃龍的堅殼",
+    "nameEn": "Lunastra Carapace",
+    "rarity": 12,
+    "weaponDecoration": true,
+    "armorDecoration": true
+  },
+  {
+    "name": "炎妃龍的尾巴",
+    "nameEn": "Lunastra Tail",
+    "rarity": 12,
+    "weaponDecoration": true,
+    "armorDecoration": true
+  },
+  {
+    "name": "炎妃龍的翼",
+    "nameEn": "Lunastra Wing",
+    "rarity": 12,
+    "weaponDecoration": true,
+    "armorDecoration": true
+  },
+  {
+    "name": "炎妃龍的鬃毛",
+    "nameEn": "Lunastra Mane",
+    "rarity": 12,
+    "weaponDecoration": true
+  },
+  {
+    "name": "炎妃龍的角",
+    "nameEn": "Lunastra Horn",
+    "rarity": 12,
+    "weaponDecoration": true,
+    "armorDecoration": true
+  },
+  {
+    "name": "炎妃龍的寶玉",
+    "nameEn": "Lunastra Gem",
+    "rarity": 12,
+    "weaponDecoration": true,
+    "armorDecoration": true
+  },
+  {
+    "name": "斬龍的鱗",
+    "nameEn": "Glavenus Scale",
+    "rarity": 13,
+    "armorDecoration": true
+  },
+  {
+    "name": "斬龍的牙",
+    "nameEn": "Glavenus Fang",
+    "rarity": 13,
+    "weaponDecoration": true
+  },
+  {
+    "name": "斬龍的堅殼",
+    "nameEn": "Glavenus Carapace",
+    "rarity": 13,
+    "armorDecoration": true
+  },
+  {
+    "name": "爆炎袋",
+    "nameEn": "Flaming Bursa",
+    "rarity": 13,
+    "weaponDecoration": true,
+    "armorDecoration": true
+  },
+  {
+    "name": "斬龍的焰狀殼",
+    "nameEn": "Glavenus Pyroshell",
+    "rarity": 13,
+    "weaponDecoration": true,
+    "armorDecoration": true
+  },
+  {
+    "name": "斬龍的尾巴",
+    "nameEn": "Glavenus Tail",
+    "rarity": 13,
+    "armorDecoration": true
+  },
+  {
+    "name": "斬龍的尾刃片",
+    "nameEn": "Glavenus Tailpiece",
+    "rarity": 13,
+    "weaponDecoration": true
+  },
+  {
+    "name": "業炎袋",
+    "nameEn": "Solar Bursa",
+    "rarity": 13,
+    "weaponDecoration": true,
+    "armorDecoration": true
+  },
+  {
+    "name": "斬龍的逆鱗",
+    "nameEn": "Glavenus Plate",
+    "rarity": 13,
+    "weaponDecoration": true,
+    "armorDecoration": true
+  },
+  {
+    "name": "斬龍的炎玉",
+    "nameEn": "Glavenus Fire Orb",
+    "rarity": 13,
+    "weaponDecoration": true,
+    "armorDecoration": true
   }
 ]
