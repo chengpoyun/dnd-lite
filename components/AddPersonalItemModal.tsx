@@ -13,6 +13,8 @@ import { EQUIPMENT_KINDS, EQUIPMENT_KIND_LABELS } from '../utils/equipmentConsta
 import { MODAL_CONTAINER_CLASS, SELECT_CLASS } from '../styles/modalStyles';
 import { StatBonusEditor, type StatBonusEditorValue } from './StatBonusEditor';
 import { RARITY_TIERS } from '../utils/itemRarity';
+import { QuantityWithMultiplierField } from './ui/QuantityWithMultiplierField';
+import { parseQuantityInput, resolveFinalQuantity } from '../utils/quantityMultiplier';
 
 const CATEGORIES: ItemCategory[] = ['裝備', '藥水', 'MH素材', '雜項'];
 
@@ -95,9 +97,6 @@ export const AddPersonalItemModal: React.FC<AddPersonalItemModalProps> = ({
 
   /** 只有 MH素材 顯示數量與倍數開關；其他類別維持原本行為（固定 1 個） */
   const showMultiplier = category === 'MH素材';
-  const parsedPreview = Number.parseInt(quantity.trim(), 10);
-  const baseForPreview = Number.isFinite(parsedPreview) && parsedPreview > 0 ? parsedPreview : 1;
-  const previewQuantity = applyMultiplier ? baseForPreview * gatherMultiplier : baseForPreview;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -106,13 +105,13 @@ export const AddPersonalItemModal: React.FC<AddPersonalItemModalProps> = ({
 
     setIsSubmitting(true);
     try {
-      const parsedQty = Number.parseInt(quantity.trim(), 10);
-      const baseQty = Number.isFinite(parsedQty) && parsedQty > 0 ? parsedQty : 1;
       const data: CreateCharacterItemData = {
         name: name.trim(),
         category,
         description: description.trim() || undefined,
-        quantity: showMultiplier && applyMultiplier ? baseQty * gatherMultiplier : baseQty,
+        quantity: showMultiplier
+          ? resolveFinalQuantity(quantity, gatherMultiplier, applyMultiplier)
+          : parseQuantityInput(quantity),
         is_magic: isMagic,
       };
       if (nameEn.trim()) {
@@ -361,31 +360,14 @@ export const AddPersonalItemModal: React.FC<AddPersonalItemModalProps> = ({
           )}
           {/* 數量與組織倍數：只有 MH素材 需要（採集來的素材才吃倍數） */}
           {showMultiplier && (
-            <div>
-              <label className="block text-[14px] text-slate-400 mb-2" htmlFor="add-item-quantity">數量</label>
-              <input
-                id="add-item-quantity"
-                type="text"
-                inputMode="numeric"
-                value={quantity}
-                onChange={(e) => setQuantity(e.target.value)}
-                className="w-full bg-slate-800 rounded-lg border border-slate-700 p-3 text-slate-200 text-center font-mono focus:outline-none focus:border-amber-500"
-              />
-              {gatherMultiplier > 1 && (
-                <label className="flex items-center gap-2 text-[14px] text-slate-200 mt-2">
-                  <input
-                    type="checkbox"
-                    checked={applyMultiplier}
-                    onChange={(e) => setApplyMultiplier(e.target.checked)}
-                    className="w-4 h-4 accent-amber-500"
-                  />
-                  <span>
-                    套用組織倍數 ×{gatherMultiplier} → 實得{' '}
-                    <b className="text-amber-500">{previewQuantity}</b> 個
-                  </span>
-                </label>
-              )}
-            </div>
+            <QuantityWithMultiplierField
+              id="add-item-quantity"
+              quantity={quantity}
+              onQuantityChange={setQuantity}
+              gatherMultiplier={gatherMultiplier}
+              applyMultiplier={applyMultiplier}
+              onApplyMultiplierChange={setApplyMultiplier}
+            />
           )}
           <div>
             <label className="block text-[14px] text-slate-400 mb-2">描述（選填）</label>

@@ -6,6 +6,7 @@ import { useCatalogSearch } from '../hooks/useCatalogSearch';
 import { searchLocalCatalog, type CatalogItem } from '../services/itemCatalog';
 import { MODAL_CONTAINER_CLASS } from '../styles/modalStyles';
 import { getRarityBadge } from '../utils/itemRarity';
+import { AcquireQuantityModal } from './AcquireQuantityModal';
 
 const CLOSE_BUTTON_CLASS = 'px-4 py-2 rounded-lg bg-slate-700 text-slate-300 font-bold active:bg-slate-600 whitespace-nowrap';
 const CREATE_BUTTON_CLASS = 'px-4 py-2 rounded-lg bg-amber-600 text-white font-bold active:bg-amber-700 whitespace-nowrap';
@@ -13,10 +14,12 @@ const CREATE_BUTTON_CLASS = 'px-4 py-2 rounded-lg bg-amber-600 text-white font-b
 interface LearnItemModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onLearnItem: (item: CatalogItem) => Promise<void>;
+  onLearnItem: (item: CatalogItem, quantity: number) => Promise<void>;
   onCreateNew: (initialName?: string) => void;
-  /** 已擁有的物品名稱（本地目錄以名稱去重）：只用來把按鈕文字改成「已持有」，不影響是否顯示 */
+  /** 已擁有的物品名稱（本地目錄以名稱去重）：只用來在「獲得」按鈕左側顯示「已持有」標籤，不影響是否顯示 */
   learnedNames: string[];
+  /** 組織階級帶來的素材倍數；獲得數量彈窗只有 MH素材 會顯示套用開關 */
+  gatherMultiplier?: number;
 }
 
 /** 目錄條目的顯示欄位（MH素材／通用道具兩種來源統一成同一組欄位渲染） */
@@ -47,15 +50,18 @@ export const LearnItemModal: React.FC<LearnItemModalProps> = ({
   onClose,
   onLearnItem,
   onCreateNew,
-  learnedNames
+  learnedNames,
+  gatherMultiplier = 1,
 }) => {
   const [searchText, setSearchText] = useState('');
   const [justLearnedKeys, setJustLearnedKeys] = useState<string[]>([]);
+  const [acquiringItem, setAcquiringItem] = useState<CatalogItem | null>(null);
 
   useEffect(() => {
     if (isOpen) {
       setSearchText('');
       setJustLearnedKeys([]);
+      setAcquiringItem(null);
     }
   }, [isOpen]);
 
@@ -68,16 +74,20 @@ export const LearnItemModal: React.FC<LearnItemModalProps> = ({
   );
   const filteredItems = searchResults.filter((item) => !justLearnedKeys.includes(getItemView(item).key));
 
-  const handleLearnItem = async (item: CatalogItem) => {
+  const handleConfirmAcquire = async (quantity: number) => {
+    if (!acquiringItem) return;
+    const item = acquiringItem;
     try {
-      await onLearnItem(item);
+      await onLearnItem(item, quantity);
       setJustLearnedKeys((prev) => [...prev, getItemView(item).key]);
+      setAcquiringItem(null);
     } catch (error) {
       console.error('獲得物品失敗:', error);
     }
   };
 
   return (
+    <>
     <Modal isOpen={isOpen} onClose={onClose} size="3xl" className="flex flex-col">
       <div className={`${MODAL_CONTAINER_CLASS} relative flex flex-col`}>
         <CatalogModalHeader
@@ -138,12 +148,19 @@ export const LearnItemModal: React.FC<LearnItemModalProps> = ({
                       </div>
                       <p className="text-[14px] text-slate-300 line-clamp-2">{view.description}</p>
                     </div>
-                    <button
-                      onClick={() => handleLearnItem(item)}
-                      className="shrink-0 px-4 py-2 rounded-lg bg-green-600 text-white text-[14px] font-bold active:bg-green-700 whitespace-nowrap"
-                    >
-                      {isOwned ? '已持有' : '獲得'}
-                    </button>
+                    <div className="shrink-0 flex items-center gap-2">
+                      {isOwned && (
+                        <span className="px-2 py-0.5 rounded text-[12px] font-bold bg-slate-600/40 text-slate-300 whitespace-nowrap">
+                          已持有
+                        </span>
+                      )}
+                      <button
+                        onClick={() => setAcquiringItem(item)}
+                        className="px-4 py-2 rounded-lg bg-green-600 text-white text-[14px] font-bold active:bg-green-700 whitespace-nowrap"
+                      >
+                        獲得
+                      </button>
+                    </div>
                   </div>
                 </div>
               );
@@ -153,5 +170,14 @@ export const LearnItemModal: React.FC<LearnItemModalProps> = ({
 
       </div>
     </Modal>
+    <AcquireQuantityModal
+      isOpen={!!acquiringItem}
+      itemName={acquiringItem ? getItemView(acquiringItem).name : ''}
+      isMaterial={acquiringItem?.source === 'material'}
+      gatherMultiplier={gatherMultiplier}
+      onCancel={() => setAcquiringItem(null)}
+      onConfirm={handleConfirmAcquire}
+    />
+    </>
   );
 };

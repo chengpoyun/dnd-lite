@@ -241,23 +241,19 @@ export default function ItemsPage({ characterId, onCharacterDataChanged, initial
     setSocketSlotIndex(null);
   }, []);
 
-  // 獲得物品（從本地目錄選取）：已擁有同名物品時改為直接開啟該物品的詳情（等同在列表點擊它），
-  // 不會另外建立一筆重複的物品；未擁有時才以目錄資料建立新的個人物品。
-  const handleLearnItem = async (catalogItem: CatalogItem) => {
+  // 獲得物品（從本地目錄選取，數量由獲得數量彈窗決定）：已擁有同名物品時把數量累加到
+  // 既有物品上，不會另外建立一筆重複的物品；未擁有時才以目錄資料＋該數量建立新的個人物品。
+  const handleLearnItem = async (catalogItem: CatalogItem, quantity: number) => {
     const existing = items.find(
       (ci) => ItemService.getDisplayValues(ci).displayName === catalogItem.entry.name
     );
-    if (existing) {
-      setIsLearnModalOpen(false);
-      handleItemClick(existing);
-      return;
-    }
 
-    const data = catalogItemToCreateData(catalogItem);
-    const result = await ItemService.createCharacterItem(characterId, data);
+    const result = existing
+      ? await ItemService.updateCharacterItem(existing.id, { quantity: existing.quantity + quantity })
+      : await ItemService.createCharacterItem(characterId, catalogItemToCreateData(catalogItem, quantity));
 
     if (result.success) {
-      showSuccess('已獲得物品');
+      showSuccess(`已加入 ${catalogItem.entry.name} × ${quantity}`);
       setIsLearnModalOpen(false);
       loadItems();
       onCharacterDataChanged?.();
@@ -594,6 +590,7 @@ export default function ItemsPage({ characterId, onCharacterDataChanged, initial
           setIsAddPersonalModalOpen(true);
         }}
         learnedNames={learnedItemNames}
+        gatherMultiplier={gatherMultiplier}
       />
 
       <AddPersonalItemModal
