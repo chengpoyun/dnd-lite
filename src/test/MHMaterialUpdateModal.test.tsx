@@ -43,6 +43,17 @@ describe('MHMaterialUpdateModal', () => {
     expect(screen.getByText('護甲鑲嵌效果')).toBeInTheDocument();
   });
 
+  it('preview.description 有值時顯示效果說明差異列', () => {
+    const preview: MHMaterialUpdatePreview = {
+      description: { old: null, new: '任意稀有度的武器強化素材' },
+    };
+    render(
+      <MHMaterialUpdateModal isOpen onClose={vi.fn()} onConfirm={vi.fn()} materialName="古龍的血" preview={preview} />
+    );
+    expect(screen.getByText('效果說明')).toBeInTheDocument();
+    expect(screen.getByText('任意稀有度的武器強化素材')).toBeInTheDocument();
+  });
+
   it('點擊確認更新會呼叫 onConfirm', () => {
     const onConfirm = vi.fn();
     const preview: MHMaterialUpdatePreview = { rarity: { old: null, new: '17' } };

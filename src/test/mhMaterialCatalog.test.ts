@@ -94,10 +94,12 @@ describe('mhMaterialCatalog', () => {
   });
 
   describe('getMHMaterialUpdatePreview（比對角色持有素材與目錄的差異）', () => {
-    const baseItem = { rarity_override: null, decoration_effects: null, name_en_override: null } as Pick<
-      CharacterItem,
-      'rarity_override' | 'decoration_effects' | 'name_en_override'
-    >;
+    const baseItem = {
+      rarity_override: null,
+      decoration_effects: null,
+      name_en_override: null,
+      description_override: null,
+    } as Pick<CharacterItem, 'rarity_override' | 'decoration_effects' | 'name_en_override' | 'description_override'>;
 
     it('完全一致時回傳 null（無需更新）', () => {
       const entry: MHMaterialDef = { name: '藥草', nameEn: '', rarity: null };
@@ -208,6 +210,30 @@ describe('mhMaterialCatalog', () => {
       expect(preview?.weapon?.new).toEqual({ note: '目錄的武器效果' });
       expect(preview?.armor).toBeUndefined();
     });
+
+    it('角色原本沒有效果說明、目錄有時，preview.description 顯示 old=null、new=目錄內容', () => {
+      const entry: MHMaterialDef = { name: '古龍的血', nameEn: '', rarity: null, description: '任意稀有度的武器強化素材' };
+      const preview = getMHMaterialUpdatePreview(baseItem, entry);
+      expect(preview?.description).toEqual({ old: null, new: '任意稀有度的武器強化素材' });
+    });
+
+    it('角色原本已經有效果說明（即使跟目錄不同）時，不算差異，避免蓋掉玩家自訂內容', () => {
+      const item = { ...baseItem, description_override: '玩家自己填的說明' };
+      const entry: MHMaterialDef = { name: '古龍的血', nameEn: '', rarity: null, description: '任意稀有度的武器強化素材' };
+      expect(getMHMaterialUpdatePreview(item, entry)).toBeNull();
+    });
+
+    it('目錄沒有效果說明時，不算差異', () => {
+      const entry: MHMaterialDef = { name: '測試', nameEn: '', rarity: null };
+      expect(getMHMaterialUpdatePreview(baseItem, entry)).toBeNull();
+    });
+
+    it('角色 description_override 是空字串（非 null）時，也視為沒有效果說明', () => {
+      const item = { ...baseItem, description_override: '' };
+      const entry: MHMaterialDef = { name: '古龍骨', nameEn: '', rarity: null, description: '任意稀有度的防具強化素材' };
+      const preview = getMHMaterialUpdatePreview(item, entry);
+      expect(preview?.description).toEqual({ old: null, new: '任意稀有度的防具強化素材' });
+    });
   });
 
   describe('buildMHMaterialUpdatePayload', () => {
@@ -217,9 +243,15 @@ describe('mhMaterialCatalog', () => {
       weapon_decoration: false,
       armor_decoration: false,
       name_en_override: null,
+      description_override: null,
     } as Pick<
       CharacterItem,
-      'rarity_override' | 'decoration_effects' | 'weapon_decoration' | 'armor_decoration' | 'name_en_override'
+      | 'rarity_override'
+      | 'decoration_effects'
+      | 'weapon_decoration'
+      | 'armor_decoration'
+      | 'name_en_override'
+      | 'description_override'
     >;
 
     it('組出套用更新用的 payload（英文名稱、稀有度、鑲嵌旗標、鑲嵌效果）', () => {
@@ -244,6 +276,7 @@ describe('mhMaterialCatalog', () => {
           weapon: { note: '額外造成1d8火焰傷害。', stat_bonuses: { combatStats: { attackDamage: '1d8' } } },
           armor: { note: 'AC加值持續到下回合開始。', stat_bonuses: undefined },
         },
+        description_override: null,
       });
     });
 
@@ -287,6 +320,19 @@ describe('mhMaterialCatalog', () => {
       expect(payload.decoration_effects?.weapon).toEqual({ note: '目錄的武器效果', stat_bonuses: undefined });
       expect(payload.armor_decoration).toBe(true);
       expect(payload.weapon_decoration).toBe(true);
+    });
+
+    it('角色原本沒有效果說明時，套用更新會寫入目錄的 description', () => {
+      const entry: MHMaterialDef = { name: '古龍的血', nameEn: '', rarity: null, description: '任意稀有度的武器強化素材' };
+      const payload = buildMHMaterialUpdatePayload(baseItem, entry);
+      expect(payload.description_override).toBe('任意稀有度的武器強化素材');
+    });
+
+    it('角色原本已經有效果說明時，套用更新不會覆蓋（維持角色原本內容）', () => {
+      const item = { ...baseItem, description_override: '玩家自己填的說明' };
+      const entry: MHMaterialDef = { name: '古龍的血', nameEn: '', rarity: null, description: '任意稀有度的武器強化素材' };
+      const payload = buildMHMaterialUpdatePayload(item, entry);
+      expect(payload.description_override).toBe('玩家自己填的說明');
     });
   });
 

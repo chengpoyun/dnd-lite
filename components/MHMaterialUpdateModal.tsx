@@ -59,6 +59,9 @@ export function MHMaterialUpdateModal({ isOpen, onClose, onConfirm, materialName
         {preview.armor && (
           <DiffRow label="護甲鑲嵌效果" oldText={formatEffect(preview.armor.old)} newText={formatEffect(preview.armor.new)} />
         )}
+        {preview.description && (
+          <DiffRow label="效果說明" oldText="未填寫" newText={preview.description.new} />
+        )}
 
         <div className={`${MODAL_FOOTER_BUTTONS_CLASS} mt-3`}>
           <ModalButton variant="secondary" className={MODAL_BUTTON_CANCEL_CLASS} onClick={onClose}>

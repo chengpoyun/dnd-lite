@@ -4,6 +4,10 @@
 
 ---
 
+## 2.10.0
+
+- 新功能：道具「可更新」偵測（`getMHMaterialUpdatePreview`）新增比對素材本身的效果說明（`description`），只在角色目前完全沒有效果說明時才算差異，避免蓋掉玩家自訂的描述文字。此前只比對英文名稱、稀有度、鑲嵌效果，改成放進 `description` 的素材（如古龍骨、古龍的血）不會再被永遠判斷成無需更新。`MHMaterialUpdateModal` 新增對應的「效果說明」差異列。
+
 ## 2.9.2
 
 - 修正：古龍骨／古龍的血是素材本身自帶的效果，不是鑲嵌到武器/防具插槽才會生效的鑲嵌效果，先前誤標成 `weaponDecoration`/`armorDecoration` + `decorationEffects`。改為直接寫在 `description`，移除鑲嵌相關欄位。

@@ -62,6 +62,8 @@ export interface MHMaterialUpdatePreview {
   rarity?: { old: string | null; new: string | null };
   weapon?: { old?: DecorationEffect; new?: DecorationEffect };
   armor?: { old?: DecorationEffect; new?: DecorationEffect };
+  /** 素材本身自帶的效果說明（非鑲嵌效果）；只在角色原本完全沒填時才算差異，避免蓋掉玩家自訂內容 */
+  description?: { old: null; new: string };
 }
 
 function decorationEffectEquals(a: DecorationEffect | undefined, b: DecorationEffect | undefined): boolean {
@@ -76,7 +78,10 @@ function decorationEffectEquals(a: DecorationEffect | undefined, b: DecorationEf
  * 完全一致（或目錄沒有更多資訊）時回傳 null。
  */
 export function getMHMaterialUpdatePreview(
-  item: Pick<CharacterItem, 'rarity_override' | 'decoration_effects' | 'name_en_override'>,
+  item: Pick<
+    CharacterItem,
+    'rarity_override' | 'decoration_effects' | 'name_en_override' | 'description_override'
+  >,
   catalogEntry: MHMaterialDef
 ): MHMaterialUpdatePreview | null {
   const preview: MHMaterialUpdatePreview = {};
@@ -102,6 +107,12 @@ export function getMHMaterialUpdatePreview(
     preview.armor = { old: oldEffects.armor, new: newEffects.armor };
   }
 
+  const oldDescription = item.description_override?.trim() || '';
+  const newDescription = catalogEntry.description?.trim() || '';
+  if (!oldDescription && newDescription) {
+    preview.description = { old: null, new: newDescription };
+  }
+
   return Object.keys(preview).length > 0 ? preview : null;
 }
 
@@ -113,7 +124,12 @@ export function getMHMaterialUpdatePreview(
 export function buildMHMaterialUpdatePayload(
   item: Pick<
     CharacterItem,
-    'rarity_override' | 'decoration_effects' | 'weapon_decoration' | 'armor_decoration' | 'name_en_override'
+    | 'rarity_override'
+    | 'decoration_effects'
+    | 'weapon_decoration'
+    | 'armor_decoration'
+    | 'name_en_override'
+    | 'description_override'
   >,
   catalogEntry: MHMaterialDef
 ): UpdateCharacterItemData {
@@ -125,12 +141,16 @@ export function buildMHMaterialUpdatePayload(
   const newRarity = catalogEntry.rarity != null ? String(catalogEntry.rarity) : null;
   const newNameEn = catalogEntry.nameEn || null;
 
+  const oldDescription = item.description_override?.trim() || '';
+  const newDescription = catalogEntry.description?.trim() || '';
+
   return {
     name_en_override: newNameEn ?? item.name_en_override ?? null,
     rarity_override: newRarity ?? item.rarity_override ?? null,
     weapon_decoration: !!catalogEntry.weaponDecoration || !!item.weapon_decoration,
     armor_decoration: !!catalogEntry.armorDecoration || !!item.armor_decoration,
     decoration_effects: Object.keys(mergedEffects).length > 0 ? mergedEffects : null,
+    description_override: oldDescription || newDescription || item.description_override || null,
   };
 }
 
