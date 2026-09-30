@@ -25,6 +25,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { useToast } from '../hooks/useToast';
+import { ToastContainer } from './Toast';
 import * as ItemService from '../services/itemService';
 import type { CharacterItem, ItemCategory, CreateCharacterItemData, UpdateCharacterItemData } from '../services/itemService';
 import { planReorder } from '../utils/fractionalOrder';
@@ -119,7 +120,7 @@ interface ItemsPageProps {
 }
 
 export default function ItemsPage({ characterId, onCharacterDataChanged, initialDetailItemId, onInitialDetailConsumed, gatherMultiplier = 1 }: ItemsPageProps) {
-  const { showSuccess, showError } = useToast();
+  const { toasts, showSuccess, showError, removeToast } = useToast();
 
   const [items, setItems] = useState<CharacterItem[]>([]);
   const [filteredItems, setFilteredItems] = useState<CharacterItem[]>([]);
@@ -658,6 +659,8 @@ export default function ItemsPage({ characterId, onCharacterDataChanged, initial
         message={infoMessage ?? ''}
         onClose={() => setInfoMessage(null)}
       />
+
+      <ToastContainer toasts={toasts} onRemove={removeToast} />
     </div>
   );
 }

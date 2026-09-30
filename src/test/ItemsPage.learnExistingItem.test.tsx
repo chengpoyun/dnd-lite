@@ -16,8 +16,10 @@ const showSuccess = vi.fn();
 
 vi.mock('../../hooks/useToast', () => ({
   useToast: () => ({
+    toasts: [],
     showSuccess,
     showError: vi.fn(),
+    removeToast: vi.fn(),
   }),
 }));
 

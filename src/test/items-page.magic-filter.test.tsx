@@ -6,8 +6,10 @@ import * as ItemService from '../../services/itemService';
 
 vi.mock('../../hooks/useToast', () => ({
   useToast: () => ({
+    toasts: [],
     showSuccess: vi.fn(),
     showError: vi.fn(),
+    removeToast: vi.fn(),
   }),
 }));
 

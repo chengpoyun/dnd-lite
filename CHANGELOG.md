@@ -4,6 +4,10 @@
 
 ---
 
+## 2.9.1
+
+- 修正：道具頁面（`ItemsPage.tsx`）呼叫 `useToast()` 卻從未渲染 `<ToastContainer>`，導致所有 `showSuccess`/`showError` 呼叫（含剛新增的「已加入 X × N」提示）狀態有更新但畫面上完全不會顯示任何 toast。補上 `<ToastContainer toasts={toasts} onRemove={removeToast} />`，並修正 5 個既有測試檔案裡不完整的 `useToast` mock（缺少 `toasts`/`removeToast` 會導致 `ToastContainer` 內部 `toasts.length` 噴錯）。
+
 ## 2.9.0
 
 - 新功能：調整「獲得物品」流程。搜尋結果的「獲得」／「已持有」按鈕統一為單一「獲得」按鈕，已擁有的物品改在按鈕左側顯示「已持有」標籤；點擊「獲得」會先跳出「獲得數量」彈窗（只有 MH素材 顯示套用組織倍數開關），確定後才依數量建立新物品或累加到既有物品的數量上，並顯示「已加入 {名稱} × {數量}」的提示，同時關閉彈窗回到道具列表。新增 `AcquireQuantityModal.tsx`；把 `AddPersonalItemModal.tsx` 原本內嵌的「數量＋組織倍數」邏輯抽成共用的 `utils/quantityMultiplier.ts` 與 `components/ui/QuantityWithMultiplierField.tsx`，兩個彈窗共用同一套邏輯，不重複實作。
