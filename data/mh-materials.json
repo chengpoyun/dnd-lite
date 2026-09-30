@@ -215,12 +215,7 @@
     "name": "古龍骨",
     "nameEn": "Elder Dragon Bone",
     "rarity": null,
-    "armorDecoration": true,
-    "decorationEffects": {
-      "armor": {
-        "note": "任意稀有度的防具強化素材"
-      }
-    }
+    "description": "任意稀有度的防具強化素材"
   },
   {
     "name": "巨大骨",
@@ -1130,12 +1125,7 @@
     "name": "古龍的血",
     "nameEn": "Elder Dragon Blood",
     "rarity": null,
-    "weaponDecoration": true,
-    "decorationEffects": {
-      "weapon": {
-        "note": "任意稀有度的武器強化素材"
-      }
-    }
+    "description": "任意稀有度的武器強化素材"
   },
   {
     "name": "冰人魚龍的冰玉",

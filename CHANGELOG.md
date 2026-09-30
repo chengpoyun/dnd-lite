@@ -4,6 +4,10 @@
 
 ---
 
+## 2.9.2
+
+- 修正：古龍骨／古龍的血是素材本身自帶的效果，不是鑲嵌到武器/防具插槽才會生效的鑲嵌效果，先前誤標成 `weaponDecoration`/`armorDecoration` + `decorationEffects`。改為直接寫在 `description`，移除鑲嵌相關欄位。
+
 ## 2.9.1
 
 - 修正：道具頁面（`ItemsPage.tsx`）呼叫 `useToast()` 卻從未渲染 `<ToastContainer>`，導致所有 `showSuccess`/`showError` 呼叫（含剛新增的「已加入 X × N」提示）狀態有更新但畫面上完全不會顯示任何 toast。補上 `<ToastContainer toasts={toasts} onRemove={removeToast} />`，並修正 5 個既有測試檔案裡不完整的 `useToast` mock（缺少 `toasts`/`removeToast` 會導致 `ToastContainer` 內部 `toasts.length` 噴錯）。
