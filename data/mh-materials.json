@@ -2,7 +2,8 @@
   {
     "name": "上鎧玉",
     "nameEn": "Hard Armor Sphere",
-    "rarity": null
+    "rarity": null,
+    "description": "將防具升級到 Rare (精良) 品質。可以拿給鐵匠換 2 顆鎧玉。"
   },
   {
     "name": "千刃龍的伐刀+",
@@ -103,58 +104,68 @@
   {
     "name": "土蝗",
     "nameEn": "Bughopper",
-    "rarity": null
+    "rarity": null,
+    "description": "散發出讓魚類瘋狂的氣味。當作釣餌時，釣魚檢定 +1。"
   },
   {
     "name": "大地結晶",
     "nameEn": "Earth Crystal",
-    "rarity": null
+    "rarity": null,
+    "description": "地脈深處高壓形成的結晶，可用於將武器強化至 Uncommon。"
   },
   {
     "name": "大角蜂",
     "nameEn": "Great Hornfly",
-    "rarity": null
+    "rarity": null,
+    "description": "擁有巨大巨角與厚重甲殼，卻帶有如蝴蝶般優雅的獨特昆蟲。"
   },
   {
     "name": "大毒蛛",
     "nameEn": "Large Toxic Kumori",
-    "rarity": null
+    "rarity": null,
+    "description": "通過 DC 15 毒藥包檢定可榨取成劇毒，效力等同「飛龍毒液 (Wyvern Poison)」。"
   },
   {
     "name": "大骨殼",
     "nameEn": "Lg Bone Husk",
-    "rarity": null
+    "rarity": null,
+    "description": "能承受高壓爆炸的重弩彈藥外殼。"
   },
   {
     "name": "大魔物骨",
     "nameEn": "Lg Monster Bone",
     "rarity": null,
-    "description": "極稀有防具升級素材。"
+    "description": "升級防具至「史詩 (Very Rare)」品質。"
   },
   {
     "name": "小金魚",
     "nameEn": "Small Goldenfish",
-    "rarity": null
+    "rarity": null,
+    "description": "不可思議地小且全身閃耀金光的魚類。能賣出極高價錢。"
   },
   {
     "name": "小骨殼",
     "nameEn": "Sm Bone Husk",
-    "rarity": null
+    "rarity": null,
+    "description": "骨製彈藥外殼，適合製造高等彈藥。"
   },
   {
     "name": "小魔物骨",
     "nameEn": "Sm Monster Bone",
-    "rarity": null
+    "rarity": null,
+    "description": "升級武器至「優秀 (Uncommon)」品質必備。"
   },
   {
     "name": "不死蟲",
     "nameEn": "Godbug",
-    "rarity": null
+    "rarity": null,
+    "description": "壽命千年的神奇昆蟲，常作為高等營養劑與催化劑。"
   },
   {
     "name": "中魔物骨",
     "nameEn": "Med Monster Bone",
-    "rarity": null
+    "rarity": null,
+    "description": "升級防具至「精良 (Rare)」品質。"
   },
   {
     "name": "天狗獸的毛",
@@ -184,43 +195,50 @@
   {
     "name": "幻蝶",
     "nameEn": "Phantom Butterfly",
-    "rarity": null
+    "rarity": null,
+    "description": "極少被目擊。其翅膀閃耀著如同璀璨寶石般的光澤。"
   },
   {
     "name": "木天蓼",
     "nameEn": "Felvine",
-    "rarity": null
+    "rarity": null,
+    "description": "將其交給獸人族 (Lynian) 時，他們會受到「魅惑人類」效果影響 1 小時。"
   },
   {
     "name": "火藥草",
     "nameEn": "Fire Herb",
-    "rarity": null
+    "rarity": null,
+    "description": "葉片帶有天然油脂極易起火。強擊瓶和高熱彈藥材料。"
   },
   {
     "name": "王族聖甲蟲",
     "nameEn": "King Scarab",
-    "rarity": null
+    "rarity": null,
+    "description": "甲蟲中的皇室階級，擁有光彩奪目的翅膀與最堅硬的外殼。"
   },
   {
     "name": "仙人掌花",
     "nameEn": "Cactus Flower",
-    "rarity": null
+    "rarity": null,
+    "description": "富含解毒劑成分，但無法單獨使用，必須配合煉金。"
   },
   {
     "name": "古代魚",
     "nameEn": "Ancient Fish",
-    "rarity": null
+    "rarity": null,
+    "description": "活化石。可作為升級任何武器或防具至任何品質的萬用素材。"
   },
   {
     "name": "古龍骨",
     "nameEn": "Elder Dragon Bone",
     "rarity": null,
-    "description": "任意稀有度的防具強化素材"
+    "description": "遠古龍族身上不朽的骨頭。任何防具最終強化。"
   },
   {
     "name": "巨大骨",
     "nameEn": "Jumbo Bone",
-    "rarity": null
+    "rarity": null,
+    "description": "升級防具至「優秀 (Uncommon)」品質必備。"
   },
   {
     "name": "幼慘爪龍的爪",
@@ -259,7 +277,8 @@
   {
     "name": "打消果實",
     "nameEn": "Nullberry",
-    "rarity": null
+    "rarity": null,
+    "description": "吃下這顆果實，能立即治癒身上的任何屬性異常狀態或屬性災厄。"
   },
   {
     "name": "滋養萃取液",
@@ -269,17 +288,20 @@
   {
     "name": "生命結晶",
     "nameEn": "Lifecrystals",
-    "rarity": null
+    "rarity": null,
+    "description": "可用動作激發，散發「照明術」光芒長達一小時後碎裂。"
   },
   {
     "name": "石頭",
     "nameEn": "Stone",
-    "rarity": null
+    "rarity": null,
+    "description": "隨處可見的石頭。可當作投擲武器，造成 1 點傷害。"
   },
   {
     "name": "光水晶",
     "nameEn": "Lightcrystal",
-    "rarity": null
+    "rarity": null,
+    "description": "蘊含極亮光輝的水晶，其效果等同毒怪鳥 (Gypceros) 頭上的閃光礦物。"
   },
   {
     "name": "冰人魚龍的重殼",
@@ -326,22 +348,26 @@
   {
     "name": "冰結晶",
     "nameEn": "Ice Crystal",
-    "rarity": null
+    "rarity": null,
+    "description": "在常溫下也絕不融化的深山堅冰，調合冷飲的絕佳原物料。"
   },
   {
     "name": "忍耐種子",
     "nameEn": "Adamant Seed",
-    "rarity": null
+    "rarity": null,
+    "description": "吃下後，你的 AC 提升 +1，持續 1 分鐘。每次短休或長休僅能使用一次。"
   },
   {
     "name": "刺身魚",
     "nameEn": "",
-    "rarity": null
+    "rarity": null,
+    "description": "極其美味，生吃可立即回復 1d4 HP，並當作口糧。"
   },
   {
     "name": "怪力種子",
     "nameEn": "Might Seed",
-    "rarity": null
+    "rarity": null,
+    "description": "吃下後你的力量(Str)增加 +2，持續 1 分鐘。藥效結束後獲得一級力竭。"
   },
   {
     "name": "泡狐龍的水玉",
@@ -440,17 +466,20 @@
   {
     "name": "空心果",
     "nameEn": "Huskberry",
-    "rarity": null
+    "rarity": null,
+    "description": "中空硬漿果皮，製造輕重弩 Normal 通常彈最不可或缺材料。"
   },
   {
     "name": "空氣草",
     "nameEn": "Airweed",
-    "rarity": null
+    "rarity": null,
+    "description": "咀嚼它會釋放大量氧氣，允許你在水下正常呼吸長達 1 分鐘。"
   },
   {
     "name": "花朵蟋蟀",
     "nameEn": "Blossom Cricket",
-    "rarity": null
+    "rarity": null,
+    "description": "如同花朵般美麗的鈴蟲，其清脆鳴叫聲能敞開最冷酷的心扉。"
   },
   {
     "name": "金獅子的尖角",
@@ -475,47 +504,56 @@
   {
     "name": "星見花",
     "nameEn": "Stargazer Flower",
-    "rarity": null
+    "rarity": null,
+    "description": "開花時花瓣總是仰望星空的奇特植物。其花瓣常用來製作昂貴的染料。"
   },
   {
     "name": "染色果",
     "nameEn": "Paintberry",
-    "rarity": null
+    "rarity": null,
+    "description": "破裂時會釋放出濃烈且帶有強烈臭味的顏料汁液。"
   },
   {
     "name": "毒菇",
     "nameEn": "Toadstool",
-    "rarity": null
+    "rarity": null,
+    "description": "生吃能當口糧，但須通過 DC 10 體質豁免否則中毒 24 小時。"
   },
   {
     "name": "毒蛛",
     "nameEn": "Toxic Kumori",
-    "rarity": null
+    "rarity": null,
+    "description": "通過 DC 10 毒藥包檢定可榨取成毒液，效力等同「巨蛇毒液 (Serpent Venom)」。"
   },
   {
     "name": "皇帝蝗蟲",
     "nameEn": "Emperor Locust",
-    "rarity": null
+    "rarity": null,
+    "description": "擁有極其堅硬外殼的巨大蝗蟲王者。"
   },
   {
     "name": "王鎧玉",
     "nameEn": "Royal Armor Sphere",
-    "rarity": null
+    "rarity": null,
+    "description": "將防具升級到傳說 (Legendary) 品質的至寶。可換 2 顆重鎧玉。"
   },
   {
     "name": "美食家鮪魚",
     "nameEn": "Gastronome Tuna",
-    "rarity": null
+    "rarity": null,
+    "description": "烹飪檢定(DC 20)成功後具有法術「英雄宴」等同神效。"
   },
   {
     "name": "苦蟲",
     "nameEn": "Bitterbug",
-    "rarity": null
+    "rarity": null,
+    "description": "生吞有 50% 機率直接解除中毒狀態。"
   },
   {
     "name": "重鎧玉",
     "nameEn": "Heavy Armor Sphere",
-    "rarity": null
+    "rarity": null,
+    "description": "將防具升級到史詩 (Very Rare) 品質。可換 2 顆堅鎧玉。"
   },
   {
     "name": "冥淵龍的翼爪",
@@ -561,72 +599,86 @@
   {
     "name": "眠魚",
     "nameEn": "Sleepyfish",
-    "rarity": null
+    "rarity": null,
+    "description": "富含強烈催眠成分的魚類，用於調合睡眠彈與睡眠瓶。"
   },
   {
     "name": "砥石魚",
     "nameEn": "Whetfish",
-    "rarity": null
+    "rarity": null,
+    "description": "背鰭硬度宛如天然砥石，極適合用於打磨利刃。"
   },
   {
     "name": "針果",
     "nameEn": "Needleberry",
-    "rarity": null
+    "rarity": null,
+    "description": "滿布細小尖刺的果實，採摘時會受到 1 點穿刺傷害。"
   },
   {
     "name": "針鮪魚",
     "nameEn": "Pin Tuna",
-    "rarity": null
+    "rarity": null,
+    "description": "下顎覆蓋細密針刺，常用於貫通彈的製造。"
   },
   {
     "name": "閃光蟲",
     "nameEn": "Flashbug",
-    "rarity": null
+    "rarity": null,
+    "description": "受到衝擊會散發刺眼強光，調合閃光彈唯一核心材料。"
   },
   {
     "name": "骨頭",
     "nameEn": "Bone",
-    "rarity": null
+    "rarity": null,
+    "description": "常見的骨頭，磨損嚴重且無法辨識原屬魔物。"
   },
   {
     "name": "常春藤葉",
     "nameEn": "Ivy",
-    "rarity": null
+    "rarity": null,
+    "description": "質地極輕但韌性極度驚人的藤蔓，用於編織高強度繩索網具。"
   },
   {
     "name": "混沌真菌",
     "nameEn": "Chaos Mushroom",
-    "rarity": null
+    "rarity": null,
+    "description": "散發致幻孢子。捏碎使5尺內目標DC 15意志豁免否則「混亂」。"
   },
   {
     "name": "蛇蜂幼蟲",
     "nameEn": "Snakebee Larva",
-    "rarity": null
+    "rarity": null,
+    "description": "蛇形幼蟲。當作釣餌時，釣魚檢定 +3。"
   },
   {
     "name": "貪吃鮪魚",
     "nameEn": "Glutton Tuna",
-    "rarity": null
+    "rarity": null,
+    "description": "會吞噬一切。肚子有機會獲得隨機額外的素材或道具。"
   },
   {
     "name": "雪山草",
     "nameEn": "Snow Herb",
-    "rarity": null
+    "rarity": null,
+    "description": "嚼食效果等同「冷飲」，但僅能維持 1 小時抗熱效力。"
   },
   {
     "name": "鳥龍種的骨",
     "nameEn": "Bird Wyvern Bone",
-    "rarity": null
+    "rarity": null,
+    "description": "升級防具至「優秀 (Uncommon)」品質必備。"
   },
   {
     "name": "麻痺蘑菇",
     "nameEn": "Parashroom",
-    "rarity": null
+    "rarity": null,
+    "description": "含有神經毒素。與生肉共同烹調可做成麻痺誘餌。"
   },
   {
     "name": "散彈果",
     "nameEn": "Scatternut",
-    "rarity": null
+    "rarity": null,
+    "description": "一旦受到外力敲擊就會劇烈噴發出內部硬殼的奇異堅果。"
   },
   {
     "name": "黑狼鳥的耳",
@@ -720,22 +772,26 @@
   {
     "name": "睡眠草",
     "nameEn": "Sleep Herb",
-    "rarity": null
+    "rarity": null,
+    "description": "散發出微弱催眠香氣的植物。大量用於睡眠彈與麻醉玉的調合。"
   },
   {
     "name": "蜂蜜",
     "nameEn": "Honey",
-    "rarity": null
+    "rarity": null,
+    "description": "加入任何治療藥水中，可使藥水治療效果額外提升 1d4。"
   },
   {
     "name": "解毒草",
     "nameEn": "Antidote Herb",
-    "rarity": null
+    "rarity": null,
+    "description": "富含解毒素，以動作吃下可以直接解除身上的中毒狀態。"
   },
   {
     "name": "雷光蟲",
     "nameEn": "Thunderbug",
-    "rarity": null
+    "rarity": null,
+    "description": "受到打擊向外放射劇烈電能，調合麻痺陷阱的主料。"
   },
   {
     "name": "壽司魚",
@@ -745,37 +801,44 @@
   {
     "name": "旗魚",
     "nameEn": "Speartuna",
-    "rarity": null
+    "rarity": null,
+    "description": "巨大且珍貴的巨型長槍魚類。"
   },
   {
     "name": "蜘蛛網",
     "nameEn": "Spiderweb",
-    "rarity": null
+    "rarity": null,
+    "description": "極具延展性與黏性的網子，是調合捕獸網的原料。"
   },
   {
     "name": "辣椒",
     "nameEn": "Hot Pepper",
-    "rarity": null
+    "rarity": null,
+    "description": "嚼食效果等同「熱飲」，但因為沒有精煉過，僅能維持 1 小時抗寒效力。"
   },
   {
     "name": "鳳尾魚",
     "nameEn": "Wanchovy",
-    "rarity": null
+    "rarity": null,
+    "description": "攝入此魚的生物必須通過 DC 12 體質豁免，否則增加一級力竭。"
   },
   {
     "name": "暮光草根",
     "nameEn": "Gloamgrass Root",
-    "rarity": null
+    "rarity": null,
+    "description": "富含強效解毒成分的草根，但無法單獨使用，必須配合煉金萃取。"
   },
   {
     "name": "熱帶草莓",
     "nameEn": "Tropical Berry",
-    "rarity": null
+    "rarity": null,
+    "description": "來自焦熱地帶的鮮紅色草莓，具有在極端氣候中生存的特質。"
   },
   {
     "name": "輝龍石",
     "nameEn": "Dragonite Ore",
-    "rarity": null
+    "rarity": null,
+    "description": "蘊含微弱古龍抗性的稀有赤色金屬礦。武器升級史詩 (Very Rare) 品質。"
   },
   {
     "name": "歷戰不滅的交心",
@@ -876,92 +939,110 @@
   {
     "name": "燕雀石",
     "nameEn": "Machalite Ore",
-    "rarity": null
+    "rarity": null,
+    "description": "可用於將武器升級至精良 (Rare) 品質。可以換 2 顆地球結晶。"
   },
   {
     "name": "獨角仙",
     "nameEn": "Carpenterbug",
-    "rarity": null
+    "rarity": null,
+    "description": "體內黏液與銳利下顎使其被當作工匠材料。"
   },
   {
     "name": "興奮蘑菇",
     "nameEn": "Exciteshroom",
-    "rarity": null
+    "rarity": null,
+    "description": "帶有奇怪味道與刺激性的菇。是回歸球的主要調合素材。"
   },
   {
     "name": "螢火蟲",
     "nameEn": "Firefly",
-    "rarity": null
+    "rarity": null,
+    "description": "總是發著微光的蟲。當作釣餌時，釣魚檢定 +1。"
   },
   {
     "name": "龍之托斯特菇",
     "nameEn": "Dragon Toadstool",
-    "rarity": null
+    "rarity": null,
+    "description": "會汲取人魂的血紅色死寂菌類，調合秘藥的無價之寶。採摘承受1d6黯蝕傷害。"
   },
   {
     "name": "龍之種子",
     "nameEn": "Dragon Seed",
-    "rarity": null
+    "rarity": null,
+    "description": "神祕的種子，傳聞中所有的龍族都極度厭惡這股味道。"
   },
   {
     "name": "蟋蟀",
     "nameEn": "Cricket",
-    "rarity": null
+    "rarity": null,
+    "description": "精力充沛的蟲子。當作釣餌時，釣魚檢定 +2。"
   },
   {
     "name": "黏著草",
     "nameEn": "Sap Plant",
-    "rarity": null
+    "rarity": null,
+    "description": "葉片上覆蓋著極具黏性樹脂的植物。其汁液可用作簡易強力膠。"
   },
   {
     "name": "黏著菇",
     "nameEn": "Bindshroom",
-    "rarity": null
+    "rarity": null,
+    "description": "採集時防護不當須DC 15體質豁免，否則麻痺1分鐘。"
   },
   {
     "name": "藍切魚",
     "nameEn": "Blue Cutthroat",
-    "rarity": null
+    "rarity": null,
+    "description": "散發藍光的魚。採集時受 1 點穿刺傷害。"
   },
   {
     "name": "藍蘑菇",
     "nameEn": "Blue Mushroom",
-    "rarity": null
+    "rarity": null,
+    "description": "具備活血增強體力化學效果，調合恢復藥水的核心。"
   },
   {
     "name": "蟲之骸",
     "nameEn": "Insect Husk",
-    "rarity": null
+    "rarity": null,
+    "description": "死亡昆蟲的遺骸。可當特種彈藥的彈殼。"
   },
   {
     "name": "鎧玉",
     "nameEn": "Armor Sphere",
-    "rarity": null
+    "rarity": null,
+    "description": "將防具強化至 Uncommon 的奇特礦石。"
   },
   {
     "name": "雙蓋紅花",
     "nameEn": "Dosbiscus",
-    "rarity": null
+    "rarity": null,
+    "description": "巨大且色彩斑斕、極度艷麗的罕見開花植物。"
   },
   {
     "name": "爆炸菇",
     "nameEn": "Nitroshroom",
-    "rarity": null
+    "rarity": null,
+    "description": "揉碎灑在地上可作為無煙無光營火維持燃燒 8 小時。"
   },
   {
     "name": "爆裂果實",
     "nameEn": "Bomberry",
-    "rarity": null
+    "rarity": null,
+    "description": "受到衝擊會爆炸的小漿果，發出鞭炮般的巨響。"
   },
   {
     "name": "爆裂龍魚",
     "nameEn": "Burst Arrowana",
-    "rarity": null
+    "rarity": null,
+    "description": "死亡時體內多重氣囊會猛烈破裂的熱帶魚。"
   },
   {
     "name": "爆彈龍魚",
     "nameEn": "Bomb Arrowana",
-    "rarity": null
+    "rarity": null,
+    "description": "死亡時會引發小型火藥級別爆炸的魚類。"
   },
   {
     "name": "爆鱗龍的鱗",
@@ -1089,37 +1170,44 @@
   {
     "name": "獸骨",
     "nameEn": "Brute Bone",
-    "rarity": null
+    "rarity": null,
+    "description": "升級防具至「精良 (Rare)」品質必備。"
   },
   {
     "name": "藥草",
     "nameEn": "Herb",
-    "rarity": null
+    "rarity": null,
+    "description": "止血生肌的鋸齒野草。以動作吃下可恢復 1d4 生命值。"
   },
   {
     "name": "蠕蟲",
     "nameEn": "Worm",
-    "rarity": null
+    "rarity": null,
+    "description": "當作釣餌時，釣魚檢定 +1。"
   },
   {
     "name": "魔物骨+",
     "nameEn": "Monster Bone+",
-    "rarity": null
+    "rarity": null,
+    "description": "升級武器至「精良 (Rare)」品質。"
   },
   {
     "name": "魔物硬骨",
     "nameEn": "Monster Toughbone",
-    "rarity": null
+    "rarity": null,
+    "description": "升級武器至「史詩 (Very Rare)」品質。"
   },
   {
     "name": "靈鶴石",
     "nameEn": "Carbalite Ore",
-    "rarity": null
+    "rarity": null,
+    "description": "極致硬度亮銀礦石。將武器升級到傳說 (Legendary) 級別核心。可換 2 顆輝龍石。"
   },
   {
     "name": "POP魚",
     "nameEn": "Popfish",
-    "rarity": null
+    "rarity": null,
+    "description": "死亡時會發出清脆爆鳴聲的珍貴亮色魚類。"
   },
   {
     "name": "古龍的血",
@@ -1457,5 +1545,11 @@
     "rarity": 13,
     "weaponDecoration": true,
     "armorDecoration": true
+  },
+  {
+    "name": "國王仙人掌",
+    "nameEn": "King Cactus",
+    "rarity": null,
+    "description": "採集此植物的生物必須通過 DC 15 體質豁免，否則中毒 24 小時。"
   }
 ]
