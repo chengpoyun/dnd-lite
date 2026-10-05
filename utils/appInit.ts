@@ -39,7 +39,7 @@ export function buildCharacterStats(characterData: any, previousStats: Character
     exp: characterData.character.experience || INITIAL_STATS.exp,
     avatarUrl: characterData.character.avatar_url || INITIAL_STATS.avatarUrl,
     hp: {
-      current: characterData.currentStats?.current_hp || INITIAL_STATS.hp.current,
+      current: characterData.currentStats?.current_hp ?? INITIAL_STATS.hp.current,
       max: (() => {
         const cs = characterData.currentStats;
         if (cs?.max_hp_basic !== undefined) return (cs.max_hp_basic ?? 1) + (cs.max_hp_bonus ?? 0);
@@ -83,7 +83,7 @@ export function buildCharacterStats(characterData: any, previousStats: Character
       cp: characterData.currency?.copper || INITIAL_STATS.currency.cp,
       sp: characterData.currency?.silver || INITIAL_STATS.currency.sp,
       ep: characterData.currency?.electrum || INITIAL_STATS.currency.ep,
-      gp: characterData.currency?.gp || INITIAL_STATS.currency.gp,
+      gp: characterData.currency?.gp ?? INITIAL_STATS.currency.gp,
       pp: characterData.currency?.platinum || INITIAL_STATS.currency.pp
     },
     // 載入技能熟練度 - 簡化處理，只載入有記錄的技能
@@ -203,7 +203,7 @@ export function buildCharacterStats(characterData: any, previousStats: Character
     })(),
     // 載入生命骰資料
     hitDice: {
-      current: characterData.currentStats?.current_hit_dice || INITIAL_STATS.hitDice.current,
+      current: characterData.currentStats?.current_hit_dice ?? INITIAL_STATS.hitDice.current,
       total: characterData.currentStats?.total_hit_dice || previousStats.level || INITIAL_STATS.hitDice.total,
       die: characterData.currentStats?.hit_die_type || INITIAL_STATS.hitDice.die
     },

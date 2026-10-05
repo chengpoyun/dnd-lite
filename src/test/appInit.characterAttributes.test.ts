@@ -223,3 +223,59 @@ describe('buildCharacterStats - basic+bonus 結構', () => {
     ]);
   });
 });
+
+describe('buildCharacterStats - 數值為 0 時不可被預設值蓋掉', () => {
+  const baseData = () => ({
+    character: { name: 'Test', character_class: '戰士', level: 5, experience: 0 },
+    abilityScores: { strength: 14, dexterity: 14, constitution: 12, intelligence: 10, wisdom: 10, charisma: 8 },
+    currentStats: {
+      current_hp: 0,
+      max_hp_basic: 30,
+      max_hp_bonus: 0,
+      temporary_hp: 0,
+      current_hit_dice: 0,
+      total_hit_dice: 5,
+      hit_die_type: 'd10',
+      ac_basic: 10,
+      ac_bonus: 0,
+      initiative_basic: 0,
+      initiative_bonus: 0,
+      speed_basic: 30,
+      speed_bonus: 0,
+      attack_hit_basic: 0,
+      attack_hit_bonus: 0,
+      attack_damage_basic: 0,
+      attack_damage_bonus: 0,
+      spell_hit_basic: 5,
+      spell_hit_bonus: 0,
+      spell_dc_basic: 13,
+      spell_dc_bonus: 0,
+    },
+    skillProficiencies: [],
+    savingThrows: [],
+    currency: { copper: 0, silver: 0, electrum: 0, gp: 0, platinum: 0 },
+  });
+
+  it('DB 的 current_hp 為 0 時，hp.current 維持 0（不回到預設的 10）', () => {
+    const result = buildCharacterStats(baseData(), PREV_STATS);
+    expect(result.hp.current).toBe(0);
+  });
+
+  it('DB 的 current_hit_dice 為 0 時，hitDice.current 維持 0（不回到預設的 1）', () => {
+    const result = buildCharacterStats(baseData(), PREV_STATS);
+    expect(result.hitDice.current).toBe(0);
+  });
+
+  it('DB 的 gp 為 0 時，currency.gp 維持 0（不回到預設的 50）', () => {
+    const result = buildCharacterStats(baseData(), PREV_STATS);
+    expect(result.currency.gp).toBe(0);
+  });
+
+  it('currentStats 完全不存在時，仍使用預設值', () => {
+    const data = { ...baseData(), currentStats: undefined, currency: undefined };
+    const result = buildCharacterStats(data, PREV_STATS);
+    expect(result.hp.current).toBe(10);
+    expect(result.hitDice.current).toBe(1);
+    expect(result.currency.gp).toBe(50);
+  });
+});
