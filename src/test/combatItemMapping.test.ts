@@ -119,6 +119,12 @@ describe('convertDbItemToLocal', () => {
     expect(convertDbItemToLocal({ ...baseDbItem, max_uses_basic: 4 }).maxUsesBasic).toBe(4)
   })
 
+  it('recovery_dice 有值時轉成 recoveryDice，null 或沒有時為 undefined', () => {
+    expect(convertDbItemToLocal({ ...baseDbItem, recovery_type: 'long_rest', recovery_dice: '1d6' }).recoveryDice).toBe('1d6')
+    expect(convertDbItemToLocal({ ...baseDbItem, recovery_dice: null }).recoveryDice).toBeUndefined()
+    expect(convertDbItemToLocal(baseDbItem).recoveryDice).toBeUndefined()
+  })
+
   it('次數與名稱等欄位應原樣帶過來', () => {
     const local = convertDbItemToLocal({ ...baseDbItem, current_uses: 2, max_uses: 5 })
 

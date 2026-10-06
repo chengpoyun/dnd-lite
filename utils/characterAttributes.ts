@@ -74,7 +74,7 @@ export function getStatBonusSourcesBreakdown(
 }
 
 /** 解析單一骰子加成字串（如 "1d8"、"-2d4"），無法解析回傳 null */
-function parseDiceTerm(raw: string): { sign: 1 | -1; count: number; sides: number } | null {
+export function parseDiceTerm(raw: string): { sign: 1 | -1; count: number; sides: number } | null {
   const m = /^([+-]?)(\d+)d(\d+)$/i.exec(raw.trim());
   if (!m) return null;
   const count = parseInt(m[2], 10);

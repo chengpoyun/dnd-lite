@@ -160,6 +160,8 @@ export interface CharacterCombatAction {
   max_uses_basic?: number | null // 法術位等自動計算項目：依等級查表算出的值
   max_uses_bonus?: number | null // 法術位等自動計算項目：使用者手動加值（等級變動不覆蓋）
   recovery_type: 'turn' | 'short_rest' | 'long_rest' | 'manual'
+  /** 長休時擲骰恢復的骰子記法（如 '1d6'）；null 代表長休補滿 */
+  recovery_dice?: string | null
   is_default: boolean
   is_custom: boolean // 新增：是否為完全自定義項目
   default_item_id?: string // 新增：關聯的預設項目ID

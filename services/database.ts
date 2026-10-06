@@ -292,6 +292,7 @@ export class CombatItemService {
         max_uses: modifications.max_uses ?? defaultItem.max_uses,
         current_uses: modifications.current_uses ?? defaultItem.max_uses,
         recovery_type: modifications.recovery_type || defaultItem.recovery_type,
+        recovery_dice: modifications.recovery_dice ?? null,
         is_default: false, // 這是修改過的版本
         is_custom: false, // 不是完全自定義的
         default_item_id: defaultItemId,

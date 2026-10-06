@@ -10,6 +10,8 @@ import { getDivinationWizardClass, getPortentDiceCount, getPortentDiceForDisplay
 import { HybridDataManager } from '../services/hybridDataManager';
 import { MulticlassService } from '../services/multiclassService';
 import { resetAbilityUses } from '../services/abilityService';
+import { isLongRestDiceItem, rollLongRestDiceRecovery, formatLongRestDiceMessage } from '../utils/recoveryDice';
+import { InfoModal } from './ui/InfoModal';
 import { AdvantageDisadvantageBorder } from './ui/AdvantageDisadvantageBorder';
 import { isSpellcaster } from '../utils/spellUtils';
 import CombatNoteModal from './CombatNoteModal';
@@ -198,6 +200,8 @@ export const CombatView: React.FC<CombatViewProps> = ({
 
   const [pendingPortentUseIndex, setPendingPortentUseIndex] = useState<number | null>(null);
   const [isPortentRerollOpen, setIsPortentRerollOpen] = useState(false);
+  /** 長休擲骰恢復的結果訊息；空字串代表不顯示彈窗 */
+  const [longRestDiceMessage, setLongRestDiceMessage] = useState('');
 
   const [activeCategory, setActiveCategory] = useState<CombatActionCategory>('action');
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
@@ -335,7 +339,7 @@ export const CombatView: React.FC<CombatViewProps> = ({
   const updateItemInDatabase = async (
     dbRowId: string | undefined,
     newCurrent: number,
-    additionalFields?: { name?: string; icon?: string; max_uses?: number; max_uses_bonus?: number; recovery?: 'round' | 'short' | 'long'; description?: string | null }
+    additionalFields?: { name?: string; icon?: string; max_uses?: number; max_uses_bonus?: number; recovery?: 'round' | 'short' | 'long'; recoveryDice?: string | null; description?: string | null }
   ) => {
     if (!dbRowId) return;
     try {
@@ -350,6 +354,7 @@ export const CombatView: React.FC<CombatViewProps> = ({
         if (additionalFields.max_uses !== undefined) updateData.max_uses = additionalFields.max_uses;
         if (additionalFields.max_uses_bonus !== undefined) updateData.max_uses_bonus = additionalFields.max_uses_bonus;
         if (additionalFields.recovery) updateData.recovery_type = mapRecoveryToDb(additionalFields.recovery);
+        if (additionalFields.recoveryDice !== undefined) updateData.recovery_dice = additionalFields.recoveryDice;
         if (additionalFields.description !== undefined) updateData.description = additionalFields.description ?? '';
       }
 
@@ -384,7 +389,7 @@ export const CombatView: React.FC<CombatViewProps> = ({
       console.error('❌ 無法保存項目：沒有角色ID');
       return;
     }
-    const { name: formName, icon: formIcon, current: currentValue, max: maxValue, recovery: formRecovery, description: formDescription } = values;
+    const { name: formName, icon: formIcon, current: currentValue, max: maxValue, recovery: formRecovery, recoveryDice: formRecoveryDice, description: formDescription } = values;
     const setter = activeCategory === 'action' ? setActions : activeCategory === 'bonus' ? setBonusActions : activeCategory === 'reaction' ? setReactions : setResources;
     const descriptionToSave = (formDescription ?? '').trim();
 
@@ -396,7 +401,7 @@ export const CombatView: React.FC<CombatViewProps> = ({
       const maxUsesBonus = editingItem?.maxUsesBasic !== undefined
         ? maxValue - editingItem.maxUsesBasic
         : undefined;
-      const updatedItem = { name: formName, icon: formIcon, current: currentValue, max: maxValue, recovery: formRecovery, description: descriptionToSave || undefined };
+      const updatedItem = { name: formName, icon: formIcon, current: currentValue, max: maxValue, recovery: formRecovery, recoveryDice: formRecoveryDice, description: descriptionToSave || undefined };
       setter(prev => prev.map(item =>
         item.id === editingItemId ? { ...item, ...updatedItem } : item
       ));
@@ -407,6 +412,7 @@ export const CombatView: React.FC<CombatViewProps> = ({
           max_uses: maxValue,
           ...(maxUsesBonus !== undefined ? { max_uses_bonus: maxUsesBonus } : {}),
           recovery: formRecovery,
+          recoveryDice: formRecoveryDice ?? null,
           description: descriptionToSave || null
         });
         console.log('✅ 項目更新成功');
@@ -422,6 +428,7 @@ export const CombatView: React.FC<CombatViewProps> = ({
         current: maxValue,
         max: maxValue,
         recovery: formRecovery,
+        ...(formRecoveryDice ? { recoveryDice: formRecoveryDice } : {}),
         ...(descriptionToSave ? { description: descriptionToSave } : {})
       };
       setter(prev => [...prev, newItem]);
@@ -434,6 +441,7 @@ export const CombatView: React.FC<CombatViewProps> = ({
           current_uses: maxValue,
           max_uses: maxValue,
           recovery_type: mapRecoveryToDb(formRecovery),
+          recovery_dice: formRecoveryDice ?? null,
           is_default: false,
           is_custom: true,
           ...(descriptionToSave ? { description: descriptionToSave } : {})
@@ -476,8 +484,15 @@ export const CombatView: React.FC<CombatViewProps> = ({
     // 保留重設前的項目，用來比對是否真的需要寫入資料庫、以及取得正確的資料庫列 ID（item_id）
     const beforeItems = [...actions, ...bonusActions, ...reactions, ...resources];
 
+    // 長休骰項目：長休時改為擲骰增加次數，不補滿（short / round 週期本來就不會碰到它）
+    const diceResults = periods.includes('long') ? rollLongRestDiceRecovery(beforeItems) : [];
+    const diceAfterById = new Map(diceResults.map(r => [r.id, r.after]));
+    const targetCurrent = (item: CombatItem) => diceAfterById.get(item.id) ?? item.max;
+    const shouldReset = (item: CombatItem) =>
+      periods.includes(item.recovery) && (!isLongRestDiceItem(item) || diceAfterById.has(item.id));
+
     const update = (list: CombatItem[]) => list.map(item =>
-      periods.includes(item.recovery) ? { ...item, current: item.max } : item
+      shouldReset(item) ? { ...item, current: targetCurrent(item) } : item
     );
 
     const updatedActions = update(actions);
@@ -495,15 +510,17 @@ export const CombatView: React.FC<CombatViewProps> = ({
     // default_item_id，直接拿去比對會找不到列，導致寫入被靜默略過）
     try {
       for (const beforeItem of beforeItems) {
-        if (periods.includes(beforeItem.recovery) && beforeItem.item_id && beforeItem.current !== beforeItem.max) {
+        const target = targetCurrent(beforeItem);
+        if (shouldReset(beforeItem) && beforeItem.item_id && beforeItem.current !== target) {
           await HybridDataManager.updateCombatItem(beforeItem.item_id, {
-            current_uses: beforeItem.max
+            current_uses: target
           });
         }
       }
     } catch (error) {
       console.error('同步重設資料到資料庫失敗:', error);
     }
+    return diceResults;
   };
 
   const nextTurn = () => {
@@ -560,7 +577,9 @@ export const CombatView: React.FC<CombatViewProps> = ({
       });
     }
 
-    resetByRecovery(['round', 'short', 'long']);
+    resetByRecovery(['round', 'short', 'long']).then(diceResults => {
+      if (diceResults.length > 0) setLongRestDiceMessage(formatLongRestDiceMessage(diceResults));
+    });
     setCombatSeconds(0);
     setIsLongRestConfirmOpen(false);
     setIsRestOptionsOpen(false);
@@ -1156,7 +1175,7 @@ export const CombatView: React.FC<CombatViewProps> = ({
         const editingItem = editingItemId ? itemEditList.find(i => i.id === editingItemId) : null;
         const itemEditInitialValues: ItemEditValues = editingItemId
           ? (editingItem
-              ? { name: editingItem.name, icon: editingItem.icon, current: editingItem.current, max: editingItem.max, recovery: editingItem.recovery, description: editingItem.description ?? '' }
+              ? { name: editingItem.name, icon: editingItem.icon, current: editingItem.current, max: editingItem.max, recovery: editingItem.recovery, recoveryDice: editingItem.recoveryDice, description: editingItem.description ?? '' }
               : { name: '', icon: '✨', current: 1, max: 1, recovery: 'round', description: '' })
           : { name: '', icon: '✨', current: 1, max: 1, recovery: activeCategory === 'resource' ? 'long' : 'round', description: '' };
         const showDescriptionForEdit = !!editingItem && !editingItem.is_default;
@@ -1221,6 +1240,14 @@ export const CombatView: React.FC<CombatViewProps> = ({
         dieValue={pendingPortentUseIndex !== null ? portentDice[pendingPortentUseIndex]?.value ?? null : null}
         onClose={() => setPendingPortentUseIndex(null)}
         onConfirm={handleConfirmPortentUse}
+      />
+
+      {/* 長休擲骰恢復的結果 */}
+      <InfoModal
+        isOpen={longRestDiceMessage !== ''}
+        title="長休恢復"
+        message={longRestDiceMessage}
+        onClose={() => setLongRestDiceMessage('')}
       />
 
       {/* 長休後重新擲出預言骰彈窗 */}

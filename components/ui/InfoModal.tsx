@@ -32,7 +32,7 @@ export const InfoModal: React.FC<InfoModalProps> = ({
         {title && (
           <h2 className="text-xl font-bold mb-4 text-amber-500">{title}</h2>
         )}
-        <p className={`${MODAL_BODY_TEXT_CLASS} text-center mb-5`}>{message}</p>
+        <p className={`${MODAL_BODY_TEXT_CLASS} text-center mb-5 whitespace-pre-line break-words`}>{message}</p>
         <div className={MODAL_FOOTER_BUTTONS_CLASS}>
           <ModalButton variant="primary" className={MODAL_BUTTON_APPLY_AMBER_CLASS} onClick={onClose}>
             確定

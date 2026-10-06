@@ -17,6 +17,8 @@ export interface CombatItem {
   current: number;
   max: number;
   recovery: 'round' | 'short' | 'long';
+  /** 長休時擲骰恢復（如 '1d6'）；有值時長休不補滿，改為擲骰增加次數（僅 recovery 為 long 時有意義） */
+  recoveryDice?: string;
   character_id?: string;
   category?: string;
   item_id?: string;
@@ -90,6 +92,7 @@ export const convertDbItemToLocal = (dbItem: DatabaseCombatItem): CombatItem => 
     current: dbItem.current_uses,
     max: dbItem.max_uses,
     recovery: mapRecoveryFromDb(dbItem.recovery_type),
+    recoveryDice: dbItem.recovery_dice ?? undefined,
     character_id: dbItem.character_id,
     category: mapCategoryFromDb(dbItem.category),
     item_id: dbItem.id, // 保存資料庫 ID 作為 item_id
