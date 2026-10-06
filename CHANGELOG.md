@@ -4,6 +4,10 @@
 
 ---
 
+## 2.11.0
+
+- 新功能：編輯物品／新增個人物品的稀有度下拉選單，選項文字與目前選中的值改套用該稀有度的顏色（與道具卡上的稀有度徽章同配色）。新增共用元件 `components/ui/RaritySelect.tsx` 與 `utils/itemRarity.ts` 的 `getRarityTextClass`，兩個彈窗共用。
+
 ## 2.10.3
 
 - 資料：法術目錄（`data/spells.json`）新增「加德爾快遞術 (Galder's Speedy Courier)」（4 環咒法，來源 LLK），共 535 筆。

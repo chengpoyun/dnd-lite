@@ -12,7 +12,7 @@ import type { ItemCategory, CreateCharacterItemData, DecorationEffects } from '.
 import { EQUIPMENT_KINDS, EQUIPMENT_KIND_LABELS } from '../utils/equipmentConstants';
 import { MODAL_CONTAINER_CLASS, SELECT_CLASS } from '../styles/modalStyles';
 import { StatBonusEditor, type StatBonusEditorValue } from './StatBonusEditor';
-import { RARITY_TIERS } from '../utils/itemRarity';
+import { RaritySelect } from './ui/RaritySelect';
 import { QuantityWithMultiplierField } from './ui/QuantityWithMultiplierField';
 import { parseQuantityInput, resolveFinalQuantity } from '../utils/quantityMultiplier';
 
@@ -208,16 +208,7 @@ export const AddPersonalItemModal: React.FC<AddPersonalItemModalProps> = ({
                 placeholder="CR"
               />
             ) : (
-              <select
-                value={rarity}
-                onChange={(e) => setRarity(e.target.value)}
-                className="w-28 flex-shrink-0 bg-slate-800 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500"
-              >
-                <option value="">稀有度</option>
-                {RARITY_TIERS.map((tier) => (
-                  <option key={tier} value={tier}>{tier}</option>
-                ))}
-              </select>
+              <RaritySelect value={rarity} onChange={setRarity} />
             )}
           </div>
           <div className="flex items-center gap-3">

@@ -30,3 +30,9 @@ export function getRarityBadge(category: string, rarity: string | null | undefin
   }
   return { label: rarity, className: RARITY_TAG_CLASS[rarity] ?? NEUTRAL_CLASS };
 }
+
+/** 稀有度對應的文字顏色 class（取自徽章配色的 text-*，供下拉選單等只需要文字色的地方使用） */
+export function getRarityTextClass(rarity: string | null | undefined): string {
+  const tagClass = (rarity && RARITY_TAG_CLASS[rarity]) || NEUTRAL_CLASS;
+  return tagClass.split(" ").find((c) => c.startsWith("text-")) ?? "text-slate-300";
+}

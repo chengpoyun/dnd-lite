@@ -4,7 +4,7 @@
  * 其他類別：稀有度是 D&D 標準 6 級文字，依固定配色顯示；非標準文字則退回灰底顯示原文字
  */
 import { describe, it, expect } from 'vitest';
-import { getRarityBadge, RARITY_TIERS } from '../../utils/itemRarity';
+import { getRarityBadge, getRarityTextClass, RARITY_TIERS } from '../../utils/itemRarity';
 
 describe('getRarityBadge', () => {
   it('rarity 為 null 時不顯示徽章', () => {
@@ -45,5 +45,22 @@ describe('getRarityBadge', () => {
     const badge = getRarityBadge('裝備', '未知等級');
     expect(badge).not.toBeNull();
     expect(badge!.label).toBe('未知等級');
+  });
+});
+
+describe('getRarityTextClass', () => {
+  it('標準 6 級各自回傳對應的文字顏色 class', () => {
+    expect(getRarityTextClass('非常見')).toBe('text-green-400');
+    expect(getRarityTextClass('稀有')).toBe('text-blue-400');
+    expect(getRarityTextClass('非常稀有')).toBe('text-purple-400');
+    expect(getRarityTextClass('傳說')).toBe('text-amber-400');
+    expect(getRarityTextClass('神器')).toBe('text-red-400');
+    expect(getRarityTextClass('普通')).toBe('text-slate-300');
+  });
+
+  it('空值或非標準文字回傳預設文字顏色，與徽章的中性色一致', () => {
+    expect(getRarityTextClass('')).toBe('text-slate-300');
+    expect(getRarityTextClass(null)).toBe('text-slate-300');
+    expect(getRarityTextClass('未知等級')).toBe('text-slate-300');
   });
 });

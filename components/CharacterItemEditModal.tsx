@@ -13,7 +13,7 @@ import { getDisplayEquipmentKind } from '../services/itemService';
 import { EQUIPMENT_KINDS, EQUIPMENT_KIND_LABELS } from '../utils/equipmentConstants';
 import { MODAL_CONTAINER_CLASS, SELECT_CLASS } from '../styles/modalStyles';
 import { StatBonusEditor, type StatBonusEditorValue } from './StatBonusEditor';
-import { RARITY_TIERS } from '../utils/itemRarity';
+import { RaritySelect } from './ui/RaritySelect';
 
 interface CharacterItemEditModalProps {
   isOpen: boolean;
@@ -205,16 +205,10 @@ export const CharacterItemEditModal: React.FC<CharacterItemEditModalProps> = ({
                 placeholder="CR"
               />
             ) : (
-              <select
+              <RaritySelect
                 value={formData.rarity_override || ''}
-                onChange={(e) => setFormData({ ...formData, rarity_override: e.target.value })}
-                className="w-28 flex-shrink-0 bg-slate-800 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500"
-              >
-                <option value="">稀有度</option>
-                {RARITY_TIERS.map((tier) => (
-                  <option key={tier} value={tier}>{tier}</option>
-                ))}
-              </select>
+                onChange={(value) => setFormData({ ...formData, rarity_override: value })}
+              />
             )}
           </div>
 
