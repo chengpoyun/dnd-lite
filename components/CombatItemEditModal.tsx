@@ -7,15 +7,13 @@ import { ModalSaveButton } from './ui/ModalSaveButton';
 import { LoadingOverlay } from './ui/LoadingOverlay';
 import { SegmentBar } from './ui/SegmentBar';
 import { setNormalValue } from '../utils/helpers';
-import { RECOVERY_DICE_OPTIONS } from '../utils/recoveryDice';
+import { DEFAULT_RECOVERY_DICE, normalizeRecoveryDice } from '../utils/recoveryDice';
 import { MODAL_CONTAINER_CLASS, MODAL_BUTTON_CANCEL_CLASS, MODAL_FOOTER_BUTTONS_CLASS, MODAL_BUTTON_APPLY_INDIGO_CLASS } from '../styles/modalStyles';
 
 export type ItemEditRecovery = 'round' | 'short' | 'long';
 
 /** 編輯畫面上的恢復週期選項：比儲存值多一個「長休骰」（儲存時拆成 recovery: 'long' + recoveryDice） */
 type RecoveryChoice = ItemEditRecovery | 'long_dice';
-
-const DEFAULT_RECOVERY_DICE = '1d6';
 
 export interface ItemEditValues {
   name: string;
@@ -67,8 +65,12 @@ export default function CombatItemEditModal({
     }
   }, [isOpen, initialValues]);
 
+  const normalizedDice = normalizeRecoveryDice(recoveryDice);
+  const diceInvalid = recovery === 'long_dice' && !normalizedDice;
+
   const handleSave = async () => {
     if (!name.trim()) return;
+    if (recovery === 'long_dice' && !normalizedDice) return;
     const currentResult = setNormalValue(current, 0, true);
     const maxResult = setNormalValue(max, 1, false);
     if (!currentResult.isValid || !maxResult.isValid) {
@@ -83,7 +85,7 @@ export default function CombatItemEditModal({
         current: currentResult.numericValue,
         max: maxResult.numericValue,
         recovery: recovery === 'long_dice' ? 'long' : recovery,
-        recoveryDice: recovery === 'long_dice' ? recoveryDice : undefined,
+        recoveryDice: recovery === 'long_dice' ? (normalizedDice ?? undefined) : undefined,
         description: showDescription ? description.trim() : (initialValues.description ?? ''),
       };
       await Promise.resolve(onSave(values));
@@ -144,14 +146,27 @@ export default function CombatItemEditModal({
               ]}
             />
             {recovery === 'long_dice' && (
-              <>
-                <SegmentBar<string>
-                  value={recoveryDice}
-                  onChange={setRecoveryDice}
-                  options={RECOVERY_DICE_OPTIONS.map((d) => ({ value: d, label: d, activeClassName: 'bg-indigo-900 text-indigo-200 shadow-sm' }))}
-                />
-                <p className="text-[14px] text-slate-400 ml-1 break-words">每次長休恢復 {recoveryDice} 次（不會超過最大值）</p>
-              </>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-[16px] text-slate-400 whitespace-nowrap">每次長休擲</span>
+                  <input
+                    type="text"
+                    value={recoveryDice}
+                    onChange={(e) => setRecoveryDice(e.target.value)}
+                    placeholder="例：1d6"
+                    aria-label="長休恢復骰子"
+                    aria-invalid={diceInvalid}
+                    autoComplete="off"
+                    autoCapitalize="none"
+                    className={`flex-1 min-w-0 bg-slate-800 border rounded-xl p-3 text-white text-lg font-mono outline-none ${diceInvalid ? 'border-rose-500' : 'border-slate-700'}`}
+                  />
+                </div>
+                {diceInvalid ? (
+                  <p className="text-[14px] text-rose-400 ml-1 break-words">請輸入骰子記法，例如 1d3、1d6、2d4</p>
+                ) : (
+                  <p className="text-[14px] text-slate-400 ml-1 break-words">每次長休恢復 {normalizedDice} 次（不會超過最大值）</p>
+                )}
+              </div>
             )}
           </div>
           {showDescription && (
@@ -181,6 +196,7 @@ export default function CombatItemEditModal({
               type="button"
               onClick={handleSave}
               loading={isSubmitting}
+              disabled={diceInvalid}
               className={MODAL_BUTTON_APPLY_INDIGO_CLASS}
             >
               儲存

@@ -1,6 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import {
-  RECOVERY_DICE_OPTIONS,
+  DEFAULT_RECOVERY_DICE,
+  MAX_RECOVERY_DICE_PART,
+  parseRecoveryDice,
+  normalizeRecoveryDice,
   rollRecoveryDice,
   isLongRestDiceItem,
   rollLongRestDiceRecovery,
@@ -22,9 +25,40 @@ const item = (overrides: Partial<CombatItem> = {}): CombatItem => ({
 /** 固定骰面：rng 回傳 (face-1)/sides，使 Math.floor(rng*sides)+1 = face */
 const fixedFace = (face: number, sides: number) => () => (face - 1) / sides;
 
-describe('RECOVERY_DICE_OPTIONS', () => {
-  it('提供 1d4 到 1d12 五種選項', () => {
-    expect([...RECOVERY_DICE_OPTIONS]).toEqual(['1d4', '1d6', '1d8', '1d10', '1d12']);
+describe('DEFAULT_RECOVERY_DICE', () => {
+  it('預設為 1d6', () => {
+    expect(DEFAULT_RECOVERY_DICE).toBe('1d6');
+  });
+});
+
+describe('parseRecoveryDice', () => {
+  it.each(['1d3', '1d5', '2d7', '1d12', '10d10', '1D6', ' 1d6 '])('接受 %s', (raw) => {
+    expect(parseRecoveryDice(raw)).not.toBeNull();
+  });
+
+  it('解析出顆數與面數', () => {
+    expect(parseRecoveryDice('2d7')).toEqual({ count: 2, sides: 7 });
+  });
+
+  it.each(['', 'd5', '1d', 'abc', '1d6+1', '-1d6', '+1d6', '1 d6', '1.5d6', '0d6', '1d0'])('拒絕 %s', (raw) => {
+    expect(parseRecoveryDice(raw)).toBeNull();
+  });
+
+  it('顆數與面數上限為 MAX_RECOVERY_DICE_PART（100）', () => {
+    expect(MAX_RECOVERY_DICE_PART).toBe(100);
+    expect(parseRecoveryDice('100d100')).toEqual({ count: 100, sides: 100 });
+    expect(parseRecoveryDice('101d6')).toBeNull();
+    expect(parseRecoveryDice('1d101')).toBeNull();
+  });
+});
+
+describe('normalizeRecoveryDice', () => {
+  it('去掉前後空白並統一小寫 d，符合 DB 的格式限制', () => {
+    expect(normalizeRecoveryDice(' 2D7 ')).toBe('2d7');
+  });
+
+  it('不合法時回傳 null', () => {
+    expect(normalizeRecoveryDice('abc')).toBeNull();
   });
 });
 
@@ -48,6 +82,15 @@ describe('rollRecoveryDice', () => {
     expect(rollRecoveryDice('')).toBeNull();
     expect(rollRecoveryDice('0d6')).toBeNull();
   });
+
+  it('超過上限的記法回傳 null', () => {
+    expect(rollRecoveryDice('101d6')).toBeNull();
+  });
+
+  it('支援 2d7 這類非標準骰子（2～14）', () => {
+    expect(rollRecoveryDice('2d7', () => 0)).toBe(2);
+    expect(rollRecoveryDice('2d7', () => 0.999999)).toBe(14);
+  });
 });
 
 describe('isLongRestDiceItem', () => {
@@ -59,6 +102,7 @@ describe('isLongRestDiceItem', () => {
     expect(isLongRestDiceItem(item({ recoveryDice: undefined }))).toBe(false);
     expect(isLongRestDiceItem(item({ recovery: 'short' }))).toBe(false);
     expect(isLongRestDiceItem(item({ recoveryDice: 'abc' }))).toBe(false);
+    expect(isLongRestDiceItem(item({ recoveryDice: '1d3' }))).toBe(true);
   });
 });
 

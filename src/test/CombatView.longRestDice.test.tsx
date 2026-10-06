@@ -129,13 +129,13 @@ describe('CombatView - 長休骰', () => {
     fireEvent.click(resourceSection!.querySelector('button')!);
     fireEvent.change(screen.getByPlaceholderText('名稱'), { target: { value: '靈光' } });
     fireEvent.click(screen.getByRole('button', { name: '長休骰' }));
-    fireEvent.click(screen.getByRole('button', { name: '1d8' }));
+    fireEvent.change(screen.getByLabelText('長休恢復骰子'), { target: { value: '2d7' } });
     fireEvent.click(screen.getByText('儲存'));
 
     await waitFor(() => expect(mockHybrid.createCombatItem).toHaveBeenCalled());
     expect(mockHybrid.createCombatItem.mock.calls[0][0]).toMatchObject({
       recovery_type: 'long_rest',
-      recovery_dice: '1d8',
+      recovery_dice: '2d7',
     });
   });
 
