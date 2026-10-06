@@ -12,10 +12,10 @@ import {
 import type { SpellDef } from '../../types/spell';
 
 describe('spellCatalog', () => {
-  it('getSpells 讀得到 data/spells.json 的內容（陣列、534 筆）', async () => {
+  it('getSpells 讀得到 data/spells.json 的內容（陣列、535 筆）', async () => {
     const list = await getSpells();
     expect(Array.isArray(list)).toBe(true);
-    expect(list.length).toBe(534);
+    expect(list.length).toBe(535);
     expect(list[0]).toHaveProperty('name');
     expect(list[0]).toHaveProperty('nameEn');
   });
@@ -25,6 +25,26 @@ describe('spellCatalog', () => {
     expect(found?.nameEn).toBe('Fire Bolt');
     expect(found?.level).toBe(0);
     expect(await findSpellByNameEn('Not A Real Spell')).toBeUndefined();
+  });
+
+  it("加德爾快遞術（Galder's Speedy Courier）資料欄位正確", async () => {
+    const spell = await findSpellByNameEn("Galder's Speedy Courier");
+    expect(spell).toMatchObject({
+      name: '加德爾快遞術',
+      level: 4,
+      school: '咒法',
+      castingTime: '動作',
+      range: '10尺',
+      duration: '10分鐘',
+      concentration: false,
+      ritual: false,
+      verbal: true,
+      somatic: true,
+      source: 'EGW',
+    });
+    expect(spell?.material).toContain('25金幣');
+    expect(spell?.description).toContain('小型氣元素');
+    expect(spell?.description).toContain('升環施法效應');
   });
 
   it('中文譯名撞名的兩個不同法術，nameEn 仍可正確區分', async () => {
