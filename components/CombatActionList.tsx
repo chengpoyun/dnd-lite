@@ -18,16 +18,6 @@ interface ActionListProps {
   onEditCategoryUsage?: () => void;
 }
 
-/** 長休擲骰恢復的項目：卡片上的小標記（不改變卡片尺寸；長名稱／窄卡片會自行換行或截斷） */
-const DiceTag: React.FC<{ dice: string; className?: string }> = ({ dice, className = '' }) => (
-  <span
-    title={`每次長休擲 ${dice} 恢復`}
-    className={`shrink-0 whitespace-nowrap text-[12px] leading-none font-bold text-indigo-300 bg-indigo-900/40 border border-indigo-700/50 rounded px-1 py-px ${className}`}
-  >
-    {`🎲${dice}`}
-  </span>
-);
-
 const ActionList: React.FC<ActionListProps> = ({ title, items, colorClass, onAdd, isEditMode, onRemove, onUse, isTwoCol = false, categoryUsage, onEditCategoryUsage }) => {
   const isCategoryDisabled = categoryUsage && categoryUsage.current <= 0;
   
@@ -75,10 +65,7 @@ const ActionList: React.FC<ActionListProps> = ({ title, items, colorClass, onAdd
                       <span className="text-2xl leading-none">{item.icon}</span>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-1 mb-1.5 pr-1.5">
-                        <div className="min-w-0 text-[16px] font-black text-slate-500 truncate leading-none uppercase tracking-tighter">{item.name}</div>
-                        {item.recoveryDice && <DiceTag dice={item.recoveryDice} />}
-                      </div>
+                      <div className="text-[16px] font-black text-slate-500 truncate leading-none mb-1.5 uppercase tracking-tighter">{item.name}</div>
                       <div className="flex items-baseline gap-1.5">
                         <span className={`text-3xl font-mono font-black leading-none ${item.current > 0 && !isCategoryDisabled ? colorClass : 'text-slate-600'}`}>
                           {item.current}
@@ -96,7 +83,6 @@ const ActionList: React.FC<ActionListProps> = ({ title, items, colorClass, onAdd
                          <span className={`text-[16px] font-mono font-black ${item.current > 0 && !isCategoryDisabled ? colorClass : 'text-slate-600'}`}>{item.current}/{item.max}</span>
                       </div>
                     )}
-                    {item.recoveryDice && <DiceTag dice={item.recoveryDice} className="mt-1" />}
                   </>
                 )}
               </button>

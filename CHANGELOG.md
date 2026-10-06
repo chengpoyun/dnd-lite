@@ -4,6 +4,10 @@
 
 ---
 
+## 2.12.1
+
+- 調整：長休骰項目不再在卡片名稱旁顯示 🎲 骰子標記（不重要又占空間）；恢復方式仍可在編輯項目裡看到。
+
 ## 2.12.0
 
 - 新功能：戰鬥項目的恢復週期新增「長休骰」——長休時不補滿，改為自動擲骰（1d4／1d6／1d8／1d10／1d12）增加剩餘次數，上限為最大值；長休後以彈窗列出每個項目的擲骰結果。卡片名稱旁顯示 🎲 骰子標記。DB 新增欄位 `character_combat_actions.recovery_dice`（migration `add_combat_action_recovery_dice`，`recovery_type` 維持 long_rest）。短休與每回合不受影響。另外 `InfoModal` 支援多行訊息（whitespace-pre-line、break-words）。
