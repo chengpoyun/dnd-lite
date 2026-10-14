@@ -434,6 +434,7 @@
     "name": "泡狐龍的紫毛",
     "nameEn": "Mizutsune Purplefur",
     "rarity": 11,
+    "description": "對強酸傷害有抗性",
     "armorDecoration": true,
     "decorationEffects": {
       "armor": {
@@ -1160,6 +1161,7 @@
     "name": "爆錘龍的骨髓",
     "nameEn": "Uragaan Marrow",
     "rarity": 6,
+    "description": "護甲：裂傷無效，創傷效果免疫",
     "armorDecoration": true,
     "decorationEffects": {
       "armor": {
@@ -1219,6 +1221,7 @@
     "name": "冰人魚龍的冰玉",
     "nameEn": "Aurora Gem",
     "rarity": 14,
+    "description": "護甲：免疫寒冷\n武器：爆擊-1，額外+1d6（效果挑戰者）",
     "weaponDecoration": true,
     "armorDecoration": true,
     "decorationEffects": {
@@ -1644,5 +1647,75 @@
     "name": "幼白兔獸的耳",
     "nameEn": "Lagombi Kit Ear",
     "rarity": 2
+  },
+  {
+    "name": "棘龍的甲殼",
+    "nameEn": "Espinas Shell",
+    "rarity": 12,
+    "weaponDecoration": true,
+    "armorDecoration": true
+  },
+  {
+    "name": "棘龍的堅殼",
+    "nameEn": "Espinas Carapace",
+    "rarity": 12,
+    "weaponDecoration": true,
+    "armorDecoration": true
+  },
+  {
+    "name": "棘龍的角",
+    "nameEn": "Espinas Horn",
+    "rarity": 12,
+    "weaponDecoration": true,
+    "armorDecoration": true
+  },
+  {
+    "name": "棘龍的毒血",
+    "nameEn": "Espinas Poison Blood",
+    "rarity": 12,
+    "weaponDecoration": true,
+    "armorDecoration": true
+  },
+  {
+    "name": "棘龍的尾巴",
+    "nameEn": "Espinas Tail",
+    "rarity": 12,
+    "weaponDecoration": true,
+    "armorDecoration": true
+  },
+  {
+    "name": "毒怪龍的皮",
+    "nameEn": "Gigginox Hide",
+    "rarity": 10,
+    "weaponDecoration": true,
+    "armorDecoration": true
+  },
+  {
+    "name": "不祥的皮",
+    "nameEn": "Uncanny Hide",
+    "rarity": 10,
+    "weaponDecoration": true,
+    "armorDecoration": true
+  },
+  {
+    "name": "毒怪龍的爪",
+    "nameEn": "Gigginox Talon",
+    "rarity": 10,
+    "weaponDecoration": true,
+    "armorDecoration": true
+  },
+  {
+    "name": "可怖的嘴",
+    "nameEn": "Fearsome Maw",
+    "rarity": 10,
+    "weaponDecoration": true,
+    "armorDecoration": true
+  },
+  {
+    "name": "污穢的毒腺",
+    "nameEn": "Foul Venom Gland",
+    "rarity": 10,
+    "weaponDecoration": true,
+    "armorDecoration": true
   }
 ]
