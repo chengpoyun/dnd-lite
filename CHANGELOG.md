@@ -4,6 +4,10 @@
 
 ---
 
+## 2.13.2
+
+- 整理：新增可重複使用的唯讀腳本 `scripts/scan-mh-materials.mjs`（取代 `dump-mh-materials.mjs`），自動比對玩家持有／插槽鑲嵌的 MH素材與 `data/mh-materials.json`，列出目錄沒有的素材、玩家補了目錄缺的欄位（英文名、稀有度、說明、鑲嵌旗標、效果）、中文名不同的別名與目錄沒有的插槽素材；預設排除開發固定測試角色、不輸出使用者身分，`--json` 可輸出完整結果。比對邏輯拆在 `scripts/lib/mhCatalogScan.mjs` 並有單元測試。
+
 ## 2.13.1
 
 - 資料：MH素材目錄新增 3 隻怪物共 15 筆素材（`data/mh-materials.json`）：浮眠龍（CR 12，6 筆）、徹甲蟲（CR 3，6 筆）、幼白兔獸（CR 2，3 筆）。依使用者提供的 MH 5e 工具站照片，⚔️／🛡️ 對應為 `weaponDecoration`／`armorDecoration`；幼白兔獸的照片裁掉了用途欄，暫不加鑲嵌旗標。
