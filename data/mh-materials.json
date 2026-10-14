@@ -1551,5 +1551,98 @@
     "nameEn": "King Cactus",
     "rarity": null,
     "description": "採集此植物的生物必須通過 DC 15 體質豁免，否則中毒 24 小時。"
+  },
+  {
+    "name": "浮眠龍的厚毛皮",
+    "nameEn": "Nightshade Paolumu Thickfur",
+    "rarity": 12,
+    "weaponDecoration": true,
+    "armorDecoration": true
+  },
+  {
+    "name": "浮眠龍的厚鱗",
+    "nameEn": "Nightshade Paolumu Shard",
+    "rarity": 12,
+    "weaponDecoration": true,
+    "armorDecoration": true
+  },
+  {
+    "name": "昏睡袋",
+    "nameEn": "Torpor Sac",
+    "rarity": 12,
+    "weaponDecoration": true
+  },
+  {
+    "name": "浮空龍的重殼",
+    "nameEn": "Paolumu Cortex",
+    "rarity": 12,
+    "weaponDecoration": true,
+    "armorDecoration": true
+  },
+  {
+    "name": "浮眠龍的剛翼",
+    "nameEn": "Nightshade Paolumu Fellwing",
+    "rarity": 12,
+    "weaponDecoration": true,
+    "armorDecoration": true
+  },
+  {
+    "name": "浮眠龍的寶玉",
+    "nameEn": "Nightshade Gem",
+    "rarity": 12,
+    "weaponDecoration": true,
+    "armorDecoration": true
+  },
+  {
+    "name": "徹甲蟲的甲殼",
+    "nameEn": "Seltas Shell",
+    "rarity": 3,
+    "armorDecoration": true
+  },
+  {
+    "name": "水袋",
+    "nameEn": "Aqua Sac",
+    "rarity": 3,
+    "weaponDecoration": true,
+    "armorDecoration": true
+  },
+  {
+    "name": "徹甲蟲的羽",
+    "nameEn": "Seltas Wing",
+    "rarity": 3,
+    "weaponDecoration": true,
+    "armorDecoration": true
+  },
+  {
+    "name": "雄蟲的體液",
+    "nameEn": "Drone Substance",
+    "rarity": 3,
+    "weaponDecoration": true
+  },
+  {
+    "name": "魔物體液",
+    "nameEn": "Monster Fluid",
+    "rarity": 3
+  },
+  {
+    "name": "徹甲蟲的角",
+    "nameEn": "Seltas Horn",
+    "rarity": 3,
+    "weaponDecoration": true
+  },
+  {
+    "name": "幼白兔獸的毛",
+    "nameEn": "Lagombi Kit Pelt",
+    "rarity": 2
+  },
+  {
+    "name": "幼白兔獸的爪",
+    "nameEn": "Lagombi Kit Claw",
+    "rarity": 2
+  },
+  {
+    "name": "幼白兔獸的耳",
+    "nameEn": "Lagombi Kit Ear",
+    "rarity": 2
   }
 ]
