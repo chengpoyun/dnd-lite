@@ -259,4 +259,38 @@ describe('collectSourceBonusesForCharacter - 插槽鑲嵌素材效果', () => {
     expect(result.bySource[0].other).toBe('劍身泛著寒光');
     expect(result.bySource[0].combatStats?.attackDamage).toBe(1);
   });
+  describe('插槽素材的「屬性值設為 X」效果（如爆鱗龍的寶玉，同食人魔力量手套）', () => {
+    const gemSocket = {
+      decoration_name: '爆鱗龍的寶玉',
+      note: '與此武器同調期間，你的力量屬性變為 25。',
+      stat_bonuses: { abilityScoreFloors: { str: 25 } },
+    };
+
+    const collect = async (items: any[], str: number) => {
+      const { supabase } = await import('../../lib/supabase');
+      (supabase as any).__mockAbilities = [];
+      (supabase as any).__mockItems = items;
+      const { DetailedCharacterService } = await import('../../services/detailedCharacter');
+      return DetailedCharacterService.collectSourceBonusesForCharacter(CHARACTER_ID, { level: 5, abilityScores: { str } });
+    };
+
+    it('武器穿戴中且基礎力量 10 時，力量補到 25（+15），來源為「武器［素材］」', async () => {
+      const result = await collect([weaponRow({ sockets: [gemSocket] })], 10);
+
+      expect(result.abilityScores.str).toBe(15);
+      expect(result.bySource.find((s: any) => s.id === 'ci-sword-socket-0')?.abilityScores?.str).toBe(15);
+    });
+
+    it('基礎力量已 ≥25 時素材無效', async () => {
+      const result = await collect([weaponRow({ sockets: [gemSocket] })], 27);
+
+      expect(result.abilityScores.str ?? 0).toBe(0);
+    });
+
+    it('武器未穿戴時不生效', async () => {
+      const result = await collect([weaponRow({ is_equipped: false, sockets: [gemSocket] })], 10);
+
+      expect(result.abilityScores.str ?? 0).toBe(0);
+    });
+  });
 });
