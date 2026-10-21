@@ -80,3 +80,15 @@ describe('StatBonusEditor - 屬性值列支援 =N 絕對值語法', () => {
     expect(inputsWithPlaceholder).toHaveLength(0);
   });
 });
+
+describe('StatBonusEditor - 保留 specialEffectId', () => {
+  it('編輯其他欄位時，不會丟掉既有的 specialEffectId（如插槽素材的等級公式效果）', () => {
+    const onChange = vi.fn();
+    const value: StatBonusEditorValue = { specialEffectId: 'healthBoost' };
+    render(<StatBonusEditor value={value} onChange={onChange} />);
+
+    fireEvent.blur(getAbilityScoreInput('力量'), { target: { value: '2' } });
+
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ specialEffectId: 'healthBoost' }));
+  });
+});

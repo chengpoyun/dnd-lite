@@ -293,4 +293,32 @@ describe('collectSourceBonusesForCharacter - 插槽鑲嵌素材效果', () => {
       expect(result.abilityScores.str ?? 0).toBe(0);
     });
   });
+  describe('插槽素材的等級公式效果（炎妃龍的寶玉・體力增強，同能力「健壯」的做法）', () => {
+    const gemSocket = {
+      decoration_name: '炎妃龍的寶玉',
+      note: '體力增強：角色等級每有 1 級，生命值上限就增加 1 點。',
+      stat_bonuses: { specialEffectId: 'healthBoost' },
+    };
+
+    const collect = async (items: any[], level: number) => {
+      const { supabase } = await import('../../lib/supabase');
+      (supabase as any).__mockAbilities = [];
+      (supabase as any).__mockItems = items;
+      const { DetailedCharacterService } = await import('../../services/detailedCharacter');
+      return DetailedCharacterService.collectSourceBonusesForCharacter(CHARACTER_ID, { level, abilityScores: {} });
+    };
+
+    it('護甲穿戴中時，最大生命值 +總等級，來源為「裝備［素材］」', async () => {
+      const result = await collect([weaponRow({ name_override: '重甲', sockets: [gemSocket] })], 7);
+
+      expect(result.combatStats.maxHp).toBe(7);
+      expect(result.bySource.find((s: any) => s.id === 'ci-sword-socket-0')?.combatStats?.maxHp).toBe(7);
+    });
+
+    it('裝備未穿戴時不生效', async () => {
+      const result = await collect([weaponRow({ is_equipped: false, sockets: [gemSocket] })], 7);
+
+      expect(result.combatStats.maxHp ?? 0).toBe(0);
+    });
+  });
 });

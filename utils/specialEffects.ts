@@ -37,14 +37,16 @@ export type SpecialEffectBonus = CombatStatBonus & {
 
 /**
  * 已註冊的特殊效果 id（與 stat_bonuses.specialEffectId 對應；皆以小寫比對）
- * 僅保留「數值會隨等級等 context 動態變化」的效果（如健壯）。
+ * 僅保留「數值會隨等級等 context 動態變化」的效果（如健壯、體力增強）。
  * 「屬性值設為固定值」類效果（如食人魔力量手套）已改為透過 stat_bonuses.abilityScoreFloors
  * 直接由 StatBonusEditor 輸入（見 collectSourceBonusesForCharacter），不再需要特殊註冊。
  */
-const REGISTERED_EFFECT_IDS = ['tough'] as const;
+const REGISTERED_EFFECT_IDS = ['tough', 'healthboost'] as const;
 
 const registry: Record<string, (ctx: SpecialEffectContext) => SpecialEffectBonus> = {
   tough: (ctx) => ({ maxHp: ctx.level * 2 }),
+  // 炎妃龍的寶玉・體力增強（MH素材護甲插槽）：角色等級每有 1 級，最大生命值 +1
+  healthboost: (ctx) => ({ maxHp: ctx.level }),
 };
 
 /**

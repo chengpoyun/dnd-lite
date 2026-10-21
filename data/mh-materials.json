@@ -1485,7 +1485,10 @@
     "armorDecoration": true,
     "decorationEffects": {
       "armor": {
-        "note": "體力增強 (Health Boost)：穿戴此防具時，你的角色等級每有 1 級，你的生命值上限就增加 1 點。"
+        "note": "體力增強 (Health Boost)：穿戴此防具時，你的角色等級每有 1 級，你的生命值上限就增加 1 點。",
+        "statBonuses": {
+          "specialEffectId": "healthBoost"
+        }
       },
       "weapon": {
         "note": "心眼 (Mind's Eye)：你使用此武器的攻擊無視任何生物的傷害抗性。"

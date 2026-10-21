@@ -69,6 +69,18 @@ describe('specialEffects', () => {
     });
   });
 
+  describe('healthBoost（炎妃龍的寶玉・體力增強）：每級 +1 最大生命值', () => {
+    it('已註冊，且 id 不分大小寫', () => {
+      expect(isRegisteredEffectId('healthBoost')).toBe(true);
+      expect(getSpecialEffectId({ specialEffectId: 'healthBoost' })).toBe('healthboost');
+    });
+
+    it('最大生命值加成等於總等級', () => {
+      expect(getSpecialEffectCombatBonus('healthBoost', { level: 5, classes: [] })).toEqual({ maxHp: 5 });
+      expect(getSpecialEffectCombatBonus('healthBoost', { level: 1, classes: [] })).toEqual({ maxHp: 1 });
+    });
+  });
+
   describe('ogrePower（食人魔力量手套）已改為通用機制，不再是註冊的特殊效果', () => {
     it('ogrePower 不再是已註冊的特殊效果 id', () => {
       expect(isRegisteredEffectId('ogrePower')).toBe(false);

@@ -50,6 +50,8 @@ export interface StatBonusEditorValue {
   };
   /** 「其他效果」自由文字說明（非數值加成，如持續時間、特殊描述） */
   other?: string;
+  /** 依等級等條件動態計算的特殊效果 id（見 utils/specialEffects.ts）；編輯器不提供輸入，只負責原樣保留 */
+  specialEffectId?: string;
 }
 
 interface StatBonusEditorProps {
@@ -166,6 +168,7 @@ export const StatBonusEditor: React.FC<StatBonusEditorProps> = ({ value, onChang
     skillProficiency: { ...(value.skillProficiency ?? {}) },
     combatStats: { ...(value.combatStats ?? {}) },
     other: value.other,
+    specialEffectId: value.specialEffectId,
   });
 
   const handleNumberChange = (
