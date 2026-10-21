@@ -1482,13 +1482,26 @@
     "nameEn": "Lunastra Gem",
     "rarity": 12,
     "weaponDecoration": true,
-    "armorDecoration": true
+    "armorDecoration": true,
+    "decorationEffects": {
+      "armor": {
+        "note": "體力增強 (Health Boost)：穿戴此防具時，你的角色等級每有 1 級，你的生命值上限就增加 1 點。"
+      },
+      "weapon": {
+        "note": "心眼 (Mind's Eye)：你使用此武器的攻擊無視任何生物的傷害抗性。"
+      }
+    }
   },
   {
     "name": "斬龍的鱗",
     "nameEn": "Glavenus Scale",
     "rarity": 13,
-    "armorDecoration": true
+    "armorDecoration": true,
+    "decorationEffects": {
+      "armor": {
+        "note": "匠 (Handicraft)：每個黎明時起算 24 小時內，你獲得你選擇的一種工匠工具的熟練度。"
+      }
+    }
   },
   {
     "name": "斬龍的牙",
@@ -1507,14 +1520,35 @@
     "nameEn": "Flaming Bursa",
     "rarity": 13,
     "weaponDecoration": true,
-    "armorDecoration": true
+    "armorDecoration": true,
+    "decorationEffects": {
+      "armor": {
+        "note": "當你穿戴此防具時，你獲得對火焰傷害的抗性。"
+      },
+      "weapon": {
+        "note": "你的武器額外造成 1d6 火焰傷害。",
+        "statBonuses": {
+          "combatStats": {
+            "attackDamage": "1d6"
+          }
+        }
+      }
+    }
   },
   {
     "name": "斬龍的焰狀殼",
     "nameEn": "Glavenus Pyroshell",
     "rarity": 13,
     "weaponDecoration": true,
-    "armorDecoration": true
+    "armorDecoration": true,
+    "decorationEffects": {
+      "armor": {
+        "note": "穿戴此防具時，任何使用近戰武器、徒手打擊或天生近戰武器命中你的生物，將受到 1d6 火焰傷害。"
+      },
+      "weapon": {
+        "note": "此武器具有 6 個符文，每天黎明時恢復 1d6 個符文。你可以使用附贈動作從武器向 60 呎內的一個生物射出火花。目標必須進行 DC 13 體質豁免，否則陷入燃燒狀態 1 分鐘。燃燒的生物在其回合開始時受到 1d6 火焰傷害。"
+      }
+    }
   },
   {
     "name": "斬龍的尾巴",
@@ -1560,41 +1594,92 @@
     "nameEn": "Nightshade Paolumu Thickfur",
     "rarity": 12,
     "weaponDecoration": true,
-    "armorDecoration": true
+    "armorDecoration": true,
+    "decorationEffects": {
+      "armor": {
+        "note": "在微光或黑暗中，你可以將隱藏 (Hide) 作為附贈動作。"
+      },
+      "weapon": {
+        "note": "你可以在睡眠時閱讀你接觸的書籍。"
+      }
+    }
   },
   {
     "name": "浮眠龍的厚鱗",
     "nameEn": "Nightshade Paolumu Shard",
     "rarity": 12,
     "weaponDecoration": true,
-    "armorDecoration": true
+    "armorDecoration": true,
+    "decorationEffects": {
+      "armor": {
+        "note": "當你穿戴此防具時，你的特技 (Acrobatics) 檢定具有 +3 加值。",
+        "statBonuses": {
+          "skills": {
+            "特技": 3
+          }
+        }
+      },
+      "weapon": {
+        "note": "異常狀態會心（失能）(Critical Status (Incapacitate))：當你使用此武器進行武器攻擊，且攻擊檢定擲出 20 時，目標陷入失能 (incapacitated) 狀態，直到其下個回合結束。"
+      }
+    }
   },
   {
     "name": "昏睡袋",
     "nameEn": "Torpor Sac",
     "rarity": 12,
-    "weaponDecoration": true
+    "weaponDecoration": true,
+    "armorDecoration": true,
+    "decorationEffects": {
+      "armor": {
+        "note": "每當你進行對抗昏迷狀態或其他類似睡眠效應的豁免檢定時，你進行該檢定具有優勢。"
+      }
+    }
   },
   {
     "name": "浮空龍的重殼",
     "nameEn": "Paolumu Cortex",
     "rarity": 12,
     "weaponDecoration": true,
-    "armorDecoration": true
+    "armorDecoration": true,
+    "decorationEffects": {
+      "armor": {
+        "note": "當你穿戴此防具時，你獲得對雷鳴傷害的抗性。"
+      },
+      "weapon": {
+        "note": "這把武器能警告你危險。當此武器在你的身上時，如果在戰鬥開始時你或 30 呎內的同伴正在自然睡眠，它會用魔法喚醒你們。"
+      }
+    }
   },
   {
     "name": "浮眠龍的剛翼",
     "nameEn": "Nightshade Paolumu Fellwing",
     "rarity": 12,
     "weaponDecoration": true,
-    "armorDecoration": true
+    "armorDecoration": true,
+    "decorationEffects": {
+      "armor": {
+        "note": "廣域化 (Wide-Range)：當你使用藥草、解毒藥、冷飲、熱飲、忍耐種子或怪力種子時；你周圍 10 呎半徑內的所有其他生物都會獲得其效果。"
+      },
+      "weapon": {
+        "note": "弱點特效 (Weakness Exploit)：當你使用此武器進行的攻擊檢定具有優勢並擊中目標時，如果兩次 d20 擲骰中較低的結果也能擊中目標，你可以讓武器造成最大傷害（所有額外的傷害骰仍必須擲出）。你可以使用此屬性的次數等同於你的力量或敏捷調整值（由你選擇），並在完成長休後恢復所有已消耗的使用次數。"
+      }
+    }
   },
   {
     "name": "浮眠龍的寶玉",
     "nameEn": "Nightshade Gem",
     "rarity": 12,
     "weaponDecoration": true,
-    "armorDecoration": true
+    "armorDecoration": true,
+    "decorationEffects": {
+      "armor": {
+        "note": "與此防具同調期間，你可以從中施放『變大/縮小術 (Enlarge/Reduce)』（僅限變大效應）。你可以使用此屬性兩次，並在完成長休後恢復所有已消耗的使用次數。"
+      },
+      "weapon": {
+        "note": "精神抖擻 (Maximum Might)：當你的生命值全滿且未承受任何力竭等級時，你的攻擊會造成武器的最大傷害。"
+      }
+    }
   },
   {
     "name": "徹甲蟲的甲殼",
@@ -1667,7 +1752,15 @@
     "nameEn": "Espinas Horn",
     "rarity": 12,
     "weaponDecoration": true,
-    "armorDecoration": true
+    "armorDecoration": true,
+    "decorationEffects": {
+      "armor": {
+        "note": "穿戴此防具時，任何使用近戰攻擊命中你的生物受到 1d4 毒素傷害。"
+      },
+      "weapon": {
+        "note": "破壞王 (Partbreaker)：當你使用此武器造成爆擊時，額外造成 1d4 傷害。"
+      }
+    }
   },
   {
     "name": "棘龍的毒血",
