@@ -39,3 +39,6 @@ dist-ssr
 
 # MCP server config (contains Supabase access token, never commit)
 .mcp.json
+
+# 一次性、僅本機使用的資料修正腳本（不納入版控）
+scripts/backfill-mh-material-descriptions.mjs
