@@ -14,7 +14,7 @@ import { MODAL_CONTAINER_CLASS, SELECT_CLASS } from '../styles/modalStyles';
 import { StatBonusEditor, type StatBonusEditorValue } from './StatBonusEditor';
 import { RaritySelect } from './ui/RaritySelect';
 import { QuantityWithMultiplierField } from './ui/QuantityWithMultiplierField';
-import { parseQuantityInput, resolveFinalQuantity } from '../utils/quantityMultiplier';
+import { resolveFinalQuantity } from '../utils/quantityMultiplier';
 
 const CATEGORIES: ItemCategory[] = ['裝備', '藥水', 'MH素材', '雜項'];
 
@@ -67,6 +67,8 @@ export const AddPersonalItemModal: React.FC<AddPersonalItemModalProps> = ({
       setName(initialName ?? '');
       setNameEn('');
       setRarity('');
+      setQuantity('1');
+      setApplyMultiplier(true);
       if (initialCategory) {
         setCategory(initialCategory);
         setEquipmentKind(initialCategory === '裝備' ? EQUIPMENT_KINDS[0] : '');
@@ -109,9 +111,8 @@ export const AddPersonalItemModal: React.FC<AddPersonalItemModalProps> = ({
         name: name.trim(),
         category,
         description: description.trim() || undefined,
-        quantity: showMultiplier
-          ? resolveFinalQuantity(quantity, gatherMultiplier, applyMultiplier)
-          : parseQuantityInput(quantity),
+        // 數量欄位只有 MH素材 才顯示；其他類別固定 1，避免改選類別時帶出隱藏欄位裡殘留的數字
+        quantity: showMultiplier ? resolveFinalQuantity(quantity, gatherMultiplier, applyMultiplier) : 1,
         is_magic: isMagic,
       };
       if (nameEn.trim()) {

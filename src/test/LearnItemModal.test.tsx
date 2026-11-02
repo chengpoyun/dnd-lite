@@ -287,4 +287,40 @@ describe('LearnItemModal - 統一「獲得」按鈕＋已持有標籤', () => {
     });
     expect(onLearnItem).not.toHaveBeenCalled();
   });
+  it('連續獲得兩個物品：第一次調整的數量不會帶到下一次，下一次預設 1 且可重新調整', async () => {
+    const herb: CatalogItem = { source: 'material', entry: { name: '藥草', nameEn: 'Herb', rarity: null } };
+    const potion: CatalogItem = { source: 'general', entry: { name: '藥水', nameEn: 'Potion', category: '藥水', rarity: null } };
+    mockedSearchLocalCatalog.mockResolvedValue([herb, potion]);
+    const onLearnItem = vi.fn().mockResolvedValue(undefined);
+
+    render(
+      <LearnItemModal
+        isOpen
+        onClose={vi.fn()}
+        onLearnItem={onLearnItem}
+        onCreateNew={vi.fn()}
+        learnedNames={[]}
+      />
+    );
+
+    fireEvent.change(screen.getByPlaceholderText('輸入名稱或描述...'), { target: { value: '藥' } });
+    await waitFor(() => expect(screen.getAllByText('獲得')).toHaveLength(2));
+
+    fireEvent.click(screen.getAllByText('獲得')[0]);
+    await waitFor(() => screen.getByText(/獲得數量・藥草/));
+    fireEvent.change(screen.getByLabelText('數量'), { target: { value: '5' } });
+    fireEvent.click(screen.getByText('確定'));
+    await waitFor(() => expect(onLearnItem).toHaveBeenCalledWith(herb, 5));
+    await waitFor(() => expect(screen.queryByText(/獲得數量/)).not.toBeInTheDocument());
+
+    fireEvent.click(screen.getByText('獲得'));
+    await waitFor(() => screen.getByText(/獲得數量・藥水/));
+    const input = screen.getByLabelText('數量') as HTMLInputElement;
+    expect(input.value).toBe('1');
+
+    fireEvent.change(input, { target: { value: '3' } });
+    expect(input.value).toBe('3');
+    fireEvent.click(screen.getByText('確定'));
+    await waitFor(() => expect(onLearnItem).toHaveBeenLastCalledWith(potion, 3));
+  });
 });
