@@ -1068,7 +1068,17 @@
   {
     "name": "爆鱗龍的爆腺",
     "nameEn": "Bazelgeuse Fuse",
-    "rarity": 17
+    "rarity": 17,
+    "weaponDecoration": true,
+    "armorDecoration": true,
+    "decorationEffects": {
+      "armor": {
+        "note": "耳塞 (Earplugs)：與此防具同調期間，你可以使用附贈動作變出兩個形狀由你決定的耳塞。使用這些耳塞時，你視為處於耳聾狀態，並且你對抗雷鳴傷害的豁免檢定具有優勢。你可以使用附贈動作解除耳塞，結束耳聾效應。"
+      },
+      "weapon": {
+        "note": "(僅限術士與法師) 砲術師 (Bombardier)：此武器具有 10 個符文。你可以使用動作消耗 1 或多個符文從中施放下列法術之一，使用你的法術豁免 DC：『灼熱射線 (Scorching Ray)』(2 符文)，『馬友夫微流星 (Melf's Minute Meteors)』(3 符文)，或『火牆術 (Wall of Fire)』(4 符文)。此武器每天黎明時恢復 1d6 + 4 個已消耗的符文。如果你消耗了最後一個符文，它在一週內無法恢復任何符文。"
+      }
+    }
   },
   {
     "name": "爆鱗龍的尖爪",
@@ -1427,7 +1437,15 @@
     "nameEn": "Gleaming Fluid",
     "rarity": 4,
     "weaponDecoration": true,
-    "armorDecoration": true
+    "armorDecoration": true,
+    "decorationEffects": {
+      "armor": {
+        "note": "穿戴此防具時，你可以使用附贈動作在 15 呎錐形範圍內呼出沙子和碎石。該區域內的每個生物必須進行 DC 11 敏捷豁免，豁免失敗受到 2d6 鈍擊傷害，成功則傷害減半。此屬性使用後，直到完成一次長休前無法再次使用。"
+      },
+      "weapon": {
+        "note": "(僅限吟遊詩人、德魯伊、術士與法師) 與此武器同調期間，你可以每次長休施放一次『地動術 (Earth Tremor)』，且不消耗法術位。"
+      }
+    }
   },
   {
     "name": "幼潛口龍的頭殼",
