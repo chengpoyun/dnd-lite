@@ -1726,7 +1726,13 @@
     "name": "雄蟲的體液",
     "nameEn": "Drone Substance",
     "rarity": 3,
-    "weaponDecoration": true
+    "description": "這種油狀物質可以塗抹在一個中型或更小的生物皮膚上。塗抹物質需要 1 分鐘。受影響的生物在 1 小時內的魅力（遊說）檢定具有優勢。在此期間，如果它試圖用魔法或類法術能力魅惑生物，目標生物的豁免檢定具有劣勢。詛咒：當塗抹在生物身上時，在城鎮地區有 10% 的機率吸引附近的徹甲蟲。在野外則有 50% 的機率吸引附近的徹甲蟲。",
+    "weaponDecoration": true,
+    "decorationEffects": {
+      "weapon": {
+        "note": "捕獲新手 (Capture Novice)：與此武器同調期間，捕獲用麻醉玉和捕獲用麻醉彈在擊中生物時額外擲 2d8。"
+      }
+    }
   },
   {
     "name": "魔物體液",
@@ -1823,7 +1829,15 @@
     "nameEn": "Fearsome Maw",
     "rarity": 10,
     "weaponDecoration": true,
-    "armorDecoration": true
+    "armorDecoration": true,
+    "decorationEffects": {
+      "armor": {
+        "note": "穿戴此防具時，你可以在任何環境中正常呼吸，且在對抗有害氣體和蒸氣（如死雲術、臭雲術效應、吸入性毒藥以及某些龍的吐息武器）的豁免檢定上具有優勢。"
+      },
+      "weapon": {
+        "note": "你可以使用動作說出指令詞，並恢復一個最高至 3 環的已消耗法術位。此效應使用後，直到下一次黎明前無法再次使用。"
+      }
+    }
   },
   {
     "name": "污穢的毒腺",
