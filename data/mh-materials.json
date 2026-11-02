@@ -2023,5 +2023,118 @@
         }
       }
     }
+  },
+  {
+    "name": "岩龍的甲殼",
+    "nameEn": "Basarios Shell",
+    "rarity": 6,
+    "weaponDecoration": true,
+    "armorDecoration": true,
+    "decorationEffects": {
+      "armor": {
+        "note": "當你穿戴此防具時，你在岩石地形中進行隱藏的隱匿檢定具有優勢。"
+      },
+      "weapon": {
+        "note": "耐力奪取 (Stamina Drain)：當你使用此武器擊中生物時，其速度減少 5 呎，直到你的下個回合開始。"
+      }
+    }
+  },
+  {
+    "name": "岩龍的毒袋",
+    "nameEn": "B.Poison Sac",
+    "rarity": 6,
+    "weaponDecoration": true,
+    "armorDecoration": true
+  },
+  {
+    "name": "岩龍的翼",
+    "nameEn": "Basarios Wing",
+    "rarity": 6,
+    "weaponDecoration": true,
+    "armorDecoration": true
+  },
+  {
+    "name": "岩龍的堅殼",
+    "nameEn": "Basarios Carapace",
+    "rarity": 6,
+    "weaponDecoration": true,
+    "armorDecoration": true
+  },
+  {
+    "name": "骸龍的皮",
+    "nameEn": "Nakarkos Hide",
+    "rarity": 20,
+    "weaponDecoration": true,
+    "armorDecoration": true,
+    "decorationEffects": {
+      "armor": {
+        "note": "當你穿戴此防具時，你的感知（洞悉）檢定具有優勢。",
+        "statBonuses": {
+          "skillAdvantage": [
+            "觀察"
+          ]
+        }
+      },
+      "weapon": {
+        "note": "龍封力 (Elderseal)：當你擊中一個擁有充能 (Recharge) 能力的生物時，其所有的充能擲骰具有劣勢，直到你的下個回合開始。"
+      }
+    }
+  },
+  {
+    "name": "骸龍的腕甲",
+    "nameEn": "Nakarkos Arm Brace",
+    "rarity": 20,
+    "weaponDecoration": true,
+    "armorDecoration": true,
+    "decorationEffects": {
+      "armor": {
+        "note": "火場怪力 (Adrenaline)：在戰鬥中，當你的生命值首次降至最大生命值的一半以下時，你會獲得腎上腺素激增。在你的下個回合，你的移動速度翻倍，並且可以進行一個額外的動作。"
+      },
+      "weapon": {
+        "note": "逆恨 (Furor)：當你的生命值低於你最大生命值的十分之一時，你使用此近戰武器進行的攻擊造成最大傷害。"
+      }
+    }
+  },
+  {
+    "name": "發光黏液",
+    "nameEn": "Radiant Mucus",
+    "rarity": 20,
+    "weaponDecoration": true
+  },
+  {
+    "name": "骸龍的烏賊骨",
+    "nameEn": "Nakarkos Cuttlebone",
+    "rarity": 20,
+    "weaponDecoration": true,
+    "armorDecoration": true,
+    "decorationEffects": {
+      "armor": {
+        "note": "不屈+ (Survivor+)：當一個你能看見的盟友生命值降至 0 時，你可以使用反應獲得 +2 AC、+2 傷害以及攻擊檢定 +2 加值，持續 1 分鐘。此屬性使用後，直到下一次黎明前無法再次使用。"
+      },
+      "weapon": {
+        "note": "死裡逃生+ (Crisis+)：若你正受到由敵對生物或物體造成的異常狀態影響（如中毒、燃燒、減速、目盲等），你的所有攻擊和法術將額外造成 1d12 的法術或武器傷害。"
+      }
+    }
+  },
+  {
+    "name": "骸龍的牙",
+    "nameEn": "Nakarkos Fang",
+    "rarity": 20,
+    "weaponDecoration": true
+  },
+  {
+    "name": "骸龍的魂玉",
+    "nameEn": "Nakarkos Soul Orb",
+    "rarity": 20,
+    "weaponDecoration": true,
+    "armorDecoration": true,
+    "decorationEffects": {
+      "armor": {
+        "note": "(僅限術士、邪術師與法師) 此防具具有 2 個符文，每天黎明時恢復。作為一個動作，你可以消耗其中 1 個符文讓防具覆蓋上一層魔法冰霜，獲得 25 點臨時生命值。如果你擁有這些生命值時被生物的近戰攻擊命中，該生物將受到 25 點穿刺傷害。"
+      },
+      "weapon": {
+        "note": "增幅 (Amplify)：你的武器造成的元素傷害骰體積增加一階，且消耗品的持續時間增加 50%。"
+      }
+    }
   }
 ]
