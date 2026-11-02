@@ -47,16 +47,15 @@ describe('AddPersonalItemModal - 數量只對當次新增有效', () => {
     expect(screen.getByRole('checkbox', { name: /套用組織倍數/ })).toBeChecked();
   });
 
-  it('MH素材 數量調成 5 後改選藥水（沒有數量欄位）送出，數量固定為 1', async () => {
+  it('每個類別都有數量欄位，數量照輸入送出', async () => {
     render(<AddPersonalItemModal isOpen onClose={onClose} onSubmit={onSubmit} />);
     fireEvent.change(screen.getByPlaceholderText('輸入物品名稱'), { target: { value: '治療藥水' } });
-    selectCategory('MH素材');
-    fireEvent.change(screen.getByLabelText('數量'), { target: { value: '5' } });
     selectCategory('藥水');
-    expect(screen.queryByLabelText('數量')).not.toBeInTheDocument();
+    expect((screen.getByLabelText('數量') as HTMLInputElement).value).toBe('1');
+    fireEvent.change(screen.getByLabelText('數量'), { target: { value: '5' } });
     fireEvent.click(screen.getByText('新增'));
 
     await vi.waitFor(() => expect(onSubmit).toHaveBeenCalledTimes(1));
-    expect(onSubmit.mock.calls[0][0].quantity).toBe(1);
+    expect(onSubmit.mock.calls[0][0].quantity).toBe(5);
   });
 });

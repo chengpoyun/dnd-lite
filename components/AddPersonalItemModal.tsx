@@ -97,8 +97,8 @@ export const AddPersonalItemModal: React.FC<AddPersonalItemModalProps> = ({
     return { note: trimmedNote, stat_bonuses: hasBonusValue ? bonus : undefined };
   };
 
-  /** 只有 MH素材 顯示數量與倍數開關；其他類別維持原本行為（固定 1 個） */
-  const showMultiplier = category === 'MH素材';
+  /** 每個類別都有數量欄位；只有 MH素材（採集來的）才吃組織倍數與顯示倍數開關 */
+  const effectiveMultiplier = category === 'MH素材' ? gatherMultiplier : 1;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -111,8 +111,7 @@ export const AddPersonalItemModal: React.FC<AddPersonalItemModalProps> = ({
         name: name.trim(),
         category,
         description: description.trim() || undefined,
-        // 數量欄位只有 MH素材 才顯示；其他類別固定 1，避免改選類別時帶出隱藏欄位裡殘留的數字
-        quantity: showMultiplier ? resolveFinalQuantity(quantity, gatherMultiplier, applyMultiplier) : 1,
+        quantity: resolveFinalQuantity(quantity, effectiveMultiplier, applyMultiplier),
         is_magic: isMagic,
       };
       if (nameEn.trim()) {
@@ -350,17 +349,14 @@ export const AddPersonalItemModal: React.FC<AddPersonalItemModalProps> = ({
               )}
             </div>
           )}
-          {/* 數量與組織倍數：只有 MH素材 需要（採集來的素材才吃倍數） */}
-          {showMultiplier && (
-            <QuantityWithMultiplierField
-              id="add-item-quantity"
-              quantity={quantity}
-              onQuantityChange={setQuantity}
-              gatherMultiplier={gatherMultiplier}
-              applyMultiplier={applyMultiplier}
-              onApplyMultiplierChange={setApplyMultiplier}
-            />
-          )}
+          <QuantityWithMultiplierField
+            id="add-item-quantity"
+            quantity={quantity}
+            onQuantityChange={setQuantity}
+            gatherMultiplier={effectiveMultiplier}
+            applyMultiplier={applyMultiplier}
+            onApplyMultiplierChange={setApplyMultiplier}
+          />
           <div>
             <label className="block text-[14px] text-slate-400 mb-2">描述（選填）</label>
             <AutoResizeTextarea

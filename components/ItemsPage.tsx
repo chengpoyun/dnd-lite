@@ -263,21 +263,22 @@ export default function ItemsPage({ characterId, onCharacterDataChanged, initial
     }
   };
 
-  // 新增個人物品；若已有同名稱物品則改為數量+1
+  // 新增個人物品；若已有同名稱物品則把輸入的數量累加上去
   const handleAddPersonalItem = async (data: CreateCharacterItemData) => {
     const name = data.name.trim();
     const existing = items.find(
       (ci) => ItemService.getDisplayValues(ci).displayName === name
     );
     if (existing) {
+      const added = data.quantity ?? 1;
       const result = await ItemService.updateCharacterItem(existing.id, {
-        quantity: existing.quantity + 1,
+        quantity: existing.quantity + added,
       });
       if (result.success) {
         setIsAddPersonalModalOpen(false);
         loadItems();
         onCharacterDataChanged?.();
-        setInfoMessage('物品欄已有該物品，數量+1。');
+        setInfoMessage(`物品欄已有該物品，數量+${added}。`);
       } else {
         showError(result.error || '更新數量失敗');
       }

@@ -140,3 +140,29 @@ describe('ItemsPage - 獲得物品挑到已擁有的物品', () => {
     expect(showSuccess).toHaveBeenCalledWith('已加入 解毒草 × 1');
   });
 });
+
+describe('ItemsPage - 新增個人物品挑到已擁有的同名物品', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('依輸入的數量累加到既有物品（不再固定 +1），不建立新物品', async () => {
+    const existing = buildCharacterItem();
+    mockGetCharacterItems.mockResolvedValue({ success: true, items: [existing] });
+    mockUpdateCharacterItem.mockResolvedValue({ success: true });
+
+    render(<ItemsPage characterId="char-1" />);
+    await waitFor(() => expect(screen.getByText('+ 獲得物品')).toBeInTheDocument());
+    fireEvent.click(screen.getByText('+ 獲得物品'));
+    fireEvent.click(await screen.findByText('新增個人物品'));
+    fireEvent.change(await screen.findByPlaceholderText('輸入物品名稱'), { target: { value: '藥草' } });
+    fireEvent.change(screen.getByLabelText('數量'), { target: { value: '3' } });
+    fireEvent.click(screen.getByText('新增'));
+
+    await waitFor(() => {
+      expect(mockUpdateCharacterItem).toHaveBeenCalledWith('ci-herb', { quantity: 8 });
+    });
+    expect(mockCreateCharacterItem).not.toHaveBeenCalled();
+    expect(await screen.findByText('物品欄已有該物品，數量+3。')).toBeInTheDocument();
+  });
+});
