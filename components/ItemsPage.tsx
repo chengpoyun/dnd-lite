@@ -34,7 +34,7 @@ import { FilterBar } from './ui/FilterBar';
 import { SearchInput } from './ui/SearchInput';
 import { ItemCard } from './ItemCard';
 import { LearnItemModal } from './LearnItemModal';
-import { catalogItemToCreateData, type CatalogItem } from '../services/itemCatalog';
+import { catalogItemToCreateData, getCatalogItemCategory, type CatalogItem } from '../services/itemCatalog';
 import { AddPersonalItemModal } from './AddPersonalItemModal';
 import { CharacterItemEditModal } from './CharacterItemEditModal';
 import ItemDetailModal from './ItemDetailModal';
@@ -245,8 +245,8 @@ export default function ItemsPage({ characterId, onCharacterDataChanged, initial
   // 獲得物品（從本地目錄選取，數量由獲得數量彈窗決定）：已擁有同名物品時把數量累加到
   // 既有物品上，不會另外建立一筆重複的物品；未擁有時才以目錄資料＋該數量建立新的個人物品。
   const handleLearnItem = async (catalogItem: CatalogItem, quantity: number) => {
-    const existing = items.find(
-      (ci) => ItemService.getDisplayValues(ci).displayName === catalogItem.entry.name
+    const existing = items.find((ci) =>
+      ItemService.isSameItem(ci, catalogItem.entry.name, getCatalogItemCategory(catalogItem))
     );
 
     const result = existing
@@ -266,9 +266,7 @@ export default function ItemsPage({ characterId, onCharacterDataChanged, initial
   // 新增個人物品；若已有同名稱物品則把輸入的數量累加上去
   const handleAddPersonalItem = async (data: CreateCharacterItemData) => {
     const name = data.name.trim();
-    const existing = items.find(
-      (ci) => ItemService.getDisplayValues(ci).displayName === name
-    );
+    const existing = items.find((ci) => ItemService.isSameItem(ci, name, data.category));
     if (existing) {
       const added = data.quantity ?? 1;
       const result = await ItemService.updateCharacterItem(existing.id, {
@@ -496,7 +494,10 @@ export default function ItemsPage({ characterId, onCharacterDataChanged, initial
   };
 
   // 已擁有的物品名稱（本地目錄改依名稱比對）：僅供獲得物品 modal 把按鈕文字改成「已持有」
-  const learnedItemNames = items.map(item => ItemService.getDisplayValues(item).displayName);
+  const learnedItems = items.map((item) => {
+    const { displayName, displayCategory } = ItemService.getDisplayValues(item);
+    return { name: displayName, category: displayCategory };
+  });
 
   return (
     <div className="min-h-screen bg-slate-900 text-slate-100">
@@ -591,7 +592,7 @@ export default function ItemsPage({ characterId, onCharacterDataChanged, initial
           setAddPersonalInitialName(initialName ?? '');
           setIsAddPersonalModalOpen(true);
         }}
-        learnedNames={learnedItemNames}
+        learnedItems={learnedItems}
         gatherMultiplier={gatherMultiplier}
       />
 

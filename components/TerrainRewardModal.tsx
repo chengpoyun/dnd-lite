@@ -107,9 +107,7 @@ export function TerrainRewardModal({
         showError(list.error ?? '載入物品失敗');
         return false;
       }
-      const existing = list.items.find(
-        (ci) => ItemService.getDisplayValues(ci).displayName === name
-      );
+      const existing = list.items.find((ci) => ItemService.isSameItem(ci, name, 'MH素材'));
       if (existing) {
         const result = await ItemService.updateCharacterItem(existing.id, {
           quantity: existing.quantity + quantity,

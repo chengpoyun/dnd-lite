@@ -146,7 +146,7 @@ describe('ItemsPage - 新增個人物品挑到已擁有的同名物品', () => {
     vi.clearAllMocks();
   });
 
-  it('依輸入的數量累加到既有物品（不再固定 +1），不建立新物品', async () => {
+  it('同名同類別：依輸入的數量累加到既有物品（不再固定 +1），不建立新物品', async () => {
     const existing = buildCharacterItem();
     mockGetCharacterItems.mockResolvedValue({ success: true, items: [existing] });
     mockUpdateCharacterItem.mockResolvedValue({ success: true });
@@ -156,6 +156,7 @@ describe('ItemsPage - 新增個人物品挑到已擁有的同名物品', () => {
     fireEvent.click(screen.getByText('+ 獲得物品'));
     fireEvent.click(await screen.findByText('新增個人物品'));
     fireEvent.change(await screen.findByPlaceholderText('輸入物品名稱'), { target: { value: '藥草' } });
+    fireEvent.change(screen.getByText('類別 *').parentElement!.querySelector('select') as HTMLSelectElement, { target: { value: 'MH素材' } });
     fireEvent.change(screen.getByLabelText('數量'), { target: { value: '3' } });
     fireEvent.click(screen.getByText('新增'));
 
@@ -164,5 +165,28 @@ describe('ItemsPage - 新增個人物品挑到已擁有的同名物品', () => {
     });
     expect(mockCreateCharacterItem).not.toHaveBeenCalled();
     expect(await screen.findByText('物品欄已有該物品，數量+3。')).toBeInTheDocument();
+  });
+
+  it('同名但不同類別視為不同物品：建立新物品，不累加到既有物品', async () => {
+    const existing = buildCharacterItem({ category_override: 'MH素材', name_override: '蜂蜜' });
+    mockGetCharacterItems.mockResolvedValue({ success: true, items: [existing] });
+    mockCreateCharacterItem.mockResolvedValue({ success: true, item: buildCharacterItem({ category_override: '藥水', name_override: '蜂蜜' }) });
+
+    render(<ItemsPage characterId="char-1" />);
+    await waitFor(() => expect(screen.getByText('+ 獲得物品')).toBeInTheDocument());
+    fireEvent.click(screen.getByText('+ 獲得物品'));
+    fireEvent.click(await screen.findByText('新增個人物品'));
+    fireEvent.change(await screen.findByPlaceholderText('輸入物品名稱'), { target: { value: '蜂蜜' } });
+    fireEvent.change(screen.getByText('類別 *').parentElement!.querySelector('select') as HTMLSelectElement, { target: { value: '藥水' } });
+    fireEvent.change(screen.getByLabelText('數量'), { target: { value: '2' } });
+    fireEvent.click(screen.getByText('新增'));
+
+    await waitFor(() => {
+      expect(mockCreateCharacterItem).toHaveBeenCalledWith(
+        'char-1',
+        expect.objectContaining({ name: '蜂蜜', category: '藥水', quantity: 2 })
+      );
+    });
+    expect(mockUpdateCharacterItem).not.toHaveBeenCalled();
   });
 });

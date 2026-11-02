@@ -37,7 +37,7 @@ describe('LearnItemModal - keyword gating', () => {
         onClose={vi.fn()}
         onLearnItem={vi.fn()}
         onCreateNew={vi.fn()}
-        learnedNames={[]}
+        learnedItems={[]}
       />
     );
 
@@ -72,7 +72,7 @@ describe('LearnItemModal - keyword gating', () => {
         onClose={vi.fn()}
         onLearnItem={vi.fn()}
         onCreateNew={vi.fn()}
-        learnedNames={[]}
+        learnedItems={[]}
       />
     );
 
@@ -102,7 +102,7 @@ describe('LearnItemModal - keyword gating', () => {
         onClose={vi.fn()}
         onLearnItem={vi.fn()}
         onCreateNew={vi.fn()}
-        learnedNames={['藥草']}
+        learnedItems={[{ name: '藥草', category: 'MH素材' }]}
       />
     );
 
@@ -133,7 +133,7 @@ describe('LearnItemModal - 統一「獲得」按鈕＋已持有標籤', () => {
         onClose={vi.fn()}
         onLearnItem={vi.fn()}
         onCreateNew={vi.fn()}
-        learnedNames={[]}
+        learnedItems={[]}
       />
     );
 
@@ -157,7 +157,7 @@ describe('LearnItemModal - 統一「獲得」按鈕＋已持有標籤', () => {
         onClose={vi.fn()}
         onLearnItem={vi.fn()}
         onCreateNew={vi.fn()}
-        learnedNames={['藥草']}
+        learnedItems={[{ name: '藥草', category: 'MH素材' }]}
       />
     );
 
@@ -182,7 +182,7 @@ describe('LearnItemModal - 統一「獲得」按鈕＋已持有標籤', () => {
         onClose={vi.fn()}
         onLearnItem={onLearnItem}
         onCreateNew={vi.fn()}
-        learnedNames={[]}
+        learnedItems={[]}
       />
     );
 
@@ -209,7 +209,7 @@ describe('LearnItemModal - 統一「獲得」按鈕＋已持有標籤', () => {
         onClose={vi.fn()}
         onLearnItem={onLearnItem}
         onCreateNew={vi.fn()}
-        learnedNames={[]}
+        learnedItems={[]}
         gatherMultiplier={4}
       />
     );
@@ -242,7 +242,7 @@ describe('LearnItemModal - 統一「獲得」按鈕＋已持有標籤', () => {
         onClose={vi.fn()}
         onLearnItem={vi.fn()}
         onCreateNew={vi.fn()}
-        learnedNames={[]}
+        learnedItems={[]}
         gatherMultiplier={4}
       />
     );
@@ -268,7 +268,7 @@ describe('LearnItemModal - 統一「獲得」按鈕＋已持有標籤', () => {
         onClose={vi.fn()}
         onLearnItem={onLearnItem}
         onCreateNew={vi.fn()}
-        learnedNames={[]}
+        learnedItems={[]}
       />
     );
 
@@ -299,7 +299,7 @@ describe('LearnItemModal - 統一「獲得」按鈕＋已持有標籤', () => {
         onClose={vi.fn()}
         onLearnItem={onLearnItem}
         onCreateNew={vi.fn()}
-        learnedNames={[]}
+        learnedItems={[]}
       />
     );
 
@@ -322,5 +322,34 @@ describe('LearnItemModal - 統一「獲得」按鈕＋已持有標籤', () => {
     expect(input.value).toBe('3');
     fireEvent.click(screen.getByText('確定'));
     await waitFor(() => expect(onLearnItem).toHaveBeenLastCalledWith(potion, 3));
+  });
+});
+
+describe('LearnItemModal - 已持有以「名稱＋類別」判斷', () => {
+  const mockedSearchLocalCatalog = ItemCatalog.searchLocalCatalog as unknown as ReturnType<typeof vi.fn>;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  const renderWith = (learnedItems: { name: string; category: string }[]) => {
+    mockedSearchLocalCatalog.mockResolvedValue([
+      { source: 'material', entry: { name: '蜂蜜', nameEn: 'Honey', rarity: null } } as CatalogItem,
+    ]);
+    render(
+      <LearnItemModal isOpen onClose={vi.fn()} onLearnItem={vi.fn()} onCreateNew={vi.fn()} learnedItems={learnedItems} />
+    );
+    fireEvent.change(screen.getByPlaceholderText('輸入名稱或描述...'), { target: { value: '蜂蜜' } });
+  };
+
+  it('同名且同類別才顯示「已持有」', async () => {
+    renderWith([{ name: '蜂蜜', category: 'MH素材' }]);
+    await waitFor(() => expect(screen.getByText('已持有')).toBeInTheDocument());
+  });
+
+  it('同名但不同類別（如藥水「蜂蜜」）不算已持有', async () => {
+    renderWith([{ name: '蜂蜜', category: '藥水' }]);
+    await waitFor(() => expect(screen.getByText('蜂蜜')).toBeInTheDocument());
+    expect(screen.queryByText('已持有')).not.toBeInTheDocument();
   });
 });

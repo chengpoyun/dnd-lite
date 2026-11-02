@@ -190,3 +190,19 @@ describe('getCharacterItems', () => {
     expect(result).toEqual({ success: false, error: 'fail' });
   });
 });
+
+describe('isSameItem - 物品身分是「名稱＋類別」', () => {
+  const build = (name: string, category: string) =>
+    ({ id: 'x', character_id: 'c', quantity: 1, is_magic: false, name_override: name, category_override: category }) as never;
+
+  it('名稱與類別都相同才是同一個物品', async () => {
+    const { isSameItem } = await import('../../services/itemService');
+    expect(isSameItem(build('蜂蜜', 'MH素材'), '蜂蜜', 'MH素材')).toBe(true);
+  });
+
+  it('同名但不同類別、或同類別但不同名稱，都不是同一個物品', async () => {
+    const { isSameItem } = await import('../../services/itemService');
+    expect(isSameItem(build('蜂蜜', 'MH素材'), '蜂蜜', '藥水')).toBe(false);
+    expect(isSameItem(build('蜂蜜', 'MH素材'), '藥草', 'MH素材')).toBe(false);
+  });
+});

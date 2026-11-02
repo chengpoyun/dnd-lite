@@ -468,6 +468,12 @@ export function getDisplayValues(characterItem: CharacterItem): CharacterItemWit
 }
 
 /** 取得角色物品的顯示用裝備類型 */
+/** 物品的身分是「名稱＋類別」：同名但不同類別（如藥水「蜂蜜」與 MH素材「蜂蜜」）視為不同物品 */
+export function isSameItem(characterItem: CharacterItem, name: string, category: string): boolean {
+  const display = getDisplayValues(characterItem);
+  return display.displayName === name && display.displayCategory === category;
+}
+
 export function getDisplayEquipmentKind(characterItem: CharacterItem): string | null {
   return characterItem.equipment_kind_override || null;
 }

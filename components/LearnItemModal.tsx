@@ -16,8 +16,8 @@ interface LearnItemModalProps {
   onClose: () => void;
   onLearnItem: (item: CatalogItem, quantity: number) => Promise<void>;
   onCreateNew: (initialName?: string) => void;
-  /** 已擁有的物品名稱（本地目錄以名稱去重）：只用來在「獲得」按鈕左側顯示「已持有」標籤，不影響是否顯示 */
-  learnedNames: string[];
+  /** 已擁有的物品（名稱＋類別才算同一個物品）：只用來在「獲得」按鈕左側顯示「已持有」標籤，不影響是否顯示 */
+  learnedItems: { name: string; category: string }[];
   /** 組織階級帶來的素材倍數；獲得數量彈窗只有 MH素材 會顯示套用開關 */
   gatherMultiplier?: number;
 }
@@ -50,7 +50,7 @@ export const LearnItemModal: React.FC<LearnItemModalProps> = ({
   onClose,
   onLearnItem,
   onCreateNew,
-  learnedNames,
+  learnedItems,
   gatherMultiplier = 1,
 }) => {
   const [searchText, setSearchText] = useState('');
@@ -118,7 +118,7 @@ export const LearnItemModal: React.FC<LearnItemModalProps> = ({
           ) : (
             filteredItems.map((item) => {
               const view = getItemView(item);
-              const isOwned = learnedNames.includes(view.name);
+              const isOwned = learnedItems.some((l) => l.name === view.name && l.category === view.category);
               const rarityBadge = getRarityBadge(view.category, view.rarity);
               return (
                 <div

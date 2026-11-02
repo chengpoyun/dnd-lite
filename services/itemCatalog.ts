@@ -4,7 +4,7 @@
  */
 import type { MHMaterialDef } from '../types/mhMaterial';
 import type { GeneralItemDef } from '../types/generalItem';
-import type { CreateCharacterItemData } from './itemService';
+import type { CreateCharacterItemData, ItemCategory } from './itemService';
 import { searchMHMaterials, mhMaterialToCreateData } from './mhMaterialCatalog';
 import { searchGeneralItems, generalItemToCreateData } from './generalItemCatalog';
 
@@ -24,6 +24,11 @@ export async function searchLocalCatalog(query: string): Promise<CatalogItem[]> 
   ];
   combined.sort((a, b) => a.entry.name.localeCompare(b.entry.name, 'zh-TW'));
   return combined;
+}
+
+/** 目錄條目獲得後的類別：MH素材目錄一律是 MH素材，通用道具目錄各自帶類別 */
+export function getCatalogItemCategory(item: CatalogItem): ItemCategory {
+  return item.source === 'material' ? 'MH素材' : item.entry.category;
 }
 
 export function catalogItemToCreateData(item: CatalogItem, quantity = 1): CreateCharacterItemData {
