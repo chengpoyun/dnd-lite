@@ -224,7 +224,7 @@ export const CharacterItemEditModal: React.FC<CharacterItemEditModalProps> = ({
                 type="number"
                 value={formData.rarity_override ?? ''}
                 onChange={(e) => setFormData({ ...formData, rarity_override: e.target.value })}
-                className="w-20 flex-shrink-0 bg-slate-800 rounded-lg border border-slate-700 p-3 text-slate-200 text-center focus:outline-none focus:border-amber-500"
+                className="w-12 flex-shrink-0 bg-slate-800 rounded-lg border border-slate-700 px-1 py-3 text-slate-200 text-center [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none focus:outline-none focus:border-amber-500"
                 placeholder="CR"
               />
             </div>
