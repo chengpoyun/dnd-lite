@@ -3,6 +3,7 @@
 // 用法（舊名=新名，可一次給多組）:
 //   node scripts/rename-mh-materials.mjs "冰人魚龍重殼=冰人魚龍的重殼" "溟淵龍的翼爪=冥淵龍的翼爪"           # 預覽，不寫入
 //   node scripts/rename-mh-materials.mjs "冰人魚龍重殼=冰人魚龍的重殼" --apply                                  # 實際寫入
+// 只會動「貝瑞」這個角色的資料（其他玩家的資料只供參考、不可修改）。若找不到貝瑞或有多個同名角色，會直接中止。
 // 只會動兩個地方，且只比對「完全等於」舊名的資料：
 //   1. category_override = 'MH素材' 的道具的 name_override
 //   2. 裝備 sockets 陣列內鑲嵌素材快照的 decoration_name（陣列順序與空插槽 null 都保留）
@@ -46,15 +47,24 @@ async function q(sql) {
 }
 
 const lit = (s) => `'${s.replace(/'/g, "''")}'`;
+
+// 玩家資料只有貝瑞可以改；所有查詢與更新都限定在這個角色內
+const OWNER_NAME = '貝瑞';
+const [{ n: ownerCount }] = await q(`select count(*)::int as n from characters where name = ${lit(OWNER_NAME)}`);
+if (ownerCount !== 1) {
+  console.error(`❌ 找到 ${ownerCount} 個名為「${OWNER_NAME}」的角色，需剛好 1 個才能執行，已中止`);
+  process.exit(1);
+}
+const inScope = (col) => `${col} in (select id from characters where name = ${lit(OWNER_NAME)})`;
 const wrongList = Object.keys(FIXES).map(lit).join(', ');
 const nameCase = (col) =>
   `case ${col} ${Object.entries(FIXES).map(([w, r]) => `when ${lit(w)} then ${lit(r)}`).join(' ')} else ${col} end`;
 
 const countNames = `select name_override as name, count(*)::int as n from character_items
-  where category_override = 'MH素材' and name_override in (${wrongList}) group by 1 order by 1`;
+  where category_override = 'MH素材' and name_override in (${wrongList}) and ${inScope('character_id')} group by 1 order by 1`;
 const countSockets = `select e->>'decoration_name' as name, count(*)::int as n
   from character_items c, jsonb_array_elements(case when jsonb_typeof(c.sockets::jsonb) = 'array' then c.sockets::jsonb else '[]'::jsonb end) e
-  where e->>'decoration_name' in (${wrongList}) group by 1 order by 1`;
+  where e->>'decoration_name' in (${wrongList}) and ${inScope('c.character_id')} group by 1 order by 1`;
 
 const before = { names: await q(countNames), sockets: await q(countSockets) };
 console.log(apply ? '== 修正前 ==' : '== 預覽（不寫入）==');
@@ -64,7 +74,7 @@ console.log('插槽快照:', JSON.stringify(before.sockets));
 if (!apply) process.exit(0);
 
 await q(`update character_items set name_override = ${nameCase('name_override')}
-  where category_override = 'MH素材' and name_override in (${wrongList})`);
+  where category_override = 'MH素材' and name_override in (${wrongList}) and ${inScope('character_id')}`);
 
 await q(`update character_items c set sockets = (
     select jsonb_agg(
@@ -73,7 +83,7 @@ await q(`update character_items c set sockets = (
         else t.e end
       order by t.ord)
     from jsonb_array_elements(c.sockets::jsonb) with ordinality as t(e, ord))
-  where jsonb_typeof(c.sockets::jsonb) = 'array'
+  where ${inScope('c.character_id')} and jsonb_typeof(c.sockets::jsonb) = 'array'
     and exists (select 1 from jsonb_array_elements(c.sockets::jsonb) x where x->>'decoration_name' in (${wrongList}))`);
 
 const after = { names: await q(countNames), sockets: await q(countSockets) };
