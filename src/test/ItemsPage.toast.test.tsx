@@ -40,7 +40,7 @@ describe('ItemsPage - toast 實際顯示', () => {
   it('獲得數量確定後，畫面上要實際出現「已加入 X × N」的 toast', async () => {
     const catalogItem: CatalogItem = {
       source: 'material',
-      entry: { name: '解毒草', nameEn: 'Antidote Herb', rarity: null },
+      entry: { name: '解毒草', nameEn: 'Antidote Herb', rarity: null, source: '採集' },
     };
     mockSearchLocalCatalog.mockResolvedValue([catalogItem]);
     mockCreateCharacterItem.mockResolvedValue({

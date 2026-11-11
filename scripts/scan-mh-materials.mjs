@@ -22,7 +22,7 @@ if (!ref || !env.SUPABASE_ACCESS_TOKEN) {
 }
 
 const SQL = `
-  select name_override, name_en_override, rarity_override, description_override,
+  select name_override, name_en_override, source_override, rarity_override, description_override,
          weapon_decoration, armor_decoration, decoration_effects, sockets, category_override, equipment_kind_override,
          (character_id = '61669877-fe13-4b33-ba8a-9bce40c881a2') as is_fixture
   from character_items

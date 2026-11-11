@@ -60,7 +60,7 @@ describe('LearnItemModal - keyword gating', () => {
     const items: CatalogItem[] = [
       {
         source: 'material',
-        entry: { name: '誇爾羽符鳥', nameEn: '', rarity: null },
+        entry: { name: '誇爾羽符鳥', nameEn: '', rarity: null, source: '採集' },
       },
     ];
 
@@ -92,7 +92,7 @@ describe('LearnItemModal - keyword gating', () => {
 
   it('已擁有的物品（依名稱比對）也會照樣出現在搜尋結果，不再被排除', async () => {
     const items: CatalogItem[] = [
-      { source: 'material', entry: { name: '藥草', nameEn: 'Herb', rarity: null } },
+      { source: 'material', entry: { name: '藥草', nameEn: 'Herb', rarity: null, source: '採集' } },
     ];
     mockedSearchLocalCatalog.mockResolvedValue(items);
 
@@ -124,7 +124,7 @@ describe('LearnItemModal - 統一「獲得」按鈕＋已持有標籤', () => {
   });
 
   it('未擁有的物品：只顯示「獲得」按鈕，不顯示「已持有」標籤', async () => {
-    const item: CatalogItem = { source: 'material', entry: { name: '藥草', nameEn: 'Herb', rarity: null } };
+    const item: CatalogItem = { source: 'material', entry: { name: '藥草', nameEn: 'Herb', rarity: null, source: '採集' } };
     mockedSearchLocalCatalog.mockResolvedValue([item]);
 
     render(
@@ -148,7 +148,7 @@ describe('LearnItemModal - 統一「獲得」按鈕＋已持有標籤', () => {
   });
 
   it('已擁有的物品：顯示「已持有」標籤，且仍顯示「獲得」按鈕', async () => {
-    const item: CatalogItem = { source: 'material', entry: { name: '藥草', nameEn: 'Herb', rarity: null } };
+    const item: CatalogItem = { source: 'material', entry: { name: '藥草', nameEn: 'Herb', rarity: null, source: '採集' } };
     mockedSearchLocalCatalog.mockResolvedValue([item]);
 
     render(
@@ -172,7 +172,7 @@ describe('LearnItemModal - 統一「獲得」按鈕＋已持有標籤', () => {
   });
 
   it('點「獲得」會先跳出獲得數量彈窗，不會立刻呼叫 onLearnItem', async () => {
-    const item: CatalogItem = { source: 'material', entry: { name: '藥草', nameEn: 'Herb', rarity: null } };
+    const item: CatalogItem = { source: 'material', entry: { name: '藥草', nameEn: 'Herb', rarity: null, source: '採集' } };
     mockedSearchLocalCatalog.mockResolvedValue([item]);
     const onLearnItem = vi.fn().mockResolvedValue(undefined);
 
@@ -199,7 +199,7 @@ describe('LearnItemModal - 統一「獲得」按鈕＋已持有標籤', () => {
   });
 
   it('獲得數量彈窗確定後，把 CatalogItem 與數量一併傳給 onLearnItem', async () => {
-    const item: CatalogItem = { source: 'material', entry: { name: '藥草', nameEn: 'Herb', rarity: null } };
+    const item: CatalogItem = { source: 'material', entry: { name: '藥草', nameEn: 'Herb', rarity: null, source: '採集' } };
     mockedSearchLocalCatalog.mockResolvedValue([item]);
     const onLearnItem = vi.fn().mockResolvedValue(undefined);
 
@@ -258,7 +258,7 @@ describe('LearnItemModal - 統一「獲得」按鈕＋已持有標籤', () => {
   });
 
   it('點取消會關閉獲得數量彈窗，不呼叫 onLearnItem', async () => {
-    const item: CatalogItem = { source: 'material', entry: { name: '藥草', nameEn: 'Herb', rarity: null } };
+    const item: CatalogItem = { source: 'material', entry: { name: '藥草', nameEn: 'Herb', rarity: null, source: '採集' } };
     mockedSearchLocalCatalog.mockResolvedValue([item]);
     const onLearnItem = vi.fn();
 
@@ -288,7 +288,7 @@ describe('LearnItemModal - 統一「獲得」按鈕＋已持有標籤', () => {
     expect(onLearnItem).not.toHaveBeenCalled();
   });
   it('連續獲得兩個物品：第一次調整的數量不會帶到下一次，下一次預設 1 且可重新調整', async () => {
-    const herb: CatalogItem = { source: 'material', entry: { name: '藥草', nameEn: 'Herb', rarity: null } };
+    const herb: CatalogItem = { source: 'material', entry: { name: '藥草', nameEn: 'Herb', rarity: null, source: '採集' } };
     const potion: CatalogItem = { source: 'general', entry: { name: '藥水', nameEn: 'Potion', category: '藥水', rarity: null } };
     mockedSearchLocalCatalog.mockResolvedValue([herb, potion]);
     const onLearnItem = vi.fn().mockResolvedValue(undefined);
@@ -334,7 +334,7 @@ describe('LearnItemModal - 已持有以「名稱＋類別」判斷', () => {
 
   const renderWith = (learnedItems: { name: string; category: string }[]) => {
     mockedSearchLocalCatalog.mockResolvedValue([
-      { source: 'material', entry: { name: '蜂蜜', nameEn: 'Honey', rarity: null } } as CatalogItem,
+      { source: 'material', entry: { name: '蜂蜜', nameEn: 'Honey', rarity: null, source: '採集' } } as CatalogItem,
     ]);
     render(
       <LearnItemModal isOpen onClose={vi.fn()} onLearnItem={vi.fn()} onCreateNew={vi.fn()} learnedItems={learnedItems} />

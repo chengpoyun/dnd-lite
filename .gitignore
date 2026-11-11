@@ -42,3 +42,6 @@ dist-ssr
 
 # 一次性、僅本機使用的資料修正腳本（不納入版控）
 scripts/backfill-mh-material-descriptions.mjs
+
+# 玩家資料備份（內含角色／道具 id，絕不可上傳）
+backups/

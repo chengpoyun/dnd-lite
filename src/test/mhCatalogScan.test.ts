@@ -45,6 +45,15 @@ describe('scanMHMaterials：玩家素材 vs 目錄', () => {
     });
   });
 
+  it('玩家填了來源、目錄沒有來源時，列入可補欄位；新素材候選也帶玩家填的來源', () => {
+    const r = scanMHMaterials([{ name: '甲', nameEn: 'A', rarity: 1 }], [
+      row({ name_override: '甲', name_en_override: 'A', source_override: '採集' }),
+      row({ name_override: '乙', name_en_override: 'B', source_override: '某龍' }),
+    ]);
+    expect(r.fillable[0].fields.source).toBe('採集');
+    expect(r.newMaterials[0].item.source).toBe('某龍');
+  });
+
   it('目錄已有值的欄位不會被玩家資料覆蓋建議', () => {
     const full = [{ ...catalog[0], description: '目錄說明' }];
     const r = scanMHMaterials(full, [row({ rarity_override: '9', description_override: '別的說明' })]);

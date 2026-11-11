@@ -3,12 +3,14 @@
     "name": "上鎧玉",
     "nameEn": "Hard Armor Sphere",
     "rarity": null,
+    "source": "採集",
     "description": "將防具升級到 Rare (精良) 品質。可以拿給鐵匠換 2 顆鎧玉。"
   },
   {
     "name": "千刃龍的伐刀+",
     "nameEn": "Seregios Carver+",
     "rarity": 15,
+    "source": "千刃龍",
     "weaponDecoration": true,
     "armorDecoration": true,
     "decorationEffects": {
@@ -24,6 +26,7 @@
     "name": "千刃龍的飛刃+",
     "nameEn": "Seregios Airblade+",
     "rarity": 15,
+    "source": "千刃龍",
     "weaponDecoration": true,
     "armorDecoration": true,
     "decorationEffects": {
@@ -39,6 +42,7 @@
     "name": "千刃龍的飛膜+",
     "nameEn": "Seregios Slavescale+",
     "rarity": 15,
+    "source": "千刃龍",
     "weaponDecoration": true,
     "armorDecoration": true,
     "decorationEffects": {
@@ -54,6 +58,7 @@
     "name": "千刃龍的破刃+",
     "nameEn": "Seregios Breacher+",
     "rarity": 15,
+    "source": "千刃龍",
     "weaponDecoration": true,
     "armorDecoration": true,
     "decorationEffects": {
@@ -69,6 +74,7 @@
     "name": "千刃龍的斬翼爪+",
     "nameEn": "Seregios Scraper+",
     "rarity": 15,
+    "source": "千刃龍",
     "weaponDecoration": true,
     "decorationEffects": {
       "weapon": {
@@ -85,6 +91,7 @@
     "name": "千刃龍的槍尾+",
     "nameEn": "Seregios Impaler+",
     "rarity": 15,
+    "source": "千刃龍",
     "weaponDecoration": true,
     "armorDecoration": true,
     "decorationEffects": {
@@ -99,83 +106,97 @@
   {
     "name": "千刃龍的鏡玉",
     "nameEn": "Seregios Lens",
-    "rarity": 15
+    "rarity": 15,
+    "source": "千刃龍"
   },
   {
     "name": "土蝗",
     "nameEn": "Bughopper",
     "rarity": null,
+    "source": "採集",
     "description": "散發出讓魚類瘋狂的氣味。當作釣餌時，釣魚檢定 +1。"
   },
   {
     "name": "大地結晶",
     "nameEn": "Earth Crystal",
     "rarity": null,
+    "source": "採集",
     "description": "地脈深處高壓形成的結晶，可用於將武器強化至 Uncommon。"
   },
   {
     "name": "大角蜂",
     "nameEn": "Great Hornfly",
     "rarity": null,
+    "source": "採集",
     "description": "擁有巨大巨角與厚重甲殼，卻帶有如蝴蝶般優雅的獨特昆蟲。"
   },
   {
     "name": "大毒蛛",
     "nameEn": "Large Toxic Kumori",
     "rarity": null,
+    "source": "採集",
     "description": "通過 DC 15 毒藥包檢定可榨取成劇毒，效力等同「飛龍毒液 (Wyvern Poison)」。"
   },
   {
     "name": "大骨殼",
     "nameEn": "Lg Bone Husk",
     "rarity": null,
+    "source": "採集",
     "description": "能承受高壓爆炸的重弩彈藥外殼。"
   },
   {
     "name": "大魔物骨",
     "nameEn": "Lg Monster Bone",
     "rarity": null,
+    "source": "採集",
     "description": "升級防具至「史詩 (Very Rare)」品質。"
   },
   {
     "name": "小金魚",
     "nameEn": "Small Goldenfish",
     "rarity": null,
+    "source": "採集",
     "description": "不可思議地小且全身閃耀金光的魚類。能賣出極高價錢。"
   },
   {
     "name": "小骨殼",
     "nameEn": "Sm Bone Husk",
     "rarity": null,
+    "source": "採集",
     "description": "骨製彈藥外殼，適合製造高等彈藥。"
   },
   {
     "name": "小魔物骨",
     "nameEn": "Sm Monster Bone",
     "rarity": null,
+    "source": "採集",
     "description": "升級武器至「優秀 (Uncommon)」品質必備。"
   },
   {
     "name": "不死蟲",
     "nameEn": "Godbug",
     "rarity": null,
+    "source": "採集",
     "description": "壽命千年的神奇昆蟲，常作為高等營養劑與催化劑。"
   },
   {
     "name": "中魔物骨",
     "nameEn": "Med Monster Bone",
     "rarity": null,
+    "source": "採集",
     "description": "升級防具至「精良 (Rare)」品質。"
   },
   {
     "name": "天狗獸的毛",
     "nameEn": "Bishaten Fur",
-    "rarity": 7
+    "rarity": 7,
+    "source": "天狗獸"
   },
   {
     "name": "天狗獸的爪",
     "nameEn": "Bishaten Talon",
     "rarity": 7,
+    "source": "天狗獸",
     "weaponDecoration": true,
     "armorDecoration": true,
     "decorationEffects": {
@@ -190,60 +211,70 @@
   {
     "name": "天狗獸的角",
     "nameEn": "Bishaten Horn",
-    "rarity": 7
+    "rarity": 7,
+    "source": "天狗獸"
   },
   {
     "name": "幻蝶",
     "nameEn": "Phantom Butterfly",
     "rarity": null,
+    "source": "採集",
     "description": "極少被目擊。其翅膀閃耀著如同璀璨寶石般的光澤。"
   },
   {
     "name": "木天蓼",
     "nameEn": "Felvine",
     "rarity": null,
+    "source": "採集",
     "description": "將其交給獸人族 (Lynian) 時，他們會受到「魅惑人類」效果影響 1 小時。"
   },
   {
     "name": "火藥草",
     "nameEn": "Fire Herb",
     "rarity": null,
+    "source": "採集",
     "description": "葉片帶有天然油脂極易起火。強擊瓶和高熱彈藥材料。"
   },
   {
     "name": "王族聖甲蟲",
     "nameEn": "King Scarab",
     "rarity": null,
+    "source": "採集",
     "description": "甲蟲中的皇室階級，擁有光彩奪目的翅膀與最堅硬的外殼。"
   },
   {
     "name": "仙人掌花",
     "nameEn": "Cactus Flower",
     "rarity": null,
+    "source": "採集",
     "description": "富含解毒劑成分，但無法單獨使用，必須配合煉金。"
   },
   {
     "name": "古代魚",
     "nameEn": "Ancient Fish",
     "rarity": null,
+    "source": "採集",
     "description": "活化石。可作為升級任何武器或防具至任何品質的萬用素材。"
   },
   {
     "name": "古龍骨",
     "nameEn": "Elder Dragon Bone",
     "rarity": null,
+    "source": "古龍",
     "description": "遠古龍族身上不朽的骨頭。任何防具最終強化。"
   },
   {
     "name": "巨大骨",
     "nameEn": "Jumbo Bone",
     "rarity": null,
+    "source": "採集",
     "description": "升級防具至「優秀 (Uncommon)」品質必備。"
   },
   {
     "name": "幼慘爪龍的爪",
     "nameEn": "Y.Odogaron Claw",
     "rarity": 4,
+    "source": "幼慘爪龍",
     "weaponDecoration": true,
     "armorDecoration": true,
     "decorationEffects": {
@@ -258,12 +289,14 @@
   {
     "name": "幼慘爪龍的鱗",
     "nameEn": "Y.Odogaron Scale",
-    "rarity": 4
+    "rarity": 4,
+    "source": "幼慘爪龍"
   },
   {
     "name": "幼慘爪龍的牙",
     "nameEn": "Y.Odogaron Fang",
     "rarity": 4,
+    "source": "幼慘爪龍",
     "weaponDecoration": true,
     "armorDecoration": true
   },
@@ -271,6 +304,7 @@
     "name": "幼慘爪龍的逆鱗",
     "nameEn": "Y.Odogaron Plate",
     "rarity": 4,
+    "source": "幼慘爪龍",
     "weaponDecoration": true,
     "armorDecoration": true
   },
@@ -278,35 +312,41 @@
     "name": "打消果實",
     "nameEn": "Nullberry",
     "rarity": null,
+    "source": "採集",
     "description": "吃下這顆果實，能立即治癒身上的任何屬性異常狀態或屬性災厄。"
   },
   {
     "name": "滋養萃取液",
     "nameEn": "Nourishing Extract",
-    "rarity": null
+    "rarity": null,
+    "source": "採集"
   },
   {
     "name": "生命結晶",
     "nameEn": "Lifecrystals",
     "rarity": null,
+    "source": "採集",
     "description": "可用動作激發，散發「照明術」光芒長達一小時後碎裂。"
   },
   {
     "name": "石頭",
     "nameEn": "Stone",
     "rarity": null,
+    "source": "採集",
     "description": "隨處可見的石頭。可當作投擲武器，造成 1 點傷害。"
   },
   {
     "name": "光水晶",
     "nameEn": "Lightcrystal",
     "rarity": null,
+    "source": "採集",
     "description": "蘊含極亮光輝的水晶，其效果等同毒怪鳥 (Gypceros) 頭上的閃光礦物。"
   },
   {
     "name": "冰人魚龍的重殼",
     "nameEn": "Auroracanth Icecortex",
     "rarity": 14,
+    "source": "冰人魚龍",
     "weaponDecoration": true,
     "armorDecoration": true,
     "decorationEffects": {
@@ -322,6 +362,7 @@
     "name": "冰人魚龍的凍鱗",
     "nameEn": "Auroracanth Icescale",
     "rarity": 14,
+    "source": "冰人魚龍",
     "weaponDecoration": true,
     "armorDecoration": true,
     "decorationEffects": {
@@ -337,42 +378,49 @@
     "name": "冰人魚龍的剛爪",
     "nameEn": "Auroracanth Iceclaw",
     "rarity": 14,
+    "source": "冰人魚龍",
     "weaponDecoration": true,
     "armorDecoration": true
   },
   {
     "name": "冰凍漿果",
     "nameEn": "Frozen Berry",
-    "rarity": null
+    "rarity": null,
+    "source": "採集"
   },
   {
     "name": "冰結晶",
     "nameEn": "Ice Crystal",
     "rarity": null,
+    "source": "採集",
     "description": "在常溫下也絕不融化的深山堅冰，調合冷飲的絕佳原物料。"
   },
   {
     "name": "忍耐種子",
     "nameEn": "Adamant Seed",
     "rarity": null,
+    "source": "採集",
     "description": "吃下後，你的 AC 提升 +1，持續 1 分鐘。每次短休或長休僅能使用一次。"
   },
   {
     "name": "刺身魚",
     "nameEn": "",
     "rarity": null,
+    "source": "採集",
     "description": "極其美味，生吃可立即回復 1d4 HP，並當作口糧。"
   },
   {
     "name": "怪力種子",
     "nameEn": "Might Seed",
     "rarity": null,
+    "source": "採集",
     "description": "吃下後你的力量(Str)增加 +2，持續 1 分鐘。藥效結束後獲得一級力竭。"
   },
   {
     "name": "泡狐龍的水玉",
     "nameEn": "Mizutsune Water Gem",
     "rarity": 11,
+    "source": "泡狐龍",
     "weaponDecoration": true,
     "armorDecoration": true,
     "decorationEffects": {
@@ -393,6 +441,7 @@
     "name": "泡狐龍的爪",
     "nameEn": "Mizutsune Claw",
     "rarity": 11,
+    "source": "泡狐龍",
     "weaponDecoration": true,
     "decorationEffects": {
       "weapon": {
@@ -408,12 +457,14 @@
   {
     "name": "泡狐龍的尾巴",
     "nameEn": "Mizutsune Tail",
-    "rarity": 11
+    "rarity": 11,
+    "source": "泡狐龍"
   },
   {
     "name": "泡狐龍的逆鱗",
     "nameEn": "Mizutsune Plate",
     "rarity": 11,
+    "source": "泡狐龍",
     "weaponDecoration": true,
     "armorDecoration": true,
     "decorationEffects": {
@@ -434,6 +485,7 @@
     "name": "泡狐龍的紫毛",
     "nameEn": "Mizutsune Purplefur",
     "rarity": 11,
+    "source": "泡狐龍",
     "description": "對強酸傷害有抗性",
     "armorDecoration": true,
     "decorationEffects": {
@@ -445,18 +497,21 @@
   {
     "name": "泡狐龍的錦鰭",
     "nameEn": "Mizutsune Fin",
-    "rarity": 11
+    "rarity": 11,
+    "source": "泡狐龍"
   },
   {
     "name": "泡狐龍的毛皮",
     "nameEn": "Mizutsune Pelt",
     "rarity": 11,
+    "source": "泡狐龍",
     "armorDecoration": true
   },
   {
     "name": "泡狐龍的鱗",
     "nameEn": "Mizutsune Scale",
     "rarity": 11,
+    "source": "泡狐龍",
     "armorDecoration": true,
     "decorationEffects": {
       "armor": {
@@ -468,98 +523,115 @@
     "name": "空心果",
     "nameEn": "Huskberry",
     "rarity": null,
+    "source": "採集",
     "description": "中空硬漿果皮，製造輕重弩 Normal 通常彈最不可或缺材料。"
   },
   {
     "name": "空氣草",
     "nameEn": "Airweed",
     "rarity": null,
+    "source": "採集",
     "description": "咀嚼它會釋放大量氧氣，允許你在水下正常呼吸長達 1 分鐘。"
   },
   {
     "name": "花朵蟋蟀",
     "nameEn": "Blossom Cricket",
     "rarity": null,
+    "source": "採集",
     "description": "如同花朵般美麗的鈴蟲，其清脆鳴叫聲能敞開最冷酷的心扉。"
   },
   {
     "name": "金獅子的尖角",
     "nameEn": "Rajang Horn",
-    "rarity": 15
+    "rarity": 15,
+    "source": "金獅子"
   },
   {
     "name": "青熊獸毛皮",
     "nameEn": "",
-    "rarity": null
+    "rarity": null,
+    "source": "青熊獸"
   },
   {
     "name": "青熊獸腕甲",
     "nameEn": "",
-    "rarity": null
+    "rarity": null,
+    "source": "青熊獸"
   },
   {
     "name": "青熊獸蜂蜜",
     "nameEn": "",
-    "rarity": null
+    "rarity": null,
+    "source": "青熊獸"
   },
   {
     "name": "星見花",
     "nameEn": "Stargazer Flower",
     "rarity": null,
+    "source": "採集",
     "description": "開花時花瓣總是仰望星空的奇特植物。其花瓣常用來製作昂貴的染料。"
   },
   {
     "name": "染色果",
     "nameEn": "Paintberry",
     "rarity": null,
+    "source": "採集",
     "description": "破裂時會釋放出濃烈且帶有強烈臭味的顏料汁液。"
   },
   {
     "name": "毒菇",
     "nameEn": "Toadstool",
     "rarity": null,
+    "source": "採集",
     "description": "生吃能當口糧，但須通過 DC 10 體質豁免否則中毒 24 小時。"
   },
   {
     "name": "毒蛛",
     "nameEn": "Toxic Kumori",
     "rarity": null,
+    "source": "採集",
     "description": "通過 DC 10 毒藥包檢定可榨取成毒液，效力等同「巨蛇毒液 (Serpent Venom)」。"
   },
   {
     "name": "皇帝蝗蟲",
     "nameEn": "Emperor Locust",
     "rarity": null,
+    "source": "採集",
     "description": "擁有極其堅硬外殼的巨大蝗蟲王者。"
   },
   {
     "name": "王鎧玉",
     "nameEn": "Royal Armor Sphere",
     "rarity": null,
+    "source": "採集",
     "description": "將防具升級到傳說 (Legendary) 品質的至寶。可換 2 顆重鎧玉。"
   },
   {
     "name": "美食家鮪魚",
     "nameEn": "Gastronome Tuna",
     "rarity": null,
+    "source": "採集",
     "description": "烹飪檢定(DC 20)成功後具有法術「英雄宴」等同神效。"
   },
   {
     "name": "苦蟲",
     "nameEn": "Bitterbug",
     "rarity": null,
+    "source": "採集",
     "description": "生吞有 50% 機率直接解除中毒狀態。"
   },
   {
     "name": "重鎧玉",
     "nameEn": "Heavy Armor Sphere",
     "rarity": null,
+    "source": "採集",
     "description": "將防具升級到史詩 (Very Rare) 品質。可換 2 顆堅鎧玉。"
   },
   {
     "name": "冥淵龍的翼爪",
     "nameEn": "Archdemon Wingtalon",
     "rarity": 28,
+    "source": "冥淵龍",
     "weaponDecoration": true,
     "armorDecoration": true,
     "decorationEffects": {
@@ -572,9 +644,10 @@
     }
   },
   {
-    "name": "凍結袋",
+    "name": "冰人魚龍-凍結袋",
     "nameEn": "Cryo Sac",
     "rarity": 14,
+    "source": "冰人魚龍",
     "weaponDecoration": true,
     "armorDecoration": true,
     "decorationEffects": {
@@ -595,111 +668,130 @@
     "name": "浮空龍的寶玉",
     "nameEn": "Lumu Gem",
     "rarity": 7,
+    "source": "浮空龍",
     "description": "護甲：長修一次，僅限放大\n武器：銃槍限定，每天兩次衝擊砲"
   },
   {
     "name": "眠魚",
     "nameEn": "Sleepyfish",
     "rarity": null,
+    "source": "採集",
     "description": "富含強烈催眠成分的魚類，用於調合睡眠彈與睡眠瓶。"
   },
   {
     "name": "砥石魚",
     "nameEn": "Whetfish",
     "rarity": null,
+    "source": "採集",
     "description": "背鰭硬度宛如天然砥石，極適合用於打磨利刃。"
   },
   {
     "name": "針果",
     "nameEn": "Needleberry",
     "rarity": null,
+    "source": "採集",
     "description": "滿布細小尖刺的果實，採摘時會受到 1 點穿刺傷害。"
   },
   {
     "name": "針鮪魚",
     "nameEn": "Pin Tuna",
     "rarity": null,
+    "source": "採集",
     "description": "下顎覆蓋細密針刺，常用於貫通彈的製造。"
   },
   {
     "name": "閃光蟲",
     "nameEn": "Flashbug",
     "rarity": null,
+    "source": "採集",
     "description": "受到衝擊會散發刺眼強光，調合閃光彈唯一核心材料。"
   },
   {
     "name": "骨頭",
     "nameEn": "Bone",
     "rarity": null,
+    "source": "採集",
     "description": "常見的骨頭，磨損嚴重且無法辨識原屬魔物。"
   },
   {
     "name": "常春藤葉",
     "nameEn": "Ivy",
     "rarity": null,
+    "source": "採集",
     "description": "質地極輕但韌性極度驚人的藤蔓，用於編織高強度繩索網具。"
   },
   {
     "name": "混沌真菌",
     "nameEn": "Chaos Mushroom",
     "rarity": null,
+    "source": "採集",
     "description": "散發致幻孢子。捏碎使5尺內目標DC 15意志豁免否則「混亂」。"
   },
   {
     "name": "蛇蜂幼蟲",
     "nameEn": "Snakebee Larva",
     "rarity": null,
+    "source": "採集",
     "description": "蛇形幼蟲。當作釣餌時，釣魚檢定 +3。"
   },
   {
     "name": "貪吃鮪魚",
     "nameEn": "Glutton Tuna",
     "rarity": null,
+    "source": "採集",
     "description": "會吞噬一切。肚子有機會獲得隨機額外的素材或道具。"
   },
   {
     "name": "雪山草",
     "nameEn": "Snow Herb",
     "rarity": null,
+    "source": "採集",
     "description": "嚼食效果等同「冷飲」，但僅能維持 1 小時抗熱效力。"
   },
   {
     "name": "鳥龍種的骨",
     "nameEn": "Bird Wyvern Bone",
     "rarity": null,
+    "source": "鳥龍種",
     "description": "升級防具至「優秀 (Uncommon)」品質必備。"
   },
   {
     "name": "麻痺蘑菇",
     "nameEn": "Parashroom",
     "rarity": null,
+    "source": "採集",
     "description": "含有神經毒素。與生肉共同烹調可做成麻痺誘餌。"
   },
   {
     "name": "散彈果",
     "nameEn": "Scatternut",
     "rarity": null,
+    "source": "採集",
     "description": "一旦受到外力敲擊就會劇烈噴發出內部硬殼的奇異堅果。"
   },
   {
     "name": "黑狼鳥的耳",
     "nameEn": "Garuga Ear",
-    "rarity": 7
+    "rarity": 7,
+    "source": "黑狼鳥"
   },
   {
     "name": "黑狼鳥的尾巴",
     "nameEn": "Garuga Tail",
-    "rarity": 7
+    "rarity": 7,
+    "source": "黑狼鳥"
   },
   {
-    "name": "黑狼鳥的重殼",
+    "name": "戰痕黑狼鳥-黑狼鳥的重殼",
     "nameEn": "Garuga Cortex",
-    "rarity": 16
+    "rarity": 16,
+    "source": "戰痕黑狼鳥"
   },
   {
-    "name": "黑狼鳥的銀狼毛",
+    "name": "戰痕黑狼鳥-黑狼鳥的銀狼毛",
     "nameEn": "Garuga Silverpelt",
     "rarity": 16,
+    "source": "戰痕黑狼鳥",
     "weaponDecoration": true,
     "armorDecoration": true,
     "decorationEffects": {
@@ -715,6 +807,7 @@
     "name": "黑狼鳥的翼",
     "nameEn": "Garuga Wing",
     "rarity": 7,
+    "source": "黑狼鳥",
     "weaponDecoration": true,
     "armorDecoration": true,
     "decorationEffects": {
@@ -727,9 +820,10 @@
     }
   },
   {
-    "name": "黑狼鳥的剛翼",
+    "name": "戰痕黑狼鳥-黑狼鳥的剛翼",
     "nameEn": "Garuga Fellwing",
     "rarity": 16,
+    "source": "戰痕黑狼鳥",
     "weaponDecoration": true,
     "armorDecoration": true,
     "decorationEffects": {
@@ -742,16 +836,18 @@
     }
   },
   {
-    "name": "黑狼鳥的厚鱗",
+    "name": "戰痕黑狼鳥-黑狼鳥的厚鱗",
     "nameEn": "Garuga Shard",
     "rarity": 16,
+    "source": "戰痕黑狼鳥",
     "weaponDecoration": true,
     "armorDecoration": true
   },
   {
-    "name": "黑狼鳥的地獄耳",
+    "name": "戰痕黑狼鳥-黑狼鳥的地獄耳",
     "nameEn": "Garuga Auricle",
     "rarity": 16,
+    "source": "戰痕黑狼鳥",
     "weaponDecoration": true,
     "armorDecoration": true
   },
@@ -759,6 +855,7 @@
     "name": "溟波龍的韌尾",
     "nameEn": "Namielle Lash",
     "rarity": 14,
+    "source": "溟波龍",
     "weaponDecoration": true,
     "armorDecoration": true,
     "decorationEffects": {
@@ -774,77 +871,90 @@
     "name": "睡眠草",
     "nameEn": "Sleep Herb",
     "rarity": null,
+    "source": "採集",
     "description": "散發出微弱催眠香氣的植物。大量用於睡眠彈與麻醉玉的調合。"
   },
   {
     "name": "蜂蜜",
     "nameEn": "Honey",
     "rarity": null,
+    "source": "採集",
     "description": "加入任何治療藥水中，可使藥水治療效果額外提升 1d4。"
   },
   {
     "name": "解毒草",
     "nameEn": "Antidote Herb",
     "rarity": null,
+    "source": "採集",
     "description": "富含解毒素，以動作吃下可以直接解除身上的中毒狀態。"
   },
   {
     "name": "雷光蟲",
     "nameEn": "Thunderbug",
     "rarity": null,
+    "source": "採集",
     "description": "受到打擊向外放射劇烈電能，調合麻痺陷阱的主料。"
   },
   {
     "name": "壽司魚",
     "nameEn": "Sushifish",
-    "rarity": null
+    "rarity": null,
+    "source": "採集"
   },
   {
     "name": "旗魚",
     "nameEn": "Speartuna",
     "rarity": null,
+    "source": "採集",
     "description": "巨大且珍貴的巨型長槍魚類。"
   },
   {
     "name": "蜘蛛網",
     "nameEn": "Spiderweb",
     "rarity": null,
+    "source": "採集",
     "description": "極具延展性與黏性的網子，是調合捕獸網的原料。"
   },
   {
     "name": "辣椒",
     "nameEn": "Hot Pepper",
     "rarity": null,
+    "source": "採集",
     "description": "嚼食效果等同「熱飲」，但因為沒有精煉過，僅能維持 1 小時抗寒效力。"
   },
   {
     "name": "鳳尾魚",
     "nameEn": "Wanchovy",
     "rarity": null,
+    "source": "採集",
     "description": "攝入此魚的生物必須通過 DC 12 體質豁免，否則增加一級力竭。"
   },
   {
     "name": "暮光草根",
     "nameEn": "Gloamgrass Root",
     "rarity": null,
+    "source": "採集",
     "description": "富含強效解毒成分的草根，但無法單獨使用，必須配合煉金萃取。"
   },
   {
     "name": "熱帶草莓",
     "nameEn": "Tropical Berry",
     "rarity": null,
+    "source": "採集",
     "description": "來自焦熱地帶的鮮紅色草莓，具有在極端氣候中生存的特質。"
   },
   {
     "name": "輝龍石",
     "nameEn": "Dragonite Ore",
     "rarity": null,
+    "source": "採集",
     "description": "蘊含微弱古龍抗性的稀有赤色金屬礦。武器升級史詩 (Very Rare) 品質。"
   },
   {
-    "name": "歷戰不滅的交心",
+    "name": "歷戰煉黑龍-歷戰不滅的交心",
     "nameEn": "T.Immortal Heart",
     "rarity": 18,
+    "source": "歷戰煉黑龍",
     "weaponDecoration": true,
     "armorDecoration": true,
     "decorationEffects": {
@@ -860,6 +970,7 @@
     "name": "歷戰煉黑龍的黑焰",
     "nameEn": "T.Miralis Smelter",
     "rarity": 18,
+    "source": "歷戰煉黑龍",
     "weaponDecoration": true,
     "decorationEffects": {
       "weapon": {
@@ -871,6 +982,7 @@
     "name": "歷戰煉黑龍的黑鱗",
     "nameEn": "T.Miralis Scale",
     "rarity": 18,
+    "source": "歷戰煉黑龍",
     "weaponDecoration": true,
     "armorDecoration": true
   },
@@ -878,24 +990,28 @@
     "name": "歷戰煉黑龍的焦甲",
     "nameEn": "T.Miralis Fireback",
     "rarity": 18,
+    "source": "歷戰煉黑龍",
     "armorDecoration": true
   },
   {
     "name": "歷戰煉黑龍的燃爪",
     "nameEn": "T.Miralis Fireclaw",
     "rarity": 18,
+    "source": "歷戰煉黑龍",
     "weaponDecoration": true
   },
   {
-    "name": "歷戰湧出的熔岩",
+    "name": "歷戰煉黑龍-歷戰湧出的熔岩",
     "nameEn": "T.Gushing Magma",
     "rarity": 18,
+    "source": "歷戰煉黑龍",
     "armorDecoration": true
   },
   {
     "name": "歷戰煉黑龍的黑翼",
     "nameEn": "T.Miralis Hellwing",
     "rarity": 18,
+    "source": "歷戰煉黑龍",
     "weaponDecoration": true,
     "armorDecoration": true
   },
@@ -903,6 +1019,7 @@
     "name": "歷戰煉黑龍的凶眼",
     "nameEn": "T.Miralis Evil Eye",
     "rarity": 18,
+    "source": "歷戰煉黑龍",
     "weaponDecoration": true,
     "armorDecoration": true
   },
@@ -910,12 +1027,14 @@
     "name": "歷戰煉黑龍的光玉",
     "nameEn": "T.Dire Dragongem",
     "rarity": 18,
+    "source": "歷戰煉黑龍",
     "weaponDecoration": true
   },
   {
     "name": "歷戰麒麟的皮",
     "nameEn": "T.Kirin Hide",
     "rarity": 19,
+    "source": "歷戰麒麟",
     "weaponDecoration": true,
     "armorDecoration": true,
     "decorationEffects": {
@@ -941,114 +1060,133 @@
     "name": "燕雀石",
     "nameEn": "Machalite Ore",
     "rarity": null,
+    "source": "採集",
     "description": "可用於將武器升級至精良 (Rare) 品質。可以換 2 顆地球結晶。"
   },
   {
     "name": "獨角仙",
     "nameEn": "Carpenterbug",
     "rarity": null,
+    "source": "採集",
     "description": "體內黏液與銳利下顎使其被當作工匠材料。"
   },
   {
     "name": "興奮蘑菇",
     "nameEn": "Exciteshroom",
     "rarity": null,
+    "source": "採集",
     "description": "帶有奇怪味道與刺激性的菇。是回歸球的主要調合素材。"
   },
   {
     "name": "螢火蟲",
     "nameEn": "Firefly",
     "rarity": null,
+    "source": "採集",
     "description": "總是發著微光的蟲。當作釣餌時，釣魚檢定 +1。"
   },
   {
     "name": "龍之托斯特菇",
     "nameEn": "Dragon Toadstool",
     "rarity": null,
+    "source": "採集",
     "description": "會汲取人魂的血紅色死寂菌類，調合秘藥的無價之寶。採摘承受1d6黯蝕傷害。"
   },
   {
     "name": "龍之種子",
     "nameEn": "Dragon Seed",
     "rarity": null,
+    "source": "採集",
     "description": "神祕的種子，傳聞中所有的龍族都極度厭惡這股味道。"
   },
   {
     "name": "蟋蟀",
     "nameEn": "Cricket",
     "rarity": null,
+    "source": "採集",
     "description": "精力充沛的蟲子。當作釣餌時，釣魚檢定 +2。"
   },
   {
     "name": "黏著草",
     "nameEn": "Sap Plant",
     "rarity": null,
+    "source": "採集",
     "description": "葉片上覆蓋著極具黏性樹脂的植物。其汁液可用作簡易強力膠。"
   },
   {
     "name": "黏著菇",
     "nameEn": "Bindshroom",
     "rarity": null,
+    "source": "採集",
     "description": "採集時防護不當須DC 15體質豁免，否則麻痺1分鐘。"
   },
   {
     "name": "藍切魚",
     "nameEn": "Blue Cutthroat",
     "rarity": null,
+    "source": "採集",
     "description": "散發藍光的魚。採集時受 1 點穿刺傷害。"
   },
   {
     "name": "藍蘑菇",
     "nameEn": "Blue Mushroom",
     "rarity": null,
+    "source": "採集",
     "description": "具備活血增強體力化學效果，調合恢復藥水的核心。"
   },
   {
     "name": "蟲之骸",
     "nameEn": "Insect Husk",
     "rarity": null,
+    "source": "採集",
     "description": "死亡昆蟲的遺骸。可當特種彈藥的彈殼。"
   },
   {
     "name": "鎧玉",
     "nameEn": "Armor Sphere",
     "rarity": null,
+    "source": "採集",
     "description": "將防具強化至 Uncommon 的奇特礦石。"
   },
   {
     "name": "雙蓋紅花",
     "nameEn": "Dosbiscus",
     "rarity": null,
+    "source": "採集",
     "description": "巨大且色彩斑斕、極度艷麗的罕見開花植物。"
   },
   {
     "name": "爆炸菇",
     "nameEn": "Nitroshroom",
     "rarity": null,
+    "source": "採集",
     "description": "揉碎灑在地上可作為無煙無光營火維持燃燒 8 小時。"
   },
   {
     "name": "爆裂果實",
     "nameEn": "Bomberry",
     "rarity": null,
+    "source": "採集",
     "description": "受到衝擊會爆炸的小漿果，發出鞭炮般的巨響。"
   },
   {
     "name": "爆裂龍魚",
     "nameEn": "Burst Arrowana",
     "rarity": null,
+    "source": "採集",
     "description": "死亡時體內多重氣囊會猛烈破裂的熱帶魚。"
   },
   {
     "name": "爆彈龍魚",
     "nameEn": "Bomb Arrowana",
     "rarity": null,
+    "source": "採集",
     "description": "死亡時會引發小型火藥級別爆炸的魚類。"
   },
   {
     "name": "爆鱗龍的鱗",
     "nameEn": "Bazelgeuse Scale",
     "rarity": 17,
+    "source": "爆鱗龍",
     "weaponDecoration": true,
     "armorDecoration": true,
     "decorationEffects": {
@@ -1063,12 +1201,14 @@
   {
     "name": "爆鱗龍的堅殼",
     "nameEn": "Bazelgeuse Carapace",
-    "rarity": 17
+    "rarity": 17,
+    "source": "爆鱗龍"
   },
   {
     "name": "爆鱗龍的爆腺",
     "nameEn": "Bazelgeuse Fuse",
     "rarity": 17,
+    "source": "爆鱗龍",
     "weaponDecoration": true,
     "armorDecoration": true,
     "decorationEffects": {
@@ -1084,6 +1224,7 @@
     "name": "爆鱗龍的尖爪",
     "nameEn": "Bazelgeuse Talon",
     "rarity": 17,
+    "source": "爆鱗龍",
     "weaponDecoration": true,
     "armorDecoration": true,
     "decorationEffects": {
@@ -1104,6 +1245,7 @@
     "name": "爆鱗龍的翼",
     "nameEn": "Bazelgeuse Wing",
     "rarity": 17,
+    "source": "爆鱗龍",
     "weaponDecoration": true,
     "armorDecoration": true,
     "decorationEffects": {
@@ -1119,6 +1261,7 @@
     "name": "爆鱗龍的寶玉",
     "nameEn": "Bazelgeuse Gem",
     "rarity": 17,
+    "source": "爆鱗龍",
     "weaponDecoration": true,
     "armorDecoration": true,
     "decorationEffects": {
@@ -1139,6 +1282,7 @@
     "name": "爆錘龍的甲殼",
     "nameEn": "Uragaan Carapace",
     "rarity": 6,
+    "source": "爆錘龍",
     "weaponDecoration": true,
     "armorDecoration": true,
     "decorationEffects": {
@@ -1154,6 +1298,7 @@
     "name": "爆錘龍的紅玉",
     "nameEn": "Uragaan Ruby",
     "rarity": 6,
+    "source": "爆錘龍",
     "description": "護甲：迴避豁免檢定可以用AC取代n20擲骰，長修可用三次",
     "armorDecoration": true,
     "decorationEffects": {
@@ -1165,12 +1310,14 @@
   {
     "name": "爆錘龍的耐熱殼",
     "nameEn": "Uragaan Scute",
-    "rarity": 6
+    "rarity": 6,
+    "source": "爆錘龍"
   },
   {
     "name": "爆錘龍的骨髓",
     "nameEn": "Uragaan Marrow",
     "rarity": 6,
+    "source": "爆錘龍",
     "description": "護甲：裂傷無效，創傷效果免疫",
     "armorDecoration": true,
     "decorationEffects": {
@@ -1183,54 +1330,63 @@
     "name": "獸骨",
     "nameEn": "Brute Bone",
     "rarity": null,
+    "source": "採集",
     "description": "升級防具至「精良 (Rare)」品質必備。"
   },
   {
     "name": "藥草",
     "nameEn": "Herb",
     "rarity": null,
+    "source": "採集",
     "description": "止血生肌的鋸齒野草。以動作吃下可恢復 1d4 生命值。"
   },
   {
     "name": "蠕蟲",
     "nameEn": "Worm",
     "rarity": null,
+    "source": "採集",
     "description": "當作釣餌時，釣魚檢定 +1。"
   },
   {
     "name": "魔物骨+",
     "nameEn": "Monster Bone+",
     "rarity": null,
+    "source": "採集",
     "description": "升級武器至「精良 (Rare)」品質。"
   },
   {
     "name": "魔物硬骨",
     "nameEn": "Monster Toughbone",
     "rarity": null,
+    "source": "採集",
     "description": "升級武器至「史詩 (Very Rare)」品質。"
   },
   {
     "name": "靈鶴石",
     "nameEn": "Carbalite Ore",
     "rarity": null,
+    "source": "採集",
     "description": "極致硬度亮銀礦石。將武器升級到傳說 (Legendary) 級別核心。可換 2 顆輝龍石。"
   },
   {
     "name": "POP魚",
     "nameEn": "Popfish",
     "rarity": null,
+    "source": "採集",
     "description": "死亡時會發出清脆爆鳴聲的珍貴亮色魚類。"
   },
   {
     "name": "古龍的血",
     "nameEn": "Elder Dragon Blood",
     "rarity": null,
+    "source": "古龍",
     "description": "任意稀有度的武器強化素材"
   },
   {
     "name": "冰人魚龍的冰玉",
     "nameEn": "Aurora Gem",
     "rarity": 14,
+    "source": "冰人魚龍",
     "description": "護甲：免疫寒冷\n武器：爆擊-1，額外+1d6（效果挑戰者）",
     "weaponDecoration": true,
     "armorDecoration": true,
@@ -1252,6 +1408,7 @@
     "name": "冰人魚龍的特上鰭",
     "nameEn": "Auroracanth Fin",
     "rarity": 14,
+    "source": "冰人魚龍",
     "weaponDecoration": true,
     "armorDecoration": true,
     "decorationEffects": {
@@ -1264,9 +1421,10 @@
     }
   },
   {
-    "name": "復甦的喙",
+    "name": "黑狼鳥-復甦的喙",
     "nameEn": "Rejuvenated Beak",
     "rarity": 7,
+    "source": "黑狼鳥",
     "weaponDecoration": true,
     "armorDecoration": true,
     "decorationEffects": {
@@ -1279,9 +1437,10 @@
     }
   },
   {
-    "name": "華麗的喙",
+    "name": "戰痕黑狼鳥-華麗的喙",
     "nameEn": "Fancy Beak",
     "rarity": 16,
+    "source": "戰痕黑狼鳥",
     "weaponDecoration": true,
     "armorDecoration": true
   },
@@ -1289,6 +1448,7 @@
     "name": "歷戰麒麟的鬃毛",
     "nameEn": "T.Kirin Mane",
     "rarity": 19,
+    "source": "歷戰麒麟",
     "weaponDecoration": true,
     "armorDecoration": true,
     "decorationEffects": {
@@ -1303,22 +1463,26 @@
   {
     "name": "歷戰麒麟的雷尾",
     "nameEn": "T.Kirin Tail",
-    "rarity": 19
+    "rarity": 19,
+    "source": "歷戰麒麟"
   },
   {
     "name": "歷戰麒麟的雷角",
     "nameEn": "T.Kirin Thunderhorn",
-    "rarity": 19
+    "rarity": 19,
+    "source": "歷戰麒麟"
   },
   {
     "name": "歷戰麒麟的蒼角",
     "nameEn": "T.Kirin Azure Horn",
-    "rarity": 19
+    "rarity": 19,
+    "source": "歷戰麒麟"
   },
   {
     "name": "溟波龍的天鱗",
     "nameEn": "Namielle Mantle",
     "rarity": 14,
+    "source": "溟波龍",
     "weaponDecoration": true,
     "decorationEffects": {
       "weapon": {
@@ -1335,6 +1499,7 @@
     "name": "溟波龍的剛爪",
     "nameEn": "Namielle Hardclaw",
     "rarity": 14,
+    "source": "溟波龍",
     "weaponDecoration": true,
     "armorDecoration": true,
     "decorationEffects": {
@@ -1349,12 +1514,14 @@
   {
     "name": "溟波龍的剛翼",
     "nameEn": "Namielle Fellwing",
-    "rarity": 14
+    "rarity": 14,
+    "source": "溟波龍"
   },
   {
     "name": "溟波龍的特上皮",
     "nameEn": "Namielle Finehide",
     "rarity": 14,
+    "source": "溟波龍",
     "weaponDecoration": true,
     "armorDecoration": true,
     "decorationEffects": {
@@ -1369,32 +1536,38 @@
   {
     "name": "溟波龍的觸鬚",
     "nameEn": "Namielle Whisker",
-    "rarity": 14
+    "rarity": 14,
+    "source": "溟波龍"
   },
   {
     "name": "泡狐龍的發泡液",
     "nameEn": "Bubble Fluid",
-    "rarity": 11
+    "rarity": 11,
+    "source": "泡狐龍"
   },
   {
     "name": "黑狼鳥的甲殼",
     "nameEn": "Garuga Shell",
-    "rarity": 7
+    "rarity": 7,
+    "source": "黑狼鳥"
   },
   {
     "name": "黑狼鳥的鬃毛",
     "nameEn": "Garuga Mane",
-    "rarity": 7
+    "rarity": 7,
+    "source": "黑狼鳥"
   },
   {
     "name": "黑狼鳥的鱗",
     "nameEn": "Garuga Scale",
-    "rarity": 7
+    "rarity": 7,
+    "source": "黑狼鳥"
   },
   {
     "name": "金獅子的黑毛",
     "nameEn": "Rajang Blackfur",
     "rarity": 15,
+    "source": "金獅子",
     "armorDecoration": true,
     "decorationEffects": {
       "armor": {
@@ -1406,6 +1579,7 @@
     "name": "爵銀龍的殼",
     "nameEn": "",
     "rarity": 20,
+    "source": "爵銀龍",
     "armorDecoration": true,
     "decorationEffects": {
       "armor": {
@@ -1417,25 +1591,29 @@
     "name": "幼潛口龍的皮",
     "nameEn": "Y.Nibelsnarf Hide",
     "rarity": 4,
+    "source": "幼潛口龍",
     "armorDecoration": true
   },
   {
     "name": "幼潛口龍的甲殼",
     "nameEn": "Y.Nibel Shell",
     "rarity": 4,
+    "source": "幼潛口龍",
     "armorDecoration": true
   },
   {
     "name": "幼潛口龍的爪",
     "nameEn": "Y.Nibelsnarf Claw",
     "rarity": 4,
+    "source": "幼潛口龍",
     "weaponDecoration": true,
     "armorDecoration": true
   },
   {
-    "name": "發光的體液",
+    "name": "幼潛口龍-發光的體液",
     "nameEn": "Gleaming Fluid",
     "rarity": 4,
+    "source": "幼潛口龍",
     "weaponDecoration": true,
     "armorDecoration": true,
     "decorationEffects": {
@@ -1451,6 +1629,7 @@
     "name": "幼潛口龍的頭殼",
     "nameEn": "Y.Nibelsnarf Scalp",
     "rarity": 4,
+    "source": "幼潛口龍",
     "weaponDecoration": true,
     "armorDecoration": true
   },
@@ -1458,6 +1637,7 @@
     "name": "炎妃龍的鱗",
     "nameEn": "Lunastra Scale",
     "rarity": 12,
+    "source": "炎妃龍",
     "weaponDecoration": true,
     "armorDecoration": true
   },
@@ -1465,6 +1645,7 @@
     "name": "炎妃龍的堅殼",
     "nameEn": "Lunastra Carapace",
     "rarity": 12,
+    "source": "炎妃龍",
     "weaponDecoration": true,
     "armorDecoration": true
   },
@@ -1472,6 +1653,7 @@
     "name": "炎妃龍的尾巴",
     "nameEn": "Lunastra Tail",
     "rarity": 12,
+    "source": "炎妃龍",
     "weaponDecoration": true,
     "armorDecoration": true
   },
@@ -1479,6 +1661,7 @@
     "name": "炎妃龍的翼",
     "nameEn": "Lunastra Wing",
     "rarity": 12,
+    "source": "炎妃龍",
     "weaponDecoration": true,
     "armorDecoration": true
   },
@@ -1486,12 +1669,14 @@
     "name": "炎妃龍的鬃毛",
     "nameEn": "Lunastra Mane",
     "rarity": 12,
+    "source": "炎妃龍",
     "weaponDecoration": true
   },
   {
     "name": "炎妃龍的角",
     "nameEn": "Lunastra Horn",
     "rarity": 12,
+    "source": "炎妃龍",
     "weaponDecoration": true,
     "armorDecoration": true
   },
@@ -1499,6 +1684,7 @@
     "name": "炎妃龍的寶玉",
     "nameEn": "Lunastra Gem",
     "rarity": 12,
+    "source": "炎妃龍",
     "weaponDecoration": true,
     "armorDecoration": true,
     "decorationEffects": {
@@ -1517,6 +1703,7 @@
     "name": "斬龍的鱗",
     "nameEn": "Glavenus Scale",
     "rarity": 13,
+    "source": "斬龍",
     "armorDecoration": true,
     "decorationEffects": {
       "armor": {
@@ -1528,18 +1715,21 @@
     "name": "斬龍的牙",
     "nameEn": "Glavenus Fang",
     "rarity": 13,
+    "source": "斬龍",
     "weaponDecoration": true
   },
   {
     "name": "斬龍的堅殼",
     "nameEn": "Glavenus Carapace",
     "rarity": 13,
+    "source": "斬龍",
     "armorDecoration": true
   },
   {
-    "name": "爆炎袋",
+    "name": "斬龍-爆炎袋",
     "nameEn": "Flaming Bursa",
     "rarity": 13,
+    "source": "斬龍",
     "weaponDecoration": true,
     "armorDecoration": true,
     "decorationEffects": {
@@ -1560,6 +1750,7 @@
     "name": "斬龍的焰狀殼",
     "nameEn": "Glavenus Pyroshell",
     "rarity": 13,
+    "source": "斬龍",
     "weaponDecoration": true,
     "armorDecoration": true,
     "decorationEffects": {
@@ -1575,18 +1766,21 @@
     "name": "斬龍的尾巴",
     "nameEn": "Glavenus Tail",
     "rarity": 13,
+    "source": "斬龍",
     "armorDecoration": true
   },
   {
     "name": "斬龍的尾刃片",
     "nameEn": "Glavenus Tailpiece",
     "rarity": 13,
+    "source": "斬龍",
     "weaponDecoration": true
   },
   {
-    "name": "業炎袋",
+    "name": "斬龍-業炎袋",
     "nameEn": "Solar Bursa",
     "rarity": 13,
+    "source": "斬龍",
     "weaponDecoration": true,
     "armorDecoration": true
   },
@@ -1594,6 +1788,7 @@
     "name": "斬龍的逆鱗",
     "nameEn": "Glavenus Plate",
     "rarity": 13,
+    "source": "斬龍",
     "weaponDecoration": true,
     "armorDecoration": true
   },
@@ -1601,6 +1796,7 @@
     "name": "斬龍的炎玉",
     "nameEn": "Glavenus Fire Orb",
     "rarity": 13,
+    "source": "斬龍",
     "weaponDecoration": true,
     "armorDecoration": true
   },
@@ -1608,12 +1804,14 @@
     "name": "國王仙人掌",
     "nameEn": "King Cactus",
     "rarity": null,
+    "source": "採集",
     "description": "採集此植物的生物必須通過 DC 15 體質豁免，否則中毒 24 小時。"
   },
   {
     "name": "浮眠龍的厚毛皮",
     "nameEn": "Nightshade Paolumu Thickfur",
     "rarity": 12,
+    "source": "浮眠龍",
     "weaponDecoration": true,
     "armorDecoration": true,
     "decorationEffects": {
@@ -1629,6 +1827,7 @@
     "name": "浮眠龍的厚鱗",
     "nameEn": "Nightshade Paolumu Shard",
     "rarity": 12,
+    "source": "浮眠龍",
     "weaponDecoration": true,
     "armorDecoration": true,
     "decorationEffects": {
@@ -1646,9 +1845,10 @@
     }
   },
   {
-    "name": "昏睡袋",
+    "name": "浮眠龍-昏睡袋",
     "nameEn": "Torpor Sac",
     "rarity": 12,
+    "source": "浮眠龍",
     "weaponDecoration": true,
     "armorDecoration": true,
     "decorationEffects": {
@@ -1658,9 +1858,10 @@
     }
   },
   {
-    "name": "浮空龍的重殼",
+    "name": "浮眠龍-浮空龍的重殼",
     "nameEn": "Paolumu Cortex",
     "rarity": 12,
+    "source": "浮眠龍",
     "weaponDecoration": true,
     "armorDecoration": true,
     "decorationEffects": {
@@ -1676,6 +1877,7 @@
     "name": "浮眠龍的剛翼",
     "nameEn": "Nightshade Paolumu Fellwing",
     "rarity": 12,
+    "source": "浮眠龍",
     "weaponDecoration": true,
     "armorDecoration": true,
     "decorationEffects": {
@@ -1691,6 +1893,7 @@
     "name": "浮眠龍的寶玉",
     "nameEn": "Nightshade Gem",
     "rarity": 12,
+    "source": "浮眠龍",
     "weaponDecoration": true,
     "armorDecoration": true,
     "decorationEffects": {
@@ -1706,12 +1909,14 @@
     "name": "徹甲蟲的甲殼",
     "nameEn": "Seltas Shell",
     "rarity": 3,
+    "source": "徹甲蟲",
     "armorDecoration": true
   },
   {
-    "name": "水袋",
+    "name": "徹甲蟲-水袋",
     "nameEn": "Aqua Sac",
     "rarity": 3,
+    "source": "徹甲蟲",
     "weaponDecoration": true,
     "armorDecoration": true
   },
@@ -1719,13 +1924,15 @@
     "name": "徹甲蟲的羽",
     "nameEn": "Seltas Wing",
     "rarity": 3,
+    "source": "徹甲蟲",
     "weaponDecoration": true,
     "armorDecoration": true
   },
   {
-    "name": "雄蟲的體液",
+    "name": "徹甲蟲-雄蟲的體液",
     "nameEn": "Drone Substance",
     "rarity": 3,
+    "source": "徹甲蟲",
     "description": "這種油狀物質可以塗抹在一個中型或更小的生物皮膚上。塗抹物質需要 1 分鐘。受影響的生物在 1 小時內的魅力（遊說）檢定具有優勢。在此期間，如果它試圖用魔法或類法術能力魅惑生物，目標生物的豁免檢定具有劣勢。詛咒：當塗抹在生物身上時，在城鎮地區有 10% 的機率吸引附近的徹甲蟲。在野外則有 50% 的機率吸引附近的徹甲蟲。",
     "weaponDecoration": true,
     "decorationEffects": {
@@ -1735,35 +1942,41 @@
     }
   },
   {
-    "name": "魔物體液",
+    "name": "徹甲蟲-魔物體液",
     "nameEn": "Monster Fluid",
-    "rarity": 3
+    "rarity": 3,
+    "source": "徹甲蟲"
   },
   {
     "name": "徹甲蟲的角",
     "nameEn": "Seltas Horn",
     "rarity": 3,
+    "source": "徹甲蟲",
     "weaponDecoration": true
   },
   {
     "name": "幼白兔獸的毛",
     "nameEn": "Lagombi Kit Pelt",
-    "rarity": 2
+    "rarity": 2,
+    "source": "幼白兔獸"
   },
   {
     "name": "幼白兔獸的爪",
     "nameEn": "Lagombi Kit Claw",
-    "rarity": 2
+    "rarity": 2,
+    "source": "幼白兔獸"
   },
   {
     "name": "幼白兔獸的耳",
     "nameEn": "Lagombi Kit Ear",
-    "rarity": 2
+    "rarity": 2,
+    "source": "幼白兔獸"
   },
   {
     "name": "棘龍的甲殼",
     "nameEn": "Espinas Shell",
     "rarity": 12,
+    "source": "棘龍",
     "weaponDecoration": true,
     "armorDecoration": true
   },
@@ -1771,6 +1984,7 @@
     "name": "棘龍的堅殼",
     "nameEn": "Espinas Carapace",
     "rarity": 12,
+    "source": "棘龍",
     "weaponDecoration": true,
     "armorDecoration": true
   },
@@ -1778,6 +1992,7 @@
     "name": "棘龍的角",
     "nameEn": "Espinas Horn",
     "rarity": 12,
+    "source": "棘龍",
     "weaponDecoration": true,
     "armorDecoration": true,
     "decorationEffects": {
@@ -1793,6 +2008,7 @@
     "name": "棘龍的毒血",
     "nameEn": "Espinas Poison Blood",
     "rarity": 12,
+    "source": "棘龍",
     "weaponDecoration": true,
     "armorDecoration": true
   },
@@ -1800,6 +2016,7 @@
     "name": "棘龍的尾巴",
     "nameEn": "Espinas Tail",
     "rarity": 12,
+    "source": "棘龍",
     "weaponDecoration": true,
     "armorDecoration": true
   },
@@ -1807,13 +2024,15 @@
     "name": "毒怪龍的皮",
     "nameEn": "Gigginox Hide",
     "rarity": 10,
+    "source": "毒怪龍",
     "weaponDecoration": true,
     "armorDecoration": true
   },
   {
-    "name": "不祥的皮",
+    "name": "毒怪龍-不祥的皮",
     "nameEn": "Uncanny Hide",
     "rarity": 10,
+    "source": "毒怪龍",
     "weaponDecoration": true,
     "armorDecoration": true
   },
@@ -1821,13 +2040,15 @@
     "name": "毒怪龍的爪",
     "nameEn": "Gigginox Talon",
     "rarity": 10,
+    "source": "毒怪龍",
     "weaponDecoration": true,
     "armorDecoration": true
   },
   {
-    "name": "可怖的嘴",
+    "name": "毒怪龍-可怖的嘴",
     "nameEn": "Fearsome Maw",
     "rarity": 10,
+    "source": "毒怪龍",
     "weaponDecoration": true,
     "armorDecoration": true,
     "decorationEffects": {
@@ -1840,9 +2061,10 @@
     }
   },
   {
-    "name": "污穢的毒腺",
+    "name": "毒怪龍-污穢的毒腺",
     "nameEn": "Foul Venom Gland",
     "rarity": 10,
+    "source": "毒怪龍",
     "weaponDecoration": true,
     "armorDecoration": true
   },
@@ -1850,6 +2072,7 @@
     "name": "熔岩龍的鱗",
     "nameEn": "Lavasioth Scale",
     "rarity": 13,
+    "source": "熔岩龍",
     "weaponDecoration": true,
     "armorDecoration": true,
     "decorationEffects": {
@@ -1870,6 +2093,7 @@
     "name": "熔岩龍的堅殼",
     "nameEn": "Lavasioth Carapace",
     "rarity": 13,
+    "source": "熔岩龍",
     "armorDecoration": true,
     "decorationEffects": {
       "armor": {
@@ -1881,6 +2105,7 @@
     "name": "熔岩龍的銳牙",
     "nameEn": "Lavasioth Fang",
     "rarity": 13,
+    "source": "熔岩龍",
     "weaponDecoration": true,
     "armorDecoration": true,
     "decorationEffects": {
@@ -1896,6 +2121,7 @@
     "name": "熔岩龍的特上鰭",
     "nameEn": "Lavasioth Fin",
     "rarity": 13,
+    "source": "熔岩龍",
     "weaponDecoration": true,
     "armorDecoration": true,
     "decorationEffects": {
@@ -1917,6 +2143,7 @@
     "name": "熔岩龍的寶玉",
     "nameEn": "Lavasioth Gem",
     "rarity": 13,
+    "source": "熔岩龍",
     "weaponDecoration": true,
     "armorDecoration": true
   },
@@ -1924,6 +2151,7 @@
     "name": "黑轟龍的厚鱗",
     "nameEn": "Brute Tigrex Shard",
     "rarity": 20,
+    "source": "黑轟龍",
     "description": "轟龍的詛咒 (Curse of the Tigrex)：所有轟龍素材都帶有詛咒。與鑲嵌有該素材的防具或武器同調會將詛咒延伸至你身上。只要你受到詛咒，你會處於以下效應中：你不願意與該武器或防具分開，始終將其保持在觸手可及的範圍內。除非在你能看見或聽見的 60 呎內沒有敵人，否則你使用這把武器以外的武器進行的攻擊檢定具有劣勢。根據 GM 的決定，每當敵對生物對你造成傷害時，GM 可以讓你進行一次 DC 15 感知豁免。若豁免失敗，你會陷入狂暴 (berserk) 狀態。你的防具或武器中每多鑲嵌一件轟龍素材，DC 就增加 1。在狂暴期間，你必須在每輪使用動作以你的武器攻擊距離你最近的生物。如果你能在攻擊動作中進行額外攻擊，你會使用這些額外攻擊，並在擊倒當前目標後移動去攻擊下一個最近的生物。如果有多個可能的目標，你隨機攻擊其中一個。你將持續處於狂暴狀態，直到你在你能看見或聽見的 60 呎內沒有生物時開始你的回合。",
     "weaponDecoration": true,
     "armorDecoration": true,
@@ -1940,6 +2168,7 @@
     "name": "黑轟龍的剛爪",
     "nameEn": "Brute Tigrex Hardclaw",
     "rarity": 20,
+    "source": "黑轟龍",
     "description": "轟龍的詛咒 (Curse of the Tigrex)：所有轟龍素材都帶有詛咒。與鑲嵌有該素材的防具或武器同調會將詛咒延伸至你身上。只要你受到詛咒，你會處於以下效應中：你不願意與該武器或防具分開，始終將其保持在觸手可及的範圍內。除非在你能看見或聽見的 60 呎內沒有敵人，否則你使用這把武器以外的武器進行的攻擊檢定具有劣勢。根據 GM 的決定，每當敵對生物對你造成傷害時，GM 可以讓你進行一次 DC 15 感知豁免。若豁免失敗，你會陷入狂暴 (berserk) 狀態。你的防具或武器中每多鑲嵌一件轟龍素材，DC 就增加 1。在狂暴期間，你必須在每輪使用動作以你的武器攻擊距離你最近的生物。如果你能在攻擊動作中進行額外攻擊，你會使用這些額外攻擊，並在擊倒當前目標後移動去攻擊下一個最近的生物。如果有多個可能的目標，你隨機攻擊其中一個。你將持續處於狂暴狀態，直到你在你能看見或聽見的 60 呎內沒有生物時開始你的回合。",
     "weaponDecoration": true,
     "armorDecoration": true,
@@ -1956,6 +2185,7 @@
     "name": "黑轟龍的重殼",
     "nameEn": "Brute Tigrex Cortex",
     "rarity": 20,
+    "source": "黑轟龍",
     "description": "轟龍的詛咒 (Curse of the Tigrex)：所有轟龍素材都帶有詛咒。與鑲嵌有該素材的防具或武器同調會將詛咒延伸至你身上。只要你受到詛咒，你會處於以下效應中：你不願意與該武器或防具分開，始終將其保持在觸手可及的範圍內。除非在你能看見或聽見的 60 呎內沒有敵人，否則你使用這把武器以外的武器進行的攻擊檢定具有劣勢。根據 GM 的決定，每當敵對生物對你造成傷害時，GM 可以讓你進行一次 DC 15 感知豁免。若豁免失敗，你會陷入狂暴 (berserk) 狀態。你的防具或武器中每多鑲嵌一件轟龍素材，DC 就增加 1。在狂暴期間，你必須在每輪使用動作以你的武器攻擊距離你最近的生物。如果你能在攻擊動作中進行額外攻擊，你會使用這些額外攻擊，並在擊倒當前目標後移動去攻擊下一個最近的生物。如果有多個可能的目標，你隨機攻擊其中一個。你將持續處於狂暴狀態，直到你在你能看見或聽見的 60 呎內沒有生物時開始你的回合。",
     "weaponDecoration": true,
     "armorDecoration": true,
@@ -1972,6 +2202,7 @@
     "name": "黑轟龍的韌尾",
     "nameEn": "Brute Tigrex Lash",
     "rarity": 20,
+    "source": "黑轟龍",
     "description": "轟龍的詛咒 (Curse of the Tigrex)：所有轟龍素材都帶有詛咒。與鑲嵌有該素材的防具或武器同調會將詛咒延伸至你身上。只要你受到詛咒，你會處於以下效應中：你不願意與該武器或防具分開，始終將其保持在觸手可及的範圍內。除非在你能看見或聽見的 60 呎內沒有敵人，否則你使用這把武器以外的武器進行的攻擊檢定具有劣勢。根據 GM 的決定，每當敵對生物對你造成傷害時，GM 可以讓你進行一次 DC 15 感知豁免。若豁免失敗，你會陷入狂暴 (berserk) 狀態。你的防具或武器中每多鑲嵌一件轟龍素材，DC 就增加 1。在狂暴期間，你必須在每輪使用動作以你的武器攻擊距離你最近的生物。如果你能在攻擊動作中進行額外攻擊，你會使用這些額外攻擊，並在擊倒當前目標後移動去攻擊下一個最近的生物。如果有多個可能的目標，你隨機攻擊其中一個。你將持續處於狂暴狀態，直到你在你能看見或聽見的 60 呎內沒有生物時開始你的回合。",
     "weaponDecoration": true,
     "armorDecoration": true,
@@ -1988,6 +2219,7 @@
     "name": "黑轟龍的重牙",
     "nameEn": "Brute Tigrex Hardfang",
     "rarity": 20,
+    "source": "黑轟龍",
     "description": "轟龍的詛咒 (Curse of the Tigrex)：所有轟龍素材都帶有詛咒。與鑲嵌有該素材的防具或武器同調會將詛咒延伸至你身上。只要你受到詛咒，你會處於以下效應中：你不願意與該武器或防具分開，始終將其保持在觸手可及的範圍內。除非在你能看見或聽見的 60 呎內沒有敵人，否則你使用這把武器以外的武器進行的攻擊檢定具有劣勢。根據 GM 的決定，每當敵對生物對你造成傷害時，GM 可以讓你進行一次 DC 15 感知豁免。若豁免失敗，你會陷入狂暴 (berserk) 狀態。你的防具或武器中每多鑲嵌一件轟龍素材，DC 就增加 1。在狂暴期間，你必須在每輪使用動作以你的武器攻擊距離你最近的生物。如果你能在攻擊動作中進行額外攻擊，你會使用這些額外攻擊，並在擊倒當前目標後移動去攻擊下一個最近的生物。如果有多個可能的目標，你隨機攻擊其中一個。你將持續處於狂暴狀態，直到你在你能看見或聽見的 60 呎內沒有生物時開始你的回合。",
     "weaponDecoration": true,
     "armorDecoration": true,
@@ -2004,9 +2236,10 @@
     }
   },
   {
-    "name": "轟龍的天鱗",
+    "name": "黑轟龍-轟龍的天鱗",
     "nameEn": "Tigrex Mantle",
     "rarity": 20,
+    "source": "黑轟龍",
     "description": "轟龍的詛咒 (Curse of the Tigrex)：所有轟龍素材都帶有詛咒。與鑲嵌有該素材的防具或武器同調會將詛咒延伸至你身上。只要你受到詛咒，你會處於以下效應中：你不願意與該武器或防具分開，始終將其保持在觸手可及的範圍內。除非在你能看見或聽見的 60 呎內沒有敵人，否則你使用這把武器以外的武器進行的攻擊檢定具有劣勢。根據 GM 的決定，每當敵對生物對你造成傷害時，GM 可以讓你進行一次 DC 15 感知豁免。若豁免失敗，你會陷入狂暴 (berserk) 狀態。你的防具或武器中每多鑲嵌一件轟龍素材，DC 就增加 1。在狂暴期間，你必須在每輪使用動作以你的武器攻擊距離你最近的生物。如果你能在攻擊動作中進行額外攻擊，你會使用這些額外攻擊，並在擊倒當前目標後移動去攻擊下一個最近的生物。如果有多個可能的目標，你隨機攻擊其中一個。你將持續處於狂暴狀態，直到你在你能看見或聽見的 60 呎內沒有生物時開始你的回合。",
     "weaponDecoration": true,
     "armorDecoration": true,
@@ -2028,6 +2261,7 @@
     "name": "岩龍的甲殼",
     "nameEn": "Basarios Shell",
     "rarity": 6,
+    "source": "岩龍",
     "weaponDecoration": true,
     "armorDecoration": true,
     "decorationEffects": {
@@ -2043,6 +2277,7 @@
     "name": "岩龍的毒袋",
     "nameEn": "B.Poison Sac",
     "rarity": 6,
+    "source": "岩龍",
     "weaponDecoration": true,
     "armorDecoration": true
   },
@@ -2050,6 +2285,7 @@
     "name": "岩龍的翼",
     "nameEn": "Basarios Wing",
     "rarity": 6,
+    "source": "岩龍",
     "weaponDecoration": true,
     "armorDecoration": true
   },
@@ -2057,6 +2293,7 @@
     "name": "岩龍的堅殼",
     "nameEn": "Basarios Carapace",
     "rarity": 6,
+    "source": "岩龍",
     "weaponDecoration": true,
     "armorDecoration": true
   },
@@ -2064,6 +2301,7 @@
     "name": "骸龍的皮",
     "nameEn": "Nakarkos Hide",
     "rarity": 20,
+    "source": "骸龍",
     "weaponDecoration": true,
     "armorDecoration": true,
     "decorationEffects": {
@@ -2084,6 +2322,7 @@
     "name": "骸龍的腕甲",
     "nameEn": "Nakarkos Arm Brace",
     "rarity": 20,
+    "source": "骸龍",
     "weaponDecoration": true,
     "armorDecoration": true,
     "decorationEffects": {
@@ -2096,15 +2335,17 @@
     }
   },
   {
-    "name": "發光黏液",
+    "name": "骸龍-發光黏液",
     "nameEn": "Radiant Mucus",
     "rarity": 20,
+    "source": "骸龍",
     "weaponDecoration": true
   },
   {
     "name": "骸龍的烏賊骨",
     "nameEn": "Nakarkos Cuttlebone",
     "rarity": 20,
+    "source": "骸龍",
     "weaponDecoration": true,
     "armorDecoration": true,
     "decorationEffects": {
@@ -2120,12 +2361,14 @@
     "name": "骸龍的牙",
     "nameEn": "Nakarkos Fang",
     "rarity": 20,
+    "source": "骸龍",
     "weaponDecoration": true
   },
   {
     "name": "骸龍的魂玉",
     "nameEn": "Nakarkos Soul Orb",
     "rarity": 20,
+    "source": "骸龍",
     "weaponDecoration": true,
     "armorDecoration": true,
     "decorationEffects": {
@@ -2141,6 +2384,7 @@
     "name": "鎧龍的堅殼",
     "nameEn": "Gravios Carapace",
     "rarity": 15,
+    "source": "鎧龍",
     "weaponDecoration": true,
     "armorDecoration": true
   },
@@ -2148,13 +2392,15 @@
     "name": "鎧龍的甲殼",
     "nameEn": "Gravios Shell",
     "rarity": 15,
+    "source": "鎧龍",
     "weaponDecoration": true,
     "armorDecoration": true
   },
   {
-    "name": "鎧龍的爆炎袋",
+    "name": "鎧龍-爆炎袋",
     "nameEn": "Inferno Sac",
     "rarity": 15,
+    "source": "鎧龍",
     "weaponDecoration": true,
     "armorDecoration": true
   },
@@ -2162,6 +2408,7 @@
     "name": "鎧龍的睡眠袋",
     "nameEn": "G.Sleep Sac",
     "rarity": 15,
+    "source": "鎧龍",
     "weaponDecoration": true,
     "armorDecoration": true
   },
@@ -2169,6 +2416,7 @@
     "name": "鎧龍的頭殼",
     "nameEn": "Gravios Scalp",
     "rarity": 15,
+    "source": "鎧龍",
     "weaponDecoration": true,
     "armorDecoration": true
   },
@@ -2176,6 +2424,7 @@
     "name": "鎧龍的翼",
     "nameEn": "Gravios Wing",
     "rarity": 15,
+    "source": "鎧龍",
     "weaponDecoration": true,
     "armorDecoration": true
   },
@@ -2183,68 +2432,78 @@
     "name": "鎧龍的延髓",
     "nameEn": "Gravios Medulla",
     "rarity": 15,
+    "source": "鎧龍",
     "armorDecoration": true
   },
   {
     "name": "鎧龍的寶玉",
     "nameEn": "Gravios Gem",
     "rarity": 15,
+    "source": "鎧龍",
     "weaponDecoration": true,
     "armorDecoration": true
   },
   {
-    "name": "獄炎石",
+    "name": "鎧龍-獄炎石",
     "nameEn": "Firecell Stone",
     "rarity": 15,
+    "source": "鎧龍",
     "weaponDecoration": true,
     "armorDecoration": true
   },
   {
-    "name": "爆鱗龍的厚鱗",
+    "name": "紅蓮爆鱗龍-爆鱗龍的厚鱗",
     "nameEn": "Bazelgeuse Shard",
     "rarity": 22,
+    "source": "紅蓮爆鱗龍",
     "weaponDecoration": true,
     "armorDecoration": true
   },
   {
-    "name": "閃爍的銀殼",
+    "name": "紅蓮爆鱗龍-閃爍的銀殼",
     "nameEn": "Flickering Silvershell",
     "rarity": 22,
+    "source": "紅蓮爆鱗龍",
     "weaponDecoration": true,
     "armorDecoration": true
   },
   {
-    "name": "爆鱗龍的剛爪",
+    "name": "紅蓮爆鱗龍-爆鱗龍的剛爪",
     "nameEn": "Bazelgeuse Hardclaw",
     "rarity": 22,
+    "source": "紅蓮爆鱗龍",
     "weaponDecoration": true,
     "armorDecoration": true
   },
   {
-    "name": "濃縮的爆腺液",
+    "name": "紅蓮爆鱗龍-濃縮的爆腺液",
     "nameEn": "Distilled Blast Fluid",
     "rarity": 22,
+    "source": "紅蓮爆鱗龍",
     "weaponDecoration": true,
     "armorDecoration": true
   },
   {
-    "name": "灼熱的銀翼",
+    "name": "紅蓮爆鱗龍-灼熱的銀翼",
     "nameEn": "Scorching Silverwing",
     "rarity": 22,
+    "source": "紅蓮爆鱗龍",
     "weaponDecoration": true,
     "armorDecoration": true
   },
   {
-    "name": "爆鱗龍的韌尾",
+    "name": "紅蓮爆鱗龍-爆鱗龍的韌尾",
     "nameEn": "Bazelgeuse Flail",
     "rarity": 22,
+    "source": "紅蓮爆鱗龍",
     "weaponDecoration": true,
     "armorDecoration": true
   },
   {
-    "name": "紅蓮玉",
+    "name": "紅蓮爆鱗龍-紅蓮玉",
     "nameEn": "Seething Gem",
     "rarity": 22,
+    "source": "紅蓮爆鱗龍",
     "weaponDecoration": true,
     "armorDecoration": true
   }

@@ -45,6 +45,7 @@ import type { StatBonusEditorValue } from './StatBonusEditor';
 import { MHMaterialUpdateModal } from './MHMaterialUpdateModal';
 import {
   getMHMaterials,
+  createCatalogLookup,
   getMHMaterialUpdatePreview,
   buildMHMaterialUpdatePayload,
   type MHMaterialUpdatePreview,
@@ -149,24 +150,21 @@ export default function ItemsPage({ characterId, onCharacterDataChanged, initial
     getMHMaterials().then(setMhMaterials);
   }, []);
 
-  const mhMaterialByName = useMemo(() => {
-    const map = new Map<string, MHMaterialDef>();
-    mhMaterials.forEach((entry) => map.set(entry.name, entry));
-    return map;
-  }, [mhMaterials]);
+  // 名稱對不上時（如目錄改名前建立的道具）改用英文名稱比對，避免舊名稱的道具失去「可更新」
+  const findCatalogEntry = useMemo(() => createCatalogLookup(mhMaterials), [mhMaterials]);
 
   // 角色持有的每筆 MH素材與目錄資料的差異（稀有度／鑲嵌效果），供列表標籤與詳情頁更新按鈕判斷
   const mhMaterialUpdatePreviews = useMemo(() => {
     const map = new Map<string, MHMaterialUpdatePreview>();
     for (const item of items) {
       if (item.category_override !== 'MH素材' || !item.name_override) continue;
-      const entry = mhMaterialByName.get(item.name_override);
+      const entry = findCatalogEntry(item);
       if (!entry) continue;
       const preview = getMHMaterialUpdatePreview(item, entry);
       if (preview) map.set(item.id, preview);
     }
     return map;
-  }, [items, mhMaterialByName]);
+  }, [items, findCatalogEntry]);
 
   const loadItems = useCallback(async () => {
     setIsLoading(true);
@@ -420,7 +418,7 @@ export default function ItemsPage({ characterId, onCharacterDataChanged, initial
   // 套用「MH素材與目錄資料的差異」更新（見 services/mhMaterialCatalog.ts）
   const handleConfirmMHUpdate = async () => {
     if (!selectedItem?.name_override) return;
-    const entry = mhMaterialByName.get(selectedItem.name_override);
+    const entry = findCatalogEntry(selectedItem);
     if (!entry) return;
     const patch = buildMHMaterialUpdatePayload(selectedItem, entry);
     const result = await ItemService.updateCharacterItem(selectedItem.id, patch);

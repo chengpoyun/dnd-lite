@@ -75,4 +75,18 @@ describe('MHMaterialUpdateModal', () => {
     expect(onClose).toHaveBeenCalled();
     expect(onConfirm).not.toHaveBeenCalled();
   });
+
+  it('名稱與來源有差異時顯示對應的列（目錄加上怪物名前綴、新增來源欄位）', () => {
+    const preview: MHMaterialUpdatePreview = {
+      name: { old: '紅蓮玉', new: '紅蓮爆鱗龍-紅蓮玉' },
+      source: { old: null, new: '紅蓮爆鱗龍' },
+    };
+    render(
+      <MHMaterialUpdateModal isOpen onClose={vi.fn()} onConfirm={vi.fn()} materialName="紅蓮玉" preview={preview} />
+    );
+    expect(screen.getByText('名稱')).toBeInTheDocument();
+    expect(screen.getByText('紅蓮爆鱗龍-紅蓮玉')).toBeInTheDocument();
+    expect(screen.getByText('來源')).toBeInTheDocument();
+    expect(screen.getByText('紅蓮爆鱗龍')).toBeInTheDocument();
+  });
 });

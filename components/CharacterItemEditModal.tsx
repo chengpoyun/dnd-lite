@@ -34,6 +34,7 @@ export const CharacterItemEditModal: React.FC<CharacterItemEditModalProps> = ({
     quantity: 1,
     name_override: '',
     name_en_override: '',
+    source_override: '',
     rarity_override: '',
     description_override: '',
     category_override: null,
@@ -61,6 +62,7 @@ export const CharacterItemEditModal: React.FC<CharacterItemEditModalProps> = ({
         quantity: characterItem.quantity,
         name_override: characterItem.name_override ?? '',
         name_en_override: characterItem.name_en_override ?? '',
+        source_override: characterItem.source_override ?? '',
         rarity_override: characterItem.rarity_override ?? '',
         description_override: characterItem.description_override ?? '',
         category_override: characterItem.category_override ?? null,
@@ -118,6 +120,9 @@ export const CharacterItemEditModal: React.FC<CharacterItemEditModalProps> = ({
       }
       updates.name_en_override = formData.name_en_override?.trim() || null;
       updates.rarity_override = formData.rarity_override?.trim() || null;
+      if ((formData.category_override ?? characterItem.category_override) === 'MH素材') {
+        updates.source_override = formData.source_override?.trim() || null;
+      }
       // 一律傳送 description_override（含清空），否則使用者刪除內容後儲存不會更新
       updates.description_override = formData.description_override?.trim() ?? null;
       if (formData.category_override) {
@@ -186,7 +191,7 @@ export const CharacterItemEditModal: React.FC<CharacterItemEditModalProps> = ({
             />
           </div>
 
-          {/* 英文名稱 + 稀有度：共用一列 */}
+          {/* 英文名稱 + 稀有度：共用一列（MH素材 的 CR 改放在下一列來源的右側） */}
           <div className="flex items-center gap-3">
             <label className="text-[14px] text-slate-400 flex-shrink-0">En</label>
             <input
@@ -196,7 +201,25 @@ export const CharacterItemEditModal: React.FC<CharacterItemEditModalProps> = ({
               className="flex-1 min-w-0 bg-slate-800 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500"
               placeholder="輸入英文名稱"
             />
-            {(formData.category_override ?? characterItem.category_override) === 'MH素材' ? (
+            {(formData.category_override ?? characterItem.category_override) !== 'MH素材' && (
+              <RaritySelect
+                value={formData.rarity_override || ''}
+                onChange={(value) => setFormData({ ...formData, rarity_override: value })}
+              />
+            )}
+          </div>
+          {(formData.category_override ?? characterItem.category_override) === 'MH素材' && (
+            <div className="flex items-center gap-3">
+              <label className="text-[14px] text-slate-400 flex-shrink-0">來源</label>
+              <input
+                type="text"
+                value={formData.source_override ?? ''}
+                onChange={(e) => setFormData({ ...formData, source_override: e.target.value })}
+                className="flex-1 min-w-0 bg-slate-800 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500"
+                placeholder="輸入來源"
+                maxLength={50}
+              />
+              <label className="text-[14px] text-slate-400 flex-shrink-0">CR</label>
               <input
                 type="number"
                 value={formData.rarity_override ?? ''}
@@ -204,13 +227,8 @@ export const CharacterItemEditModal: React.FC<CharacterItemEditModalProps> = ({
                 className="w-20 flex-shrink-0 bg-slate-800 rounded-lg border border-slate-700 p-3 text-slate-200 text-center focus:outline-none focus:border-amber-500"
                 placeholder="CR"
               />
-            ) : (
-              <RaritySelect
-                value={formData.rarity_override || ''}
-                onChange={(value) => setFormData({ ...formData, rarity_override: value })}
-              />
-            )}
-          </div>
+            </div>
+          )}
 
           {/* 類別 + 魔法物品 */}
           <div className="flex items-center gap-3">

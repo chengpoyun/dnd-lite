@@ -41,6 +41,7 @@ export const AddPersonalItemModal: React.FC<AddPersonalItemModalProps> = ({
   const [name, setName] = useState('');
   const [nameEn, setNameEn] = useState('');
   const [rarity, setRarity] = useState('');
+  const [source, setSource] = useState('');
   const [category, setCategory] = useState<ItemCategory>('裝備');
   const [description, setDescription] = useState('');
   const [quantity, setQuantity] = useState('1');
@@ -67,6 +68,7 @@ export const AddPersonalItemModal: React.FC<AddPersonalItemModalProps> = ({
       setName(initialName ?? '');
       setNameEn('');
       setRarity('');
+      setSource('');
       setQuantity('1');
       setApplyMultiplier(true);
       if (initialCategory) {
@@ -120,6 +122,9 @@ export const AddPersonalItemModal: React.FC<AddPersonalItemModalProps> = ({
       if (rarity.trim()) {
         data.rarity = rarity.trim();
       }
+      if (category === 'MH素材' && source.trim()) {
+        data.source = source.trim();
+      }
       if (category === '裝備') {
         data.equipment_kind_override = equipmentKind || null;
         data.decoration_slots = decorationSlots;
@@ -148,6 +153,7 @@ export const AddPersonalItemModal: React.FC<AddPersonalItemModalProps> = ({
       setName('');
       setNameEn('');
       setRarity('');
+      setSource('');
       setDescription('');
       setCategory('裝備');
       setIsMagic(false);
@@ -189,7 +195,7 @@ export const AddPersonalItemModal: React.FC<AddPersonalItemModalProps> = ({
               maxLength={100}
             />
           </div>
-          {/* 英文名稱 + 稀有度：共用一列 */}
+          {/* 英文名稱 + 稀有度：共用一列（MH素材 的 CR 改放在下一列來源的右側） */}
           <div className="flex items-center gap-3">
             <label className="text-[14px] text-slate-400 flex-shrink-0">En</label>
             <input
@@ -199,7 +205,20 @@ export const AddPersonalItemModal: React.FC<AddPersonalItemModalProps> = ({
               className="flex-1 min-w-0 bg-slate-800 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500"
               placeholder="輸入英文名稱"
             />
-            {category === 'MH素材' ? (
+            {category !== 'MH素材' && <RaritySelect value={rarity} onChange={setRarity} />}
+          </div>
+          {category === 'MH素材' && (
+            <div className="flex items-center gap-3">
+              <label className="text-[14px] text-slate-400 flex-shrink-0">來源</label>
+              <input
+                type="text"
+                value={source}
+                onChange={(e) => setSource(e.target.value)}
+                className="flex-1 min-w-0 bg-slate-800 rounded-lg border border-slate-700 p-3 text-slate-200 focus:outline-none focus:border-amber-500"
+                placeholder="輸入來源"
+                maxLength={50}
+              />
+              <label className="text-[14px] text-slate-400 flex-shrink-0">CR</label>
               <input
                 type="number"
                 value={rarity}
@@ -207,10 +226,8 @@ export const AddPersonalItemModal: React.FC<AddPersonalItemModalProps> = ({
                 className="w-20 flex-shrink-0 bg-slate-800 rounded-lg border border-slate-700 p-3 text-slate-200 text-center focus:outline-none focus:border-amber-500"
                 placeholder="CR"
               />
-            ) : (
-              <RaritySelect value={rarity} onChange={setRarity} />
-            )}
-          </div>
+            </div>
+          )}
           <div className="flex items-center gap-3">
             <label className="text-[14px] text-slate-400 flex-shrink-0">類別 *</label>
             <select

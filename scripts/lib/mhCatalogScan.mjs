@@ -31,6 +31,7 @@ function playerItem(r) {
     nameEn: r.name_en_override || '',
     rarity: isBlank(r.rarity_override) || Number.isNaN(rarity) ? null : rarity,
   };
+  if (r.source_override) item.source = r.source_override;
   if (r.description_override) item.description = r.description_override;
   if (r.weapon_decoration) item.weaponDecoration = true;
   if (r.armor_decoration) item.armorDecoration = true;
@@ -44,6 +45,7 @@ function fillableFields(entry, item) {
   const f = {};
   if (isBlank(entry.nameEn) && item.nameEn) f.nameEn = item.nameEn;
   if (isBlank(entry.rarity) && item.rarity !== null) f.rarity = item.rarity;
+  if (isBlank(entry.source) && item.source) f.source = item.source;
   if (isBlank(entry.description) && item.description) f.description = item.description;
   if (!entry.weaponDecoration && item.weaponDecoration) f.weaponDecoration = true;
   if (!entry.armorDecoration && item.armorDecoration) f.armorDecoration = true;

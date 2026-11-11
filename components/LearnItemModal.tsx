@@ -7,6 +7,7 @@ import { searchLocalCatalog, type CatalogItem } from '../services/itemCatalog';
 import { MODAL_CONTAINER_CLASS } from '../styles/modalStyles';
 import { getRarityBadge } from '../utils/itemRarity';
 import { AcquireQuantityModal } from './AcquireQuantityModal';
+import { MaterialSourceLine } from './ui/MaterialSourceLine';
 
 const CLOSE_BUTTON_CLASS = 'px-4 py-2 rounded-lg bg-slate-700 text-slate-300 font-bold active:bg-slate-600 whitespace-nowrap';
 const CREATE_BUTTON_CLASS = 'px-4 py-2 rounded-lg bg-amber-600 text-white font-bold active:bg-amber-700 whitespace-nowrap';
@@ -30,6 +31,7 @@ function getItemView(item: CatalogItem) {
         name: item.entry.name,
         nameEn: item.entry.nameEn || null,
         category: 'MH素材',
+        source: item.entry.source,
         rarity: item.entry.rarity != null ? String(item.entry.rarity) : null,
         isMagic: false,
         description: item.entry.description ?? '',
@@ -39,6 +41,7 @@ function getItemView(item: CatalogItem) {
         name: item.entry.name,
         nameEn: item.entry.nameEn || null,
         category: item.entry.category,
+        source: null,
         rarity: item.entry.rarity,
         isMagic: !!item.entry.isMagic,
         description: item.entry.description ?? '',
@@ -119,7 +122,9 @@ export const LearnItemModal: React.FC<LearnItemModalProps> = ({
             filteredItems.map((item) => {
               const view = getItemView(item);
               const isOwned = learnedItems.some((l) => l.name === view.name && l.category === view.category);
-              const rarityBadge = getRarityBadge(view.category, view.rarity);
+              const isMaterial = view.category === 'MH素材';
+              // MH素材的 CR 改放在英文名稱下方的「來源」那一行，標題列不再重複顯示
+              const rarityBadge = isMaterial ? null : getRarityBadge(view.category, view.rarity);
               return (
                 <div
                   key={view.key}
@@ -146,6 +151,7 @@ export const LearnItemModal: React.FC<LearnItemModalProps> = ({
                           </span>
                         )}
                       </div>
+                      {isMaterial && <MaterialSourceLine source={view.source} rarity={view.rarity} className="mb-1" />}
                       <p className="text-[14px] text-slate-300 line-clamp-2">{view.description}</p>
                     </div>
                     <div className="shrink-0 flex items-center gap-2">

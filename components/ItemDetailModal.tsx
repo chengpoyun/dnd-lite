@@ -11,6 +11,7 @@ import { DecorationSlots } from './ui/DecorationSlots';
 import { CharacterItem, getDisplayValues } from '../services/itemService';
 import { MODAL_CONTAINER_CLASS } from '../styles/modalStyles';
 import { getRarityBadge } from '../utils/itemRarity';
+import { MaterialSourceLine } from './ui/MaterialSourceLine';
 
 interface ItemDetailModalProps {
   isOpen: boolean;
@@ -57,7 +58,9 @@ export default function ItemDetailModal({
 
   const display = getDisplayValues(characterItem);
   const qty = characterItem.quantity;
-  const rarityBadge = getRarityBadge(display.displayCategory, display.displayRarity);
+  // MH素材的 CR 改放在英文名稱下方的「來源」那一行，標籤列不再重複顯示
+  const isMaterial = display.displayCategory === 'MH素材';
+  const rarityBadge = isMaterial ? null : getRarityBadge(display.displayCategory, display.displayRarity);
 
   const commitQuantity = async (next: number) => {
     if (!onQuantityChange) return;
@@ -124,6 +127,8 @@ export default function ItemDetailModal({
               )}
             </div>
           </div>
+
+          {isMaterial && <MaterialSourceLine source={display.displaySource} rarity={display.displayRarity} />}
 
           {/* 第二列：tags + 數量調整 */}
           <div className="flex items-center gap-2 flex-wrap">

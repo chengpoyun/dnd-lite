@@ -206,3 +206,24 @@ describe('isSameItem - 物品身分是「名稱＋類別」', () => {
     expect(isSameItem(build('蜂蜜', 'MH素材'), '藥草', 'MH素材')).toBe(false);
   });
 });
+
+describe('道具來源（source_override）', () => {
+  const mockedSupabase = supabase as unknown as { from: Mock };
+  beforeEach(() => vi.clearAllMocks());
+
+  it('建立時有傳入 source 會寫入 source_override（trim 後），沒傳則不帶此欄位', async () => {
+    const builder = createChainable({ data: { id: 'ci1' }, error: null });
+    mockedSupabase.from.mockReturnValue(builder);
+
+    await createCharacterItem('c1', { name: '紅蓮玉', category: 'MH素材', is_magic: false, source: '  紅蓮爆鱗龍 ' });
+    expect(builder.insert).toHaveBeenLastCalledWith(expect.objectContaining({ source_override: '紅蓮爆鱗龍' }));
+
+    await createCharacterItem('c1', { name: '筆記', category: '雜項', is_magic: false });
+    expect(builder.insert.mock.calls[1][0]).not.toHaveProperty('source_override');
+  });
+
+  it('getDisplayValues 提供 displaySource，沒填時為 null', () => {
+    expect(getDisplayValues(makeCharacterItem({ source_override: '採集' })).displaySource).toBe('採集');
+    expect(getDisplayValues(makeCharacterItem()).displaySource).toBeNull();
+  });
+});

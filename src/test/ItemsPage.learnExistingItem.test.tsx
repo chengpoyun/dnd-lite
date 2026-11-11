@@ -85,7 +85,7 @@ describe('ItemsPage - 獲得物品挑到已擁有的物品', () => {
     mockGetCharacterItems.mockResolvedValue({ success: true, items: [existing] });
     const catalogItem: CatalogItem = {
       source: 'material',
-      entry: { name: '藥草', nameEn: 'Herb', rarity: null },
+      entry: { name: '藥草', nameEn: 'Herb', rarity: null, source: '採集' },
     };
     mockSearchLocalCatalog.mockResolvedValue([catalogItem]);
     mockUpdateCharacterItem.mockResolvedValue({ success: true });
@@ -116,7 +116,7 @@ describe('ItemsPage - 獲得物品挑到已擁有的物品', () => {
     mockGetCharacterItems.mockResolvedValue({ success: true, items: [] });
     const catalogItem: CatalogItem = {
       source: 'material',
-      entry: { name: '解毒草', nameEn: 'Antidote Herb', rarity: null },
+      entry: { name: '解毒草', nameEn: 'Antidote Herb', rarity: null, source: '採集' },
     };
     mockSearchLocalCatalog.mockResolvedValue([catalogItem]);
     mockCreateCharacterItem.mockResolvedValue({ success: true, item: buildCharacterItem({ name_override: '解毒草' }) });

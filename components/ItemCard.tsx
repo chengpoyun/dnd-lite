@@ -10,6 +10,7 @@ import { ListCard, ListCardTitleRow } from './ui';
 import { DecorationSlots } from './ui/DecorationSlots';
 import { conditionalStyle } from '../styles/common';
 import { getRarityBadge } from '../utils/itemRarity';
+import { MaterialSourceLine } from './ui/MaterialSourceLine';
 
 interface ItemCardProps {
   item: CharacterItem;
@@ -36,7 +37,9 @@ const TAG_BASE_CLASS = 'px-2 py-1 border text-xs rounded font-medium whitespace-
 
 export const ItemCard: React.FC<ItemCardProps> = ({ item, onClick, dragHandle, isDragging = false, hasCatalogUpdate = false }) => {
   const display = getDisplayValues(item);
-  const rarityBadge = getRarityBadge(display.displayCategory, display.displayRarity);
+  // MH素材的 CR 改放在英文名稱下方的「來源」那一行，標籤列不再重複顯示
+  const isMaterial = display.displayCategory === 'MH素材';
+  const rarityBadge = isMaterial ? null : getRarityBadge(display.displayCategory, display.displayRarity);
 
   return (
     <ListCard
@@ -49,6 +52,7 @@ export const ItemCard: React.FC<ItemCardProps> = ({ item, onClick, dragHandle, i
           <ListCardTitleRow
             className="mb-2"
             title={
+              <>
               <h3 className="text-lg font-bold text-slate-100 flex items-center gap-1 flex-wrap">
                 {display.displayIsFavorite && (
                   <span className="text-amber-400" title="已加入★列表">★</span>
@@ -58,6 +62,8 @@ export const ItemCard: React.FC<ItemCardProps> = ({ item, onClick, dragHandle, i
                   <span className="text-sm font-normal text-slate-400">{display.displayNameEn}</span>
                 )}
               </h3>
+              {isMaterial && <MaterialSourceLine source={display.displaySource} rarity={display.displayRarity} />}
+              </>
             }
             tags={
               <>

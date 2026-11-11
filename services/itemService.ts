@@ -54,6 +54,8 @@ export interface CharacterItem {
   name_override?: string | null;
   /** 英文名稱（純顯示用） */
   name_en_override?: string | null;
+  /** 來源（MH素材掉落自哪隻怪物，採集素材為「採集」；純顯示用） */
+  source_override?: string | null;
   /** 稀有度：MH素材存 CR 數字（以文字存），其他類別存 D&D 標準稀有度文字 */
   rarity_override?: string | null;
   description_override?: string | null;
@@ -93,6 +95,8 @@ export interface CharacterItemWithDetails extends CharacterItem {
   displayName: string;
   /** 顯示用英文名稱，沒有時為 null */
   displayNameEn: string | null;
+  /** 顯示用來源，沒有時為 null */
+  displaySource: string | null;
   /** 顯示用稀有度，沒有時為 null */
   displayRarity: string | null;
   displayDescription: string;
@@ -116,6 +120,7 @@ export interface UpdateCharacterItemData {
   quantity?: number;
   name_override?: string | null;
   name_en_override?: string | null;
+  source_override?: string | null;
   rarity_override?: string | null;
   description_override?: string | null;
   category_override?: ItemCategory | null;
@@ -151,6 +156,8 @@ export interface CreateCharacterItemData {
   is_magic: boolean;
   /** 英文名稱（純顯示用） */
   name_en?: string | null;
+  /** 來源（MH素材掉落自哪隻怪物，採集素材為「採集」） */
+  source?: string | null;
   /** 稀有度：MH素材傳 CR 數字轉成的文字，其他類別傳 D&D 標準稀有度文字 */
   rarity?: string | null;
   /** 是否影響角色數值（個人物品直接帶入 character_items） */
@@ -242,6 +249,7 @@ export async function createCharacterItem(
     if (data.armor_decoration !== undefined) payload.armor_decoration = data.armor_decoration;
     if (data.decoration_effects !== undefined) payload.decoration_effects = data.decoration_effects;
     if (data.name_en !== undefined) payload.name_en_override = data.name_en;
+    if (data.source !== undefined) payload.source_override = data.source?.trim() || null;
     if (data.rarity !== undefined) payload.rarity_override = data.rarity;
 
     const { data: row, error } = await supabase
@@ -452,6 +460,7 @@ export function getDisplayValues(characterItem: CharacterItem): CharacterItemWit
     ...characterItem,
     displayName: characterItem.name_override ?? '',
     displayNameEn: characterItem.name_en_override ?? null,
+    displaySource: characterItem.source_override ?? null,
     displayRarity: characterItem.rarity_override ?? null,
     displayDescription: effectSummary
       ? (rawDescription ? `${effectSummary}\n\n${rawDescription}` : effectSummary)

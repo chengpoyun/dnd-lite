@@ -16,9 +16,27 @@ export async function findMHMaterialByName(name: string): Promise<MHMaterialDef 
   return list.find((m) => m.name === name);
 }
 
+/** 英文名稱正規化：只留小寫英數，讓大小寫、空白、符號不同的寫法視為同一個 */
+const normalizeEnName = (s: string | null | undefined) => (s ?? '').toLowerCase().replace(/[^a-z0-9]/g, '');
+
+/**
+ * 建立「角色持有素材 → 目錄條目」的查找函式：先依名稱，對不上再依英文名稱（正規化）比對。
+ * 目錄改名（如加上怪物名前綴）後，仍用舊名稱的道具靠英文名稱還是能對到目錄、顯示「可更新」。
+ */
+export function createCatalogLookup(entries: MHMaterialDef[]) {
+  const byName = new Map(entries.map((e) => [e.name, e]));
+  const byEn = new Map(entries.filter((e) => e.nameEn).map((e) => [normalizeEnName(e.nameEn), e]));
+  return (item: Pick<CharacterItem, 'name_override' | 'name_en_override'>): MHMaterialDef | undefined => {
+    const byNameHit = item.name_override ? byName.get(item.name_override) : undefined;
+    if (byNameHit) return byNameHit;
+    const en = normalizeEnName(item.name_en_override);
+    return en ? byEn.get(en) : undefined;
+  };
+}
+
 /** 依名稱／英文名／描述關鍵字篩選；查詢字串為空時回傳全部 */
 export async function searchMHMaterials(query: string): Promise<MHMaterialDef[]> {
-  return catalog.search(query, (m) => [m.name, m.nameEn, m.description]);
+  return catalog.search(query, (m) => [m.name, m.nameEn, m.source, m.description]);
 }
 
 /** 依目錄條目組出 decoration_effects（武器／護甲各自的 note + stat_bonuses）；目錄完全沒設定時回傳 undefined */
@@ -49,6 +67,7 @@ export function mhMaterialToCreateData(entry: MHMaterialDef, quantity = 1): Crea
     quantity,
     is_magic: false,
     name_en: entry.nameEn,
+    source: entry.source,
     rarity: entry.rarity != null ? String(entry.rarity) : null,
     weapon_decoration: entry.weaponDecoration,
     armor_decoration: entry.armorDecoration,
@@ -58,6 +77,9 @@ export function mhMaterialToCreateData(entry: MHMaterialDef, quantity = 1): Crea
 
 /** 角色持有素材與目錄資料的差異：僅列出「有差異」的欄位，完全一致時為 null */
 export interface MHMaterialUpdatePreview {
+  /** 目錄名稱與角色持有的不同（如目錄加上怪物名前綴）；只在角色已有名稱時才比對 */
+  name?: { old: string; new: string };
+  source?: { old: string | null; new: string };
   nameEn?: { old: string | null; new: string | null };
   rarity?: { old: string | null; new: string | null };
   weapon?: { old?: DecorationEffect; new?: DecorationEffect };
@@ -81,10 +103,19 @@ export function getMHMaterialUpdatePreview(
   item: Pick<
     CharacterItem,
     'rarity_override' | 'decoration_effects' | 'name_en_override' | 'description_override'
-  >,
+  > &
+    Partial<Pick<CharacterItem, 'name_override' | 'source_override'>>,
   catalogEntry: MHMaterialDef
 ): MHMaterialUpdatePreview | null {
   const preview: MHMaterialUpdatePreview = {};
+
+  if (item.name_override && item.name_override !== catalogEntry.name) {
+    preview.name = { old: item.name_override, new: catalogEntry.name };
+  }
+  const oldSource = item.source_override ?? null;
+  if (catalogEntry.source && catalogEntry.source !== oldSource) {
+    preview.source = { old: oldSource, new: catalogEntry.source };
+  }
 
   const oldNameEn = item.name_en_override ?? null;
   const newNameEn = catalogEntry.nameEn || null;
@@ -130,7 +161,8 @@ export function buildMHMaterialUpdatePayload(
     | 'armor_decoration'
     | 'name_en_override'
     | 'description_override'
-  >,
+  > &
+    Partial<Pick<CharacterItem, 'name_override' | 'source_override'>>,
   catalogEntry: MHMaterialDef
 ): UpdateCharacterItemData {
   const catalogEffects = buildDecorationEffectsFromEntry(catalogEntry);
@@ -145,6 +177,8 @@ export function buildMHMaterialUpdatePayload(
   const newDescription = catalogEntry.description?.trim() || '';
 
   return {
+    name_override: catalogEntry.name,
+    source_override: catalogEntry.source || item.source_override || null,
     name_en_override: newNameEn ?? item.name_en_override ?? null,
     rarity_override: newRarity ?? item.rarity_override ?? null,
     weapon_decoration: !!catalogEntry.weaponDecoration || !!item.weapon_decoration,
