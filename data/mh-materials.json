@@ -2136,5 +2136,116 @@
         "note": "增幅 (Amplify)：你的武器造成的元素傷害骰體積增加一階，且消耗品的持續時間增加 50%。"
       }
     }
+  },
+  {
+    "name": "鎧龍的堅殼",
+    "nameEn": "Gravios Carapace",
+    "rarity": 15,
+    "weaponDecoration": true,
+    "armorDecoration": true
+  },
+  {
+    "name": "鎧龍的甲殼",
+    "nameEn": "Gravios Shell",
+    "rarity": 15,
+    "weaponDecoration": true,
+    "armorDecoration": true
+  },
+  {
+    "name": "鎧龍的爆炎袋",
+    "nameEn": "Inferno Sac",
+    "rarity": 15,
+    "weaponDecoration": true,
+    "armorDecoration": true
+  },
+  {
+    "name": "鎧龍的睡眠袋",
+    "nameEn": "G.Sleep Sac",
+    "rarity": 15,
+    "weaponDecoration": true,
+    "armorDecoration": true
+  },
+  {
+    "name": "鎧龍的頭殼",
+    "nameEn": "Gravios Scalp",
+    "rarity": 15,
+    "weaponDecoration": true,
+    "armorDecoration": true
+  },
+  {
+    "name": "鎧龍的翼",
+    "nameEn": "Gravios Wing",
+    "rarity": 15,
+    "weaponDecoration": true,
+    "armorDecoration": true
+  },
+  {
+    "name": "鎧龍的延髓",
+    "nameEn": "Gravios Medulla",
+    "rarity": 15,
+    "armorDecoration": true
+  },
+  {
+    "name": "鎧龍的寶玉",
+    "nameEn": "Gravios Gem",
+    "rarity": 15,
+    "weaponDecoration": true,
+    "armorDecoration": true
+  },
+  {
+    "name": "獄炎石",
+    "nameEn": "Firecell Stone",
+    "rarity": 15,
+    "weaponDecoration": true,
+    "armorDecoration": true
+  },
+  {
+    "name": "爆鱗龍的厚鱗",
+    "nameEn": "Bazelgeuse Shard",
+    "rarity": 22,
+    "weaponDecoration": true,
+    "armorDecoration": true
+  },
+  {
+    "name": "閃爍的銀殼",
+    "nameEn": "Flickering Silvershell",
+    "rarity": 22,
+    "weaponDecoration": true,
+    "armorDecoration": true
+  },
+  {
+    "name": "爆鱗龍的剛爪",
+    "nameEn": "Bazelgeuse Hardclaw",
+    "rarity": 22,
+    "weaponDecoration": true,
+    "armorDecoration": true
+  },
+  {
+    "name": "濃縮的爆腺液",
+    "nameEn": "Distilled Blast Fluid",
+    "rarity": 22,
+    "weaponDecoration": true,
+    "armorDecoration": true
+  },
+  {
+    "name": "灼熱的銀翼",
+    "nameEn": "Scorching Silverwing",
+    "rarity": 22,
+    "weaponDecoration": true,
+    "armorDecoration": true
+  },
+  {
+    "name": "爆鱗龍的韌尾",
+    "nameEn": "Bazelgeuse Flail",
+    "rarity": 22,
+    "weaponDecoration": true,
+    "armorDecoration": true
+  },
+  {
+    "name": "紅蓮玉",
+    "nameEn": "Seething Gem",
+    "rarity": 22,
+    "weaponDecoration": true,
+    "armorDecoration": true
   }
 ]
