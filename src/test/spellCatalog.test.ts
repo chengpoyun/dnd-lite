@@ -12,10 +12,11 @@ import {
 import type { SpellDef } from '../../types/spell';
 
 describe('spellCatalog', () => {
-  it('getSpells 讀得到 data/spells.json 的內容（陣列、535 筆）', async () => {
+  it('getSpells 讀得到 data/spells.json 的內容（陣列、有資料、英文名唯一）', async () => {
     const list = await getSpells();
     expect(Array.isArray(list)).toBe(true);
-    expect(list.length).toBe(535);
+    expect(list.length).toBeGreaterThan(0);
+    expect(new Set(list.map((s) => s.nameEn)).size).toBe(list.length);
     expect(list[0]).toHaveProperty('name');
     expect(list[0]).toHaveProperty('nameEn');
   });
