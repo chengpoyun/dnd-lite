@@ -41,7 +41,9 @@ try {
   console.log(`🔗 連結專案 ${ref} ...`);
   await run(['link', '--project-ref', ref]);
   console.log('⬆️  推送遷移到遠端資料庫 ...');
-  await run(['db', 'push', '--linked'], 'Y\n');
+  // agent 模式下 CLI 不會自己問「是否套用到正式環境」，經使用者同意後以 --yes 明確放行：npm run db:push -- --yes
+  const consent = process.argv.includes('--yes') ? ['--yes'] : [];
+  await run(['db', 'push', '--linked', ...consent], 'Y\n');
   console.log('✅ db push 完成');
 } catch (e) {
   console.error('❌', e.message);
