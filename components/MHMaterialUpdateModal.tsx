@@ -5,6 +5,7 @@
 import { Modal, ModalButton } from './ui/Modal';
 import type { MHMaterialUpdatePreview } from '../services/mhMaterialCatalog';
 import type { DecorationEffect } from '../services/itemService';
+import { formatCr } from '../utils/itemRarity';
 import {
   MODAL_CONTAINER_CLASS,
   MODAL_DESCRIPTION_CLASS,
@@ -55,7 +56,7 @@ export function MHMaterialUpdateModal({ isOpen, onClose, onConfirm, materialName
           <DiffRow label="英文名稱" oldText={preview.nameEn.old ?? '未填寫'} newText={preview.nameEn.new ?? '未填寫'} />
         )}
         {preview.rarity && (
-          <DiffRow label="稀有度 (CR)" oldText={preview.rarity.old ?? '未填寫'} newText={preview.rarity.new ?? '未填寫'} />
+          <DiffRow label="稀有度 (CR)" oldText={formatCr(preview.rarity.old) || '未填寫'} newText={formatCr(preview.rarity.new) || '未填寫'} />
         )}
         {preview.weapon && (
           <DiffRow label="武器鑲嵌效果" oldText={formatEffect(preview.weapon.old)} newText={formatEffect(preview.weapon.new)} />

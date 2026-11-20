@@ -4,7 +4,7 @@
  * 其他類別：稀有度是 D&D 標準 6 級文字，依固定配色顯示；非標準文字則退回灰底顯示原文字
  */
 import { describe, it, expect } from 'vitest';
-import { getRarityBadge, getRarityTextClass, RARITY_TIERS } from '../../utils/itemRarity';
+import { getRarityBadge, getRarityTextClass, RARITY_TIERS, formatCr } from '../../utils/itemRarity';
 
 describe('getRarityBadge', () => {
   it('rarity 為 null 時不顯示徽章', () => {
@@ -62,5 +62,19 @@ describe('getRarityTextClass', () => {
     expect(getRarityTextClass('')).toBe('text-slate-300');
     expect(getRarityTextClass(null)).toBe('text-slate-300');
     expect(getRarityTextClass('未知等級')).toBe('text-slate-300');
+  });
+});
+
+describe('formatCr（分數 CR 顯示）', () => {
+  it('0.125／0.25／0.5 顯示成 1/8、1/4、1/2；其他數字維持原樣', () => {
+    expect(formatCr('0.125')).toBe('1/8');
+    expect(formatCr(0.25)).toBe('1/4');
+    expect(formatCr('0.5')).toBe('1/2');
+    expect(formatCr('22')).toBe('22');
+    expect(formatCr(null)).toBe('');
+  });
+
+  it('MH素材徽章顯示分數 CR，例如 CR 1/8', () => {
+    expect(getRarityBadge('MH素材', '0.125')?.label).toBe('CR 1/8');
   });
 });

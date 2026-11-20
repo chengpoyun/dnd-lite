@@ -26,6 +26,12 @@ describe('AddPersonalItemModal - 來源', () => {
     expect(screen.getByText('CR')).toBeInTheDocument();
   });
 
+  it('CR 輸入框允許小數（分數 CR 如 1/8 = 0.125）', () => {
+    render(<AddPersonalItemModal isOpen onClose={onClose} onSubmit={onSubmit} />);
+    selectCategory('MH素材');
+    expect(screen.getByPlaceholderText('CR')).toHaveAttribute('step', 'any');
+  });
+
   it('送出時 data.source 為 trim 後的來源；沒填則為 undefined', async () => {
     render(<AddPersonalItemModal isOpen onClose={onClose} onSubmit={onSubmit} />);
     fireEvent.change(screen.getByPlaceholderText('輸入物品名稱'), { target: { value: '紅蓮玉' } });

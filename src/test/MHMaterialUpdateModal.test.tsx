@@ -89,4 +89,12 @@ describe('MHMaterialUpdateModal', () => {
     expect(screen.getByText('來源')).toBeInTheDocument();
     expect(screen.getByText('紅蓮爆鱗龍')).toBeInTheDocument();
   });
+
+  it('分數 CR 以 1/8 顯示（不顯示 0.125）', () => {
+    const preview: MHMaterialUpdatePreview = { rarity: { old: null, new: '0.125' } };
+    render(
+      <MHMaterialUpdateModal isOpen onClose={vi.fn()} onConfirm={vi.fn()} materialName="幼水生獸的皮" preview={preview} />
+    );
+    expect(screen.getByText('1/8')).toBeInTheDocument();
+  });
 });

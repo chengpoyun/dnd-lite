@@ -2506,5 +2506,67 @@
     "source": "紅蓮爆鱗龍",
     "weaponDecoration": true,
     "armorDecoration": true
+  },
+  {
+    "name": "棘茶龍的厚鱗",
+    "nameEn": "Flaming Espinas Shard",
+    "rarity": 15,
+    "source": "棘茶龍",
+    "weaponDecoration": true,
+    "armorDecoration": true
+  },
+  {
+    "name": "棘茶龍的重殼",
+    "nameEn": "Flaming Espinas Cortex",
+    "rarity": 15,
+    "source": "棘茶龍",
+    "weaponDecoration": true,
+    "armorDecoration": true
+  },
+  {
+    "name": "棘茶龍的濃硫酸",
+    "nameEn": "Flaming Espinas Sulfur",
+    "rarity": 15,
+    "source": "棘茶龍",
+    "weaponDecoration": true,
+    "armorDecoration": true
+  },
+  {
+    "name": "棘茶龍的韌尾",
+    "nameEn": "Flaming Espinas Lash",
+    "rarity": 15,
+    "source": "棘茶龍",
+    "weaponDecoration": true,
+    "armorDecoration": true
+  },
+  {
+    "name": "棘茶龍的秘棘",
+    "nameEn": "Flaming Espinas Surspike",
+    "rarity": 15,
+    "source": "棘茶龍",
+    "weaponDecoration": true,
+    "armorDecoration": true
+  },
+  {
+    "name": "棘茶龍的天鱗",
+    "nameEn": "Flaming Espinas Mantle",
+    "rarity": 15,
+    "source": "棘茶龍",
+    "weaponDecoration": true,
+    "armorDecoration": true
+  },
+  {
+    "name": "幼水生獸-未成熟的海綿質",
+    "nameEn": "Immature Sponge",
+    "rarity": 0.125,
+    "source": "幼水生獸",
+    "weaponDecoration": true
+  },
+  {
+    "name": "幼水生獸的皮",
+    "nameEn": "Ludroth Hide",
+    "rarity": 0.125,
+    "source": "幼水生獸",
+    "armorDecoration": true
   }
 ]
