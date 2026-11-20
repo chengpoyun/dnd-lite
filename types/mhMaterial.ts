@@ -12,7 +12,8 @@ export interface MHMaterialDef {
   name: string;
   nameEn: string;
   /** 稀有度：MH素材是素材來源怪物的 CR，數字沒有固定範圍上限 */
-  rarity: number | null;
+  /** CR：一般文字，原樣儲存與顯示（如 "15"、"1/8"）；沒有特定怪物的採集素材為 null */
+  rarity: string | null;
   /** 來源：掉落自哪隻怪物（如「紅蓮爆鱗龍」）；沒有特定怪物的採集素材為「採集」 */
   source: string;
   description?: string;

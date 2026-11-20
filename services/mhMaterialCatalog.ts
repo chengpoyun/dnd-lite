@@ -68,7 +68,7 @@ export function mhMaterialToCreateData(entry: MHMaterialDef, quantity = 1): Crea
     is_magic: false,
     name_en: entry.nameEn,
     source: entry.source,
-    rarity: entry.rarity != null ? String(entry.rarity) : null,
+    rarity: entry.rarity,
     weapon_decoration: entry.weaponDecoration,
     armor_decoration: entry.armorDecoration,
     decoration_effects: buildDecorationEffectsFromEntry(entry),
@@ -124,7 +124,7 @@ export function getMHMaterialUpdatePreview(
   }
 
   const oldRarity = item.rarity_override ?? null;
-  const newRarity = catalogEntry.rarity != null ? String(catalogEntry.rarity) : null;
+  const newRarity = catalogEntry.rarity || null;
   if (newRarity !== null && newRarity !== oldRarity) {
     preview.rarity = { old: oldRarity, new: newRarity };
   }
@@ -170,7 +170,7 @@ export function buildMHMaterialUpdatePayload(
   if (catalogEffects?.weapon) mergedEffects.weapon = catalogEffects.weapon;
   if (catalogEffects?.armor) mergedEffects.armor = catalogEffects.armor;
 
-  const newRarity = catalogEntry.rarity != null ? String(catalogEntry.rarity) : null;
+  const newRarity = catalogEntry.rarity || null;
   const newNameEn = catalogEntry.nameEn || null;
 
   const oldDescription = item.description_override?.trim() || '';

@@ -71,7 +71,7 @@ describe('CharacterItemEditModal - 英文名稱與稀有度', () => {
     render(<CharacterItemEditModal isOpen onClose={onClose} characterItem={baseMaterial} onSubmit={onSubmit} />);
     const input = screen.getByDisplayValue('35');
     expect(input.tagName).toBe('INPUT');
-    expect(input).toHaveAttribute('type', 'number');
+    expect(input).toHaveAttribute('type', 'text');
   });
 
   it('編輯英文名稱後儲存，updates.name_en_override 更新', async () => {

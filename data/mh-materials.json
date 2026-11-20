@@ -9,7 +9,7 @@
   {
     "name": "千刃龍的伐刀+",
     "nameEn": "Seregios Carver+",
-    "rarity": 15,
+    "rarity": "15",
     "source": "千刃龍",
     "weaponDecoration": true,
     "armorDecoration": true,
@@ -25,7 +25,7 @@
   {
     "name": "千刃龍的飛刃+",
     "nameEn": "Seregios Airblade+",
-    "rarity": 15,
+    "rarity": "15",
     "source": "千刃龍",
     "weaponDecoration": true,
     "armorDecoration": true,
@@ -41,7 +41,7 @@
   {
     "name": "千刃龍的飛膜+",
     "nameEn": "Seregios Slavescale+",
-    "rarity": 15,
+    "rarity": "15",
     "source": "千刃龍",
     "weaponDecoration": true,
     "armorDecoration": true,
@@ -57,7 +57,7 @@
   {
     "name": "千刃龍的破刃+",
     "nameEn": "Seregios Breacher+",
-    "rarity": 15,
+    "rarity": "15",
     "source": "千刃龍",
     "weaponDecoration": true,
     "armorDecoration": true,
@@ -73,7 +73,7 @@
   {
     "name": "千刃龍的斬翼爪+",
     "nameEn": "Seregios Scraper+",
-    "rarity": 15,
+    "rarity": "15",
     "source": "千刃龍",
     "weaponDecoration": true,
     "decorationEffects": {
@@ -90,7 +90,7 @@
   {
     "name": "千刃龍的槍尾+",
     "nameEn": "Seregios Impaler+",
-    "rarity": 15,
+    "rarity": "15",
     "source": "千刃龍",
     "weaponDecoration": true,
     "armorDecoration": true,
@@ -106,7 +106,7 @@
   {
     "name": "千刃龍的鏡玉",
     "nameEn": "Seregios Lens",
-    "rarity": 15,
+    "rarity": "15",
     "source": "千刃龍"
   },
   {
@@ -189,13 +189,13 @@
   {
     "name": "天狗獸的毛",
     "nameEn": "Bishaten Fur",
-    "rarity": 7,
+    "rarity": "7",
     "source": "天狗獸"
   },
   {
     "name": "天狗獸的爪",
     "nameEn": "Bishaten Talon",
-    "rarity": 7,
+    "rarity": "7",
     "source": "天狗獸",
     "weaponDecoration": true,
     "armorDecoration": true,
@@ -211,7 +211,7 @@
   {
     "name": "天狗獸的角",
     "nameEn": "Bishaten Horn",
-    "rarity": 7,
+    "rarity": "7",
     "source": "天狗獸"
   },
   {
@@ -273,7 +273,7 @@
   {
     "name": "幼慘爪龍的爪",
     "nameEn": "Y.Odogaron Claw",
-    "rarity": 4,
+    "rarity": "4",
     "source": "幼慘爪龍",
     "weaponDecoration": true,
     "armorDecoration": true,
@@ -289,13 +289,13 @@
   {
     "name": "幼慘爪龍的鱗",
     "nameEn": "Y.Odogaron Scale",
-    "rarity": 4,
+    "rarity": "4",
     "source": "幼慘爪龍"
   },
   {
     "name": "幼慘爪龍的牙",
     "nameEn": "Y.Odogaron Fang",
-    "rarity": 4,
+    "rarity": "4",
     "source": "幼慘爪龍",
     "weaponDecoration": true,
     "armorDecoration": true
@@ -303,7 +303,7 @@
   {
     "name": "幼慘爪龍的逆鱗",
     "nameEn": "Y.Odogaron Plate",
-    "rarity": 4,
+    "rarity": "4",
     "source": "幼慘爪龍",
     "weaponDecoration": true,
     "armorDecoration": true
@@ -345,7 +345,7 @@
   {
     "name": "冰人魚龍的重殼",
     "nameEn": "Auroracanth Icecortex",
-    "rarity": 14,
+    "rarity": "14",
     "source": "冰人魚龍",
     "weaponDecoration": true,
     "armorDecoration": true,
@@ -361,7 +361,7 @@
   {
     "name": "冰人魚龍的凍鱗",
     "nameEn": "Auroracanth Icescale",
-    "rarity": 14,
+    "rarity": "14",
     "source": "冰人魚龍",
     "weaponDecoration": true,
     "armorDecoration": true,
@@ -377,7 +377,7 @@
   {
     "name": "冰人魚龍的剛爪",
     "nameEn": "Auroracanth Iceclaw",
-    "rarity": 14,
+    "rarity": "14",
     "source": "冰人魚龍",
     "weaponDecoration": true,
     "armorDecoration": true
@@ -419,7 +419,7 @@
   {
     "name": "泡狐龍的水玉",
     "nameEn": "Mizutsune Water Gem",
-    "rarity": 11,
+    "rarity": "11",
     "source": "泡狐龍",
     "weaponDecoration": true,
     "armorDecoration": true,
@@ -440,7 +440,7 @@
   {
     "name": "泡狐龍的爪",
     "nameEn": "Mizutsune Claw",
-    "rarity": 11,
+    "rarity": "11",
     "source": "泡狐龍",
     "weaponDecoration": true,
     "decorationEffects": {
@@ -457,13 +457,13 @@
   {
     "name": "泡狐龍的尾巴",
     "nameEn": "Mizutsune Tail",
-    "rarity": 11,
+    "rarity": "11",
     "source": "泡狐龍"
   },
   {
     "name": "泡狐龍的逆鱗",
     "nameEn": "Mizutsune Plate",
-    "rarity": 11,
+    "rarity": "11",
     "source": "泡狐龍",
     "weaponDecoration": true,
     "armorDecoration": true,
@@ -484,7 +484,7 @@
   {
     "name": "泡狐龍的紫毛",
     "nameEn": "Mizutsune Purplefur",
-    "rarity": 11,
+    "rarity": "11",
     "source": "泡狐龍",
     "description": "對強酸傷害有抗性",
     "armorDecoration": true,
@@ -497,20 +497,20 @@
   {
     "name": "泡狐龍的錦鰭",
     "nameEn": "Mizutsune Fin",
-    "rarity": 11,
+    "rarity": "11",
     "source": "泡狐龍"
   },
   {
     "name": "泡狐龍的毛皮",
     "nameEn": "Mizutsune Pelt",
-    "rarity": 11,
+    "rarity": "11",
     "source": "泡狐龍",
     "armorDecoration": true
   },
   {
     "name": "泡狐龍的鱗",
     "nameEn": "Mizutsune Scale",
-    "rarity": 11,
+    "rarity": "11",
     "source": "泡狐龍",
     "armorDecoration": true,
     "decorationEffects": {
@@ -543,7 +543,7 @@
   {
     "name": "金獅子的尖角",
     "nameEn": "Rajang Horn",
-    "rarity": 15,
+    "rarity": "15",
     "source": "金獅子"
   },
   {
@@ -630,7 +630,7 @@
   {
     "name": "冥淵龍的翼爪",
     "nameEn": "Archdemon Wingtalon",
-    "rarity": 28,
+    "rarity": "28",
     "source": "冥淵龍",
     "weaponDecoration": true,
     "armorDecoration": true,
@@ -646,7 +646,7 @@
   {
     "name": "冰人魚龍-凍結袋",
     "nameEn": "Cryo Sac",
-    "rarity": 14,
+    "rarity": "14",
     "source": "冰人魚龍",
     "weaponDecoration": true,
     "armorDecoration": true,
@@ -667,7 +667,7 @@
   {
     "name": "浮空龍的寶玉",
     "nameEn": "Lumu Gem",
-    "rarity": 7,
+    "rarity": "7",
     "source": "浮空龍",
     "description": "護甲：長修一次，僅限放大\n武器：銃槍限定，每天兩次衝擊砲"
   },
@@ -772,25 +772,25 @@
   {
     "name": "黑狼鳥的耳",
     "nameEn": "Garuga Ear",
-    "rarity": 7,
+    "rarity": "7",
     "source": "黑狼鳥"
   },
   {
     "name": "黑狼鳥的尾巴",
     "nameEn": "Garuga Tail",
-    "rarity": 7,
+    "rarity": "7",
     "source": "黑狼鳥"
   },
   {
     "name": "戰痕黑狼鳥-黑狼鳥的重殼",
     "nameEn": "Garuga Cortex",
-    "rarity": 16,
+    "rarity": "16",
     "source": "戰痕黑狼鳥"
   },
   {
     "name": "戰痕黑狼鳥-黑狼鳥的銀狼毛",
     "nameEn": "Garuga Silverpelt",
-    "rarity": 16,
+    "rarity": "16",
     "source": "戰痕黑狼鳥",
     "weaponDecoration": true,
     "armorDecoration": true,
@@ -806,7 +806,7 @@
   {
     "name": "黑狼鳥的翼",
     "nameEn": "Garuga Wing",
-    "rarity": 7,
+    "rarity": "7",
     "source": "黑狼鳥",
     "weaponDecoration": true,
     "armorDecoration": true,
@@ -822,7 +822,7 @@
   {
     "name": "戰痕黑狼鳥-黑狼鳥的剛翼",
     "nameEn": "Garuga Fellwing",
-    "rarity": 16,
+    "rarity": "16",
     "source": "戰痕黑狼鳥",
     "weaponDecoration": true,
     "armorDecoration": true,
@@ -838,7 +838,7 @@
   {
     "name": "戰痕黑狼鳥-黑狼鳥的厚鱗",
     "nameEn": "Garuga Shard",
-    "rarity": 16,
+    "rarity": "16",
     "source": "戰痕黑狼鳥",
     "weaponDecoration": true,
     "armorDecoration": true
@@ -846,7 +846,7 @@
   {
     "name": "戰痕黑狼鳥-黑狼鳥的地獄耳",
     "nameEn": "Garuga Auricle",
-    "rarity": 16,
+    "rarity": "16",
     "source": "戰痕黑狼鳥",
     "weaponDecoration": true,
     "armorDecoration": true
@@ -854,7 +854,7 @@
   {
     "name": "溟波龍的韌尾",
     "nameEn": "Namielle Lash",
-    "rarity": 14,
+    "rarity": "14",
     "source": "溟波龍",
     "weaponDecoration": true,
     "armorDecoration": true,
@@ -953,7 +953,7 @@
   {
     "name": "歷戰煉黑龍-歷戰不滅的交心",
     "nameEn": "T.Immortal Heart",
-    "rarity": 18,
+    "rarity": "18",
     "source": "歷戰煉黑龍",
     "weaponDecoration": true,
     "armorDecoration": true,
@@ -969,7 +969,7 @@
   {
     "name": "歷戰煉黑龍的黑焰",
     "nameEn": "T.Miralis Smelter",
-    "rarity": 18,
+    "rarity": "18",
     "source": "歷戰煉黑龍",
     "weaponDecoration": true,
     "decorationEffects": {
@@ -981,7 +981,7 @@
   {
     "name": "歷戰煉黑龍的黑鱗",
     "nameEn": "T.Miralis Scale",
-    "rarity": 18,
+    "rarity": "18",
     "source": "歷戰煉黑龍",
     "weaponDecoration": true,
     "armorDecoration": true
@@ -989,28 +989,28 @@
   {
     "name": "歷戰煉黑龍的焦甲",
     "nameEn": "T.Miralis Fireback",
-    "rarity": 18,
+    "rarity": "18",
     "source": "歷戰煉黑龍",
     "armorDecoration": true
   },
   {
     "name": "歷戰煉黑龍的燃爪",
     "nameEn": "T.Miralis Fireclaw",
-    "rarity": 18,
+    "rarity": "18",
     "source": "歷戰煉黑龍",
     "weaponDecoration": true
   },
   {
     "name": "歷戰煉黑龍-歷戰湧出的熔岩",
     "nameEn": "T.Gushing Magma",
-    "rarity": 18,
+    "rarity": "18",
     "source": "歷戰煉黑龍",
     "armorDecoration": true
   },
   {
     "name": "歷戰煉黑龍的黑翼",
     "nameEn": "T.Miralis Hellwing",
-    "rarity": 18,
+    "rarity": "18",
     "source": "歷戰煉黑龍",
     "weaponDecoration": true,
     "armorDecoration": true
@@ -1018,7 +1018,7 @@
   {
     "name": "歷戰煉黑龍的凶眼",
     "nameEn": "T.Miralis Evil Eye",
-    "rarity": 18,
+    "rarity": "18",
     "source": "歷戰煉黑龍",
     "weaponDecoration": true,
     "armorDecoration": true
@@ -1026,14 +1026,14 @@
   {
     "name": "歷戰煉黑龍的光玉",
     "nameEn": "T.Dire Dragongem",
-    "rarity": 18,
+    "rarity": "18",
     "source": "歷戰煉黑龍",
     "weaponDecoration": true
   },
   {
     "name": "歷戰麒麟的皮",
     "nameEn": "T.Kirin Hide",
-    "rarity": 19,
+    "rarity": "19",
     "source": "歷戰麒麟",
     "weaponDecoration": true,
     "armorDecoration": true,
@@ -1185,7 +1185,7 @@
   {
     "name": "爆鱗龍的鱗",
     "nameEn": "Bazelgeuse Scale",
-    "rarity": 17,
+    "rarity": "17",
     "source": "爆鱗龍",
     "weaponDecoration": true,
     "armorDecoration": true,
@@ -1201,13 +1201,13 @@
   {
     "name": "爆鱗龍的堅殼",
     "nameEn": "Bazelgeuse Carapace",
-    "rarity": 17,
+    "rarity": "17",
     "source": "爆鱗龍"
   },
   {
     "name": "爆鱗龍的爆腺",
     "nameEn": "Bazelgeuse Fuse",
-    "rarity": 17,
+    "rarity": "17",
     "source": "爆鱗龍",
     "weaponDecoration": true,
     "armorDecoration": true,
@@ -1223,7 +1223,7 @@
   {
     "name": "爆鱗龍的尖爪",
     "nameEn": "Bazelgeuse Talon",
-    "rarity": 17,
+    "rarity": "17",
     "source": "爆鱗龍",
     "weaponDecoration": true,
     "armorDecoration": true,
@@ -1244,7 +1244,7 @@
   {
     "name": "爆鱗龍的翼",
     "nameEn": "Bazelgeuse Wing",
-    "rarity": 17,
+    "rarity": "17",
     "source": "爆鱗龍",
     "weaponDecoration": true,
     "armorDecoration": true,
@@ -1260,7 +1260,7 @@
   {
     "name": "爆鱗龍的寶玉",
     "nameEn": "Bazelgeuse Gem",
-    "rarity": 17,
+    "rarity": "17",
     "source": "爆鱗龍",
     "weaponDecoration": true,
     "armorDecoration": true,
@@ -1281,7 +1281,7 @@
   {
     "name": "爆錘龍的甲殼",
     "nameEn": "Uragaan Carapace",
-    "rarity": 6,
+    "rarity": "6",
     "source": "爆錘龍",
     "weaponDecoration": true,
     "armorDecoration": true,
@@ -1297,7 +1297,7 @@
   {
     "name": "爆錘龍的紅玉",
     "nameEn": "Uragaan Ruby",
-    "rarity": 6,
+    "rarity": "6",
     "source": "爆錘龍",
     "description": "護甲：迴避豁免檢定可以用AC取代n20擲骰，長修可用三次",
     "armorDecoration": true,
@@ -1310,13 +1310,13 @@
   {
     "name": "爆錘龍的耐熱殼",
     "nameEn": "Uragaan Scute",
-    "rarity": 6,
+    "rarity": "6",
     "source": "爆錘龍"
   },
   {
     "name": "爆錘龍的骨髓",
     "nameEn": "Uragaan Marrow",
-    "rarity": 6,
+    "rarity": "6",
     "source": "爆錘龍",
     "description": "護甲：裂傷無效，創傷效果免疫",
     "armorDecoration": true,
@@ -1385,7 +1385,7 @@
   {
     "name": "冰人魚龍的冰玉",
     "nameEn": "Aurora Gem",
-    "rarity": 14,
+    "rarity": "14",
     "source": "冰人魚龍",
     "description": "護甲：免疫寒冷\n武器：爆擊-1，額外+1d6（效果挑戰者）",
     "weaponDecoration": true,
@@ -1407,7 +1407,7 @@
   {
     "name": "冰人魚龍的特上鰭",
     "nameEn": "Auroracanth Fin",
-    "rarity": 14,
+    "rarity": "14",
     "source": "冰人魚龍",
     "weaponDecoration": true,
     "armorDecoration": true,
@@ -1423,7 +1423,7 @@
   {
     "name": "黑狼鳥-復甦的喙",
     "nameEn": "Rejuvenated Beak",
-    "rarity": 7,
+    "rarity": "7",
     "source": "黑狼鳥",
     "weaponDecoration": true,
     "armorDecoration": true,
@@ -1439,7 +1439,7 @@
   {
     "name": "戰痕黑狼鳥-華麗的喙",
     "nameEn": "Fancy Beak",
-    "rarity": 16,
+    "rarity": "16",
     "source": "戰痕黑狼鳥",
     "weaponDecoration": true,
     "armorDecoration": true
@@ -1447,7 +1447,7 @@
   {
     "name": "歷戰麒麟的鬃毛",
     "nameEn": "T.Kirin Mane",
-    "rarity": 19,
+    "rarity": "19",
     "source": "歷戰麒麟",
     "weaponDecoration": true,
     "armorDecoration": true,
@@ -1463,25 +1463,25 @@
   {
     "name": "歷戰麒麟的雷尾",
     "nameEn": "T.Kirin Tail",
-    "rarity": 19,
+    "rarity": "19",
     "source": "歷戰麒麟"
   },
   {
     "name": "歷戰麒麟的雷角",
     "nameEn": "T.Kirin Thunderhorn",
-    "rarity": 19,
+    "rarity": "19",
     "source": "歷戰麒麟"
   },
   {
     "name": "歷戰麒麟的蒼角",
     "nameEn": "T.Kirin Azure Horn",
-    "rarity": 19,
+    "rarity": "19",
     "source": "歷戰麒麟"
   },
   {
     "name": "溟波龍的天鱗",
     "nameEn": "Namielle Mantle",
-    "rarity": 14,
+    "rarity": "14",
     "source": "溟波龍",
     "weaponDecoration": true,
     "decorationEffects": {
@@ -1498,7 +1498,7 @@
   {
     "name": "溟波龍的剛爪",
     "nameEn": "Namielle Hardclaw",
-    "rarity": 14,
+    "rarity": "14",
     "source": "溟波龍",
     "weaponDecoration": true,
     "armorDecoration": true,
@@ -1514,13 +1514,13 @@
   {
     "name": "溟波龍的剛翼",
     "nameEn": "Namielle Fellwing",
-    "rarity": 14,
+    "rarity": "14",
     "source": "溟波龍"
   },
   {
     "name": "溟波龍的特上皮",
     "nameEn": "Namielle Finehide",
-    "rarity": 14,
+    "rarity": "14",
     "source": "溟波龍",
     "weaponDecoration": true,
     "armorDecoration": true,
@@ -1536,37 +1536,37 @@
   {
     "name": "溟波龍的觸鬚",
     "nameEn": "Namielle Whisker",
-    "rarity": 14,
+    "rarity": "14",
     "source": "溟波龍"
   },
   {
     "name": "泡狐龍的發泡液",
     "nameEn": "Bubble Fluid",
-    "rarity": 11,
+    "rarity": "11",
     "source": "泡狐龍"
   },
   {
     "name": "黑狼鳥的甲殼",
     "nameEn": "Garuga Shell",
-    "rarity": 7,
+    "rarity": "7",
     "source": "黑狼鳥"
   },
   {
     "name": "黑狼鳥的鬃毛",
     "nameEn": "Garuga Mane",
-    "rarity": 7,
+    "rarity": "7",
     "source": "黑狼鳥"
   },
   {
     "name": "黑狼鳥的鱗",
     "nameEn": "Garuga Scale",
-    "rarity": 7,
+    "rarity": "7",
     "source": "黑狼鳥"
   },
   {
     "name": "金獅子的黑毛",
     "nameEn": "Rajang Blackfur",
-    "rarity": 15,
+    "rarity": "15",
     "source": "金獅子",
     "armorDecoration": true,
     "decorationEffects": {
@@ -1578,7 +1578,7 @@
   {
     "name": "爵銀龍的殼",
     "nameEn": "",
-    "rarity": 20,
+    "rarity": "20",
     "source": "爵銀龍",
     "armorDecoration": true,
     "decorationEffects": {
@@ -1590,21 +1590,21 @@
   {
     "name": "幼潛口龍的皮",
     "nameEn": "Y.Nibelsnarf Hide",
-    "rarity": 4,
+    "rarity": "4",
     "source": "幼潛口龍",
     "armorDecoration": true
   },
   {
     "name": "幼潛口龍的甲殼",
     "nameEn": "Y.Nibel Shell",
-    "rarity": 4,
+    "rarity": "4",
     "source": "幼潛口龍",
     "armorDecoration": true
   },
   {
     "name": "幼潛口龍的爪",
     "nameEn": "Y.Nibelsnarf Claw",
-    "rarity": 4,
+    "rarity": "4",
     "source": "幼潛口龍",
     "weaponDecoration": true,
     "armorDecoration": true
@@ -1612,7 +1612,7 @@
   {
     "name": "幼潛口龍-發光的體液",
     "nameEn": "Gleaming Fluid",
-    "rarity": 4,
+    "rarity": "4",
     "source": "幼潛口龍",
     "weaponDecoration": true,
     "armorDecoration": true,
@@ -1628,7 +1628,7 @@
   {
     "name": "幼潛口龍的頭殼",
     "nameEn": "Y.Nibelsnarf Scalp",
-    "rarity": 4,
+    "rarity": "4",
     "source": "幼潛口龍",
     "weaponDecoration": true,
     "armorDecoration": true
@@ -1636,7 +1636,7 @@
   {
     "name": "炎妃龍的鱗",
     "nameEn": "Lunastra Scale",
-    "rarity": 12,
+    "rarity": "12",
     "source": "炎妃龍",
     "weaponDecoration": true,
     "armorDecoration": true
@@ -1644,7 +1644,7 @@
   {
     "name": "炎妃龍的堅殼",
     "nameEn": "Lunastra Carapace",
-    "rarity": 12,
+    "rarity": "12",
     "source": "炎妃龍",
     "weaponDecoration": true,
     "armorDecoration": true
@@ -1652,7 +1652,7 @@
   {
     "name": "炎妃龍的尾巴",
     "nameEn": "Lunastra Tail",
-    "rarity": 12,
+    "rarity": "12",
     "source": "炎妃龍",
     "weaponDecoration": true,
     "armorDecoration": true
@@ -1660,7 +1660,7 @@
   {
     "name": "炎妃龍的翼",
     "nameEn": "Lunastra Wing",
-    "rarity": 12,
+    "rarity": "12",
     "source": "炎妃龍",
     "weaponDecoration": true,
     "armorDecoration": true
@@ -1668,14 +1668,14 @@
   {
     "name": "炎妃龍的鬃毛",
     "nameEn": "Lunastra Mane",
-    "rarity": 12,
+    "rarity": "12",
     "source": "炎妃龍",
     "weaponDecoration": true
   },
   {
     "name": "炎妃龍的角",
     "nameEn": "Lunastra Horn",
-    "rarity": 12,
+    "rarity": "12",
     "source": "炎妃龍",
     "weaponDecoration": true,
     "armorDecoration": true
@@ -1683,7 +1683,7 @@
   {
     "name": "炎妃龍的寶玉",
     "nameEn": "Lunastra Gem",
-    "rarity": 12,
+    "rarity": "12",
     "source": "炎妃龍",
     "weaponDecoration": true,
     "armorDecoration": true,
@@ -1702,7 +1702,7 @@
   {
     "name": "斬龍的鱗",
     "nameEn": "Glavenus Scale",
-    "rarity": 13,
+    "rarity": "13",
     "source": "斬龍",
     "armorDecoration": true,
     "decorationEffects": {
@@ -1714,21 +1714,21 @@
   {
     "name": "斬龍的牙",
     "nameEn": "Glavenus Fang",
-    "rarity": 13,
+    "rarity": "13",
     "source": "斬龍",
     "weaponDecoration": true
   },
   {
     "name": "斬龍的堅殼",
     "nameEn": "Glavenus Carapace",
-    "rarity": 13,
+    "rarity": "13",
     "source": "斬龍",
     "armorDecoration": true
   },
   {
     "name": "斬龍-爆炎袋",
     "nameEn": "Flaming Bursa",
-    "rarity": 13,
+    "rarity": "13",
     "source": "斬龍",
     "weaponDecoration": true,
     "armorDecoration": true,
@@ -1749,7 +1749,7 @@
   {
     "name": "斬龍的焰狀殼",
     "nameEn": "Glavenus Pyroshell",
-    "rarity": 13,
+    "rarity": "13",
     "source": "斬龍",
     "weaponDecoration": true,
     "armorDecoration": true,
@@ -1765,21 +1765,21 @@
   {
     "name": "斬龍的尾巴",
     "nameEn": "Glavenus Tail",
-    "rarity": 13,
+    "rarity": "13",
     "source": "斬龍",
     "armorDecoration": true
   },
   {
     "name": "斬龍的尾刃片",
     "nameEn": "Glavenus Tailpiece",
-    "rarity": 13,
+    "rarity": "13",
     "source": "斬龍",
     "weaponDecoration": true
   },
   {
     "name": "斬龍-業炎袋",
     "nameEn": "Solar Bursa",
-    "rarity": 13,
+    "rarity": "13",
     "source": "斬龍",
     "weaponDecoration": true,
     "armorDecoration": true
@@ -1787,7 +1787,7 @@
   {
     "name": "斬龍的逆鱗",
     "nameEn": "Glavenus Plate",
-    "rarity": 13,
+    "rarity": "13",
     "source": "斬龍",
     "weaponDecoration": true,
     "armorDecoration": true
@@ -1795,7 +1795,7 @@
   {
     "name": "斬龍的炎玉",
     "nameEn": "Glavenus Fire Orb",
-    "rarity": 13,
+    "rarity": "13",
     "source": "斬龍",
     "weaponDecoration": true,
     "armorDecoration": true
@@ -1810,7 +1810,7 @@
   {
     "name": "浮眠龍的厚毛皮",
     "nameEn": "Nightshade Paolumu Thickfur",
-    "rarity": 12,
+    "rarity": "12",
     "source": "浮眠龍",
     "weaponDecoration": true,
     "armorDecoration": true,
@@ -1826,7 +1826,7 @@
   {
     "name": "浮眠龍的厚鱗",
     "nameEn": "Nightshade Paolumu Shard",
-    "rarity": 12,
+    "rarity": "12",
     "source": "浮眠龍",
     "weaponDecoration": true,
     "armorDecoration": true,
@@ -1847,7 +1847,7 @@
   {
     "name": "浮眠龍-昏睡袋",
     "nameEn": "Torpor Sac",
-    "rarity": 12,
+    "rarity": "12",
     "source": "浮眠龍",
     "weaponDecoration": true,
     "armorDecoration": true,
@@ -1860,7 +1860,7 @@
   {
     "name": "浮眠龍-浮空龍的重殼",
     "nameEn": "Paolumu Cortex",
-    "rarity": 12,
+    "rarity": "12",
     "source": "浮眠龍",
     "weaponDecoration": true,
     "armorDecoration": true,
@@ -1876,7 +1876,7 @@
   {
     "name": "浮眠龍的剛翼",
     "nameEn": "Nightshade Paolumu Fellwing",
-    "rarity": 12,
+    "rarity": "12",
     "source": "浮眠龍",
     "weaponDecoration": true,
     "armorDecoration": true,
@@ -1892,7 +1892,7 @@
   {
     "name": "浮眠龍的寶玉",
     "nameEn": "Nightshade Gem",
-    "rarity": 12,
+    "rarity": "12",
     "source": "浮眠龍",
     "weaponDecoration": true,
     "armorDecoration": true,
@@ -1908,14 +1908,14 @@
   {
     "name": "徹甲蟲的甲殼",
     "nameEn": "Seltas Shell",
-    "rarity": 3,
+    "rarity": "3",
     "source": "徹甲蟲",
     "armorDecoration": true
   },
   {
     "name": "徹甲蟲-水袋",
     "nameEn": "Aqua Sac",
-    "rarity": 3,
+    "rarity": "3",
     "source": "徹甲蟲",
     "weaponDecoration": true,
     "armorDecoration": true
@@ -1923,7 +1923,7 @@
   {
     "name": "徹甲蟲的羽",
     "nameEn": "Seltas Wing",
-    "rarity": 3,
+    "rarity": "3",
     "source": "徹甲蟲",
     "weaponDecoration": true,
     "armorDecoration": true
@@ -1931,7 +1931,7 @@
   {
     "name": "徹甲蟲-雄蟲的體液",
     "nameEn": "Drone Substance",
-    "rarity": 3,
+    "rarity": "3",
     "source": "徹甲蟲",
     "description": "這種油狀物質可以塗抹在一個中型或更小的生物皮膚上。塗抹物質需要 1 分鐘。受影響的生物在 1 小時內的魅力（遊說）檢定具有優勢。在此期間，如果它試圖用魔法或類法術能力魅惑生物，目標生物的豁免檢定具有劣勢。詛咒：當塗抹在生物身上時，在城鎮地區有 10% 的機率吸引附近的徹甲蟲。在野外則有 50% 的機率吸引附近的徹甲蟲。",
     "weaponDecoration": true,
@@ -1944,38 +1944,38 @@
   {
     "name": "徹甲蟲-魔物體液",
     "nameEn": "Monster Fluid",
-    "rarity": 3,
+    "rarity": "3",
     "source": "徹甲蟲"
   },
   {
     "name": "徹甲蟲的角",
     "nameEn": "Seltas Horn",
-    "rarity": 3,
+    "rarity": "3",
     "source": "徹甲蟲",
     "weaponDecoration": true
   },
   {
     "name": "幼白兔獸的毛",
     "nameEn": "Lagombi Kit Pelt",
-    "rarity": 2,
+    "rarity": "2",
     "source": "幼白兔獸"
   },
   {
     "name": "幼白兔獸的爪",
     "nameEn": "Lagombi Kit Claw",
-    "rarity": 2,
+    "rarity": "2",
     "source": "幼白兔獸"
   },
   {
     "name": "幼白兔獸的耳",
     "nameEn": "Lagombi Kit Ear",
-    "rarity": 2,
+    "rarity": "2",
     "source": "幼白兔獸"
   },
   {
     "name": "棘龍的甲殼",
     "nameEn": "Espinas Shell",
-    "rarity": 12,
+    "rarity": "12",
     "source": "棘龍",
     "weaponDecoration": true,
     "armorDecoration": true
@@ -1983,7 +1983,7 @@
   {
     "name": "棘龍的堅殼",
     "nameEn": "Espinas Carapace",
-    "rarity": 12,
+    "rarity": "12",
     "source": "棘龍",
     "weaponDecoration": true,
     "armorDecoration": true
@@ -1991,7 +1991,7 @@
   {
     "name": "棘龍的角",
     "nameEn": "Espinas Horn",
-    "rarity": 12,
+    "rarity": "12",
     "source": "棘龍",
     "weaponDecoration": true,
     "armorDecoration": true,
@@ -2007,7 +2007,7 @@
   {
     "name": "棘龍的毒血",
     "nameEn": "Espinas Poison Blood",
-    "rarity": 12,
+    "rarity": "12",
     "source": "棘龍",
     "weaponDecoration": true,
     "armorDecoration": true
@@ -2015,7 +2015,7 @@
   {
     "name": "棘龍的尾巴",
     "nameEn": "Espinas Tail",
-    "rarity": 12,
+    "rarity": "12",
     "source": "棘龍",
     "weaponDecoration": true,
     "armorDecoration": true
@@ -2023,7 +2023,7 @@
   {
     "name": "毒怪龍的皮",
     "nameEn": "Gigginox Hide",
-    "rarity": 10,
+    "rarity": "10",
     "source": "毒怪龍",
     "weaponDecoration": true,
     "armorDecoration": true
@@ -2031,7 +2031,7 @@
   {
     "name": "毒怪龍-不祥的皮",
     "nameEn": "Uncanny Hide",
-    "rarity": 10,
+    "rarity": "10",
     "source": "毒怪龍",
     "weaponDecoration": true,
     "armorDecoration": true
@@ -2039,7 +2039,7 @@
   {
     "name": "毒怪龍的爪",
     "nameEn": "Gigginox Talon",
-    "rarity": 10,
+    "rarity": "10",
     "source": "毒怪龍",
     "weaponDecoration": true,
     "armorDecoration": true
@@ -2047,7 +2047,7 @@
   {
     "name": "毒怪龍-可怖的嘴",
     "nameEn": "Fearsome Maw",
-    "rarity": 10,
+    "rarity": "10",
     "source": "毒怪龍",
     "weaponDecoration": true,
     "armorDecoration": true,
@@ -2063,7 +2063,7 @@
   {
     "name": "毒怪龍-污穢的毒腺",
     "nameEn": "Foul Venom Gland",
-    "rarity": 10,
+    "rarity": "10",
     "source": "毒怪龍",
     "weaponDecoration": true,
     "armorDecoration": true
@@ -2071,7 +2071,7 @@
   {
     "name": "熔岩龍的鱗",
     "nameEn": "Lavasioth Scale",
-    "rarity": 13,
+    "rarity": "13",
     "source": "熔岩龍",
     "weaponDecoration": true,
     "armorDecoration": true,
@@ -2092,7 +2092,7 @@
   {
     "name": "熔岩龍的堅殼",
     "nameEn": "Lavasioth Carapace",
-    "rarity": 13,
+    "rarity": "13",
     "source": "熔岩龍",
     "armorDecoration": true,
     "decorationEffects": {
@@ -2104,7 +2104,7 @@
   {
     "name": "熔岩龍的銳牙",
     "nameEn": "Lavasioth Fang",
-    "rarity": 13,
+    "rarity": "13",
     "source": "熔岩龍",
     "weaponDecoration": true,
     "armorDecoration": true,
@@ -2120,7 +2120,7 @@
   {
     "name": "熔岩龍的特上鰭",
     "nameEn": "Lavasioth Fin",
-    "rarity": 13,
+    "rarity": "13",
     "source": "熔岩龍",
     "weaponDecoration": true,
     "armorDecoration": true,
@@ -2142,7 +2142,7 @@
   {
     "name": "熔岩龍的寶玉",
     "nameEn": "Lavasioth Gem",
-    "rarity": 13,
+    "rarity": "13",
     "source": "熔岩龍",
     "weaponDecoration": true,
     "armorDecoration": true
@@ -2150,7 +2150,7 @@
   {
     "name": "黑轟龍的厚鱗",
     "nameEn": "Brute Tigrex Shard",
-    "rarity": 20,
+    "rarity": "20",
     "source": "黑轟龍",
     "description": "轟龍的詛咒 (Curse of the Tigrex)：所有轟龍素材都帶有詛咒。與鑲嵌有該素材的防具或武器同調會將詛咒延伸至你身上。只要你受到詛咒，你會處於以下效應中：你不願意與該武器或防具分開，始終將其保持在觸手可及的範圍內。除非在你能看見或聽見的 60 呎內沒有敵人，否則你使用這把武器以外的武器進行的攻擊檢定具有劣勢。根據 GM 的決定，每當敵對生物對你造成傷害時，GM 可以讓你進行一次 DC 15 感知豁免。若豁免失敗，你會陷入狂暴 (berserk) 狀態。你的防具或武器中每多鑲嵌一件轟龍素材，DC 就增加 1。在狂暴期間，你必須在每輪使用動作以你的武器攻擊距離你最近的生物。如果你能在攻擊動作中進行額外攻擊，你會使用這些額外攻擊，並在擊倒當前目標後移動去攻擊下一個最近的生物。如果有多個可能的目標，你隨機攻擊其中一個。你將持續處於狂暴狀態，直到你在你能看見或聽見的 60 呎內沒有生物時開始你的回合。",
     "weaponDecoration": true,
@@ -2167,7 +2167,7 @@
   {
     "name": "黑轟龍的剛爪",
     "nameEn": "Brute Tigrex Hardclaw",
-    "rarity": 20,
+    "rarity": "20",
     "source": "黑轟龍",
     "description": "轟龍的詛咒 (Curse of the Tigrex)：所有轟龍素材都帶有詛咒。與鑲嵌有該素材的防具或武器同調會將詛咒延伸至你身上。只要你受到詛咒，你會處於以下效應中：你不願意與該武器或防具分開，始終將其保持在觸手可及的範圍內。除非在你能看見或聽見的 60 呎內沒有敵人，否則你使用這把武器以外的武器進行的攻擊檢定具有劣勢。根據 GM 的決定，每當敵對生物對你造成傷害時，GM 可以讓你進行一次 DC 15 感知豁免。若豁免失敗，你會陷入狂暴 (berserk) 狀態。你的防具或武器中每多鑲嵌一件轟龍素材，DC 就增加 1。在狂暴期間，你必須在每輪使用動作以你的武器攻擊距離你最近的生物。如果你能在攻擊動作中進行額外攻擊，你會使用這些額外攻擊，並在擊倒當前目標後移動去攻擊下一個最近的生物。如果有多個可能的目標，你隨機攻擊其中一個。你將持續處於狂暴狀態，直到你在你能看見或聽見的 60 呎內沒有生物時開始你的回合。",
     "weaponDecoration": true,
@@ -2184,7 +2184,7 @@
   {
     "name": "黑轟龍的重殼",
     "nameEn": "Brute Tigrex Cortex",
-    "rarity": 20,
+    "rarity": "20",
     "source": "黑轟龍",
     "description": "轟龍的詛咒 (Curse of the Tigrex)：所有轟龍素材都帶有詛咒。與鑲嵌有該素材的防具或武器同調會將詛咒延伸至你身上。只要你受到詛咒，你會處於以下效應中：你不願意與該武器或防具分開，始終將其保持在觸手可及的範圍內。除非在你能看見或聽見的 60 呎內沒有敵人，否則你使用這把武器以外的武器進行的攻擊檢定具有劣勢。根據 GM 的決定，每當敵對生物對你造成傷害時，GM 可以讓你進行一次 DC 15 感知豁免。若豁免失敗，你會陷入狂暴 (berserk) 狀態。你的防具或武器中每多鑲嵌一件轟龍素材，DC 就增加 1。在狂暴期間，你必須在每輪使用動作以你的武器攻擊距離你最近的生物。如果你能在攻擊動作中進行額外攻擊，你會使用這些額外攻擊，並在擊倒當前目標後移動去攻擊下一個最近的生物。如果有多個可能的目標，你隨機攻擊其中一個。你將持續處於狂暴狀態，直到你在你能看見或聽見的 60 呎內沒有生物時開始你的回合。",
     "weaponDecoration": true,
@@ -2201,7 +2201,7 @@
   {
     "name": "黑轟龍的韌尾",
     "nameEn": "Brute Tigrex Lash",
-    "rarity": 20,
+    "rarity": "20",
     "source": "黑轟龍",
     "description": "轟龍的詛咒 (Curse of the Tigrex)：所有轟龍素材都帶有詛咒。與鑲嵌有該素材的防具或武器同調會將詛咒延伸至你身上。只要你受到詛咒，你會處於以下效應中：你不願意與該武器或防具分開，始終將其保持在觸手可及的範圍內。除非在你能看見或聽見的 60 呎內沒有敵人，否則你使用這把武器以外的武器進行的攻擊檢定具有劣勢。根據 GM 的決定，每當敵對生物對你造成傷害時，GM 可以讓你進行一次 DC 15 感知豁免。若豁免失敗，你會陷入狂暴 (berserk) 狀態。你的防具或武器中每多鑲嵌一件轟龍素材，DC 就增加 1。在狂暴期間，你必須在每輪使用動作以你的武器攻擊距離你最近的生物。如果你能在攻擊動作中進行額外攻擊，你會使用這些額外攻擊，並在擊倒當前目標後移動去攻擊下一個最近的生物。如果有多個可能的目標，你隨機攻擊其中一個。你將持續處於狂暴狀態，直到你在你能看見或聽見的 60 呎內沒有生物時開始你的回合。",
     "weaponDecoration": true,
@@ -2218,7 +2218,7 @@
   {
     "name": "黑轟龍的重牙",
     "nameEn": "Brute Tigrex Hardfang",
-    "rarity": 20,
+    "rarity": "20",
     "source": "黑轟龍",
     "description": "轟龍的詛咒 (Curse of the Tigrex)：所有轟龍素材都帶有詛咒。與鑲嵌有該素材的防具或武器同調會將詛咒延伸至你身上。只要你受到詛咒，你會處於以下效應中：你不願意與該武器或防具分開，始終將其保持在觸手可及的範圍內。除非在你能看見或聽見的 60 呎內沒有敵人，否則你使用這把武器以外的武器進行的攻擊檢定具有劣勢。根據 GM 的決定，每當敵對生物對你造成傷害時，GM 可以讓你進行一次 DC 15 感知豁免。若豁免失敗，你會陷入狂暴 (berserk) 狀態。你的防具或武器中每多鑲嵌一件轟龍素材，DC 就增加 1。在狂暴期間，你必須在每輪使用動作以你的武器攻擊距離你最近的生物。如果你能在攻擊動作中進行額外攻擊，你會使用這些額外攻擊，並在擊倒當前目標後移動去攻擊下一個最近的生物。如果有多個可能的目標，你隨機攻擊其中一個。你將持續處於狂暴狀態，直到你在你能看見或聽見的 60 呎內沒有生物時開始你的回合。",
     "weaponDecoration": true,
@@ -2238,7 +2238,7 @@
   {
     "name": "黑轟龍-轟龍的天鱗",
     "nameEn": "Tigrex Mantle",
-    "rarity": 20,
+    "rarity": "20",
     "source": "黑轟龍",
     "description": "轟龍的詛咒 (Curse of the Tigrex)：所有轟龍素材都帶有詛咒。與鑲嵌有該素材的防具或武器同調會將詛咒延伸至你身上。只要你受到詛咒，你會處於以下效應中：你不願意與該武器或防具分開，始終將其保持在觸手可及的範圍內。除非在你能看見或聽見的 60 呎內沒有敵人，否則你使用這把武器以外的武器進行的攻擊檢定具有劣勢。根據 GM 的決定，每當敵對生物對你造成傷害時，GM 可以讓你進行一次 DC 15 感知豁免。若豁免失敗，你會陷入狂暴 (berserk) 狀態。你的防具或武器中每多鑲嵌一件轟龍素材，DC 就增加 1。在狂暴期間，你必須在每輪使用動作以你的武器攻擊距離你最近的生物。如果你能在攻擊動作中進行額外攻擊，你會使用這些額外攻擊，並在擊倒當前目標後移動去攻擊下一個最近的生物。如果有多個可能的目標，你隨機攻擊其中一個。你將持續處於狂暴狀態，直到你在你能看見或聽見的 60 呎內沒有生物時開始你的回合。",
     "weaponDecoration": true,
@@ -2260,7 +2260,7 @@
   {
     "name": "岩龍的甲殼",
     "nameEn": "Basarios Shell",
-    "rarity": 6,
+    "rarity": "6",
     "source": "岩龍",
     "weaponDecoration": true,
     "armorDecoration": true,
@@ -2276,7 +2276,7 @@
   {
     "name": "岩龍的毒袋",
     "nameEn": "B.Poison Sac",
-    "rarity": 6,
+    "rarity": "6",
     "source": "岩龍",
     "weaponDecoration": true,
     "armorDecoration": true
@@ -2284,7 +2284,7 @@
   {
     "name": "岩龍的翼",
     "nameEn": "Basarios Wing",
-    "rarity": 6,
+    "rarity": "6",
     "source": "岩龍",
     "weaponDecoration": true,
     "armorDecoration": true
@@ -2292,7 +2292,7 @@
   {
     "name": "岩龍的堅殼",
     "nameEn": "Basarios Carapace",
-    "rarity": 6,
+    "rarity": "6",
     "source": "岩龍",
     "weaponDecoration": true,
     "armorDecoration": true
@@ -2300,7 +2300,7 @@
   {
     "name": "骸龍的皮",
     "nameEn": "Nakarkos Hide",
-    "rarity": 20,
+    "rarity": "20",
     "source": "骸龍",
     "weaponDecoration": true,
     "armorDecoration": true,
@@ -2321,7 +2321,7 @@
   {
     "name": "骸龍的腕甲",
     "nameEn": "Nakarkos Arm Brace",
-    "rarity": 20,
+    "rarity": "20",
     "source": "骸龍",
     "weaponDecoration": true,
     "armorDecoration": true,
@@ -2337,14 +2337,14 @@
   {
     "name": "骸龍-發光黏液",
     "nameEn": "Radiant Mucus",
-    "rarity": 20,
+    "rarity": "20",
     "source": "骸龍",
     "weaponDecoration": true
   },
   {
     "name": "骸龍的烏賊骨",
     "nameEn": "Nakarkos Cuttlebone",
-    "rarity": 20,
+    "rarity": "20",
     "source": "骸龍",
     "weaponDecoration": true,
     "armorDecoration": true,
@@ -2360,14 +2360,14 @@
   {
     "name": "骸龍的牙",
     "nameEn": "Nakarkos Fang",
-    "rarity": 20,
+    "rarity": "20",
     "source": "骸龍",
     "weaponDecoration": true
   },
   {
     "name": "骸龍的魂玉",
     "nameEn": "Nakarkos Soul Orb",
-    "rarity": 20,
+    "rarity": "20",
     "source": "骸龍",
     "weaponDecoration": true,
     "armorDecoration": true,
@@ -2383,7 +2383,7 @@
   {
     "name": "鎧龍的堅殼",
     "nameEn": "Gravios Carapace",
-    "rarity": 15,
+    "rarity": "15",
     "source": "鎧龍",
     "weaponDecoration": true,
     "armorDecoration": true
@@ -2391,7 +2391,7 @@
   {
     "name": "鎧龍的甲殼",
     "nameEn": "Gravios Shell",
-    "rarity": 15,
+    "rarity": "15",
     "source": "鎧龍",
     "weaponDecoration": true,
     "armorDecoration": true
@@ -2399,7 +2399,7 @@
   {
     "name": "鎧龍-爆炎袋",
     "nameEn": "Inferno Sac",
-    "rarity": 15,
+    "rarity": "15",
     "source": "鎧龍",
     "weaponDecoration": true,
     "armorDecoration": true
@@ -2407,7 +2407,7 @@
   {
     "name": "鎧龍的睡眠袋",
     "nameEn": "G.Sleep Sac",
-    "rarity": 15,
+    "rarity": "15",
     "source": "鎧龍",
     "weaponDecoration": true,
     "armorDecoration": true
@@ -2415,7 +2415,7 @@
   {
     "name": "鎧龍的頭殼",
     "nameEn": "Gravios Scalp",
-    "rarity": 15,
+    "rarity": "15",
     "source": "鎧龍",
     "weaponDecoration": true,
     "armorDecoration": true
@@ -2423,7 +2423,7 @@
   {
     "name": "鎧龍的翼",
     "nameEn": "Gravios Wing",
-    "rarity": 15,
+    "rarity": "15",
     "source": "鎧龍",
     "weaponDecoration": true,
     "armorDecoration": true
@@ -2431,14 +2431,14 @@
   {
     "name": "鎧龍的延髓",
     "nameEn": "Gravios Medulla",
-    "rarity": 15,
+    "rarity": "15",
     "source": "鎧龍",
     "armorDecoration": true
   },
   {
     "name": "鎧龍的寶玉",
     "nameEn": "Gravios Gem",
-    "rarity": 15,
+    "rarity": "15",
     "source": "鎧龍",
     "weaponDecoration": true,
     "armorDecoration": true
@@ -2446,7 +2446,7 @@
   {
     "name": "鎧龍-獄炎石",
     "nameEn": "Firecell Stone",
-    "rarity": 15,
+    "rarity": "15",
     "source": "鎧龍",
     "weaponDecoration": true,
     "armorDecoration": true
@@ -2454,7 +2454,7 @@
   {
     "name": "紅蓮爆鱗龍-爆鱗龍的厚鱗",
     "nameEn": "Bazelgeuse Shard",
-    "rarity": 22,
+    "rarity": "22",
     "source": "紅蓮爆鱗龍",
     "weaponDecoration": true,
     "armorDecoration": true
@@ -2462,7 +2462,7 @@
   {
     "name": "紅蓮爆鱗龍-閃爍的銀殼",
     "nameEn": "Flickering Silvershell",
-    "rarity": 22,
+    "rarity": "22",
     "source": "紅蓮爆鱗龍",
     "weaponDecoration": true,
     "armorDecoration": true
@@ -2470,7 +2470,7 @@
   {
     "name": "紅蓮爆鱗龍-爆鱗龍的剛爪",
     "nameEn": "Bazelgeuse Hardclaw",
-    "rarity": 22,
+    "rarity": "22",
     "source": "紅蓮爆鱗龍",
     "weaponDecoration": true,
     "armorDecoration": true
@@ -2478,7 +2478,7 @@
   {
     "name": "紅蓮爆鱗龍-濃縮的爆腺液",
     "nameEn": "Distilled Blast Fluid",
-    "rarity": 22,
+    "rarity": "22",
     "source": "紅蓮爆鱗龍",
     "weaponDecoration": true,
     "armorDecoration": true
@@ -2486,7 +2486,7 @@
   {
     "name": "紅蓮爆鱗龍-灼熱的銀翼",
     "nameEn": "Scorching Silverwing",
-    "rarity": 22,
+    "rarity": "22",
     "source": "紅蓮爆鱗龍",
     "weaponDecoration": true,
     "armorDecoration": true
@@ -2494,7 +2494,7 @@
   {
     "name": "紅蓮爆鱗龍-爆鱗龍的韌尾",
     "nameEn": "Bazelgeuse Flail",
-    "rarity": 22,
+    "rarity": "22",
     "source": "紅蓮爆鱗龍",
     "weaponDecoration": true,
     "armorDecoration": true
@@ -2502,7 +2502,7 @@
   {
     "name": "紅蓮爆鱗龍-紅蓮玉",
     "nameEn": "Seething Gem",
-    "rarity": 22,
+    "rarity": "22",
     "source": "紅蓮爆鱗龍",
     "weaponDecoration": true,
     "armorDecoration": true
@@ -2510,7 +2510,7 @@
   {
     "name": "棘茶龍的厚鱗",
     "nameEn": "Flaming Espinas Shard",
-    "rarity": 15,
+    "rarity": "15",
     "source": "棘茶龍",
     "weaponDecoration": true,
     "armorDecoration": true
@@ -2518,7 +2518,7 @@
   {
     "name": "棘茶龍的重殼",
     "nameEn": "Flaming Espinas Cortex",
-    "rarity": 15,
+    "rarity": "15",
     "source": "棘茶龍",
     "weaponDecoration": true,
     "armorDecoration": true
@@ -2526,7 +2526,7 @@
   {
     "name": "棘茶龍的濃硫酸",
     "nameEn": "Flaming Espinas Sulfur",
-    "rarity": 15,
+    "rarity": "15",
     "source": "棘茶龍",
     "weaponDecoration": true,
     "armorDecoration": true
@@ -2534,7 +2534,7 @@
   {
     "name": "棘茶龍的韌尾",
     "nameEn": "Flaming Espinas Lash",
-    "rarity": 15,
+    "rarity": "15",
     "source": "棘茶龍",
     "weaponDecoration": true,
     "armorDecoration": true
@@ -2542,7 +2542,7 @@
   {
     "name": "棘茶龍的秘棘",
     "nameEn": "Flaming Espinas Surspike",
-    "rarity": 15,
+    "rarity": "15",
     "source": "棘茶龍",
     "weaponDecoration": true,
     "armorDecoration": true
@@ -2550,7 +2550,7 @@
   {
     "name": "棘茶龍的天鱗",
     "nameEn": "Flaming Espinas Mantle",
-    "rarity": 15,
+    "rarity": "15",
     "source": "棘茶龍",
     "weaponDecoration": true,
     "armorDecoration": true
@@ -2558,14 +2558,14 @@
   {
     "name": "幼水生獸-未成熟的海綿質",
     "nameEn": "Immature Sponge",
-    "rarity": 0.125,
+    "rarity": "1/8",
     "source": "幼水生獸",
     "weaponDecoration": true
   },
   {
     "name": "幼水生獸的皮",
     "nameEn": "Ludroth Hide",
-    "rarity": 0.125,
+    "rarity": "1/8",
     "source": "幼水生獸",
     "armorDecoration": true
   }

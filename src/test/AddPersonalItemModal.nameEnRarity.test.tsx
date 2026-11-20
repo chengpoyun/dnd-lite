@@ -27,11 +27,11 @@ describe('AddPersonalItemModal - 英文名稱與稀有度', () => {
     expect(screen.getByText('神器')).toBeInTheDocument();
   });
 
-  it('切換類別為 MH素材時，稀有度改為數字輸入框', () => {
+  it('切換類別為 MH素材時，稀有度（CR）改為文字輸入框', () => {
     render(<AddPersonalItemModal isOpen onClose={onClose} onSubmit={onSubmit} />);
     fireEvent.change(screen.getByDisplayValue('裝備'), { target: { value: 'MH素材' } });
     const input = screen.getByPlaceholderText('CR');
-    expect(input).toHaveAttribute('type', 'number');
+    expect(input).toHaveAttribute('type', 'text');
   });
 
   it('填寫名稱、英文名稱、稀有度後送出，data 帶有 name_en 與 rarity', async () => {

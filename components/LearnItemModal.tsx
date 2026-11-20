@@ -32,7 +32,7 @@ function getItemView(item: CatalogItem) {
         nameEn: item.entry.nameEn || null,
         category: 'MH素材',
         source: item.entry.source,
-        rarity: item.entry.rarity != null ? String(item.entry.rarity) : null,
+        rarity: item.entry.rarity,
         isMagic: false,
         description: item.entry.description ?? '',
       }

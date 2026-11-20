@@ -25,11 +25,10 @@ function toCatalogEffects(db) {
 }
 
 function playerItem(r) {
-  const rarity = Number(r.rarity_override);
   const item = {
     name: r.name_override,
     nameEn: r.name_en_override || '',
-    rarity: isBlank(r.rarity_override) || Number.isNaN(rarity) ? null : rarity,
+    rarity: isBlank(r.rarity_override) ? null : String(r.rarity_override),
   };
   if (r.source_override) item.source = r.source_override;
   if (r.description_override) item.description = r.description_override;

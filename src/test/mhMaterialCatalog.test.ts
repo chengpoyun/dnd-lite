@@ -82,7 +82,7 @@ describe('mhMaterialCatalog', () => {
     });
 
     it('rarity（CR 數字）會轉成文字帶入 payload 的 rarity', () => {
-      const entry: MHMaterialDef = { name: '藥草', nameEn: 'Herb', rarity: 35, source: '採集' };
+      const entry: MHMaterialDef = { name: '藥草', nameEn: 'Herb', rarity: '35', source: '採集' };
       const data = mhMaterialToCreateData(entry);
       expect(data.rarity).toBe('35');
     });
@@ -120,7 +120,7 @@ describe('mhMaterialCatalog', () => {
     });
 
     it('稀有度不同時，preview.rarity 顯示 old/new', () => {
-      const entry: MHMaterialDef = { name: '爆鱗龍的鱗', nameEn: 'Bazelgeuse Scale', rarity: 17, source: '採集' };
+      const entry: MHMaterialDef = { name: '爆鱗龍的鱗', nameEn: 'Bazelgeuse Scale', rarity: '17', source: '採集' };
       const preview = getMHMaterialUpdatePreview(baseItem, entry);
       expect(preview?.rarity).toEqual({ old: null, new: '17' });
     });
@@ -181,7 +181,7 @@ describe('mhMaterialCatalog', () => {
       const entry: MHMaterialDef = {
         name: '測試',
         nameEn: '',
-        rarity: 17, source: '採集',
+        rarity: '17', source: '採集',
         weaponDecoration: true,
         decorationEffects: { weapon: { note: '相同文字' } },
       };
@@ -265,7 +265,7 @@ describe('mhMaterialCatalog', () => {
       const entry: MHMaterialDef = {
         name: '爆鱗龍的尖爪',
         nameEn: 'Bazelgeuse Talon',
-        rarity: 17, source: '採集',
+        rarity: '17', source: '採集',
         weaponDecoration: true,
         armorDecoration: true,
         decorationEffects: {
@@ -370,7 +370,7 @@ describe('mhMaterialCatalog', () => {
 });
 
 describe('mhMaterialCatalog - 來源與名稱（2.16.0）', () => {
-  const entry: MHMaterialDef = { name: '紅蓮爆鱗龍-紅蓮玉', nameEn: 'Seething Gem', rarity: 22, source: '紅蓮爆鱗龍' };
+  const entry: MHMaterialDef = { name: '紅蓮爆鱗龍-紅蓮玉', nameEn: 'Seething Gem', rarity: '22', source: '紅蓮爆鱗龍' };
 
   it('mhMaterialToCreateData 會帶入 source', () => {
     expect(mhMaterialToCreateData(entry).source).toBe('紅蓮爆鱗龍');

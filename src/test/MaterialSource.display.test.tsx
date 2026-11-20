@@ -62,7 +62,7 @@ describe('獲得物品搜尋結果', () => {
   it('MH素材 顯示來源與 CR；通用道具沒有來源行', async () => {
     const mocked = ItemCatalog.searchLocalCatalog as unknown as ReturnType<typeof vi.fn>;
     const items: CatalogItem[] = [
-      { source: 'material', entry: { name: '紅蓮爆鱗龍-紅蓮玉', nameEn: 'Seething Gem', rarity: 22, source: '紅蓮爆鱗龍' } },
+      { source: 'material', entry: { name: '紅蓮爆鱗龍-紅蓮玉', nameEn: 'Seething Gem', rarity: '22', source: '紅蓮爆鱗龍' } },
       { source: 'general', entry: { name: '紅蓮藥水', category: '藥水', rarity: '稀有' } },
     ];
     mocked.mockResolvedValue(items);

@@ -17,13 +17,6 @@ const RARITY_TAG_CLASS: Record<string, string> = {
   神器: 'bg-red-900/30 border-red-700 text-red-400',
 };
 
-/** CR 的顯示文字：0.125／0.25／0.5 顯示成 D&D 慣用的分數 1/8、1/4、1/2，其他維持原樣；空值回傳空字串 */
-export function formatCr(cr: string | number | null | undefined): string {
-  if (cr === null || cr === undefined || cr === '') return '';
-  const fractions: Record<string, string> = { '0.125': '1/8', '0.25': '1/4', '0.5': '1/2' };
-  return fractions[String(cr)] ?? String(cr);
-}
-
 export interface RarityBadge {
   label: string;
   className: string;
@@ -33,7 +26,7 @@ export interface RarityBadge {
 export function getRarityBadge(category: string, rarity: string | null | undefined): RarityBadge | null {
   if (!rarity) return null;
   if (category === 'MH素材') {
-    return { label: `CR ${formatCr(rarity)}`, className: NEUTRAL_CLASS };
+    return { label: `CR ${rarity}`, className: NEUTRAL_CLASS };
   }
   return { label: rarity, className: RARITY_TAG_CLASS[rarity] ?? NEUTRAL_CLASS };
 }

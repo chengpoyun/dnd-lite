@@ -26,10 +26,17 @@ describe('AddPersonalItemModal - 來源', () => {
     expect(screen.getByText('CR')).toBeInTheDocument();
   });
 
-  it('CR 輸入框允許小數（分數 CR 如 1/8 = 0.125）', () => {
+  it('CR 是文字輸入框，輸入 1/8 會原樣送出（不轉成小數）', async () => {
     render(<AddPersonalItemModal isOpen onClose={onClose} onSubmit={onSubmit} />);
+    fireEvent.change(screen.getByPlaceholderText('輸入物品名稱'), { target: { value: '幼水生獸的皮' } });
     selectCategory('MH素材');
-    expect(screen.getByPlaceholderText('CR')).toHaveAttribute('step', 'any');
+    const cr = screen.getByPlaceholderText('CR') as HTMLInputElement;
+    expect(cr).toHaveAttribute('type', 'text');
+    fireEvent.change(cr, { target: { value: '1/8' } });
+    expect(cr.value).toBe('1/8');
+    fireEvent.click(screen.getByText('新增'));
+    await vi.waitFor(() => expect(onSubmit).toHaveBeenCalledTimes(1));
+    expect(onSubmit.mock.calls[0][0].rarity).toBe('1/8');
   });
 
   it('送出時 data.source 為 trim 後的來源；沒填則為 undefined', async () => {

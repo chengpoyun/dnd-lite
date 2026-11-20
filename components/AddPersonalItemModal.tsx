@@ -220,11 +220,10 @@ export const AddPersonalItemModal: React.FC<AddPersonalItemModalProps> = ({
               />
               <label className="text-[14px] text-slate-400 flex-shrink-0">CR</label>
               <input
-                type="number"
-                step="any"
+                type="text"
                 value={rarity}
                 onChange={(e) => setRarity(e.target.value)}
-                className="w-12 flex-shrink-0 bg-slate-800 rounded-lg border border-slate-700 px-1 py-3 text-slate-200 text-center [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none focus:outline-none focus:border-amber-500"
+                className="w-12 flex-shrink-0 bg-slate-800 rounded-lg border border-slate-700 px-1 py-3 text-slate-200 text-center focus:outline-none focus:border-amber-500"
                 placeholder="CR"
               />
             </div>

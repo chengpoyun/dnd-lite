@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { scanMHMaterials, normalizeEnName } from '../../scripts/lib/mhCatalogScan.mjs';
 
 const catalog = [
-  { name: '千刃龍的伐刀', nameEn: 'Seregios Carver', rarity: 15 },
+  { name: '千刃龍的伐刀', nameEn: 'Seregios Carver', rarity: '15' },
   { name: '空白素材', nameEn: '', rarity: null },
 ];
 
@@ -23,7 +23,7 @@ describe('scanMHMaterials：玩家素材 vs 目錄', () => {
   it('目錄沒有的素材列為新增候選並累計持有筆數', () => {
     const r = scanMHMaterials(catalog, [row({ name_override: '新素材', name_en_override: 'New Thing' }), row({ name_override: '新素材', name_en_override: 'New Thing' })]);
     expect(r.newMaterials).toHaveLength(1);
-    expect(r.newMaterials[0]).toMatchObject({ count: 2, item: { name: '新素材', nameEn: 'New Thing', rarity: 15 } });
+    expect(r.newMaterials[0]).toMatchObject({ count: 2, item: { name: '新素材', nameEn: 'New Thing', rarity: '15' } });
   });
 
   it('中文名不同但英文名相同視為已收錄，並回報別名', () => {
@@ -40,7 +40,7 @@ describe('scanMHMaterials：玩家素材 vs 目錄', () => {
     expect(r.fillable).toHaveLength(1);
     expect(r.fillable[0].catalogName).toBe('空白素材');
     expect(r.fillable[0].fields).toEqual({
-      nameEn: 'Blank', rarity: 3, description: '說明', weaponDecoration: true,
+      nameEn: 'Blank', rarity: '3', description: '說明', weaponDecoration: true,
       decorationEffects: { weapon: { note: '效果', statBonuses: { ac: 1 } } },
     });
   });
